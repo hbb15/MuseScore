@@ -269,6 +269,7 @@ ClefTypeList Staff::clefType(int tick) const
       if (ct._concertClef == ClefType::INVALID) {
             switch(staffType(tick)->group()) {
                   case StaffGroup::TAB:
+                  case StaffGroup::NUMERIC:
                         {
                         ClefType sct = ClefType(score()->styleI(Sid::tabClef));
                         ct = staffType(tick)->lines() <= 4 ?  ClefTypeList(sct == ClefType::TAB ? ClefType::TAB4 : ClefType::TAB4_SERIF) : ClefTypeList(sct == ClefType::TAB ? ClefType::TAB : ClefType::TAB_SERIF);
@@ -1090,7 +1091,7 @@ bool Staff::show() const
 
 bool Staff::genKeySig()
       {
-      if (staffType(0)->group() == StaffGroup::TAB)
+      if ((staffType(0)->group() == StaffGroup::TAB) || (staffType(0)->group() == StaffGroup::NUMERIC))
             return false;
       else
             return staffType(0)->genKeysig();
@@ -1388,7 +1389,7 @@ bool Staff::isPitchedStaff(int tick) const
 
 bool Staff::isTabStaff(int tick) const
       {
-      return staffType(tick)->group() == StaffGroup::TAB;
+      return ((staffType(tick)->group() == StaffGroup::TAB) || (staffType(tick)->group() == StaffGroup::NUMERIC));
       }
 
 //---------------------------------------------------------

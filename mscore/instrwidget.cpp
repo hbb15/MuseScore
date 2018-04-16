@@ -128,7 +128,7 @@ void StaffListItem::initStaffTypeCombo(bool forceRecreate)
       _staffTypeCombo->setAutoFillBackground(true);
       int idx = 0;
       for (const StaffType& st : StaffType::presets()) {
-            if ( (st.group() == StaffGroup::STANDARD && (!canUsePerc))    // percussion excludes standard
+            if ( (((st.group() == StaffGroup::STANDARD) || (st.group() == StaffGroup::NUMERIC)) && (!canUsePerc))    // percussion excludes standard
                         || (st.group() == StaffGroup::PERCUSSION && canUsePerc)
                         || (st.group() == StaffGroup::TAB && canUseTabs)) {
                   _staffTypeCombo->addItem(st.name(), idx);
@@ -281,6 +281,9 @@ void PartListItem::updateClefs()
                         clefType = sli->defaultClefType();
                         break;
                   case StaffGroup::TAB:
+                        clefType = ClefTypeList(ClefType::TAB);
+                        break;
+                  case StaffGroup::NUMERIC:
                         clefType = ClefTypeList(ClefType::TAB);
                         break;
                   case StaffGroup::PERCUSSION:

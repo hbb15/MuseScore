@@ -132,7 +132,7 @@ bool StaffType::operator==(const StaffType& st) const
       if (!isSameStructure(st) || st._xmlName != _xmlName) {        // common to all type groups
             return false;
             }
-      if (_group == StaffGroup::TAB) {                      // TAB-specific
+      if ((_group == StaffGroup::TAB) || (_group == StaffGroup::NUMERIC)) {                      // TAB-specific
             bool v = st._durationFontIdx  == _durationFontIdx
                && st._durationFontSize  == _durationFontSize
                && st._durationFontUserY == _durationFontUserY
@@ -165,7 +165,7 @@ bool StaffType::isSameStructure(const StaffType& st) const
       if (_group == StaffGroup::STANDARD)                   // standard specific
             if (st._noteHeadScheme != _noteHeadScheme)
                   return false;
-      if (_group != StaffGroup::TAB) {                      // common to pitched and percussion
+      if ((_group != StaffGroup::TAB) && (_group != StaffGroup::NUMERIC)) {                      // common to pitched and percussion
             return st._genKeysig      == _genKeysig
                && st._showLedgerLines == _showLedgerLines
                ;
@@ -261,6 +261,8 @@ void StaffType::read(XmlReader& e)
       QString group = e.attribute("group", fileGroupNames[(int)StaffGroup::STANDARD]);
       if (group == fileGroupNames[(int)StaffGroup::TAB])
             _group = StaffGroup::TAB;
+      else if (group == fileGroupNames[(int)StaffGroup::NUMERIC])
+            _group = StaffGroup::NUMERIC;
       else if (group == fileGroupNames[(int)StaffGroup::PERCUSSION])
             _group = StaffGroup::PERCUSSION;
       else if (group == fileGroupNames[(int)StaffGroup::STANDARD])
@@ -744,7 +746,7 @@ static const qreal      LEDGER_LINE_RIGHTX      = 0.75;     // in % of cursor re
 
 void StaffType::drawInputStringMarks(QPainter *p, int string, int voice, QRectF rect) const
       {
-      if (_group != StaffGroup::TAB)
+      if ((_group != StaffGroup::TAB) && (_group != StaffGroup::NUMERIC))
             return;
       qreal       spatium     = SPATIUM20;
       qreal       lineDist    = _lineDistance.val() * spatium;
@@ -786,7 +788,7 @@ void StaffType::drawInputStringMarks(QPainter *p, int string, int voice, QRectF 
 
 int StaffType::numOfTabLedgerLines(int string) const
       {
-      if (_group != StaffGroup::TAB || !_useNumbers)
+      if (((_group != StaffGroup::TAB) && (_group != StaffGroup::NUMERIC)) || !_useNumbers)
             return 0;
 
       int   numOfLedgers= string < 0 ? -string : string - _lines + 1;
@@ -1409,7 +1411,9 @@ void StaffType::initStaffTypes()
 //         StaffType(StaffGroup::TAB, "tab6StrItalian",QObject::tr("Tab. 6-str. Italian"),6, 2,     1.5, false, true, true,  true,  "MuseScore Tab Italian",15, 0, true,  "MuseScore Tab Renaiss",10, 0, TablatureSymbolRepeat::NEVER, true,  TablatureMinimStyle::NONE,   true,  true,  false, false, true,  false, true, false),
 //         StaffType(StaffGroup::TAB, "tab6StrFrench", QObject::tr("Tab. 6-str. French"), 6, 2,     1.5, false, true, true,  true,  "MuseScore Tab French", 15, 0, true,  "MuseScore Tab Renaiss",10, 0, TablatureSymbolRepeat::NEVER, true,  TablatureMinimStyle::NONE,   false, false, false, false, false, false, false,false)
          StaffType(StaffGroup::TAB, "tab6StrItalian",QObject::tr("Tab. 6-str. Italian"),6, 0,     1.5, false, true, true,  true,  "MuseScore Tab Italian",15, 0, true,  "MuseScore Tab Renaiss",10, 0, TablatureSymbolRepeat::NEVER, true,  TablatureMinimStyle::NONE,   true,  true,  false, false, true,  false, true, false),
-         StaffType(StaffGroup::TAB, "tab6StrFrench", QObject::tr("Tab. 6-str. French"), 6, 0,     1.5, false, true, true,  true,  "MuseScore Tab French", 15, 0, true,  "MuseScore Tab Renaiss",10, 0, TablatureSymbolRepeat::NEVER, true,  TablatureMinimStyle::NONE,   false, false, false, false, false, false, false,false)
+         StaffType(StaffGroup::TAB, "tab6StrFrench", QObject::tr("Tab. 6-str. French"), 6, 0,     1.5, false, true, true,  true,  "MuseScore Tab French", 15, 0, true,  "MuseScore Tab Renaiss",10, 0, TablatureSymbolRepeat::NEVER, true,  TablatureMinimStyle::NONE,   false, false, false, false, false, false, false,false),
+
+         StaffType(StaffGroup::NUMERIC, "numStrCommon", QObject::tr("Num. common"), 1, 0,     1.5, true,  true, false, false, "MuseScore Tab Modern", 15, 0, false, "MuseScore Tab Serif",   9, 0, TablatureSymbolRepeat::NEVER, false, TablatureMinimStyle::NONE,true,  false, true,  false, false, false, true, true),
          };
       }
 
