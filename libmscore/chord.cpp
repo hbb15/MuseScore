@@ -1644,7 +1644,7 @@ void Chord::cmdUpdateNotes(AccidentalState* as)
       // in the context of the all of the chords of the whole segment
 
       StaffGroup staffGroup = staff()->staffType(tick())->group();
-      if (staffGroup == StaffGroup::TAB) {
+      if ((staffGroup == StaffGroup::TAB) || (staffGroup == StaffGroup::NUMERIC)) {
             const Instrument* instrument = part()->instrument();
             for (Chord* ch : graceNotes())
                   instrument->stringData()->fretChords(ch);

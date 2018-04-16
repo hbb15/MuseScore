@@ -200,9 +200,9 @@ enum class UpDownMode : char {
 //---------------------------------------------------------
 
 enum class StaffGroup : char {
-      STANDARD, PERCUSSION, TAB
+      STANDARD, PERCUSSION, TAB, NUMERIC
       };
-const int STAFF_GROUP_MAX = int(StaffGroup::TAB) + 1;      // out of enum to avoid compiler complains about not handled switch cases
+const int STAFF_GROUP_MAX = int(StaffGroup::NUMERIC) + 1;      // out of enum to avoid compiler complains about not handled switch cases
 
 enum class NoteHeadScheme : char {
       HEAD_NORMAL = 0,

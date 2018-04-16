@@ -62,7 +62,8 @@ NoteVal Score::noteValForPosition(Position pos, bool &error)
                         }
                   break;
                   }
-            case StaffGroup::TAB: {
+            case StaffGroup::TAB:
+            case StaffGroup::NUMERIC: {
                   if (_is.rest()) {
                         error = true;
                         return nval;
@@ -325,6 +326,7 @@ void Score::putNote(const Position& p, bool replace)
                   break;
                   }
             case StaffGroup::TAB:
+            case StaffGroup::NUMERIC:
                   stringData = st->part()->instrument(s->tick())->stringData();
                   _is.setDrumNote(-1);
                   break;

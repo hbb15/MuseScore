@@ -155,6 +155,7 @@ enum class StaffTypes : signed char {
       TAB_6SIMPLE, TAB_6COMMON, TAB_6FULL,
             TAB_4SIMPLE, TAB_4COMMON, TAB_4FULL,
             TAB_UKULELE, TAB_BALALAJKA, TAB_ITALIAN, TAB_FRENCH,
+            TAB_JACQUES,
       STAFF_TYPES,
       // some useful shorthands:
             PERC_DEFAULT = StaffTypes::PERC_5LINE,
@@ -389,7 +390,7 @@ class StaffType {
       QPointF chordStemPosBeam(const  Chord*) const;
       qreal   chordStemLength(const Chord*) const;
 
-      bool isTabStaff() const  { return _group == StaffGroup::TAB; }
+      bool isTabStaff() const  { return ((_group == StaffGroup::TAB) || (_group == StaffGroup::NUMERIC)); }
       bool isDrumStaff() const { return _group == StaffGroup::PERCUSSION; }
       // static functions for font config files
       static QList<QString> fontNames(bool bDuration);

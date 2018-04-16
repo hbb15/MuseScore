@@ -1346,6 +1346,7 @@ void Score::upDown(bool up, UpDownMode mode)
                         }
                         break;
                   case StaffGroup::TAB:
+                  case StaffGroup::NUMERIC:
                         {
                         const StringData* stringData = part->instrument()->stringData();
                         switch (mode) {
@@ -1465,7 +1466,7 @@ void Score::upDown(bool up, UpDownMode mode)
 
             // store fret change only if undoChangePitch has not been called,
             // as undoChangePitch() already manages fret changes, if necessary
-            else if (staff->staffType(tick)->group() == StaffGroup::TAB) {
+            else if ((staff->staffType(tick)->group() == StaffGroup::TAB) || (staff->staffType(tick)->group() == StaffGroup::NUMERIC)) {
                   bool refret = false;
                   if (oNote->string() != string) {
                         oNote->undoChangeProperty(Pid::STRING, string);
@@ -2731,7 +2732,7 @@ void Score::cmdSlashFill()
                   int line = 0;
                   bool error = false;
                   NoteVal nv;
-                  if (staff(staffIdx)->staffType(s->tick())->group() == StaffGroup::TAB)
+                  if ((staff(staffIdx)->staffType(s->tick())->group() == StaffGroup::TAB) || (staff(staffIdx)->staffType(s->tick())->group() == StaffGroup::NUMERIC))
                         line = staff(staffIdx)->lines(s->tick()) / 2;
                   else
                         line = staff(staffIdx)->middleLine(s->tick());     // staff(staffIdx)->lines() - 1;
