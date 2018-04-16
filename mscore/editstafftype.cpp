@@ -70,7 +70,7 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
       bool bTab         = (instr != nullptr && instr->stringData() != nullptr && instr->stringData()->strings() > 0);
       int idx           = 0;
       for (const StaffType& t : StaffType::presets()) {
-            if ( (t.group() == StaffGroup::STANDARD && bStandard)
+            if ( (((t.group() == StaffGroup::STANDARD) || (t.group() == StaffGroup::NUMERIC)) && bStandard)
                         || (t.group() == StaffGroup::PERCUSSION && bPerc)
                         || (t.group() == StaffGroup::TAB && bTab))
                   templateCombo->addItem(t.name(), idx);
@@ -211,6 +211,7 @@ void EditStaffType::setValues()
                   break;
 
             case StaffGroup::TAB:
+            case StaffGroup::NUMERIC:
                   {
                   upsideDown->setChecked(staffType.upsideDown());
                   showTabFingering->setChecked(staffType.showTabFingering());
@@ -568,6 +569,9 @@ QString EditStaffType::createUniqueStaffTypeName(StaffGroup group)
                         break;
                   case StaffGroup::TAB:
                         name = QString("Tab-%1 [*]").arg(idx);
+                        break;
+                  case StaffGroup::NUMERIC:
+                        name = QString("Num-%1 [*]").arg(idx);
                         break;
                   }
             bool found = false;

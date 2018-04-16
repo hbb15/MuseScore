@@ -69,6 +69,7 @@ const ClefInfo ClefInfo::clefTable[] = {
 { "TAB4", "TAB",       5,  0,  0, { 0, 3,-1, 2, 5, 1, 4, 4, 1, 5, 2, 6, 3, 7 }, SymId::fourStringTabClef,        TR("Tablature 4 lines"),                 StaffGroup::TAB       },
 { "TAB2", "TAB",       5,  0,  0, { 0, 3,-1, 2, 5, 1, 4, 4, 1, 5, 2, 6, 3, 7 }, SymId::sixStringTabClefSerif,    TR("Tablature Serif"),                   StaffGroup::TAB       },
 { "TAB4_SERIF", "TAB", 5,  0,  0, { 0, 3,-1, 2, 5, 1, 4, 4, 1, 5, 2, 6, 3, 7 }, SymId::fourStringTabClefSerif,   TR("Tablature Serif 4 lines"),           StaffGroup::TAB       },
+{ "NUM",  "NUM",       1,  0,  0, { 0, 3,-1, 2, 5, 1, 4, 4, 1, 5, 2, 6, 3, 7 }, SymId::sixStringTabClef,         TR("Numbers"),                           StaffGroup::NUMERIC   },
       };
 #undef TR
 

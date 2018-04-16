@@ -167,6 +167,8 @@ const InstrumentTemplate* findClosestInstrument(const MTrack &track)
             for (const InstrumentTemplate *templ: group->instrumentTemplates) {
                   if (templ->staffGroup == StaffGroup::TAB)
                         continue;
+                  if (templ->staffGroup == StaffGroup::NUMERIC)
+                        continue;
                   const bool isDrumTemplate = templ->useDrumset;
                   if (track.mtrack->drumTrack() != isDrumTemplate)
                         continue;
@@ -195,6 +197,8 @@ std::vector<const InstrumentTemplate *> findInstrumentsForProgram(const MTrack &
       for (const InstrumentGroup *group: instrumentGroups) {
             for (const InstrumentTemplate *templ: group->instrumentTemplates) {
                   if (templ->staffGroup == StaffGroup::TAB)
+                        continue;
+                  if (templ->staffGroup == StaffGroup::NUMERIC)
                         continue;
                   const bool isDrumTemplate = templ->useDrumset;
                   if (track.mtrack->drumTrack() != isDrumTemplate)
