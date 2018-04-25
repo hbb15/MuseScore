@@ -1644,7 +1644,7 @@ void Chord::cmdUpdateNotes(AccidentalState* as)
       // in the context of the all of the chords of the whole segment
 
       StaffGroup staffGroup = staff()->staffType(tick())->group();
-      if ((staffGroup == StaffGroup::TAB) || (staffGroup == StaffGroup::NUMERIC)) {
+      if (staffGroup == StaffGroup::TAB) {
             const Instrument* instrument = part()->instrument();
             for (Chord* ch : graceNotes())
                   instrument->stringData()->fretChords(ch);
@@ -1688,6 +1688,14 @@ void Chord::cmdUpdateNotes(AccidentalState* as)
                   qWarning("no drumset");
             updatePercussionNotes(this, drumset);
             }
+      else if (staffGroup == StaffGroup::NUMERIC) {
+            // ToDo
+            const Instrument* instrument = part()->instrument();
+            const Drumset* drumset = instrument->drumset();
+            if (!drumset)
+                  qWarning("no drumset");
+            updatePercussionNotes(this, drumset);
+            }
 
       sortNotes();
       }
@@ -1722,7 +1730,7 @@ void Chord::layout()
       {
       if (_notes.empty())
             return;
-      if (staff() && staff()->isTabStaff(tick()))
+      if (staff() && (staff()->isTabStaff(tick()) || staff()->isNumericStaff(tick())))
             layoutTablature();
       else
             layoutPitched();

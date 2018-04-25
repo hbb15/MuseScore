@@ -209,6 +209,7 @@ class Staff final : public ScoreElement {
 
       bool isPitchedStaff(int tick) const;
       bool isTabStaff(int tick) const;
+      bool isNumericStaff(int tick) const;
       bool isDrumStaff(int tick) const;
 
       int lines(int tick) const;

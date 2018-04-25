@@ -1398,8 +1398,18 @@ bool Staff::isPitchedStaff(int tick) const
 
 bool Staff::isTabStaff(int tick) const
       {
-      return ((staffType(tick)->group() == StaffGroup::TAB) || (staffType(tick)->group() == StaffGroup::NUMERIC));
+      return staffType(tick)->group() == StaffGroup::TAB;
       }
+
+//---------------------------------------------------------
+//   isNumericStaff
+//---------------------------------------------------------
+
+bool Staff::isNumericStaff(int tick) const
+      {
+      return staffType(tick)->group() == StaffGroup::NUMERIC;
+      }
+
 
 //---------------------------------------------------------
 //   isDrumStaff

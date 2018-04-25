@@ -1346,7 +1346,6 @@ void Score::upDown(bool up, UpDownMode mode)
                         }
                         break;
                   case StaffGroup::TAB:
-                  case StaffGroup::NUMERIC:
                         {
                         const StringData* stringData = part->instrument()->stringData();
                         switch (mode) {
@@ -1398,6 +1397,7 @@ void Score::upDown(bool up, UpDownMode mode)
                         }
                         break;
                   case StaffGroup::STANDARD:
+                  case StaffGroup::NUMERIC:
                         switch (mode) {
                               case UpDownMode::OCTAVE:
                                     if (up) {
@@ -1466,7 +1466,7 @@ void Score::upDown(bool up, UpDownMode mode)
 
             // store fret change only if undoChangePitch has not been called,
             // as undoChangePitch() already manages fret changes, if necessary
-            else if ((staff->staffType(tick)->group() == StaffGroup::TAB) || (staff->staffType(tick)->group() == StaffGroup::NUMERIC)) {
+            else if (staff->staffType(tick)->group() == StaffGroup::TAB) {
                   bool refret = false;
                   if (oNote->string() != string) {
                         oNote->undoChangeProperty(Pid::STRING, string);

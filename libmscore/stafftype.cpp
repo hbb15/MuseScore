@@ -36,10 +36,11 @@ QList<TablatureDurationFont> StaffType::_durationFonts  = QList<TablatureDuratio
 const char StaffType::groupNames[STAFF_GROUP_MAX][STAFF_GROUP_NAME_MAX_LENGTH] = {
       QT_TRANSLATE_NOOP("Staff type group name", "Standard"),
       QT_TRANSLATE_NOOP("Staff type group name", "Percussion"),
-      QT_TRANSLATE_NOOP("Staff type group name", "Tablature")
+      QT_TRANSLATE_NOOP("Staff type group name", "Tablature"),
+      QT_TRANSLATE_NOOP("Staff type group name", "Numeric"),
       };
 
-const QString StaffType::fileGroupNames[STAFF_GROUP_MAX] = { "pitched", "percussion", "tablature" };
+const QString StaffType::fileGroupNames[STAFF_GROUP_MAX] = { "pitched", "percussion", "tablature", "numeric" };
 
 //---------------------------------------------------------
 //   StaffType
@@ -1297,7 +1298,8 @@ bool StaffType::fontData(bool bDuration, int nIdx, QString* pFamily, QString* pD
 static const int _defaultPreset[STAFF_GROUP_MAX] =
       { 0,              // default pitched preset is "stdNormal"
         3,              // default percussion preset is "perc5lines"
-        5               // default tab preset is "tab6StrCommon"
+        5,              // default tab preset is "tab6StrCommon"
+        5               // default num preset is "tab6StrCommon"
       };
 
 static const QString _emptyString = QString();
