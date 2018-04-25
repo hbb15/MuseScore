@@ -95,6 +95,8 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
 
       if (staff->isTabStaff(segment->tick()))
             return;
+      if (staff->isNumericStaff(segment->tick()))
+            return;
 
       std::vector<Note*> upStemNotes;
       std::vector<Note*> downStemNotes;
@@ -2109,6 +2111,9 @@ void Score::createBeams(Measure* measure)
 
             // dont compute beams for invisible staffs and tablature without stems
             if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->slashStyle()))
+                  continue;
+            // numeric staffs dont have beams
+            if (stf->isNumericStaff(measure->tick()))
                   continue;
 
             ChordRest* a1    = 0;      // start of (potential) beam

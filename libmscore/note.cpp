@@ -1090,6 +1090,36 @@ void Note::draw(QPainter* painter) const
             painter->drawText(QPointF(bbox().x(), tab->fretFontYOffset()), _fretString);
             }
 
+          else if (staff() && staff()->isNumericStaff(chord()->tick())) {
+                StaffType* tab = staff()->staffType(tick());
+                // draw background, if required (to hide a segment of string line or to show a fretting conflict)
+                if (!tab->linesThrough() || fretConflict()) {
+                      qreal d  = spatium() * .1;
+                      QRectF bb = QRectF(bbox().x()-d, tab->fretMaskY() * magS(), bbox().width() + 2 * d, tab->fretMaskH()*magS());
+                      // we do not know which viewer did this draw() call
+                      // so update all:
+                      if (!score()->getViewer().empty()) {
+                            for (MuseScoreView* view : score()->getViewer())
+                                  view->drawBackground(painter, bb);
+                            }
+                      else
+                            painter->fillRect(bb, Qt::white);
+
+                      if (fretConflict() && !score()->printing() && score()->showUnprintable()) {          //on fret conflict, draw on red background
+                            painter->save();
+                            painter->setPen(Qt::red);
+                            painter->setBrush(QBrush(QColor(Qt::red)));
+                            painter->drawRect(bb);
+                            painter->restore();
+                            }
+                      }
+                QFont f(tab->fretFont());
+                f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
+                painter->setFont(f);
+                painter->setPen(c);
+                painter->drawText(QPointF(bbox().x(), tab->fretFontYOffset()), _fretString);
+                }
+
       // NOT tablature
 
       else {
@@ -1944,6 +1974,9 @@ void Note::layout()
                   _fretString = QString("(%1)").arg(_fretString);
             qreal w = tabHeadWidth(tab); // !! use _fretString
             bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
+            }
+      else if (staff() && staff()->isNumericStaff(chord()->tick())) {
+            _fretString = "5";
             }
       else {
             SymId nh = noteHead();

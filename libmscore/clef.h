@@ -69,6 +69,7 @@ enum class ClefType : signed char {
       TAB4,
       TAB_SERIF,
       TAB4_SERIF,
+      NUM,
       MAX
       };
 
