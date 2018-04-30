@@ -1090,37 +1090,17 @@ void Note::draw(QPainter* painter) const
             painter->drawText(QPointF(bbox().x(), tab->fretFontYOffset()), _fretString);
             }
 
-          else if (staff() && staff()->isNumericStaff(chord()->tick())) {
-                StaffType* tab = staff()->staffType(tick());
-                // draw background, if required (to hide a segment of string line or to show a fretting conflict)
-                if (!tab->linesThrough() || fretConflict()) {
-                      qreal d  = spatium() * .1;
-                      QRectF bb = QRectF(bbox().x()-d, tab->fretMaskY() * magS(), bbox().width() + 2 * d, tab->fretMaskH()*magS());
-                      // we do not know which viewer did this draw() call
-                      // so update all:
-                      if (!score()->getViewer().empty()) {
-                            for (MuseScoreView* view : score()->getViewer())
-                                  view->drawBackground(painter, bb);
-                            }
-                      else
-                            painter->fillRect(bb, Qt::white);
+      else if (staff() && staff()->isNumericStaff(chord()->tick())) {
+            StaffType* tab = staff()->staffType(tick());
 
-                      if (fretConflict() && !score()->printing() && score()->showUnprintable()) {          //on fret conflict, draw on red background
-                            painter->save();
-                            painter->setPen(Qt::red);
-                            painter->setBrush(QBrush(QColor(Qt::red)));
-                            painter->drawRect(bb);
-                            painter->restore();
-                            }
-                      }
-                QFont f(tab->fretFont());
-                f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
-                painter->setFont(f);
-                painter->setPen(c);
-                painter->drawText(QPointF(bbox().x(), tab->fretFontYOffset()), _fretString);
-                }
+            QFont f(tab->fretFont());
+            f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
+            painter->setFont(f);
+            painter->setPen(c);
+            painter->drawText(QPointF(bbox().x(), tab->fretFontYOffset()), _fretString);
+            }
 
-      // NOT tablature
+      // NOT tablature and Numeric
 
       else {
             // skip drawing, if second note of a cross-measure value
@@ -2022,6 +2002,24 @@ void Note::layout2()
             qreal w = tabHeadWidth(tab); // !! use _fretString
             bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
             }
+      else if (staff()->isNumericStaff(chord()->tick())) {
+            adjustReadPos();
+            StaffType* tab = staff()->staffType(tick());
+            qreal mags = magS();
+            bool paren = false;
+            _fretHidden = false;
+            if (tieBack() && !tab->showBackTied() && !_fretString.startsWith("(")) {   // skip back-tied notes if not shown but between () if on another system
+                  if (chord()->measure()->system() != tieBack()->startNote()->chord()->measure()->system() || el().size() > 0)
+                        paren = true;
+                  else
+                        _fretHidden = true;
+                  }
+            if (paren)
+                  _fretString = QString("(%1)").arg(_fretString);
+            qreal w = tabHeadWidth(tab); // !! use _fretString
+            bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
+            }
+
 
       int dots = chord()->dots();
       if (dots) {
@@ -2030,6 +2028,19 @@ void Note::layout2()
             qreal x  = chord()->dotPosX() - pos().x() - chord()->pos().x();
             // if TAB and stems through staff
             if (staff()->isTabStaff(chord()->tick())) {
+                  StaffType* tab = staff()->staffType(tick());
+                  if (tab->stemThrough()) {
+                        // with TAB's, dot Y is not calculated during layoutChords3(),
+                        // as layoutChords3() is not even called for TAB's;
+                        // setDotY() actually also manages creation/deletion of NoteDot's
+                        setDotY(Direction::AUTO);
+
+                        // use TAB default note-to-dot spacing
+                        dd = STAFFTYPE_TAB_DEFAULTDOTDIST_X * spatium();
+                        d = dd * 0.5;
+                        }
+                  }
+            else if (staff()->isNumericStaff(chord()->tick())) {
                   StaffType* tab = staff()->staffType(tick());
                   if (tab->stemThrough()) {
                         // with TAB's, dot Y is not calculated during layoutChords3(),
@@ -2063,6 +2074,10 @@ void Note::layout2()
                   e->layout();
                   if (sym->sym() == SymId::noteheadParenthesisRight) {
                         if (staff()->isTabStaff(chord()->tick())) {
+                              StaffType* tab = staff()->staffType(tick());
+                              w = tabHeadWidth(tab);
+                              }
+                        else if (staff()->isNumericStaff(chord()->tick())) {
                               StaffType* tab = staff()->staffType(tick());
                               w = tabHeadWidth(tab);
                               }

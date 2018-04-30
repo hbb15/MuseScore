@@ -1730,8 +1730,10 @@ void Chord::layout()
       {
       if (_notes.empty())
             return;
-      if (staff() && (staff()->isTabStaff(tick()) || staff()->isNumericStaff(tick())))
+      if (staff() && (staff()->isTabStaff(tick())))
             layoutTablature();
+      else if (staff() && (staff()->isNumericStaff(tick())))
+            layoutNumeric();
       else
             layoutPitched();
       }
@@ -2259,6 +2261,322 @@ void Chord::layoutTablature()
                         }
                   }
             }
+      if (!tab->genDurations()                         // if tab is not set for duration symbols
+            || track2voice(track())                    // or not in first voice
+            || (isGrace()                              // no tab duration symbols if grace notes
+                && beamMode() == Beam::Mode::AUTO)) {  // and beammode == AUTO
+                                                       //
+            delete _tabDur;   // delete an existing duration symbol
+            _tabDur = 0;
+            }
+      else {
+            //
+            // tab duration symbols
+            //
+            // check duration of prev. CR segm
+            ChordRest * prevCR = prevChordRest(this);
+            // if no previous CR
+            // OR symbol repeat set to ALWAYS
+            // OR symbol repeat condition is triggered
+            // OR duration type and/or number of dots is different from current CR
+            // OR chord beam mode not AUTO
+            // OR previous CR is a rest
+            // AND no not-stem
+            // set a duration symbol (trying to re-use existing symbols where existing to minimize
+            // symbol creation and deletion)
+            TablatureSymbolRepeat symRepeat = tab->symRepeat();
+            if (  (prevCR == 0
+                  || symRepeat == TablatureSymbolRepeat::ALWAYS
+                  || (symRepeat == TablatureSymbolRepeat::MEASURE && measure() != prevCR->measure())
+                  || (symRepeat == TablatureSymbolRepeat::SYSTEM && measure()->system() != prevCR->measure()->system())
+                  || beamMode() != Beam::Mode::AUTO
+                  || prevCR->durationType().type() != durationType().type()
+                  || prevCR->dots() != dots()
+                  || prevCR->tuplet() != tuplet()
+                  || prevCR->type() == ElementType::REST)
+                        && !noStem() ) {
+                  // symbol needed; if not exist, create; if exists, update duration
+                  if (!_tabDur)
+                        _tabDur = new TabDurationSymbol(score(), tab, durationType().type(), dots());
+                  else
+                        _tabDur->setDuration(durationType().type(), dots(), tab);
+                  _tabDur->setParent(this);
+//                  _tabDur->setMag(mag());           // useless to set grace mag: graces have no dur. symbol
+                  _tabDur->layout();
+                  if (minY < 0) {                     // if some fret extends above tab body (like bass strings)
+                        _tabDur->rypos() += minY;     // raise duration symbol
+                        _tabDur->bbox().translate(0, minY);
+                        }
+                  }
+            else {                              // symbol not needed: if exists, delete
+                  delete _tabDur;
+                  _tabDur = 0;
+                  }
+            }                             // end of if(duration_symbols)
+
+      if (_arpeggio) {
+            qreal headHeight = upnote->headHeight();
+            _arpeggio->layout();
+            lll += _arpeggio->width() + _spatium * .5;
+            qreal y = upNote()->pos().y() - headHeight * .5;
+            qreal h = downNote()->pos().y() + downNote()->headHeight() - y;
+            _arpeggio->setHeight(h);
+            _arpeggio->setPos(-lll, y);
+            _arpeggio->adjustReadPos();
+
+            // handle the special case of _arpeggio->span() > 1
+            // in layoutArpeggio2() after page layout has done so we
+            // know the y position of the next staves
+            }
+
+      // allocate enough room for glissandi
+      if (_endsGlissando) {
+            if (rtick())                        // if not at beginning of measure
+                  lll += (0.5 + score()->styleS(Sid::MinTieLength).val()) * _spatium;
+            // special case of system-initial glissando final note is handled in Glissando::layout() itself
+            }
+
+      if (_hook) {
+            if (beam())
+                  score()->undoRemoveElement(_hook);
+            else if(tab == 0) {
+                  _hook->layout();
+                  if (up()) {
+                        // hook position is not set yet
+                        qreal x = _hook->bbox().right() + stem()->hookPos().x();
+                        rrr = qMax(rrr, x);
+                        }
+                  }
+            }
+
+      if (dots()) {
+            qreal x = 0.0;
+            // if stems are beside staff, dots are placed near to stem
+            if (!tab->stemThrough()) {
+                  // if there is an unbeamed hook, dots should start after the hook
+                  if (_hook && !beam())
+                        x = _hook->width() + dotNoteDistance;
+                  // if not, dots should start at a fixed distance right after the stem
+                  else
+                        x = STAFFTYPE_TAB_DEFAULTDOTDIST_X * _spatium;
+                  if (segment())
+                        segment()->setDotPosX(staffIdx(), x);
+                  }
+            // if stems are through staff, use dot position computed above on fret mark widths
+            else
+                  x = dotPosX() + dotNoteDistance
+                        + (dots()-1) * score()->styleS(Sid::dotDotDistance).val() * _spatium;
+            x += symWidth(SymId::augmentationDot);
+            rrr = qMax(rrr, x);
+            }
+
+      _spaceLw = lll;
+      _spaceRw = rrr;
+
+      qreal graceMag = score()->styleD(Sid::graceNoteMag);
+
+      QVector<Chord*> graceNotesBefore = Chord::graceNotesBefore();
+      int nb = graceNotesBefore.size();
+      if (nb) {
+              qreal xl = -(_spaceLw + minNoteDistance);
+              for (int i = nb-1; i >= 0; --i) {
+                    Chord* c = graceNotesBefore.value(i);
+                    xl -= c->_spaceRw/* * 1.2*/;
+                    c->setPos(xl, 0);
+                    xl -= c->_spaceLw + minNoteDistance * graceMag;
+                    }
+              if (-xl > _spaceLw)
+                    _spaceLw = -xl;
+              }
+       QVector<Chord*> gna = graceNotesAfter();
+       int na = gna.size();
+       if (na) {
+           // get factor for start distance after main note. Values found by testing.
+           qreal fc;
+           switch (durationType().type()) {
+                 case TDuration::DurationType::V_LONG:    fc = 3.8; break;
+                 case TDuration::DurationType::V_BREVE:   fc = 3.8; break;
+                 case TDuration::DurationType::V_WHOLE:   fc = 3.8; break;
+                 case TDuration::DurationType::V_HALF:    fc = 3.6; break;
+                 case TDuration::DurationType::V_QUARTER: fc = 2.1; break;
+                 case TDuration::DurationType::V_EIGHTH:  fc = 1.4; break;
+                 case TDuration::DurationType::V_16TH:    fc = 1.2; break;
+                 default: fc = 1;
+                 }
+           qreal xr = fc * (_spaceRw + minNoteDistance);
+           for (int i = 0; i <= na - 1; i++) {
+                 Chord* c = gna.value(i);
+                 xr += c->_spaceLw * (i == 0 ? 1.3 : 1);
+                 c->setPos(xr, 0);
+                 xr += c->_spaceRw + minNoteDistance * graceMag;
+                 }
+           if (xr > _spaceRw)
+                 _spaceRw = xr;
+           }
+      for (Element* e : el()) {
+            e->layout();
+            if (e->type() == ElementType::CHORDLINE) {
+                  QRectF tbbox = e->bbox().translated(e->pos());
+                  qreal lx = tbbox.left();
+                  qreal rx = tbbox.right();
+                  if (-lx > _spaceLw)
+                        _spaceLw = -lx;
+                  if (rx > _spaceRw)
+                        _spaceRw = rx;
+                  }
+            }
+
+      for (int i = 0; i < numOfNotes; ++i)
+            _notes.at(i)->layout2();
+      QRectF bb;
+      processSiblings([&bb] (Element* e) { bb |= e->bbox().translated(e->pos()); } );
+      if (_tabDur)
+            bb |= _tabDur->bbox().translated(_tabDur->pos());
+      setbbox(bb);
+      }
+
+//---------------------------------------------------------
+//   layoutNumeric
+//---------------------------------------------------------
+
+void Chord::layoutNumeric()
+      {
+      qreal _spatium          = spatium();
+      qreal dotNoteDistance   = score()->styleP(Sid::dotNoteDistance);
+      qreal minNoteDistance   = score()->styleP(Sid::minNoteDistance);
+      qreal minTieLength      = score()->styleP(Sid::MinTieLength);
+
+      for (Chord* c : _graceNotes)
+            c->layoutNumeric();
+
+      while (_ledgerLines) {
+            LedgerLine* l = _ledgerLines->next();
+            delete _ledgerLines;
+            _ledgerLines = l;
+            }
+
+      qreal lll         = 0.0;                  // space to leave at left of chord
+      qreal rrr         = 0.0;                  // space to leave at right of chord
+      Note* upnote      = upNote();
+      qreal headWidth   = symWidth(SymId::noteheadBlack);
+      StaffType* tab    = staff()->staffType(tick());
+      qreal lineDist    = tab->lineDistance().val() *_spatium;
+      qreal stemX       = tab->chordStemPosX(this) *_spatium;
+      int   ledgerLines = 0;
+      qreal llY         = 0.0;
+
+      int   numOfNotes  = _notes.size();
+      qreal minY        = 1000.0;               // just a very large value
+      for (int i = 0; i < numOfNotes; ++i) {
+            Note* note = _notes.at(i);
+            note->layout();
+            // set headWidth to max fret text width
+            qreal fretWidth = note->bbox().width();
+            if (headWidth < fretWidth)
+                  headWidth = fretWidth;
+            // centre fret string on stem
+            qreal x = stemX - fretWidth*0.5;
+            qreal y = note->fixed() ? note->line() * lineDist / 2 : tab->physStringToYOffset(note->string()) * _spatium;
+            note->setPos(x, y);
+            if (y < minY)
+                  minY  = y;
+            //int   currLedgerLines   = tab->numOfTabLedgerLines(note->string());
+            //if (currLedgerLines > ledgerLines) {
+            //      ledgerLines = currLedgerLines;
+            //      llY         = y;
+            //      }
+
+            // allow extra space for shortened ties; this code must be kept synchronized
+            // with the tie positioning code in Tie::slurPos()
+            // but the allocation of space needs to be performed here
+            Tie* tie;
+            tie = note->tieBack();
+            if (tie) {
+                  tie->calculateDirection();
+                  qreal overlap = 0.0;          // how much tie can overlap start and end notes
+                  bool shortStart = false;      // whether tie should clear start note or not
+                  Note* startNote = tie->startNote();
+                  Chord* startChord = startNote->chord();
+                  if (startChord && startChord->measure() == measure() && startChord == prevChordRest(this)) {
+                        qreal startNoteWidth = startNote->width();
+                        // overlap into start chord?
+                        // if in start chord, there are several notes or stem and tie in same direction
+                        if (startChord->notes().size() > 1 || (startChord->stem() && startChord->up() == tie->up())) {
+                              // clear start note (1/8 of fret mark width)
+                              shortStart = true;
+                              overlap -= startNoteWidth * 0.125;
+                              }
+                        else        // overlap start note (by ca. 1/3 of fret mark width)
+                              overlap += startNoteWidth * 0.35;
+                        // overlap into end chord (this)?
+                        // if several notes or neither stem or tie are up
+                        if (notes().size() > 1 || (stem() && !up() && !tie->up())) {
+                              // for positive offset:
+                              //    use available space
+                              // for negative x offset:
+                              //    space is allocated elsewhere, so don't re-allocate here
+                              if (note->ipos().x() != 0.0)              // this probably does not work for TAB, as
+                                    overlap += qAbs(note->ipos().x());  // _pos is used to centre the fret on the stem
+                              else
+                                    overlap -= fretWidth * 0.125;
+                              }
+                        else {
+                              if (shortStart)
+                                    overlap += fretWidth * 0.15;
+                              else
+                                    overlap += fretWidth * 0.35;
+                              }
+                        qreal d = qMax(minTieLength - overlap, 0.0);
+                        lll = qMax(lll, d);
+                        }
+                  }
+            }
+
+      // create ledger lines, if required (in some historic styles)
+      if (ledgerLines > 0) {
+// there seems to be no need for widening 'ledger lines' beyond fret mark widths; more 'on the field'
+// tests and usage will show if this depends on the metrics of the specific fonts used or not.
+//            qreal extraLen    = score()->styleS(Sid::ledgerLineLength).val() * _spatium;
+            qreal extraLen    = 0;
+            qreal llX         = stemX - (headWidth + extraLen) * 0.5;
+            for (int i = 0; i < ledgerLines; i++) {
+                  LedgerLine* ldgLin = new LedgerLine(score());
+                  ldgLin->setParent(this);
+                  ldgLin->setTrack(track());
+                  ldgLin->setVisible(visible());
+                  ldgLin->setLen(headWidth + extraLen);
+                  ldgLin->setPos(llX, llY);
+                  ldgLin->setNext(_ledgerLines);
+                  _ledgerLines = ldgLin;
+                  ldgLin->layout();
+                  llY += lineDist / ledgerLines;
+                  }
+            headWidth += extraLen;        // include ledger lines extra width in chord width
+            }
+
+      // horiz. spacing: leave half width at each side of the (potential) stem
+      qreal halfHeadWidth = headWidth * 0.5;
+      if (lll < stemX - halfHeadWidth)
+            lll = stemX - halfHeadWidth;
+      if (rrr < stemX + halfHeadWidth)
+            rrr = stemX + halfHeadWidth;
+      // align dots to the widest fret mark (not needed in all TAB styles, but harmless anyway)
+      if (segment())
+            segment()->setDotPosX(staffIdx(), headWidth);
+      // if tab type is stemless or chord is stemless (possible when imported from MusicXML)
+      // or measure is stemless
+      // or duration longer than half (if halves have stems) or duration longer than crochet
+      // remove stems
+            if (_stem)
+                  score()->undo(new RemoveElement(_stem));
+            if (_hook)
+                  score()->undo(new RemoveElement(_hook));
+            if (_beam)
+                score()->undo(new RemoveElement(_beam));
+
+      // if stem is required but missing, add it;
+      // set stem position (stem length is set in Chord:layoutStem() )
+
       if (!tab->genDurations()                         // if tab is not set for duration symbols
             || track2voice(track())                    // or not in first voice
             || (isGrace()                              // no tab duration symbols if grace notes

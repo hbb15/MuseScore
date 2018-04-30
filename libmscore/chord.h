@@ -90,6 +90,7 @@ class Chord final : public ChordRest {
 
       void layoutPitched();
       void layoutTablature();
+      void layoutNumeric();
       qreal noteHeadWidth() const;
 
    public:
