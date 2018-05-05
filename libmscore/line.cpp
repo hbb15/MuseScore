@@ -66,12 +66,9 @@ bool LineSegment::readProperties(XmlReader& e)
                   setAutoplace(false);
             }
       else if (tag == "pos") {
-            qreal _spatium = score()->spatium();
             setUserOff(QPointF());
-            setReadPos(e.readPoint() * _spatium);
-            if (e.pasteMode())      // x position will be wrong
-                  setReadPos(QPointF());
             setAutoplace(false);
+            e.readNext();
             }
       else if (!SpannerSegment::readProperties(e)) {
             e.unknown();
@@ -1006,7 +1003,6 @@ void SLine::layout()
                   }
             lineSegm->layout();
             }
-      adjustReadPos();
       }
 
 //---------------------------------------------------------
