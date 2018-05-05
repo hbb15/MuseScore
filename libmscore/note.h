@@ -453,6 +453,7 @@ class Note final : public Element {
       void undoSetHeadType(NoteHead::Type);
 
       virtual QVariant getProperty(Pid propertyId) const override;
+      QString getNumericString(int numkro) const;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(Pid) const override;
 

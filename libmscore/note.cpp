@@ -1927,6 +1927,43 @@ void Note::setDotY(Direction pos)
       }
 
 //---------------------------------------------------------
+//   getNumeric
+//---------------------------------------------------------
+
+QString Note::getNumericString(int numkro) const
+      {
+      switch (numkro) {
+              case 1:
+                    return "1";
+              case 2:
+                    return "1";
+              case 3:
+                    return "2";
+              case 4:
+                    return "2";
+              case 5:
+                    return "3";
+              case 6:
+                    return "4";
+              case 7:
+                    return "4";
+              case 8:
+                    return "5";
+              case 9:
+                    return "5";
+              case 10:
+                    return "6";
+              case 11:
+                    return "6";
+              case 12:
+                    return "7";
+              default:
+                    return "0";
+            }
+      return "0";
+      }
+
+//---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
 
@@ -1956,7 +1993,9 @@ void Note::layout()
             bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
             }
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
-            _fretString = "5";
+            int grundtonverschibung=0;
+            int zifferkomatik=((_pitch+grundtonverschibung)%12)+1;
+            _fretString = getNumericString(zifferkomatik);
             }
       else {
             SymId nh = noteHead();
