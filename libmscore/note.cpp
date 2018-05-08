@@ -2041,7 +2041,7 @@ void Note::layout2()
             bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
             }
       else if (staff()->isNumericStaff(chord()->tick())) {
-            adjustReadPos();
+            //adjustReadPos();
             StaffType* tab = staff()->staffType(tick());
             qreal mags = magS();
             bool paren = false;
