@@ -63,7 +63,8 @@ namespace Ms {
 //    notehead groups
 //---------------------------------------------------------
 
-static const SymId noteHeads[2][int(NoteHead::Group::HEAD_GROUPS)][int(NoteHead::Type::HEAD_TYPES)] = {
+//int(NoteHead::Group::HEAD_GROUPS) - 1: "-1" is needed to prevent building CUSTOM_GROUP noteheads set, since it is built by users and keep a specific set of existing noteheads
+static const SymId noteHeads[2][int(NoteHead::Group::HEAD_GROUPS) - 1][int(NoteHead::Type::HEAD_TYPES)] = {
    {     // down stem
       { SymId::noteheadWhole,               SymId::noteheadHalf,                SymId::noteheadBlack,               SymId::noteheadDoubleWhole  },
       { SymId::noteheadXWhole,              SymId::noteheadXHalf,               SymId::noteheadXBlack,              SymId::noteheadXDoubleWhole  },
@@ -279,7 +280,8 @@ static NoteHeadName noteHeadGroupNames[] = {
       {"g-name",       QT_TRANSLATE_NOOP("noteheadnames",  "G (Name)") },
       {"g-flat-name",  QT_TRANSLATE_NOOP("noteheadnames",  "G Flat (Name)") },
       {"h-name",       QT_TRANSLATE_NOOP("noteheadnames",  "H (Name)") },
-      {"h-sharp-name", QT_TRANSLATE_NOOP("noteheadnames",  "H Sharp (Name)") }
+      {"h-sharp-name", QT_TRANSLATE_NOOP("noteheadnames",  "H Sharp (Name)") },
+      {"custom",       QT_TRANSLATE_NOOP("noteheadnames",  "Custom") }
       };
 
 // same order as NoteHead::Type
@@ -810,6 +812,17 @@ SymId Note::noteHead() const
             }
       if (_headType != NoteHead::Type::HEAD_AUTO)
             ht = _headType;
+
+      if (_headGroup == NoteHead::Group::HEAD_CUSTOM) {
+            if (chord() && chord()->staff()) {
+                  if (chord()->staff()->staffType(chord()->tick())->isDrumStaff())
+                        return chord()->staff()->part()->instrument(chord()->tick())->drumset()->noteHeads(_pitch, ht);
+                  }
+            else {
+                  return _cachedNoteheadSym;
+                  }
+            }
+
       Key key = Key::C;
       NoteHeadScheme scheme = NoteHeadScheme::HEAD_NORMAL;
       if (chord() && chord()->staff()){
@@ -830,7 +843,28 @@ SymId Note::noteHead() const
 //---------------------------------------------------------
 //   headWidth
 //
-//    returns the width of the notehead symbol
+//    returns the x of the symbol bbox. It is different from headWidth() because zero point could be different from leftmost bbox position.
+//---------------------------------------------------------
+qreal Note::bboxRightPos() const
+      {
+      const auto& bbox = score()->scoreFont()->bbox(noteHead(), magS());
+      return bbox.right();
+      }
+
+//---------------------------------------------------------
+//   headBodyWidth
+//
+//    returns the width of the notehead "body". It is actual for slashed noteheads like -O-, where O is body.
+//---------------------------------------------------------
+qreal Note::headBodyWidth() const
+      {
+      return headWidth() + 2 * bboxXShift();
+      }
+
+//---------------------------------------------------------
+//   headWidth
+//
+//    returns the width of the symbol bbox
 //    or the width of the string representation of the fret mark
 //---------------------------------------------------------
 
@@ -839,6 +873,26 @@ qreal Note::headWidth() const
       return symWidth(noteHead());
       }
 
+//---------------------------------------------------------
+//   bboxXShift
+//
+//    returns the x shift of the notehead bounding box
+//---------------------------------------------------------
+qreal Note::bboxXShift() const
+      {
+      const auto& bbox = score()->scoreFont()->bbox(noteHead(), magS());
+      return bbox.bottomLeft().x();
+      }
+
+//---------------------------------------------------------
+//   noteheadCenterX
+//
+//    returns the x coordinate of the notehead center related to the basepoint of the notehead bbox
+//---------------------------------------------------------
+qreal Note::noteheadCenterX() const
+      {
+      return score()->scoreFont()->width(noteHead(), magS()) / 2 + bboxXShift();
+      }
 //---------------------------------------------------------
 //   tabHeadWidth
 //---------------------------------------------------------
@@ -3221,7 +3275,7 @@ AccidentalType Note::accidentalType() const
 void Note::setAccidentalType(AccidentalType type)
       {
       if (score())
-      	score()->changeAccidental(this, type);
+         score()->changeAccidental(this, type);
       }
 
 //---------------------------------------------------------

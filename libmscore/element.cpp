@@ -276,34 +276,34 @@ Part* Element::part() const
 
 QColor Element::curColor() const
       {
-      return curColor(this);
+      return curColor(visible());
       }
 
 //---------------------------------------------------------
 //   curColor
 //---------------------------------------------------------
 
-QColor Element::curColor(const Element* proxy) const
+QColor Element::curColor(bool isVisible) const
       {
       // the default element color is always interpreted as black in
       // printing
       if (score() && score()->printing())
-            return (proxy->color() == MScore::defaultColor) ? Qt::black : proxy->color();
+            return (color() == MScore::defaultColor) ? Qt::black : color();
 
       if (flag(ElementFlag::DROP_TARGET))
             return MScore::dropColor;
       bool marked = false;
       if (isNote()) {
-            const Note* note = static_cast<const Note*>(this);
-            marked = note->mark();
+            //const Note* note = static_cast<const Note*>(this);
+            marked = toNote(this)->mark();
             }
-      if (proxy->selected() || marked ) {
+      if (selected() || marked ) {
             QColor originalColor;
             if (track() == -1)
                   originalColor = MScore::selectColor[0];
             else
                   originalColor = MScore::selectColor[voice()];
-            if (proxy->visible())
+            if (isVisible)
                   return originalColor;
             else {
                   int red = originalColor.red();
@@ -313,9 +313,9 @@ QColor Element::curColor(const Element* proxy) const
                   return QColor(red + tint * (255 - red), green + tint * (255 - green), blue + tint * (255 - blue));
                   }
             }
-      if (!proxy->visible())
+      if (!isVisible)
             return Qt::gray;
-      return proxy->color();
+      return color();
       }
 
 //---------------------------------------------------------
@@ -1533,6 +1533,20 @@ bool Element::prevGrip(EditData& ed) const
 
 bool Element::isUserModified() const
       {
+      for (const StyledProperty* spp = styledProperties(); spp->sid != Sid::NOSTYLE; ++spp) {
+            Pid pid               = spp->pid;
+            QVariant val          = getProperty(pid);
+            QVariant defaultValue = propertyDefault(pid);
+
+            if (propertyType(pid) == P_TYPE::SP_REAL) {
+                  if (qAbs(val.toReal() - defaultValue.toReal()) > 0.0001)    // we dont care spatium diffs that small
+                        return true;
+                  }
+            else  {
+                  if (getProperty(pid) != propertyDefault(pid))
+                        return true;
+                  }
+            }
       return !visible() || !userOff().isNull() || (color() != MScore::defaultColor);
       }
 
