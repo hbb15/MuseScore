@@ -1936,25 +1936,25 @@ QString Note::getNumericString(int numkro) const
               case 1:
                     return "1";
               case 2:
-                    return "1";
+                    return "#1";
               case 3:
                     return "2";
               case 4:
-                    return "2";
+                    return "#2";
               case 5:
                     return "3";
               case 6:
                     return "4";
               case 7:
-                    return "4";
+                    return "#4";
               case 8:
                     return "5";
               case 9:
-                    return "5";
+                    return "#5";
               case 10:
                     return "6";
               case 11:
-                    return "6";
+                    return "#6";
               case 12:
                     return "7";
               default:
@@ -1963,6 +1963,32 @@ QString Note::getNumericString(int numkro) const
       return "0";
       }
 
+//---------------------------------------------------------
+//   getNumericTrans
+//---------------------------------------------------------
+int Note::getNumericTrans(Key key) const{
+    switch(key) {
+        case Key::C_B:  return 1;
+        case Key::G_B:  return -6;
+        case Key::D_B:  return -1;
+        case Key::A_B:  return 4;
+        case Key::E_B:  return -3;
+        case Key::B_B:  return 2;
+        case Key::F:  return -5;
+        case Key::C:  return 0;
+        case Key::G:  return 5;
+        case Key::D:  return -2;
+        case Key::A:  return 3;
+        case Key::E:  return -4;
+        case Key::B:  return 1;
+        case Key::F_S:  return -6;
+        case Key::C_S:  return 1;
+          default:
+                return 0;
+                break;
+          }
+    return 0;
+}
 //---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
@@ -1993,7 +2019,7 @@ void Note::layout()
             bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
             }
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
-            int grundtonverschibung=0;
+            int grundtonverschibung=getNumericTrans(staff()->key(tick()));
             int zifferkomatik=((_pitch+grundtonverschibung)%12)+1;
             _fretString = getNumericString(zifferkomatik);
             }

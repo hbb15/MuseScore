@@ -1091,7 +1091,7 @@ bool Staff::show() const
 
 bool Staff::genKeySig()
       {
-      if ((staffType(0)->group() == StaffGroup::TAB) || (staffType(0)->group() == StaffGroup::NUMERIC))
+      if ((staffType(0)->group() == StaffGroup::TAB) )
             return false;
       else
             return staffType(0)->genKeysig();

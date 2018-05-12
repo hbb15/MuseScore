@@ -188,66 +188,73 @@ void KeySig::layout()
 
       // add prefixed naturals, if any
 
-      qreal xo = 0.0;
-      if (prefixNaturals) {
-            for (int i = 0; i < 7; ++i) {
-                  if (naturals & (1 << i)) {
-                        addLayout(SymId::accidentalNatural, xo, lines[i + coffset]);
-                        xo += 1.0;
+      if (staff() && staff()->isNumericStaff( tick())) {
+            addLayout(SymId::accidentalSharp, 0,lines[0]);
+            }
+      else{
+
+            qreal xo = 0.0;
+            if (prefixNaturals) {
+                  for (int i = 0; i < 7; ++i) {
+                        if (naturals & (1 << i)) {
+                              addLayout(SymId::accidentalNatural, xo, lines[i + coffset]);
+                              xo += 1.0;
+                              }
                         }
                   }
-            }
-      // add accidentals
-      static const qreal sspread = 1.0;
-      static const qreal fspread = 1.0;
+            // add accidentals
+            static const qreal sspread = 1.0;
+            static const qreal fspread = 1.0;
 
-      switch(t1) {
-            case 7:  addLayout(SymId::accidentalSharp, xo + 6.0 * sspread, lines[6]);
-                     // fall through
-            case 6:  addLayout(SymId::accidentalSharp, xo + 5.0 * sspread, lines[5]);
-                     // fall through
-            case 5:  addLayout(SymId::accidentalSharp, xo + 4.0 * sspread, lines[4]);
-                     // fall through
-            case 4:  addLayout(SymId::accidentalSharp, xo + 3.0 * sspread, lines[3]);
-                     // fall through
-            case 3:  addLayout(SymId::accidentalSharp, xo + 2.0 * sspread, lines[2]);
-                     // fall through
-            case 2:  addLayout(SymId::accidentalSharp, xo + 1.0 * sspread, lines[1]);
-                     // fall through
-            case 1:  addLayout(SymId::accidentalSharp, xo,                 lines[0]);
-                     break;
-            case -7: addLayout(SymId::accidentalFlat, xo + 6.0 * fspread, lines[13]);
-                     // fall through
-            case -6: addLayout(SymId::accidentalFlat, xo + 5.0 * fspread, lines[12]);
-                     // fall through
-            case -5: addLayout(SymId::accidentalFlat, xo + 4.0 * fspread, lines[11]);
-                     // fall through
-            case -4: addLayout(SymId::accidentalFlat, xo + 3.0 * fspread, lines[10]);
-                     // fall through
-            case -3: addLayout(SymId::accidentalFlat, xo + 2.0 * fspread, lines[9]);
-                     // fall through
-            case -2: addLayout(SymId::accidentalFlat, xo + 1.0 * fspread, lines[8]);
-                     // fall through
-            case -1: addLayout(SymId::accidentalFlat, xo,                 lines[7]);
-            case 0:
-                  break;
-            default:
-                  qDebug("illegal t1 key %d", t1);
-                  break;
-            }
-      // add suffixed naturals, if any
-      if (suffixNaturals) {
-            xo += qAbs(t1);               // skip accidentals
-            if (t1 > 0) {                 // after sharps, add a little more space
-                  xo += 0.15;
-                  // if last sharp (t1) is above next natural (t1+1)...
-                  if (lines[t1] < lines[t1+1])
-                        xo += 0.2;        // ... add more space
+            switch(t1) {
+                  case 7:  addLayout(SymId::accidentalSharp, xo + 6.0 * sspread, lines[6]);
+                           // fall through
+                  case 6:  addLayout(SymId::accidentalSharp, xo + 5.0 * sspread, lines[5]);
+                           // fall through
+                  case 5:  addLayout(SymId::accidentalSharp, xo + 4.0 * sspread, lines[4]);
+                           // fall through
+                  case 4:  addLayout(SymId::accidentalSharp, xo + 3.0 * sspread, lines[3]);
+                           // fall through
+                  case 3:  addLayout(SymId::accidentalSharp, xo + 2.0 * sspread, lines[2]);
+                           // fall through
+                  case 2:  addLayout(SymId::accidentalSharp, xo + 1.0 * sspread, lines[1]);
+                           // fall through
+                  case 1:  addLayout(SymId::accidentalSharp, xo,                 lines[0]);
+                           break;
+                  case -7: addLayout(SymId::accidentalFlat, xo + 6.0 * fspread, lines[13]);
+                           // fall through
+                  case -6: addLayout(SymId::accidentalFlat, xo + 5.0 * fspread, lines[12]);
+                           // fall through
+                  case -5: addLayout(SymId::accidentalFlat, xo + 4.0 * fspread, lines[11]);
+                           // fall through
+                  case -4: addLayout(SymId::accidentalFlat, xo + 3.0 * fspread, lines[10]);
+                           // fall through
+                  case -3: addLayout(SymId::accidentalFlat, xo + 2.0 * fspread, lines[9]);
+                           // fall through
+                  case -2: addLayout(SymId::accidentalFlat, xo + 1.0 * fspread, lines[8]);
+                           // fall through
+                  case -1: addLayout(SymId::accidentalFlat, xo,                 lines[7]);
+                  case 0:
+                        break;
+                  default:
+                        qDebug("illegal t1 key %d", t1);
+                        break;
                   }
-            for (int i = 0; i < 7; ++i) {
-                  if (naturals & (1 << i)) {
-                        addLayout(SymId::accidentalNatural, xo, lines[i + coffset]);
-                        xo += 1.0;
+
+            // add suffixed naturals, if any
+            if (suffixNaturals) {
+                  xo += qAbs(t1);               // skip accidentals
+                  if (t1 > 0) {                 // after sharps, add a little more space
+                        xo += 0.15;
+                        // if last sharp (t1) is above next natural (t1+1)...
+                        if (lines[t1] < lines[t1+1])
+                              xo += 0.2;        // ... add more space
+                        }
+                  for (int i = 0; i < 7; ++i) {
+                        if (naturals & (1 << i)) {
+                              addLayout(SymId::accidentalNatural, xo, lines[i + coffset]);
+                              xo += 1.0;
+                              }
                         }
                   }
             }
@@ -260,20 +267,65 @@ void KeySig::layout()
       }
 
 //---------------------------------------------------------
+//   getNumericString
+//---------------------------------------------------------
+QString KeySig::getNumericString(Key key) const{
+    switch(key) {
+        case Key::C_B:  return "H - Dur a=#6";
+        case Key::G_B:  return "Fis - Dur a=#2";
+        case Key::D_B:  return "Cis - Dur a=#5";
+        case Key::A_B:  return "Gis - Dur a=#1";
+        case Key::E_B:  return "Es - Dur a=#4";
+        case Key::B_B:  return "B - Dur a=7";
+        case Key::F:  return "F - Dur a=3";
+        case Key::C:  return "C - Dur a=6";
+        case Key::G:  return "G - Dur a=2";
+        case Key::D:  return "D - Dur a=5";
+        case Key::A:  return "A - Dur a=1";
+        case Key::E:  return "E - Dur a=4";
+        case Key::B:  return "H - Dur a=#6";
+        case Key::F_S:  return "Fis - Dur a=#2";
+        case Key::C_S:  return "Cis - Dur a=#5";
+          default:
+                return "C - Dur a=6";
+                break;
+          }
+    return "C - Dur a=6";
+}
+
+//---------------------------------------------------------
 //   set
 //---------------------------------------------------------
 
 void KeySig::draw(QPainter* p) const
       {
-      p->setPen(curColor());
-      for (const KeySym& ks: _sig.keySymbols())
-            drawSymbol(ks.sym, p, QPointF(ks.pos.x(), ks.pos.y()));
-      if (!parent() && (isAtonal() || isCustom()) && _sig.keySymbols().empty()) {
-            // empty custom or atonal key signature - draw something for palette
-            p->setPen(Qt::gray);
-            drawSymbol(SymId::timeSigX, p, QPointF(symWidth(SymId::timeSigX) * -0.5, 2.0 * spatium()));
-            }
-      }
+    if (staff() && staff()->isNumericStaff( tick())) {
+        if((tick()==0||staff()->key(tick()-1)!=_sig.key())&&staff()){
+                    StaffType* tab = staff()->staffType(tick());
+
+                    QFont f(tab->fretFont());
+
+                    QColor c(curColor());
+                    f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
+                    p->setFont(f);
+                    p->setPen(c);
+                    p->drawText(QPointF(0, -150), getNumericString(_sig.key()));
+        }
+     }
+
+          // NOT Numeric
+
+      else {
+          p->setPen(curColor());
+          for (const KeySym& ks: _sig.keySymbols())
+                drawSymbol(ks.sym, p, QPointF(ks.pos.x(), ks.pos.y()));
+          if (!parent() && (isAtonal() || isCustom()) && _sig.keySymbols().empty()) {
+                // empty custom or atonal key signature - draw something for palette
+                p->setPen(Qt::gray);
+                drawSymbol(SymId::timeSigX, p, QPointF(symWidth(SymId::timeSigX) * -0.5, 2.0 * spatium()));
+                }
+          }
+    }
 
 //---------------------------------------------------------
 //   acceptDrop
@@ -320,6 +372,7 @@ void KeySig::setKey(Key key)
       e.setKey(key);
       setKeySigEvent(e);
       }
+
 
 //---------------------------------------------------------
 //   write

@@ -38,6 +38,8 @@ class KeySig final : public Element {
       KeySig(Score* = 0);
       KeySig(const KeySig&);
       virtual KeySig* clone() const override       { return new KeySig(*this); }
+
+      QString getNumericString(Key key) const;
       virtual void draw(QPainter*) const override;
       virtual ElementType type() const override    { return ElementType::KEYSIG; }
       virtual bool acceptDrop(EditData&) const override;
@@ -47,6 +49,7 @@ class KeySig final : public Element {
 
       //@ sets the key of the key signature
       Q_INVOKABLE void setKey(Key);
+
 
       Segment* segment() const            { return (Segment*)parent(); }
       Measure* measure() const            { return parent() ? (Measure*)parent()->parent() : nullptr; }

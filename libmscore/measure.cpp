@@ -3461,6 +3461,10 @@ void Measure::addSystemHeader(bool isFirstSystem)
 
             needKeysig = needKeysig && (keyIdx.key() != Key::C || keyIdx.custom() || keyIdx.isAtonal());
 
+            if (staff && staff->isNumericStaff( tick())) {
+                  needKeysig =true;
+                  }
+
             if (needKeysig) {
                   KeySig* keysig;
                   if (!kSegment) {
