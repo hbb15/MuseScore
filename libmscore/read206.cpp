@@ -50,6 +50,7 @@
 #include "box.h"
 #include "textframe.h"
 #include "fermata.h"
+#include "stem.h"
 
 #ifdef OMR
 #include "omr/omr.h"
@@ -1066,6 +1067,17 @@ static void readChord(Chord* chord, XmlReader& e)
                   else
                         chord->add(el);
                   }
+            else if (tag == "Stem") {
+                  Stem* stem = new Stem(chord->score());
+                  while (e.readNextStartElement()) {
+                        const QStringRef& tag(e.name());
+                        if (tag == "subtype")        // obsolete
+                              e.skipCurrentElement();
+                        else if (!stem->readProperties(e))
+                              e.unknown();
+                        }
+                  chord->add(stem);
+                  }
             else if (chord->readProperties(e))
                   ;
             else
@@ -1130,7 +1142,7 @@ static void readVolta(XmlReader& e, Volta* volta)
                         }
                   }
             else if (tag == "lineWidth") {
-                  volta->setLineWidth(Spatium(e.readDouble()));
+                  volta->setLineWidth(e.readDouble() * volta->spatium());
                   // TODO lineWidthStyle = PropertyStyle::UNSTYLED;
                   }
             else if (!readTextLineProperties(e, volta))
@@ -1196,7 +1208,7 @@ static void readHairpin(XmlReader& e, Hairpin* h)
             if (tag == "subtype")
                   h->setHairpinType(HairpinType(e.readInt()));
             else if (tag == "lineWidth") {
-                  h->setLineWidth(Spatium(e.readDouble()));
+                  h->setLineWidth(e.readDouble() * h->spatium());
                   // lineWidthStyle = PropertyFlags::UNSTYLED;
                   }
             else if (tag == "hairpinHeight") {

@@ -3503,6 +3503,13 @@ void Measure::addSystemHeader(bool isFirstSystem)
                               }
                         if (disable)
                               kSegment->setEnabled(false);
+                        else {
+                              Element* e = kSegment->element(track);
+                              if (e && e->isKeySig()) {
+                                    KeySig* keysig = toKeySig(e);
+                                    keysig->layout();
+                                    }
+                              }
                         }
                   }
 
