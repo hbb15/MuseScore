@@ -1151,7 +1151,7 @@ void Note::draw(QPainter* painter) const
             f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
             painter->setFont(f);
             painter->setPen(c);
-            painter->drawText(QPointF(bbox().x(), tab->fretFontYOffset()), _fretString);
+            painter->drawText(QPointF(bbox().x(), (tab->fretFontYOffset())-_fretStringYShift), _fretString);
             }
 
       // NOT tablature and Numeric
@@ -2076,6 +2076,7 @@ void Note::layout()
             int grundtonverschibung=getNumericTrans(staff()->key(tick()));
             int zifferkomatik=((_pitch+grundtonverschibung)%12)+1;
             _fretString = getNumericString(zifferkomatik);
+            _fretStringYShift=((_pitch+grundtonverschibung)/12-5)*SPATIUM20;
             }
       else {
             SymId nh = noteHead();

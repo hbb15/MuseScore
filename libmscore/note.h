@@ -257,6 +257,7 @@ class Note final : public Element {
       SymId _cachedSymNull; // additional symbol for some transparent notehead
 
       QString _fretString;
+      qreal _fretStringYShift;
       bool _fretHidden = false;
 
       virtual void startDrag(EditData&) override;
