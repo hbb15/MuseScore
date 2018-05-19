@@ -519,7 +519,7 @@ void Measure::layout2()
                         smn = system()->firstMeasure() == this;
                   else {
                         smn = (no() == 0 && score()->styleB(Sid::showMeasureNumberOne)) ||
-                              ( ((no()+1) % score()->styleI(Sid::measureNumberInterval)) == 0 );
+                              ( ((no() + 1) % score()->styleI(Sid::measureNumberInterval)) == (score()->styleB(Sid::showMeasureNumberOne) ? 1 : 0) );
                         }
                   }
             }
@@ -2088,7 +2088,7 @@ void Measure::read(XmlReader& e, int staffIdx)
                   t->setTrack(e.track());
                   t->read(e);
                   if (t->empty()) {
-                        qDebug("reading empty text: deleted");
+                        qDebug("==reading empty text: deleted");
                         delete t;
                         }
                   else {
