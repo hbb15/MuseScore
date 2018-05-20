@@ -14,6 +14,7 @@
 #include "sym.h"
 #include "chord.h"
 #include "stem.h"
+#include "staff.h"
 #include "score.h"
 
 namespace Ms {
@@ -76,10 +77,22 @@ void Hook::layout()
 
 void Hook::draw(QPainter* painter) const
       {
-      // hide if belonging to the second chord of a cross-measure pair
-      if (chord() && chord()->crossMeasure() == CrossMeasure::SECOND)
-            return;
-      Symbol::draw(painter);
-      }
 
+
+      if (staff() && staff()->isNumericStaff( tick())) {
+            painter->setPen(QPen(curColor(), 3.0));
+            for (int i = 0; i < qAbs(_hookType); ++i){
+
+                  painter->drawLine(QLineF(0, -25.0+i*-10, 25.0, -25.0+i*-10));
+                  }
+            }
+      else{
+            // hide if belonging to the second chord of a cross-measure pair
+            if (chord() && chord()->crossMeasure() == CrossMeasure::SECOND)
+                  return;
+            Symbol::draw(painter);
+            }
+
+
+      }
 }

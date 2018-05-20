@@ -320,7 +320,7 @@ QString KeySig::getNumericString(Key key) const{
 void KeySig::draw(QPainter* p) const
       {
     if (staff() && staff()->isNumericStaff( tick())) {
-        if((tick()==0||staff()->key(tick()-1)!=_sig.key())&&staff()){
+        if((tick()==0 || staff()->key(tick()-1) != _sig.key()) && staff() && (staff()->idx())<1){
                     StaffType* tab = staff()->staffType(tick());
 
                     QFont f(tab->fretFont());
@@ -330,8 +330,8 @@ void KeySig::draw(QPainter* p) const
                     p->setFont(f);
                     p->setPen(c);
                     p->drawText(QPointF(0, -150),NumericString[int(_sig.key())+8][int(_sig.mode())]);
-        }
-     }
+                  }
+            }
 
           // NOT Numeric
 

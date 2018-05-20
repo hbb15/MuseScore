@@ -326,6 +326,7 @@ class Note final : public Element {
       void setFixed(bool v)               { _fixed = v;        }
       int fixedLine() const               { return _fixedLine; }
       void setFixedLine(int v)            { _fixedLine = v;    }
+      qreal fretStringYShift() const                { return _fretStringYShift;   }
 
       int tpc() const;
       int tpc1() const            { return _tpc[0]; }     // non transposed tpc

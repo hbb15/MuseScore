@@ -1456,7 +1456,14 @@ void Chord::layoutStem()
                   }
             // if stems are through staff, use standard formatting
             }
+      if (staff() && (staff()->isNumericStaff(tick()))){
+            QPointF p(0,0);
+            p.ry() -= _notes[0]->fretStringYShift();
 
+            _hook->setPos(p);
+            return;
+            }
+      // not stem on Numeric
       //
       // NON-TAB (or TAB with stems through staff)
       //
@@ -2565,12 +2572,12 @@ void Chord::layoutNumeric()
       // or measure is stemless
       // or duration longer than half (if halves have stems) or duration longer than crochet
       // remove stems
-            if (_stem)
-                  score()->undo(new RemoveElement(_stem));
-            if (_hook)
-                  score()->undo(new RemoveElement(_hook));
-            if (_beam)
-                score()->undo(new RemoveElement(_beam));
+
+      layoutStem();
+      if (_stem)
+            score()->undo(new RemoveElement(_stem));
+      if (_beam)
+          score()->undo(new RemoveElement(_beam));
 
       // if stem is required but missing, add it;
       // set stem position (stem length is set in Chord:layoutStem() )
@@ -2651,16 +2658,13 @@ void Chord::layoutNumeric()
             }
 
       if (_hook) {
-            if (beam())
-                  score()->undoRemoveElement(_hook);
-            else if(tab == 0) {
-                  _hook->layout();
-                  if (up()) {
-                        // hook position is not set yet
-                        qreal x = _hook->bbox().right() + stem()->hookPos().x();
-                        rrr = qMax(rrr, x);
-                        }
+            _hook->layout();
+            if (up()) {
+                  // hook position is not set yet
+                  qreal x = _hook->bbox().right() + stem()->hookPos().x();
+                  rrr = qMax(rrr, x);
                   }
+
             }
 
       if (dots()) {

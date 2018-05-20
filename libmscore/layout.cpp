@@ -2101,9 +2101,6 @@ void Score::createBeams(Measure* measure)
             // dont compute beams for invisible staffs and tablature without stems
             if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->slashStyle()))
                   continue;
-            // numeric staffs dont have beams
-            if (stf->isNumericStaff(measure->tick()))
-                  continue;
 
             ChordRest* a1    = 0;      // start of (potential) beam
             Beam* beam       = 0;      // current beam
@@ -2190,7 +2187,7 @@ void Score::createBeams(Measure* measure)
                   if (cr->durationType().hooks() > 0 && cr->crossMeasure() == CrossMeasure::SECOND)
                         bm = Beam::Mode::NONE;
 
-                  if ((cr->durationType().type() <= TDuration::DurationType::V_QUARTER) || (bm == Beam::Mode::NONE)) {
+                  if ((cr->durationType().type() <= TDuration::DurationType::V_QUARTER) || (bm == Beam::Mode::NONE) || (stf->isNumericStaff(measure->tick()))) {
                         if (beam) {
                               beam->layout1();
                               beam = 0;
