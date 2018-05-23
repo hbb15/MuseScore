@@ -2016,7 +2016,22 @@ QString Note::getNumericString(int numkro) const
             }
       return "0";
       }
+//---------------------------------------------------------
+//   getNumericDuration
+//---------------------------------------------------------
 
+QString getNumericDuration[16]={
+      "","",",,",",","","","","","","","","","","","",""
+
+};
+//---------------------------------------------------------
+//   getNumericDurationDot
+//---------------------------------------------------------
+
+QString getNumericDurationDot[3]={
+      "",".",".."
+
+};
 //---------------------------------------------------------
 //   getNumericTrans
 //---------------------------------------------------------
@@ -2075,7 +2090,9 @@ void Note::layout()
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
             int grundtonverschibung=getNumericTrans(staff()->key(tick()));
             int zifferkomatik=((_pitch+grundtonverschibung)%12)+1;
-            _fretString = getNumericString(zifferkomatik);
+            _fretString = getNumericString(zifferkomatik)+
+                        getNumericDuration[int(chord()->durationType().type())]+
+                        getNumericDurationDot[int(chord()->durationType().dots())];
             _fretStringYShift=((_pitch+grundtonverschibung)/12-5)*SPATIUM20;
             }
       else {

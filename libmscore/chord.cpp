@@ -1457,10 +1457,13 @@ void Chord::layoutStem()
             // if stems are through staff, use standard formatting
             }
       if (staff() && (staff()->isNumericStaff(tick()))){
-            QPointF p(0,0);
-            p.ry() -= _notes[0]->fretStringYShift();
 
-            _hook->setPos(p);
+            if (_hook) {
+                  QPointF p(0,0);
+                  p.ry() -= _notes[0]->fretStringYShift();
+
+                  _hook->setPos(p);
+                  }
             return;
             }
       // not stem on Numeric
