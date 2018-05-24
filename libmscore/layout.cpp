@@ -95,8 +95,7 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
 
       if (staff->isTabStaff(segment->tick()))
             return;
-      if (staff->isNumericStaff(segment->tick()))
-            return;
+
 
       std::vector<Note*> upStemNotes;
       std::vector<Note*> downStemNotes;

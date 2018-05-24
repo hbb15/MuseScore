@@ -2450,7 +2450,6 @@ void Chord::layoutTablature()
 void Chord::layoutNumeric()
       {
       qreal _spatium          = spatium();
-      qreal dotNoteDistance   = score()->styleP(Sid::dotNoteDistance);
       qreal minNoteDistance   = score()->styleP(Sid::minNoteDistance);
       qreal minTieLength      = score()->styleP(Sid::MinTieLength);
 
@@ -2670,26 +2669,6 @@ void Chord::layoutNumeric()
 
             }
 
-      if (dots()) {
-            qreal x = 0.0;
-            // if stems are beside staff, dots are placed near to stem
-            if (!tab->stemThrough()) {
-                  // if there is an unbeamed hook, dots should start after the hook
-                  if (_hook && !beam())
-                        x = _hook->width() + dotNoteDistance;
-                  // if not, dots should start at a fixed distance right after the stem
-                  else
-                        x = STAFFTYPE_TAB_DEFAULTDOTDIST_X * _spatium;
-                  if (segment())
-                        segment()->setDotPosX(staffIdx(), x);
-                  }
-            // if stems are through staff, use dot position computed above on fret mark widths
-            else
-                  x = dotPosX() + dotNoteDistance
-                        + (dots()-1) * score()->styleS(Sid::dotDotDistance).val() * _spatium;
-            x += symWidth(SymId::augmentationDot);
-            rrr = qMax(rrr, x);
-            }
 
       _spaceLw = lll;
       _spaceRw = rrr;

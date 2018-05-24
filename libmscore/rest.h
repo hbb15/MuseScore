@@ -39,6 +39,9 @@ class Rest : public ChordRest {
       virtual void setUserOff(const QPointF& o) override;
 
 
+      QString _fretString;
+
+
    public:
       Rest(Score* s = 0);
       Rest(Score*, const TDuration&);

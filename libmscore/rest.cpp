@@ -69,11 +69,48 @@ Rest::Rest(const Rest& r, bool link)
       }
 
 //---------------------------------------------------------
+//   getNumericDuration
+//---------------------------------------------------------
+
+QString getNumericDurationRest[16]={
+      "","",",,",",","","","","","","","","","","",",,",""
+
+};
+//---------------------------------------------------------
+//   getNumericDurationDot
+//---------------------------------------------------------
+
+QString getNumericDurationDotRest[3]={
+      "",".",".."
+
+};
+//---------------------------------------------------------
 //   Rest::draw
 //---------------------------------------------------------
 
 void Rest::draw(QPainter* painter) const
       {
+      if (staff() && staff()->isNumericStaff(tick())) {
+
+            QColor c(curColor());
+            painter->setPen(c);
+            StaffType* tab = staff()->staffType(tick());
+
+            QFont f(tab->fretFont());
+            f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
+            painter->setFont(f);
+            painter->setPen(c);
+            painter->drawText(QPointF(0, 15), "0"+
+                              getNumericDurationRest[int(durationType().type())]+
+                              getNumericDurationDotRest[int(durationType().dots())]);
+
+            painter->setPen(QPen(curColor(), 3.0));
+            for (int i = 0; i < qAbs(durationType().hooks()); ++i){
+
+                  painter->drawLine(QLineF(0, -25.0+i*-10, 25.0, -25.0+i*-10));
+                  }
+            return;
+            }
       if (
          (staff() && staff()->isTabStaff(tick())
          // in tab staff, do not draw rests is rests are off OR if dur. symbols are on
@@ -386,6 +423,11 @@ void Rest::layout()
                   delete _tabDur;
                   _tabDur = 0;
                   }
+            }
+      if (staff() && staff()->isNumericStaff(tick())) {
+
+            _fretString = "0";
+
             }
 
       dotline = Rest::getDotline(durationType().type());
