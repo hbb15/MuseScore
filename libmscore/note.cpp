@@ -1151,7 +1151,15 @@ void Note::draw(QPainter* painter) const
             f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
             painter->setFont(f);
             painter->setPen(c);
-            painter->drawText(QPointF(bbox().x(), (tab->fretFontYOffset())-_fretStringYShift), _fretString);
+            painter->drawText(QPointF(bbox().x(), ((tab->fretFontYOffset())-_fretStringYShift) * magS()), _fretString);
+            if (_accidental || _drawFlat || _drawSharp){
+                  if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
+                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*0.4, QPointF(-20.0*magS(), (5.0 -_fretStringYShift) * magS()));
+                        }
+                  if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
+                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*0.4, QPointF(-20.0*magS(), (8.0 -_fretStringYShift) * magS()));
+                        }
+                  }
             }
 
       // NOT tablature and Numeric
@@ -1984,37 +1992,69 @@ void Note::setDotY(Direction pos)
 //   getNumeric
 //---------------------------------------------------------
 
-QString Note::getNumericString(int numkro) const
+QString Note::getNumericString(int numkro)
       {
       switch (numkro) {
+              case 0:
+                    return "7";
               case 1:
                     return "1";
               case 2:
-                    return "#1";
+                    return getNumericString(numkro + setAccidentalTypeBack());
               case 3:
                     return "2";
               case 4:
-                    return "#2";
+                  return getNumericString(numkro + setAccidentalTypeBack());
               case 5:
                     return "3";
               case 6:
                     return "4";
               case 7:
-                    return "#4";
+                  return getNumericString(numkro + setAccidentalTypeBack());
               case 8:
                     return "5";
               case 9:
-                    return "#5";
+                  return getNumericString(numkro + setAccidentalTypeBack());
               case 10:
                     return "6";
               case 11:
-                    return "#6";
+                  return getNumericString(numkro + setAccidentalTypeBack());
               case 12:
                     return "7";
+              case 13:
+                    return "1";
               default:
                     return "0";
             }
       return "0";
+      }
+//---------------------------------------------------------
+//   getAccidentalTypeBack
+//---------------------------------------------------------
+
+int Note::setAccidentalTypeBack() {
+      Note* n = 0;
+      int shift = -1;
+      if(staff() && chord()){
+            n = chord()->findNoteBack(_pitch);
+            }
+      while(n != 0 && n->accidentalType() != AccidentalType::SHARP &&
+            n->accidentalType() != AccidentalType::FLAT){
+            n = n->chord()->findNoteBack(_pitch);
+            }
+      if (n && n->accidentalType() != AccidentalType::NONE){
+            if (n->accidentalType() == AccidentalType::SHARP){
+                  _drawSharp = true;
+                  shift = -1;
+                  }
+            if (n->accidentalType() == AccidentalType::FLAT){
+                  _drawFlat = true;
+                  shift = 1;
+                  }
+            }
+      if (shift == -1)
+            _drawSharp = true;
+      return shift;
       }
 //---------------------------------------------------------
 //   getNumericDuration
@@ -2023,7 +2063,7 @@ QString Note::getNumericString(int numkro) const
 QString getNumericDuration[16]={
       "","",",,",",","","","","","","","","","","","",""
 
-};
+      };
 //---------------------------------------------------------
 //   getNumericDurationDot
 //---------------------------------------------------------
@@ -2031,7 +2071,7 @@ QString getNumericDuration[16]={
 QString getNumericDurationDot[3]={
       "",".",".."
 
-};
+      };
 //---------------------------------------------------------
 //   getNumericTrans
 //---------------------------------------------------------
@@ -2057,7 +2097,7 @@ int Note::getNumericTrans(Key key) const{
                 break;
           }
     return 0;
-}
+      }
 //---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
@@ -2088,12 +2128,27 @@ void Note::layout()
             bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
             }
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
+            int accidentalshift=0;
+            _drawFlat = false;
+            _drawSharp = false;
+            if (_accidental){
+                  if (_accidental->accidentalType() == AccidentalType::SHARP){
+                        accidentalshift=-1;
+                        }
+                  if (_accidental->accidentalType() == AccidentalType::FLAT){
+                        accidentalshift=1;
+                        }
+                  }
+            int clefshift=0;
+            ClefType clef = staff()->clef(tick());
+            if(clef==ClefType::F)
+                  clefshift=-12;
             int grundtonverschibung=getNumericTrans(staff()->key(tick()));
-            int zifferkomatik=((_pitch+grundtonverschibung)%12)+1;
-            _fretString = getNumericString(zifferkomatik)+
+            int zifferkomatik=((_pitch+grundtonverschibung+clefshift)%12)+1;
+            _fretString = getNumericString(zifferkomatik+accidentalshift)+
                         getNumericDuration[int(chord()->durationType().type())]+
                         getNumericDurationDot[int(chord()->durationType().dots())];
-            _fretStringYShift=((_pitch+grundtonverschibung)/12-5)*SPATIUM20;
+            _fretStringYShift=((_pitch+grundtonverschibung+clefshift+accidentalshift)/12-5)*25;
             }
       else {
             SymId nh = noteHead();

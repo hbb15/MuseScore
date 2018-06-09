@@ -1460,7 +1460,7 @@ void Chord::layoutStem()
 
             if (_hook) {
                   QPointF p(0,0);
-                  p.ry() -= _notes[0]->fretStringYShift();
+                  p.ry() -= (_notes[0]->fretStringYShift()) * magS();
 
                   _hook->setPos(p);
                   }
@@ -2832,6 +2832,30 @@ Note* Chord::findNote(int pitch) const
                   return n;
             }
       return 0;
+      }
+
+//---------------------------------------------------------
+//   findNoteBack
+//---------------------------------------------------------
+
+Note* Chord::findNoteBack(int pitch)
+      {
+      Segment* s = segment()->prev();
+      Note* n = 0;
+      while (s && !n) {
+            if ( s->element(track())->isChord()) {
+                  Chord* ch = toChord(s->element(track()));
+                  n = ch->findNote(pitch);
+                  if(!n){
+                        s = s->prev();
+                        }
+                  }
+            else {
+                  s = s->prev();
+                  }
+
+            }
+      return n;
       }
 
 //---------------------------------------------------------

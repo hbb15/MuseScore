@@ -100,14 +100,14 @@ void Rest::draw(QPainter* painter) const
             f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
             painter->setFont(f);
             painter->setPen(c);
-            painter->drawText(QPointF(0, 15), "0"+
+            painter->drawText(QPointF(0, 15 * magS()), "0"+
                               getNumericDurationRest[int(durationType().type())]+
                               getNumericDurationDotRest[int(durationType().dots())]);
 
-            painter->setPen(QPen(curColor(), 3.0));
+            painter->setPen(QPen(curColor(), 3.0 * magS()));
             for (int i = 0; i < qAbs(durationType().hooks()); ++i){
 
-                  painter->drawLine(QLineF(0, -25.0+i*-10, 25.0, -25.0+i*-10));
+                  painter->drawLine(QLineF(0, (-25.0+i*-10) * magS(), (22.0) * magS(), (-25.0+i*-10) * magS()));
                   }
             return;
             }

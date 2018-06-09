@@ -80,10 +80,10 @@ void Hook::draw(QPainter* painter) const
 
 
       if (staff() && staff()->isNumericStaff( tick())) {
-            painter->setPen(QPen(curColor(), 3.0));
+            painter->setPen(QPen(curColor(), 3.0 * magS()));
             for (int i = 0; i < qAbs(_hookType); ++i){
 
-                  painter->drawLine(QLineF(0, -25.0+i*-10, 25.0, -25.0+i*-10));
+                  painter->drawLine(QLineF(0, (-25.0+i*-10) * magS(), (25.0) * magS(), (-25.0+i*-10) * magS()));
                   }
             }
       else{

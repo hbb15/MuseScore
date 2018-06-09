@@ -259,7 +259,8 @@ class Note final : public Element {
       QString _fretString;
       qreal _fretStringYShift;
       bool _fretHidden = false;
-
+      bool _drawFlat = false;
+      bool _drawSharp = false;
       virtual void startDrag(EditData&) override;
       virtual QRectF drag(EditData&) override;
       virtual void endDrag(EditData&) override;
@@ -462,7 +463,8 @@ class Note final : public Element {
       void undoSetHeadType(NoteHead::Type);
 
       virtual QVariant getProperty(Pid propertyId) const override;
-      QString getNumericString(int numkro) const;
+      QString getNumericString(int numkro);
+      int setAccidentalTypeBack() ;
 
       int getNumericTrans(Key key) const;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
