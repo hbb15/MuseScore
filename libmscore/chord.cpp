@@ -2843,8 +2843,8 @@ Note* Chord::findNoteBack(int pitch)
       Segment* s = segment()->prev();
       Note* n = 0;
       while (s && !n) {
-            if ( s->element(track())->isChord()) {
-                  Chord* ch = toChord(s->element(track()));
+            if (s->element(staffIdx()*VOICES) && s->element(staffIdx()*VOICES)->isChord()) {
+                  Chord* ch = toChord(s->element(staffIdx()*VOICES));
                   n = ch->findNote(pitch);
                   if(!n){
                         s = s->prev();

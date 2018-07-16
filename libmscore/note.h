@@ -464,7 +464,7 @@ class Note final : public Element {
 
       virtual QVariant getProperty(Pid propertyId) const override;
       QString getNumericString(int numkro);
-      int setAccidentalTypeBack() ;
+      int setAccidentalTypeBack(int defaultdirection) ;
 
       int getNumericTrans(Key key) const;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;

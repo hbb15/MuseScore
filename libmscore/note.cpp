@@ -1154,10 +1154,10 @@ void Note::draw(QPainter* painter) const
             painter->drawText(QPointF(bbox().x(), ((tab->fretFontYOffset())-_fretStringYShift) * magS()), _fretString);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*0.4, QPointF(-20.0*magS(), (5.0 -_fretStringYShift) * magS()));
+                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*0.5, QPointF(-20.0*magS(), (5.0 -_fretStringYShift) * magS()));
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*0.4, QPointF(-20.0*magS(), (8.0 -_fretStringYShift) * magS()));
+                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*0.55, QPointF(-20.0*magS(), (8.0 -_fretStringYShift) * magS()));
                         }
                   }
             }
@@ -2000,25 +2000,25 @@ QString Note::getNumericString(int numkro)
               case 1:
                     return "1";
               case 2:
-                    return getNumericString(numkro + setAccidentalTypeBack());
+                    return getNumericString(numkro + setAccidentalTypeBack(-1));
               case 3:
                     return "2";
               case 4:
-                  return getNumericString(numkro + setAccidentalTypeBack());
+                  return getNumericString(numkro + setAccidentalTypeBack(1));
               case 5:
                     return "3";
               case 6:
                     return "4";
               case 7:
-                  return getNumericString(numkro + setAccidentalTypeBack());
+                  return getNumericString(numkro + setAccidentalTypeBack(-1));
               case 8:
                     return "5";
               case 9:
-                  return getNumericString(numkro + setAccidentalTypeBack());
+                  return getNumericString(numkro + setAccidentalTypeBack(-1));
               case 10:
                     return "6";
               case 11:
-                  return getNumericString(numkro + setAccidentalTypeBack());
+                  return getNumericString(numkro + setAccidentalTypeBack(1));
               case 12:
                     return "7";
               case 13:
@@ -2032,9 +2032,9 @@ QString Note::getNumericString(int numkro)
 //   getAccidentalTypeBack
 //---------------------------------------------------------
 
-int Note::setAccidentalTypeBack() {
+int Note::setAccidentalTypeBack(int defaultdirection) {
       Note* n = 0;
-      int shift = -1;
+      int shift = defaultdirection;
       if(staff() && chord()){
             n = chord()->findNoteBack(_pitch);
             }
@@ -2044,16 +2044,16 @@ int Note::setAccidentalTypeBack() {
             }
       if (n && n->accidentalType() != AccidentalType::NONE){
             if (n->accidentalType() == AccidentalType::SHARP){
-                  _drawSharp = true;
                   shift = -1;
                   }
             if (n->accidentalType() == AccidentalType::FLAT){
-                  _drawFlat = true;
                   shift = 1;
                   }
             }
       if (shift == -1)
             _drawSharp = true;
+      else
+            _drawFlat = true;
       return shift;
       }
 //---------------------------------------------------------
