@@ -1517,14 +1517,27 @@ class NoteEditData : public ElementEditData {
 
 void Note::startDrag(EditData& ed)
       {
-      NoteEditData* ned = new NoteEditData();
-      ned->e    = this;
-      ned->line = _line;
-      ned->pushProperty(Pid::PITCH);
-      ned->pushProperty(Pid::TPC1);
-      ned->pushProperty(Pid::TPC2);
+      if (staff()->isNumericStaff(chord()->tick())) {
 
-      ed.addData(ned);
+            NoteEditData* ned = new NoteEditData();
+            ned->e    = this;
+            ned->line = _pitch;
+            ned->pushProperty(Pid::PITCH);
+            ned->pushProperty(Pid::TPC1);
+            ned->pushProperty(Pid::TPC2);
+
+            ed.addData(ned);
+            }
+      else{
+            NoteEditData* ned = new NoteEditData();
+            ned->e    = this;
+            ned->line = _line;
+            ned->pushProperty(Pid::PITCH);
+            ned->pushProperty(Pid::TPC1);
+            ned->pushProperty(Pid::TPC2);
+
+            ed.addData(ned);
+            }
       }
 
 //---------------------------------------------------------
@@ -1548,15 +1561,20 @@ QRectF Note::drag(EditData& ed)
             // TODO
             }
       else {
-            Key key = staff()->key(_tick);
-            _pitch = line2pitch(ned->line + lineOffset, staff()->clef(_tick), key);
-            if (!concertPitch()) {
-                  Interval interval = staff()->part()->instrument(_tick)->transpose();
-                  _pitch += interval.chromatic;
+            if (staff()->isNumericStaff(_tick)) {
+                  _pitch = ned->line - lrint(ed.delta.y() / 30.0);
                   }
-            _tpc[0] = pitch2tpc(_pitch, key, Prefer::NEAREST);
-            _tpc[1] = pitch2tpc(_pitch - transposition(), key, Prefer::NEAREST);
-            }
+            else {
+                  Key key = staff()->key(_tick);
+                  _pitch = line2pitch(ned->line + lineOffset, staff()->clef(_tick), key);
+                  if (!concertPitch()) {
+                        Interval interval = staff()->part()->instrument(_tick)->transpose();
+                        _pitch += interval.chromatic;
+                        }
+                  _tpc[0] = pitch2tpc(_pitch, key, Prefer::NEAREST);
+                  _tpc[1] = pitch2tpc(_pitch - transposition(), key, Prefer::NEAREST);
+             }
+      }
       triggerLayout();
       return QRectF();
       }
