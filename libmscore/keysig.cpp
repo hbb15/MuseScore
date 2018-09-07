@@ -47,9 +47,8 @@ const char* keyNames[] = {
 //---------------------------------------------------------
 
 KeySig::KeySig(Score* s)
-  : Element(s)
+  : Element(s, ElementFlag::ON_STAFF)
       {
-      setFlags(ElementFlag::SELECTABLE | ElementFlag::ON_STAFF);
       _showCourtesy = true;
       _hideNaturals = false;
       }
@@ -444,8 +443,8 @@ void KeySig::read(XmlReader& e)
             if (tag == "KeySym") {
                   KeySym ks;
                   while (e.readNextStartElement()) {
-                        const QStringRef& tag(e.name());
-                        if (tag == "sym") {
+                        const QStringRef& t(e.name());
+                        if (t == "sym") {
                               QString val(e.readElementText());
                               bool valid;
                               SymId id = SymId(val.toInt(&valid));
@@ -459,7 +458,7 @@ void KeySig::read(XmlReader& e)
                                     }
                               ks.sym = id;
                               }
-                        else if (tag == "pos")
+                        else if (t == "pos")
                               ks.spos = e.readPoint();
                         else
                               e.unknown();

@@ -80,6 +80,32 @@ bool EditDrumsetTreeWidgetItem::operator<(const QTreeWidgetItem & other) const
 //   EditDrumset
 //---------------------------------------------------------
 
+struct SymbolIcon {
+      SymId id;
+      QIcon icon;
+      SymbolIcon(SymId i, QIcon j)
+            : id(i), icon(j)
+            {}
+
+      static SymbolIcon generateIcon(const SymId& id, double w, double h, double defaultScale)
+            {
+            QIcon icon;
+            QPixmap image(w, h);
+            image.fill(Qt::transparent);
+            QPainter painter(&image);
+            const QRectF& bbox = ScoreFont::fallbackFont()->bbox(id, 1);
+            const qreal actualSymbolScale = std::min(w / bbox.width(), h / bbox.height());
+            qreal mag = std::min(defaultScale, actualSymbolScale);
+            const qreal& xStShift = (w - mag * bbox.width()) / 2 - mag*bbox.left();
+            const qreal& yStShift = (h - mag * bbox.height()) / 2 - mag*bbox.top();
+            const QPointF& stPtPos = QPointF(xStShift, yStShift);
+            ScoreFont::fallbackFont()->draw(id, &painter, mag, stPtPos);
+            painter.end();
+            icon.addPixmap(image);
+            return SymbolIcon(id, icon);
+            }
+};
+
 EditDrumset::EditDrumset(const Drumset* ds, QWidget* parent)
    : QDialog(parent)
       {
@@ -113,43 +139,66 @@ EditDrumset::EditDrumset(const Drumset* ds, QWidget* parent)
       pitchList->setColumnWidth(1, 60);
       pitchList->setColumnWidth(2, 30);
 
-      QStringList validNoteheadRanges = { "Noteheads", "Slash noteheads", "Round and square noteheads", "Shape note noteheads", "Shape note noteheads supplement" };
-      QSet<QString> excludeSym = {"noteheadParenthesisLeft", "noteheadParenthesisRight"};
-      struct SymbolIcon {
-            SymId id;
-            QIcon icon;
-            SymbolIcon(SymId i, QIcon j)
-                  : id(i), icon(j)
-                  {}
+      QStringList validNoteheadRanges = { "Noteheads", "Round and square noteheads", "Slash noteheads", "Shape note noteheads", "Shape note noteheads supplement" };
+      QSet<QString> excludeSym = {"noteheadParenthesisLeft", "noteheadParenthesisRight", "noteheadParenthesis", "noteheadNull"};
+      QStringList primaryNoteheads = {
+            "noteheadXOrnate",
+            "noteheadXBlack",
+            "noteheadXHalf",
+            "noteheadXWhole",
+            "noteheadXDoubleWhole",
+            "noteheadSlashedBlack1",
+            "noteheadSlashedHalf1",
+            "noteheadSlashedWhole1",
+            "noteheadSlashedDoubleWhole1",
+            "noteheadSlashedBlack2",
+            "noteheadSlashedHalf2",
+            "noteheadSlashedWhole2",
+            "noteheadSlashedDoubleWhole2",
+            "noteheadSquareBlack",
+            "noteheadMoonBlack",
+            "noteheadTriangleUpRightBlack",
+            "noteheadTriangleDownBlack",
+            "noteheadTriangleUpBlack",
+            "noteheadTriangleLeftBlack",
+            "noteheadTriangleRoundDownBlack",
+            "noteheadDiamondBlack",
+            "noteheadDiamondHalf",
+            "noteheadDiamondWhole",
+            "noteheadDiamondDoubleWhole",
+            "noteheadRoundWhiteWithDot",
+            "noteheadVoidWithX",
+            "noteheadHalfWithX",
+            "noteheadWholeWithX",
+            "noteheadDoubleWholeWithX",
+            "noteheadLargeArrowUpBlack",
+            "noteheadLargeArrowUpHalf",
+            "noteheadLargeArrowUpWhole",
+            "noteheadLargeArrowUpDoubleWhole"
       };
+
       int w = quarterCmb->iconSize().width()  * qApp->devicePixelRatio();
       int h = quarterCmb->iconSize().height() * qApp->devicePixelRatio();
-      QList<SymbolIcon> validNoteheads;
+      //default scale is 0.3, will use smaller scale for large noteheads symbols
+      const qreal defaultScale = 0.3 * qApp->devicePixelRatio();
+
+      QList<SymbolIcon> resNoteheads;
+      for (auto symName : primaryNoteheads) {
+             SymId id = Sym::name2id(symName);
+             resNoteheads.append(SymbolIcon::generateIcon(id, w, h, defaultScale));
+             }
+
       for (QString range : validNoteheadRanges) {
             for (auto symName : (*smuflRanges())[range]) {
                    SymId id = Sym::name2id(symName);
-                   if (!excludeSym.contains(symName)) {
-                         QIcon icon;
-                         QPixmap image(w, h);
-                         image.fill(Qt::transparent);
-                         QPainter painter(&image);
-                         const QRectF& bbox = ScoreFont::fallbackFont()->bbox(id, 1);
-                         //default scale is 0.3, use smaller scale for large noteheads symbols
-                         qreal mag = std::min(0.3, std::min(w / bbox.width(), h / bbox.height()));
-                         const qreal& xStShift = (w - mag * bbox.width()) / 2 - mag*bbox.left();
-                         const qreal& yStShift = (h - mag * bbox.height()) / 2 - mag*bbox.top();
-                         const QPointF& stPtPos = QPointF(xStShift, yStShift);
-                         ScoreFont::fallbackFont()->draw(id, &painter, mag, stPtPos);
-                         painter.end();
-                         icon.addPixmap(image);
-                         validNoteheads.append(SymbolIcon(id, icon));
-                         }
+                   if (!excludeSym.contains(symName) && !primaryNoteheads.contains(symName))
+                         resNoteheads.append(SymbolIcon::generateIcon(id, w, h, defaultScale));
                    }
             }
 
       QComboBox* combos[] = { wholeCmb, halfCmb, quarterCmb, doubleWholeCmb };
       for (QComboBox* combo : combos) {
-            for (auto si : validNoteheads) {
+            for (auto si : resNoteheads) {
                   SymId id = si.id;
                   QIcon icon = si.icon;
                   combo->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -245,22 +294,20 @@ void EditDrumset::setEnabledPitchControls(bool enable)
 //   nameChanged
 //---------------------------------------------------------
 
-void EditDrumset::nameChanged(const QString& name)
+void EditDrumset::nameChanged(const QString& n)
       {
       QTreeWidgetItem* item = pitchList->currentItem();
       if (item) {
-            item->setText(Column::NAME, name);
+            item->setText(Column::NAME, n);
             int pitch = item->data(Column::PITCH, Qt::UserRole).toInt();
-            if (!name.isEmpty()) {
+            if (!n.isEmpty()) {
                   if (!nDrumset.isValid(pitch))
                         noteHead->setCurrentIndex(0);
                   }
-            else {
-                  int pitch = item->data(Column::PITCH, Qt::UserRole).toInt();
+            else
                   nDrumset.drum(pitch).name.clear();
-                  }
             }
-      setEnabledPitchControls(!name.isEmpty());
+      setEnabledPitchControls(!n.isEmpty());
       }
 
 //---------------------------------------------------------
@@ -478,24 +525,24 @@ void EditDrumset::updateExample()
             return;
             }
       int line      = nDrumset.line(pitch);
-      NoteHead::Group noteHead = nDrumset.noteHead(pitch);
-      int voice     = nDrumset.voice(pitch);
+      NoteHead::Group nh = nDrumset.noteHead(pitch);
+      int v         = nDrumset.voice(pitch);
       Direction dir = nDrumset.stemDirection(pitch);
       bool up = (Direction::UP == dir) || (Direction::AUTO == dir && line > 4);
       Chord* chord = new Chord(gscore);
       chord->setDurationType(TDuration::DurationType::V_QUARTER);
       chord->setStemDirection(dir);
-      chord->setTrack(voice);
+      chord->setTrack(v);
       chord->setUp(up);
       Note* note = new Note(gscore);
       note->setParent(chord);
-      note->setTrack(voice);
+      note->setTrack(v);
       note->setPitch(pitch);
       note->setTpcFromPitch();
       note->setLine(line);
       note->setPos(0.0, gscore->spatium() * .5 * line);
       note->setHeadType(NoteHead::Type::HEAD_QUARTER);
-      note->setHeadGroup(noteHead);
+      note->setHeadGroup(nh);
       note->setCachedNoteheadSym(Sym::name2id(quarterCmb->currentData().toString()));
       chord->add(note);
       Stem* stem = new Stem(gscore);
@@ -510,11 +557,11 @@ void EditDrumset::updateExample()
 
 void EditDrumset::load()
       {
-      QString name = mscore->getDrumsetFilename(true);
-      if (name.isEmpty())
+      QString fname = mscore->getDrumsetFilename(true);
+      if (fname.isEmpty())
             return;
 
-      QFile fp(name);
+      QFile fp(fname);
       if (!fp.open(QIODevice::ReadOnly))
             return;
 
@@ -544,11 +591,11 @@ void EditDrumset::load()
 
 void EditDrumset::save()
       {
-      QString name = mscore->getDrumsetFilename(false);
-      if (name.isEmpty())
+      QString fname = mscore->getDrumsetFilename(false);
+      if (fname.isEmpty())
             return;
 
-      QFile f(name);
+      QFile f(fname);
       if (!f.open(QIODevice::WriteOnly)) {
             QString s = tr("Open File\n%1\nfailed: %1").arg(strerror(errno));
             QMessageBox::critical(mscore, tr("Open File"), s.arg(f.fileName()));

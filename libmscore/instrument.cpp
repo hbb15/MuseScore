@@ -262,7 +262,7 @@ void Instrument::read(XmlReader& e, Part* part)
                   e.unknown();
             }
       if (_useDrumset) {
-            if (_channel[0]->bank == 0)
+            if (_channel[0]->bank == 0 && _channel[0]->synti.toLower() != "zerberus")
                   _channel[0]->bank = 128;
             _channel[0]->updateInitList();
             }
@@ -505,12 +505,12 @@ void Channel::read(XmlReader& e, Part* part)
                               break;
                         default:
                               {
-                              Event e(ME_CONTROLLER);
-                              e.setOntime(-1);
-                              e.setChannel(0);
-                              e.setDataA(ctrl);
-                              e.setDataB(value);
-                              init.push_back(e);
+                              Event ev(ME_CONTROLLER);
+                              ev.setOntime(-1);
+                              ev.setChannel(0);
+                              ev.setDataA(ctrl);
+                              ev.setDataB(value);
+                              init.push_back(ev);
                               }
                               break;
                         }
@@ -554,6 +554,8 @@ void Channel::read(XmlReader& e, Part* part)
             else
                   e.unknown();
             }
+      if (128 == bank && "zerberus" == synti.toLower())
+            bank = 0;
       updateInitList();
       }
 

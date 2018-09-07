@@ -397,7 +397,8 @@ void Palette::mouseMoveEvent(QMouseEvent* ev)
 
 static void applyDrop(Score* score, ScoreView* viewer, Element* target, Element* e, QPointF pt = QPointF())
       {
-      EditData dropData(viewer);
+      EditData dropData = viewer->getEditData();
+//      EditData dropData;
       dropData.pos        = pt.isNull() ? target->pagePos() : pt;
       dropData.dragOffset = QPointF();
       dropData.modifiers  = 0;
@@ -408,18 +409,19 @@ static void applyDrop(Score* score, ScoreView* viewer, Element* target, Element*
 
             QByteArray a = e->mimeData(QPointF());
 
-            XmlReader e(a);
+            XmlReader n(a);
             Fraction duration;  // dummy
             QPointF dragOffset;
-            ElementType type = Element::readType(e, &dragOffset, &duration);
+            ElementType type = Element::readType(n, &dragOffset, &duration);
             dropData.element = Element::create(type, score);
 
-            dropData.element->read(e);
+            dropData.element->read(n);
             dropData.element->styleChanged();   // update to local style
 
             Element* el = target->drop(dropData);
             if (el)
                   score->select(el, SelectType::SINGLE, 0);
+            dropData.element = 0;
             }
       }
 
@@ -445,8 +447,7 @@ void Palette::applyPaletteElement(PaletteCell* cell)
       ScoreView* viewer = mscore->currentScoreView();
       if (viewer->mscoreState() != STATE_EDIT
          && viewer->mscoreState() != STATE_LYRICS_EDIT
-         && viewer->mscoreState() != STATE_HARMONY_FIGBASS_EDIT
-         && viewer->mscoreState() != STATE_TEXT_EDIT) { // Already in startCmd in this case
+         && viewer->mscoreState() != STATE_HARMONY_FIGBASS_EDIT) { // Already in startCmd in this case
             score->startCmd();
             }
       if (sel.isList()) {
@@ -674,16 +675,16 @@ void Palette::applyPaletteElement(PaletteCell* cell)
             }
       else
             qDebug("unknown selection state");
+
       if (viewer->mscoreState() != STATE_EDIT
          && viewer->mscoreState() != STATE_LYRICS_EDIT
-         && viewer->mscoreState() != STATE_HARMONY_FIGBASS_EDIT
-         && viewer->mscoreState() != STATE_TEXT_EDIT) { //Already in startCmd mode in this case
+         && viewer->mscoreState() != STATE_HARMONY_FIGBASS_EDIT) { //Already in startCmd mode in this case
             score->endCmd();
             if (viewer->mscoreState() == STATE_NOTE_ENTRY_STAFF_DRUM)
                   viewer->moveCursor();
             }
       viewer->setDropTarget(0);
-      mscore->endCmd();
+//      mscore->endCmd();
       }
 
 //---------------------------------------------------------

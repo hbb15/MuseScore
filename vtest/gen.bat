@@ -22,10 +22,12 @@ set SRC=mmrest-1,bravura-mmrest,gonville-mmrest,mmrest-2,mmrest-4,mmrest-5,mmres
  ottava,slurs-1,slurs-2,slurs-3,slurs-4,hairpins-1,pedal-1,line-1,line-2,line-3,line-4,line-5,line-6,gliss-1,gliss-2, ^
  chord-layout-1,chord-layout-2,chord-layout-3,chord-layout-4,chord-layout-5, ^
  chord-layout-6,chord-layout-7,chord-layout-8,chord-layout-9,chord-layout-10, ^
- chord-layout-11,chord-layout-12,chord-layout-13,chord-layout-14,chord-layout-15,chord-layout-16,cross-1,cross-2, ^
+ chord-layout-11,chord-layout-12,chord-layout-13,chord-layout-14,chord-layout-15,chord-layout-16,chord-layout-17, ^
+ cross-1,cross-2, ^
  accidental-1,accidental-2,accidental-3,accidental-4,accidental-5, ^
- accidental-6,accidental-7,accidental-8,accidental-9,accidental-10, ^
- tie-1,tie-2,tie-3,grace-1,grace-2,grace-3,grace-4,tuplets-1,tuplets-2,breath-1, ^
+ accidental-6,accidental-7,accidental-8,accidental-9,accidental-10, accidental-mirror, ^
+ tie-1,tie-2,tie-3,grace-1,grace-2,grace-3,grace-4, ^
+ tuplets-1,tuplets-2,tuplets-3,tuplets-4,breath-1, ^
  harmony-1,harmony-2,harmony-3,harmony-4,harmony-5,harmony-6,harmony-7, ^
  harmony-8,harmony-9,harmony-10,harmony-11,harmony-12, ^
  beams-1,beams-2,beams-3,beams-4,beams-5,beams-6,beams-7,beams-8,beams-9,beams-10, ^
@@ -37,7 +39,20 @@ set SRC=mmrest-1,bravura-mmrest,gonville-mmrest,mmrest-2,mmrest-4,mmrest-5,mmres
  slashed_chord-layout-12, slashed_chord-layout-7, slashed_grace-3, slashed_noteheadposition-1, ^
  drumset-custom-1, read-206-custom-drumset-1
 
-set MSCORE=..\win32install\bin\musescore.exe
+IF NOT "%1"=="" (
+   SET INSTALL_PATH=%1
+   ) ELSE (
+   SET INSTALL_PATH=msvc.install_x64
+   )
+
+set MSCORE=..\%INSTALL_PATH%\bin\musescore.exe
+
+IF NOT EXIST ..\%INSTALL_PATH%\nul (
+   echo "Current folder: ..\%INSTALL_PATH%"
+   echo "MuseScore install folder not found"
+   goto :ERROR
+   )
+
 set DPI=130
 set F=vtest.html
 
@@ -90,3 +105,5 @@ echo ^</html^> >> %F%
 %F%
 cd ..
 @echo on
+
+:ERROR

@@ -11,6 +11,7 @@
 //  the file LICENSE.GPL
 //=============================================================================
 
+#include "inspector.h"
 #include "inspectorHairpin.h"
 #include "musescore.h"
 #include "libmscore/hairpin.h"
@@ -61,10 +62,50 @@ InspectorHairpin::InspectorHairpin(QWidget* parent)
             { l.title, l.panel },
             { h.title, h.panel }
             };
+      populatePlacement(h.placement);
       h.fontBold->setIcon(*icons[int(Icons::textBold_ICON)]);
       h.fontItalic->setIcon(*icons[int(Icons::textItalic_ICON)]);
       h.fontUnderline->setIcon(*icons[int(Icons::textUnderline_ICON)]);
       mapSignals(il, ppList);
+      }
+
+//---------------------------------------------------------
+//   updateLineType
+//---------------------------------------------------------
+
+void InspectorHairpin::updateLineType()
+      {
+      HairpinSegment* hs = toHairpinSegment(inspector->element());
+      Hairpin* h = hs->hairpin();
+      bool userDash = h->lineStyle() == Qt::CustomDashLine;
+
+      l.dashLineLength->setVisible(userDash);
+      l.dashGapLength->setVisible(userDash);
+      l.resetDashLineLength->setVisible(userDash);
+      l.resetDashGapLength->setVisible(userDash);
+      l.dashLineLengthLabel->setVisible(userDash);
+      l.dashGapLengthLabel->setVisible(userDash);
+      }
+
+//---------------------------------------------------------
+//   valueChanged
+//---------------------------------------------------------
+
+void InspectorHairpin::valueChanged(int idx)
+      {
+      InspectorBase::valueChanged(idx);
+      if (iList[idx].t == Pid::LINE_STYLE)
+            updateLineType();
+      }
+
+//---------------------------------------------------------
+//   setElement
+//---------------------------------------------------------
+
+void InspectorHairpin::setElement()
+      {
+      InspectorElementBase::setElement();
+      updateLineType();
       }
 
 //---------------------------------------------------------

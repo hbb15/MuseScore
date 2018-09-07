@@ -61,6 +61,7 @@ void Staff::fillBrackets(int idx)
       for (int i = _brackets.size(); i <= idx; ++i) {
             BracketItem* bi = new BracketItem(score());
             bi->setStaff(this);
+            bi->setColumn(i);
             _brackets.append(bi);
             }
       }
@@ -117,7 +118,28 @@ void Staff::swapBracket(int oldIdx, int newIdx)
       {
       int idx = qMax(oldIdx, newIdx);
       fillBrackets(idx);
+      _brackets[oldIdx]->setColumn(newIdx);
+      _brackets[newIdx]->setColumn(oldIdx);
       _brackets.swap(oldIdx, newIdx);
+      cleanBrackets();
+      }
+
+//---------------------------------------------------------
+//   changeBracketColumn
+//---------------------------------------------------------
+
+void Staff::changeBracketColumn(int oldColumn, int newColumn)
+      {
+      int idx = qMax(oldColumn, newColumn);
+      fillBrackets(idx);
+      int step = newColumn > oldColumn ? 1 : -1;
+      for (int i = oldColumn; i != newColumn; i += step) {
+            int oldIdx = i;
+            int newIdx = i + step;
+            _brackets[oldIdx]->setColumn(newIdx);
+            _brackets[newIdx]->setColumn(oldIdx);
+            _brackets.swap(oldIdx, newIdx);
+            }
       cleanBrackets();
       }
 
@@ -417,9 +439,11 @@ TimeSig* Staff::timeSig(int tick) const
       auto i = timesigs.upper_bound(tick);
       if (i != timesigs.begin())
             --i;
+      if (i == timesigs.end())
+            return 0;
       else if (tick < i->first)
             return 0;
-      return (i == timesigs.end()) ? 0 : i->second;
+      return i->second;
       }
 
 //---------------------------------------------------------
@@ -666,15 +690,11 @@ bool Staff::readProperties(XmlReader& e)
       else if (tag == "keylist")
             _keys.read(e, score());
       else if (tag == "bracket") {
-            BracketItem* b = new BracketItem(score());
-            b->setStaff(this);
-            b->setBracketType(BracketType(e.intAttribute("type", -1)));
-            b->setBracketSpan(e.intAttribute("span", 0));
             int col = e.intAttribute("col", -1);
             if (col == -1)
                   col = _brackets.size();
-            b->setColumn(col);
-            _brackets.append(b);
+            setBracketType(col, BracketType(e.intAttribute("type", -1)));
+            setBracketSpan(col, e.intAttribute("span", 0));
             e.readNext();
             }
       else if (tag == "barLineSpan")
@@ -999,7 +1019,7 @@ StaffType* Staff::setStaffType(int tick, const StaffType* nst)
       {
       auto i = _staffTypeList.find(tick);
       if (i != _staffTypeList.end()) {
-            qDebug("there is alread a type at %d", tick);
+            qDebug("there is already a type at %d", tick);
             }
       return _staffTypeList.setStaffType(tick, nst);
       }
@@ -1039,6 +1059,7 @@ void Staff::init(const Staff* s)
       for (BracketItem* i : s->_brackets){
             BracketItem* ni = new BracketItem(*i);
             ni->setScore(score());
+            ni->setStaff(this);
             _brackets.push_back(ni);
             }
       _barLineSpan       = s->_barLineSpan;
@@ -1153,9 +1174,9 @@ void Staff::insertTime(int tick, int len)
       KeyList kl2;
       for (auto i = _keys.lower_bound(tick); i != _keys.end();) {
             KeySigEvent kse = i->second;
-            int tick = i->first;
+            int t = i->first;
             _keys.erase(i++);
-            kl2[tick + len] = kse;
+            kl2[t + len] = kse;
             }
       _keys.insert(kl2.begin(), kl2.end());
 
@@ -1260,8 +1281,10 @@ QVariant Staff::getProperty(Pid id) const
                   return barLineTo();
             case Pid::STAFF_USERDIST:
                   return userDist();
+            case Pid::GENERATED:
+                  return false;
             default:
-                  qDebug("unhandled id %s", propertyName(id));
+                  qDebug("unhandled id <%s>", propertyName(id));
                   return QVariant();
             }
       }
@@ -1310,7 +1333,7 @@ bool Staff::setProperty(Pid id, const QVariant& v)
                   setUserDist(v.toReal());
                   break;
             default:
-                  qDebug("unhandled id %s", propertyName(id));
+                  qDebug("unhandled id <%s>", propertyName(id));
                   break;
             }
       score()->setLayoutAll();
@@ -1343,7 +1366,7 @@ QVariant Staff::propertyDefault(Pid id) const
             case Pid::STAFF_USERDIST:
                   return qreal(0.0);
             default:
-                  qDebug("unhandled id %s", propertyName(id));
+                  qDebug("unhandled id <%s>", propertyName(id));
                   return QVariant();
             }
       }

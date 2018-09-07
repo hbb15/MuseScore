@@ -25,12 +25,16 @@
 namespace Ms {
 
 
-// must be in sync with Vibrato::Type
+//---------------------------------------------------------
+//   vibratoTable
+//    must be in sync with Vibrato::Type
+//---------------------------------------------------------
+
 const VibratoTableItem vibratoTable[] = {
-      { Vibrato::Type::GUITAR_VIBRATO,         "guitarVibrato",         QT_TRANSLATE_NOOP("vibratoType", "Guitar vibrato")          },
-      { Vibrato::Type::GUITAR_VIBRATO_WIDE,    "guitarVibratoWide",     QT_TRANSLATE_NOOP("vibratoType", "Guitar vibrato wide")     },
-      { Vibrato::Type::VIBRATO_SAWTOOTH,         "vibratoSawtooth",       QT_TRANSLATE_NOOP("vibratoType", "Vibrato sawtooth")        },
-      { Vibrato::Type::VIBRATO_SAWTOOTH_WIDE,    "vibratoSawtoothWide",   QT_TRANSLATE_NOOP("vibratoType", "tremolo sawtooth wide")   }
+      { Vibrato::Type::GUITAR_VIBRATO,        "guitarVibrato",       QT_TRANSLATE_NOOP("vibratoType", "Guitar vibrato")        },
+      { Vibrato::Type::GUITAR_VIBRATO_WIDE,   "guitarVibratoWide",   QT_TRANSLATE_NOOP("vibratoType", "Guitar vibrato wide")   },
+      { Vibrato::Type::VIBRATO_SAWTOOTH,      "vibratoSawtooth",     QT_TRANSLATE_NOOP("vibratoType", "Vibrato sawtooth")      },
+      { Vibrato::Type::VIBRATO_SAWTOOTH_WIDE, "vibratoSawtoothWide", QT_TRANSLATE_NOOP("vibratoType", "tremolo sawtooth wide") }
       };
 
 int vibratoTableSize() {
@@ -151,54 +155,14 @@ Shape VibratoSegment::shape() const
       }
 
 //---------------------------------------------------------
-//   getProperty
+//   propertyDelegate
 //---------------------------------------------------------
 
-QVariant VibratoSegment::getProperty(Pid id) const
+Element* VibratoSegment::propertyDelegate(Pid pid)
       {
-      switch (id) {
-            case Pid::VIBRATO_TYPE:
-            case Pid::ORNAMENT_STYLE:
-            case Pid::PLACEMENT:
-            case Pid::PLAY:
-                  return vibrato()->getProperty(id);
-            default:
-                  return LineSegment::getProperty(id);
-            }
-      }
-
-//---------------------------------------------------------
-//   setProperty
-//---------------------------------------------------------
-
-bool VibratoSegment::setProperty(Pid id, const QVariant& v)
-      {
-      switch (id) {
-            case Pid::VIBRATO_TYPE:
-            case Pid::ORNAMENT_STYLE:
-            case Pid::PLACEMENT:
-            case Pid::PLAY:
-                  return vibrato()->setProperty(id, v);
-            default:
-                  return LineSegment::setProperty(id, v);
-            }
-      }
-
-//---------------------------------------------------------
-//   propertyDefault
-//---------------------------------------------------------
-
-QVariant VibratoSegment::propertyDefault(Pid id) const
-      {
-      switch (id) {
-            case Pid::VIBRATO_TYPE:
-            case Pid::ORNAMENT_STYLE:
-            case Pid::PLACEMENT:
-            case Pid::PLAY:
-                  return vibrato()->propertyDefault(id);
-            default:
-                  return LineSegment::propertyDefault(id);
-            }
+      if (pid == Pid::VIBRATO_TYPE || pid == Pid::PLACEMENT || pid == Pid::PLAY)
+            return spanner();
+      return LineSegment::propertyDelegate(pid);
       }
 
 //---------------------------------------------------------
@@ -252,7 +216,7 @@ void Vibrato::write(XmlWriter& xml) const
       {
       if (!xml.canWrite(this))
             return;
-      xml.stag(QString("%1 id=\"%2\"").arg(name()).arg(xml.spannerId(this)));
+      xml.stag(name());
       xml.tag("subtype", vibratoTypeName());
       writeProperty(xml, Pid::PLAY);
       SLine::writeProperties(xml);
@@ -268,7 +232,6 @@ void Vibrato::read(XmlReader& e)
       qDeleteAll(spannerSegments());
       spannerSegments().clear();
 
-      e.addSpanner(e.intAttribute("id", -1), this);
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
             if (tag == "subtype")
@@ -373,7 +336,6 @@ QVariant Vibrato::propertyDefault(Pid propertyId) const
             default:
                   return SLine::propertyDefault(propertyId);
             }
-      return QVariant();
       }
 
 //---------------------------------------------------------

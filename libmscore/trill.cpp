@@ -25,7 +25,11 @@
 namespace Ms {
 
 
-// must be in sync with Trill::Type
+//---------------------------------------------------------
+//   trillTable
+//    must be in sync with Trill::Type
+//---------------------------------------------------------
+
 const TrillTableItem trillTable[] = {
       { Trill::Type::TRILL_LINE,      "trill",      QT_TRANSLATE_NOOP("trillType", "Trill line")          },
       { Trill::Type::UPPRALL_LINE,    "upprall",    QT_TRANSLATE_NOOP("trillType", "Upprall line")        },
@@ -218,54 +222,14 @@ Element* TrillSegment::drop(EditData& data)
       }
 
 //---------------------------------------------------------
-//   getProperty
+//   propertyDelegate
 //---------------------------------------------------------
 
-QVariant TrillSegment::getProperty(Pid id) const
+Element* TrillSegment::propertyDelegate(Pid pid)
       {
-      switch (id) {
-            case Pid::TRILL_TYPE:
-            case Pid::ORNAMENT_STYLE:
-            case Pid::PLACEMENT:
-            case Pid::PLAY:
-                  return trill()->getProperty(id);
-            default:
-                  return LineSegment::getProperty(id);
-            }
-      }
-
-//---------------------------------------------------------
-//   setProperty
-//---------------------------------------------------------
-
-bool TrillSegment::setProperty(Pid id, const QVariant& v)
-      {
-      switch (id) {
-            case Pid::TRILL_TYPE:
-            case Pid::ORNAMENT_STYLE:
-            case Pid::PLACEMENT:
-            case Pid::PLAY:
-                  return trill()->setProperty(id, v);
-            default:
-                  return LineSegment::setProperty(id, v);
-            }
-      }
-
-//---------------------------------------------------------
-//   propertyDefault
-//---------------------------------------------------------
-
-QVariant TrillSegment::propertyDefault(Pid id) const
-      {
-      switch (id) {
-            case Pid::TRILL_TYPE:
-            case Pid::ORNAMENT_STYLE:
-            case Pid::PLACEMENT:
-            case Pid::PLAY:
-                  return trill()->propertyDefault(id);
-            default:
-                  return LineSegment::propertyDefault(id);
-            }
+      if (pid == Pid::TRILL_TYPE || pid == Pid::ORNAMENT_STYLE || pid == Pid::PLACEMENT || pid == Pid::PLAY)
+            return spanner();
+      return LineSegment::propertyDelegate(pid);
       }
 
 //---------------------------------------------------------
@@ -337,33 +301,6 @@ void Trill::layout()
       if (spannerSegments().empty())
             return;
       TrillSegment* ls = toTrillSegment(frontSegment());
-#if 0
-// this is now handled differently, in SLine::linePos
-      //
-      // special case:
-      // if end segment is first chord/rest segment in measure,
-      // shorten trill line so it ends at end of previous measure
-      //
-      qreal _spatium = spatium();
-      Segment* seg1  = startSegment();
-      Segment* seg2  = endSegment();
-      if (seg1
-         && seg2
-         && (seg1->system() == seg2->system())
-         && (spannerSegments().size() == 1)
-         && (seg2->tick() == seg2->measure()->tick())
-         ) {
-            qreal x1   = seg2->pagePos().x();
-            Measure* m = seg2->measure()->prevMeasure();
-            if (m) {
-                  Segment* s2      = m->last();
-                  qreal x2         = s2->pagePos().x();
-                  qreal dx         = x1 - x2 + _spatium * .3;
-                  ls->setPos2(ls->ipos2() + QPointF(-dx, 0.0));
-                  ls->layout();
-                  }
-            }
-#endif
       if (spannerSegments().empty())
             qDebug("Trill: no segments");
       if (_accidental)
@@ -390,7 +327,7 @@ void Trill::write(XmlWriter& xml) const
       {
       if (!xml.canWrite(this))
             return;
-      xml.stag(QString("%1 id=\"%2\"").arg(name()).arg(xml.spannerId(this)));
+      xml.stag(name());
       xml.tag("subtype", trillTypeName());
       writeProperty(xml, Pid::PLAY);
       writeProperty(xml, Pid::ORNAMENT_STYLE);
@@ -409,7 +346,6 @@ void Trill::read(XmlReader& e)
       qDeleteAll(spannerSegments());
       spannerSegments().clear();
 
-      e.addSpanner(e.intAttribute("id", -1), this);
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
             if (tag == "subtype")
@@ -536,7 +472,7 @@ bool Trill::setProperty(Pid propertyId, const QVariant& val)
 
 QVariant Trill::propertyDefault(Pid propertyId) const
       {
-      switch(propertyId) {
+      switch (propertyId) {
             case Pid::TRILL_TYPE:
                   return 0;
             case Pid::ORNAMENT_STYLE:
@@ -549,7 +485,6 @@ QVariant Trill::propertyDefault(Pid propertyId) const
             default:
                   return SLine::propertyDefault(propertyId);
             }
-      return QVariant();
       }
 
 //---------------------------------------------------------

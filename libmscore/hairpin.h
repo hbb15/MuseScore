@@ -55,9 +55,7 @@ class HairpinSegment final : public TextLineBaseSegment {
 
       Hairpin* hairpin() const                       { return (Hairpin*)spanner();          }
 
-      virtual QVariant getProperty(Pid) const override;
-      virtual bool setProperty(Pid, const QVariant&) override;
-      virtual QVariant propertyDefault(Pid) const override;
+      virtual Element* propertyDelegate(Pid) override;
 
       virtual void layout() override;
       virtual Shape shape() const override;
@@ -111,6 +109,7 @@ class Hairpin final : public TextLineBase {
 
       virtual void write(XmlWriter&) const override;
       virtual void read(XmlReader&) override;
+      virtual void read300(XmlReader&) override;
 
       virtual QVariant getProperty(Pid id) const override;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;

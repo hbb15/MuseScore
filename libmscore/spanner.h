@@ -56,7 +56,7 @@ class SpannerSegment : public Element {
       QPointF _userOff2;
 
    public:
-      SpannerSegment(Score* s);
+      SpannerSegment(Score* s, ElementFlags f = ElementFlag::ON_STAFF | ElementFlag::MOVABLE);
       SpannerSegment(const SpannerSegment&);
       virtual SpannerSegment* clone() const = 0;
 
@@ -92,8 +92,10 @@ class SpannerSegment : public Element {
       virtual QVariant getProperty(Pid id) const override;
       virtual bool setProperty(Pid id, const QVariant& v) override;
       virtual QVariant propertyDefault(Pid id) const override;
+      virtual Element* propertyDelegate(Pid) override;
+
       virtual Sid getPropertyStyle(Pid id) const override;
-      virtual PropertyFlags& propertyFlags(Pid id) override;
+      virtual PropertyFlags propertyFlags(Pid id) const override;
       virtual void resetProperty(Pid id) override;
       virtual void styleChanged() override;
       void reset() override;
@@ -147,6 +149,13 @@ class Spanner : public Element {
       virtual ElementType type() const = 0;
       virtual void setScore(Score* s) override;
 
+      void writeSpannerStart(XmlWriter& xml, const Element* current, int track, Fraction frac = -1) const;
+      void writeSpannerEnd(XmlWriter& xml, const Element* current, int track, Fraction frac = -1) const;
+      void writeSpannerStart(XmlWriter& xml, const Element* current, int track, int tick) const;
+      void writeSpannerEnd(XmlWriter& xml, const Element* current, int track, int tick) const;
+      static void readSpanner(XmlReader& e, Element* current, int track);
+      static void readSpanner(XmlReader& e, Score* current, int track);
+
       virtual int tick() const override { return _tick;          }
       int tick2() const                 { return _tick + _ticks; }
       int ticks() const                 { return _ticks;         }
@@ -157,6 +166,9 @@ class Spanner : public Element {
 
       int track2() const       { return _track2;   }
       void setTrack2(int v)    { _track2 = v;      }
+
+      Fraction rfrac() const override;
+      Fraction afrac() const override;
 
       bool broken() const      { return _broken;   }
       void setBroken(bool v)   { _broken = v;      }

@@ -57,6 +57,7 @@
 #include "excerpt.h"
 #include "spatium.h"
 #include "barline.h"
+#include "skyline.h"
 
 namespace Ms {
 
@@ -65,6 +66,7 @@ bool MScore::testMode = false;
 
 // #ifndef NDEBUG
 bool MScore::showSegmentShapes   = false;
+bool MScore::showSkylines        = true;
 bool MScore::showMeasureShapes   = false;
 bool MScore::noHorizontalStretch = false;
 bool MScore::noVerticalStretch   = false;
@@ -186,7 +188,12 @@ const char* toString(Direction val)
             case Direction::UP:   return "up";
             case Direction::DOWN: return "down";
             }
+#if (!defined (_MSCVER) && !defined (_MSC_VER))
       __builtin_unreachable();
+#else
+      // The MSVC __assume() optimizer hint is similar, though not identical, to __builtin_unreachable()
+      __assume(0);
+#endif
       }
 
 //---------------------------------------------------------
@@ -520,7 +527,6 @@ int MPaintDevice::metric(PaintDeviceMetric m) const
                   printf("debug: metric %d\n", int(m));
                   return 1;
             }
-      return 0;
       }
 
 //---------------------------------------------------------

@@ -139,7 +139,7 @@ void PositionCursor::move(int tick)
       Measure* measure = score->tick2measureMM(tick);
       if (measure == 0)
             return;
-      qreal x;
+      qreal x = 0.0;
       int offset = 0;
 
       Segment* s;
@@ -171,7 +171,7 @@ void PositionCursor::move(int tick)
             return;
 
       System* system = measure->system();
-      if (system == 0)
+      if (system == 0 || system->page() == 0)
             return;
       double y        = system->staffYpage(0) + system->page()->pos().y();
       double _spatium = score->spatium();

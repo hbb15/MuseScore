@@ -307,25 +307,25 @@ void MTrack::processMeta(int tick, const MidiEvent& mm)
             case META_SUBTITLE:
             case META_TITLE:
                   {
-                  SubStyleId ssid = SubStyleId::DEFAULT;
+                  Tid ssid = Tid::DEFAULT;
                   switch(mm.metaType()) {
                         case META_COMPOSER:
-                              ssid = SubStyleId::COMPOSER;
+                              ssid = Tid::COMPOSER;
                               break;
                         case META_TRANSLATOR:
-                              ssid = SubStyleId::TRANSLATOR;
+                              ssid = Tid::TRANSLATOR;
                               break;
                         case META_POET:
-                              ssid = SubStyleId::POET;
+                              ssid = Tid::POET;
                               break;
                         case META_SUBTITLE:
-                              ssid = SubStyleId::SUBTITLE;
+                              ssid = Tid::SUBTITLE;
                               break;
                         case META_TITLE:
-                              ssid = SubStyleId::TITLE;
+                              ssid = Tid::TITLE;
                               break;
                         }
-                  Text* text = new Text(ssid, cs);
+                  Text* text = new Text(cs, ssid);
 
                   text->setPlainText((const char*)(mm.edata()));
 
@@ -838,10 +838,10 @@ void createMeasures(const ReducedFraction &firstTick, ReducedFraction &lastTick,
 
       for (int i = begBarIndex; i < barCount; ++i) {
             Measure* m = new Measure(score);
-            const int tick = score->sigmap()->bar2tick(i, 0);
+            const int t = score->sigmap()->bar2tick(i, 0);
             m->setTick(tick);
             m->setNo(i);
-            const Fraction timeSig = score->sigmap()->timesig(tick).timesig();
+            const Fraction timeSig = score->sigmap()->timesig(t).timesig();
             m->setTimesig(timeSig);
             m->setLen(timeSig);
             score->measures()->add(m);

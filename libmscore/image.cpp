@@ -32,7 +32,7 @@ static bool defaultSizeIsSpatium    = true;
 //---------------------------------------------------------
 
 Image::Image(Score* s)
-   : BSymbol(s)
+   : BSymbol(s, ElementFlag::NOTHING)
       {
       imageType        = ImageType::NONE;
       rasterDoc        = 0;
@@ -560,7 +560,6 @@ QVariant Image::propertyDefault(Pid id) const
             default:
                   return Element::propertyDefault(id);
             }
-      return QVariant();
       }
 
 //---------------------------------------------------------

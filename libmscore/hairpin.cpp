@@ -26,11 +26,40 @@
 namespace Ms {
 
 //---------------------------------------------------------
+//   hairpinStyle
+//---------------------------------------------------------
+
+static const ElementStyle hairpinStyle {
+      { Sid::hairpinFontFace,                    Pid::BEGIN_FONT_FACE            },
+      { Sid::hairpinFontSize,                    Pid::BEGIN_FONT_SIZE            },
+      { Sid::hairpinFontBold,                    Pid::BEGIN_FONT_BOLD            },
+      { Sid::hairpinFontItalic,                  Pid::BEGIN_FONT_ITALIC          },
+      { Sid::hairpinFontUnderline,               Pid::BEGIN_FONT_UNDERLINE       },
+      { Sid::hairpinTextAlign,                   Pid::BEGIN_TEXT_ALIGN           },
+      { Sid::hairpinFontFace,                    Pid::CONTINUE_FONT_FACE         },
+      { Sid::hairpinFontSize,                    Pid::CONTINUE_FONT_SIZE         },
+      { Sid::hairpinFontBold,                    Pid::CONTINUE_FONT_BOLD         },
+      { Sid::hairpinFontItalic,                  Pid::CONTINUE_FONT_ITALIC       },
+      { Sid::hairpinFontUnderline,               Pid::CONTINUE_FONT_UNDERLINE    },
+      { Sid::hairpinTextAlign,                   Pid::CONTINUE_TEXT_ALIGN        },
+      { Sid::hairpinFontFace,                    Pid::END_FONT_FACE              },
+      { Sid::hairpinFontSize,                    Pid::END_FONT_SIZE              },
+      { Sid::hairpinFontBold,                    Pid::END_FONT_BOLD              },
+      { Sid::hairpinFontItalic,                  Pid::END_FONT_ITALIC            },
+      { Sid::hairpinFontUnderline,               Pid::END_FONT_UNDERLINE         },
+      { Sid::hairpinTextAlign,                   Pid::END_TEXT_ALIGN             },
+      { Sid::hairpinLineWidth,                   Pid::LINE_WIDTH                 },
+      { Sid::hairpinHeight,                      Pid::HAIRPIN_HEIGHT             },
+      { Sid::hairpinContHeight,                  Pid::HAIRPIN_CONT_HEIGHT        },
+      { Sid::hairpinPlacement,                   Pid::PLACEMENT                  },
+      };
+
+//---------------------------------------------------------
 //   HairpinSegment
 //---------------------------------------------------------
 
 HairpinSegment::HairpinSegment(Score* s)
-   : TextLineBaseSegment(s)
+   : TextLineBaseSegment(s, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
       {
       }
 
@@ -117,6 +146,11 @@ void HairpinSegment::layout()
                         }
                   else
                         ed->doAutoplace();
+                  int si = ed->staffIdx();
+                  Segment* s = ed->segment();
+                  s->staffShape(si).add(ed->shape().translated(ed->pos()));
+                  Measure* m = s->measure();
+                  m->staffShape(si).add(ed->shape().translated(s->pos() + ed->pos()));
                   }
             }
 
@@ -374,66 +408,19 @@ void HairpinSegment::draw(QPainter* painter) const
       }
 
 //---------------------------------------------------------
-//   getProperty
+//   propertyDelegate
 //---------------------------------------------------------
 
-QVariant HairpinSegment::getProperty(Pid id) const
+Element* HairpinSegment::propertyDelegate(Pid pid)
       {
-      for (const StyledProperty* spp = spanner()->styledProperties(); spp->sid != Sid::NOSTYLE; ++spp) {
-            if (spp->pid == id)
-                  return spanner()->getProperty(id);
-            }
-      switch (id) {
-            case Pid::VELO_CHANGE:
-            case Pid::HAIRPIN_TYPE:
-            case Pid::HAIRPIN_CIRCLEDTIP:
-            case Pid::DYNAMIC_RANGE:
-                  return spanner()->getProperty(id);
-            default:
-                  return TextLineBaseSegment::getProperty(id);
-            }
-      }
-
-//---------------------------------------------------------
-//   setProperty
-//---------------------------------------------------------
-
-bool HairpinSegment::setProperty(Pid id, const QVariant& v)
-      {
-      for (const StyledProperty* spp = spanner()->styledProperties(); spp->sid != Sid::NOSTYLE; ++spp) {
-            if (spp->pid == id)
-                  return spanner()->setProperty(id, v);
-            }
-      switch (id) {
-            case Pid::VELO_CHANGE:
-            case Pid::HAIRPIN_TYPE:
-            case Pid::HAIRPIN_CIRCLEDTIP:
-            case Pid::DYNAMIC_RANGE:
-                  return spanner()->setProperty(id, v);
-            default:
-                  return TextLineBaseSegment::setProperty(id, v);
-            }
-      }
-
-//---------------------------------------------------------
-//   propertyDefault
-//---------------------------------------------------------
-
-QVariant HairpinSegment::propertyDefault(Pid id) const
-      {
-      switch (id) {
-            case Pid::VELO_CHANGE:
-            case Pid::HAIRPIN_TYPE:
-            case Pid::HAIRPIN_CIRCLEDTIP:
-            case Pid::DYNAMIC_RANGE:
-                  return spanner()->propertyDefault(id);
-            default:
-                  for (const StyledProperty* spp = spanner()->styledProperties(); spp->sid != Sid::NOSTYLE; ++spp) {
-                        if (spp->pid == id)
-                              return spanner()->propertyDefault(id);
-                        }
-                  return TextLineBaseSegment::propertyDefault(id);
-            }
+      if (pid == Pid::HAIRPIN_TYPE
+         || pid == Pid::VELO_CHANGE
+         || pid == Pid::HAIRPIN_CIRCLEDTIP
+         || pid == Pid::HAIRPIN_HEIGHT
+         || pid == Pid::HAIRPIN_CONT_HEIGHT
+         || pid == Pid::DYNAMIC_RANGE)
+            return spanner();
+      return TextLineBaseSegment::propertyDelegate(pid);
       }
 
 //---------------------------------------------------------
@@ -443,7 +430,7 @@ QVariant HairpinSegment::propertyDefault(Pid id) const
 Hairpin::Hairpin(Score* s)
    : TextLineBase(s)
       {
-      initSubStyle(SubStyleId::HAIRPIN);
+      initElementStyle(&hairpinStyle);
 
       resetProperty(Pid::BEGIN_TEXT_PLACE);
       resetProperty(Pid::HAIRPIN_TYPE);
@@ -513,8 +500,7 @@ void Hairpin::write(XmlWriter& xml) const
       {
       if (!xml.canWrite(this))
             return;
-      int id = xml.spannerId(this);
-      xml.stag(QString("%1 id=\"%2\"").arg(name()).arg(id));
+      xml.stag(name());
       xml.tag("subtype", int(_hairpinType));
       writeProperty(xml, Pid::VELO_CHANGE);
       writeProperty(xml, Pid::HAIRPIN_CIRCLEDTIP);
@@ -522,8 +508,8 @@ void Hairpin::write(XmlWriter& xml) const
       writeProperty(xml, Pid::BEGIN_TEXT);
       writeProperty(xml, Pid::CONTINUE_TEXT);
 
-      for (const StyledProperty* spp = styledProperties(); spp->sid != Sid::NOSTYLE; ++spp)
-            writeProperty(xml, spp->pid);
+      for (const StyledProperty& spp : *styledProperties())
+            writeProperty(xml, spp.pid);
 
       Element::writeProperties(xml);
       xml.etag();
@@ -538,9 +524,6 @@ void Hairpin::read(XmlReader& e)
       foreach(SpannerSegment* seg, spannerSegments())
             delete seg;
       spannerSegments().clear();
-
-      int id = e.intAttribute("id", -1);
-      e.addSpanner(id, this);
 
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
@@ -659,14 +642,18 @@ QVariant Hairpin::propertyDefault(Pid id) const
       switch (id) {
             case Pid::HAIRPIN_CIRCLEDTIP:
                   return false;
+
             case Pid::VELO_CHANGE:
                   return 0;
+
             case Pid::DYNAMIC_RANGE:
                   return int(Dynamic::Range::PART);
+
             case Pid::LINE_STYLE:
                   if (_hairpinType == HairpinType::CRESC_HAIRPIN || _hairpinType == HairpinType::DECRESC_HAIRPIN)
                         return int(Qt::SolidLine);
                   return int(Qt::CustomDashLine);
+
             case Pid::BEGIN_TEXT:
             case Pid::CONTINUE_TEXT:
                   return QString("");

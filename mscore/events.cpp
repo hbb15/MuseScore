@@ -25,6 +25,8 @@
 #include "libmscore/stafflines.h"
 #include "libmscore/chord.h"
 #include "libmscore/shadownote.h"
+#include "libmscore/repeatlist.h"
+#include "libmscore/select.h"
 
 namespace Ms {
 
@@ -37,7 +39,7 @@ bool ScoreView::event(QEvent* event)
       if (event->type() == QEvent::KeyPress && editData.element) {
             QKeyEvent* ke = static_cast<QKeyEvent*>(event);
             if (ke->key() == Qt::Key_Tab || ke->key() == Qt::Key_Backtab) {
-                  if (editData.element->isText())
+                  if (editData.element->isTextBase())
                         return true;
                   bool rv = true;
                   if (ke->key() == Qt::Key_Tab) {
@@ -247,6 +249,10 @@ void ScoreView::mouseReleaseEvent(QMouseEvent*)
                   changeState(ViewState::FOTO);
                   break;
             case ViewState::NORMAL:
+                  if (editData.startMove == editData.pos && clickOffElement) {
+                        _score->deselectAll();
+                        _score->update();
+                        }
             case ViewState::EDIT:
             case ViewState::NOTE_ENTRY:
             case ViewState::PLAY:
@@ -286,9 +292,9 @@ void ScoreView::mousePressEventNormal(QMouseEvent* ev)
                   Segment* s = toKeySig(e)->segment();
                   bool first = true;
                   for (int staffIdx = 0; staffIdx < _score->nstaves(); ++staffIdx) {
-                        Element* e = s->element(staffIdx * VOICES);
-                        if (e) {
-                              e->score()->select(e, first ? SelectType::SINGLE : SelectType::ADD);
+                        Element* ee = s->element(staffIdx * VOICES);
+                        if (ee) {
+                              ee->score()->select(ee, first ? SelectType::SINGLE : SelectType::ADD);
                               first = false;
                               }
                         }
@@ -305,6 +311,7 @@ void ScoreView::mousePressEventNormal(QMouseEvent* ev)
                   _score = e->score();
                   _score->setUpdateAll();
                   }
+            clickOffElement = false;
             }
       else {
             // special case: chacke if measure is selected
@@ -313,9 +320,10 @@ void ScoreView::mousePressEventNormal(QMouseEvent* ev)
             if (m && m->staffLines(staffIdx)->canvasBoundingRect().contains(editData.startMove)) {
                   _score->select(m, st, staffIdx);
                   _score->setUpdateAll();
+                  clickOffElement = false;
                   }
             else if (st != SelectType::ADD)
-                  _score->deselectAll();
+                  clickOffElement = true;
             }
       _score->update();
       mscore->endCmd();
@@ -335,7 +343,7 @@ void ScoreView::mousePressEvent(QMouseEvent* ev)
       editData.modifiers = qApp->keyboardModifiers();
 
       Element* e         = elementNear(editData.startMove);
-      qDebug("element %s", e ? e->name() : "--");
+//      qDebug("element %s", e ? e->name() : "--");
 
       switch (state) {
             case ViewState::NORMAL:
@@ -392,22 +400,32 @@ void ScoreView::mousePressEvent(QMouseEvent* ev)
                                     }
                               }
                         if (!gripFound) {
-                              editData.element = e;
                               changeState(ViewState::NORMAL);
+                              editData.element = e;
                               mousePressEventNormal(ev);
                               break;
                               }
                         }
                   else {
                         if (!editData.element->canvasBoundingRect().contains(editData.startMove)) {
-                              editData.element = e;
                               changeState(ViewState::NORMAL);
+                              editData.element = e;
                               mousePressEventNormal(ev);
                               }
                         else {
                               editData.element->mousePress(editData);
                               score()->update();
                               }
+                        }
+                  }
+                  break;
+
+            case ViewState::PLAY: {
+                  if (seq && e && (e->isNote() || e->isRest())) {
+                        if (e->isNote())
+                              e = e->parent();
+                        ChordRest* cr = toChordRest(e);
+                        seq->seek(seq->score()->repeatList()->tick2utick(cr->tick()));
                         }
                   }
                   break;
@@ -434,7 +452,7 @@ void ScoreView::mouseMoveEvent(QMouseEvent* me)
             case ViewState::NORMAL:
                   if (!editData.element && (me->modifiers() & Qt::ShiftModifier))
                         changeState(ViewState::LASSO);
-                  else if (editData.element && !(me->modifiers())) {
+                  else if (editData.element && !(me->modifiers()) && editData.element->isMovable()) {
                         if (!drag)
                               return;
                         changeState(ViewState::DRAG_OBJECT);
@@ -479,6 +497,11 @@ void ScoreView::mouseMoveEvent(QMouseEvent* me)
                   changeState(ViewState::DRAG_EDIT);
                   break;
 
+            case ViewState::PLAY:
+                  if (drag && !editData.element)
+                        dragScoreView(me);
+                  break;
+
             default:
                   break;
             }
@@ -494,10 +517,8 @@ void ScoreView::mouseDoubleClickEvent(QMouseEvent* me)
       if (state == ViewState::NORMAL) {
             QPointF p = toLogical(me->pos());
             Element* e = elementNear(p);
-            if (e && e->isEditable()) {
+            if (e && e->isEditable())
                   startEditMode(e);
-                  changeState(ViewState::EDIT);
-                  }
             }
       }
 
@@ -519,17 +540,17 @@ void ScoreView::keyPressEvent(QKeyEvent* ev)
       {
       if (state != ViewState::EDIT)
             return;
-      CmdContext cmdContext(_score);
       editData.key       = ev->key();
       editData.modifiers = ev->modifiers();
       editData.s         = ev->text();
+
 
       if (MScore::debugMode)
             qDebug("keyPressEvent key 0x%02x(%c) mod 0x%04x <%s> nativeKey 0x%02x scancode %d",
                editData.key, editData.key, int(editData.modifiers), qPrintable(editData.s), ev->nativeVirtualKey(), ev->nativeScanCode());
 
       if (editData.element->isLyrics()) {
-            if (editKeyLyrics(ev))
+            if (editKeyLyrics())
                   return;
             }
       else if (editData.element->isHarmony()) {
@@ -545,9 +566,11 @@ void ScoreView::keyPressEvent(QKeyEvent* ev)
                   }
             }
 
+      CmdContext cc(_score);
+
 #ifdef Q_OS_WIN // Japenese IME on Windows needs to know when Contrl/Alt/Shift/CapsLock is pressed while in predit
-      if (editData.element->isText()) {
-            Text* text = toText(editData.element);
+      if (editData.element->isTextBase()) {
+            TextBase* text = toTextBase(editData.element);
             if (text->cursor(editData)->format()->preedit() && QGuiApplication::inputMethod()->locale().script() == QLocale::JapaneseScript &&
                 ((editData.key == Qt::Key_Control || (editData.modifiers & Qt::ControlModifier)) ||
                  (editData.key == Qt::Key_Alt     || (editData.modifiers & Qt::AltModifier)) ||
@@ -560,7 +583,7 @@ void ScoreView::keyPressEvent(QKeyEvent* ev)
 
       if (!( (editData.modifiers & Qt::ShiftModifier) && (editData.key == Qt::Key_Backtab) )) {
             if (editData.element->edit(editData)) {
-                  if (editData.element->isText())
+                  if (editData.element->isTextBase())
                         mscore->textTools()->updateTools(editData);
                   else
                         updateGrips();
@@ -636,9 +659,9 @@ void ScoreView::keyReleaseEvent(QKeyEvent* ev)
       {
       if (state == ViewState::EDIT) {
             auto modifiers = Qt::ControlModifier | Qt::ShiftModifier;
-            if (editData.element->isText() && ((ev->modifiers() & modifiers) == 0)) {
-                  Text* text = toText(editData.element);
-                  text->endHexState();
+            if (editData.element->isTextBase() && ((ev->modifiers() & modifiers) == 0)) {
+                  TextBase* text = toTextBase(editData.element);
+                  text->endHexState(editData);
                   ev->accept();
                   update();
                   }
@@ -852,6 +875,17 @@ void ScoreView::changeState(ViewState s)
       mscore->changeState(mscoreState());
       }
 
+//---------------------------------------------------------
+//   inputMethodEvent
+//---------------------------------------------------------
+
+void ScoreView::inputMethodEvent(QInputMethodEvent* event)
+      {
+      if (state != ViewState::EDIT)
+            return;
+      if (editData.element->isTextBase())
+            toTextBase(editData.element)->inputTransition(editData, event);
+      }
 
 }    // namespace Ms
 

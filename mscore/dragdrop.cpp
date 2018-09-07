@@ -75,10 +75,10 @@ void ScoreView::setDropRectangle(const QRectF& r)
             dropTarget = 0;
             }
       else if (!dropAnchor.isNull()) {
-            QRectF r;
-            r.setTopLeft(dropAnchor.p1());
-            r.setBottomRight(dropAnchor.p2());
-            _score->addRefresh(r.normalized());
+            QRectF rf;
+            rf.setTopLeft(dropAnchor.p1());
+            rf.setBottomRight(dropAnchor.p2());
+            _score->addRefresh(rf.normalized());
             dropAnchor = QLineF();
             }
 //      _score->addRefresh(r);
@@ -291,7 +291,7 @@ void ScoreView::dragMoveEvent(QDragMoveEvent* event)
                               int staffIdx;
                               e = _score->pos2measure(pos, &staffIdx, 0, 0, 0);
                               }
-                        if (e && (e->isNote() || e->isSymbol() || e->isImage() || e->isText())) {
+                        if (e && (e->isNote() || e->isSymbol() || e->isImage() || e->isTextBase())) {
                               EditData dropData(this);
                               dropData.pos        = pos;
                               dropData.element    = editData.element;
@@ -300,13 +300,12 @@ void ScoreView::dragMoveEvent(QDragMoveEvent* event)
                               if (e->acceptDrop(dropData)) {
                                     setDropTarget(e);
                                     event->accept();
-                                    return;
                                     }
                               else {
                                     setDropTarget(0);
                                     event->ignore();
-                                    return;
                                     }
+                              return;
                               }
                         }
                         // fall through
@@ -620,7 +619,11 @@ void ScoreView::dropEvent(QDropEvent* event)
                         delete editData.element;
                         break;
                   }
-            editData.element = 0;
+            // If the state was changed to ViewState::EDIT,
+            // (as a result of ScoreView::cmdAddSlur(), for example)
+            // then do not set editData.element to 0.
+            if (state != ViewState::EDIT)
+                  editData.element = 0;
             setDropTarget(0); // this also resets dropRectangle and dropAnchor
             score()->endCmd();
             // update input cursor position (must be done after layout)

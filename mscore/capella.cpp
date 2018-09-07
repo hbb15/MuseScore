@@ -726,7 +726,7 @@ static int readCapVoice(Score* score, CapVoice* cvoice, int staffIdx, int tick, 
                               };
                         off += keyOffsets[int(key) + 7];
 
-                        foreach(CNote n, o->notes) {
+                        for (CNote n : o->notes) {
                               Note* note = new Note(score);
                               int pitch = 0;
                               // .cap import: pitch contains the diatonic note number relative to clef and key
@@ -761,7 +761,7 @@ static int readCapVoice(Score* score, CapVoice* cvoice, int staffIdx, int tick, 
                                     note->setTieFor(tie);
                                     }
                               }
-                        foreach(Verse v, o->verse) {
+                        for (Verse v : o->verse) {
                               Lyrics* l = new Lyrics(score);
                               l->setTrack(track);
                               l->setPlainText(v.text);
@@ -935,7 +935,7 @@ static int readCapVoice(Score* score, CapVoice* cvoice, int staffIdx, int tick, 
                   d = static_cast<BasicDurationalObj*>(static_cast<ChordObj*>(no));
             if (!d)
                   continue;
-            foreach(BasicDrawObj* o, d->objects) {
+            for (BasicDrawObj* o : d->objects) {
                   switch (o->type) {
                         case CapellaType::SIMPLE_TEXT:
                               // qDebug("simple text at %d", tick);
@@ -972,7 +972,7 @@ static int readCapVoice(Score* score, CapVoice* cvoice, int staffIdx, int tick, 
                         case CapellaType::TEXT: {
 
                               TextObj* to = static_cast<TextObj*>(o);
-                              Text* s = new Text(SubStyleId::TITLE, score);
+                              Text* s = new Text(score, Tid::TITLE);
                               QString ss = ::rtf2html(QString(to->text));
 
                               // qDebug("string %f:%f w %d ratio %d <%s>",
@@ -1136,7 +1136,7 @@ void convertCapella(Score* score, Capella* cap, bool capxMode)
 #if 1
       foreach(CapSystem* csys, cap->systems) {
             qDebug("System:");
-            foreach(CapStaff* cstaff, csys->staves) {
+            for (CapStaff* cstaff : csys->staves) {
                   CapStaffLayout* cl = cap->staffLayout(cstaff->iLayout);
                   qDebug("  Staff layout <%s><%s><%s><%s><%s> %d  barline %d-%d mode %d",
                          qPrintable(cl->descr), qPrintable(cl->name), qPrintable(cl->abbrev),
@@ -1237,14 +1237,14 @@ void convertCapella(Score* score, Capella* cap, bool capxMode)
                   case CapellaType::SIMPLE_TEXT:
                         {
                         SimpleTextObj* to = static_cast<SimpleTextObj*>(o);
-                        SubStyleId ssid;
+                        Tid tid;
                         switch (to->textalign()) {
-                              case 0:   ssid = SubStyleId::POET;    break;
-                              case 1:   ssid = SubStyleId::TITLE;   break;
-                              case 2:   ssid = SubStyleId::COMPOSER; break;
-                              default:  ssid = SubStyleId::DEFAULT; break;
+                              case 0:   tid = Tid::POET;    break;
+                              case 1:   tid = Tid::TITLE;   break;
+                              case 2:   tid = Tid::COMPOSER; break;
+                              default:  tid = Tid::DEFAULT; break;
                               }
-                        Text* s = new Text(ssid, score);
+                        Text* s = new Text(score, tid);
                         QFont f(to->font());
                         s->setItalic(f.italic());
                         // s->setUnderline(f.underline());
@@ -1294,7 +1294,7 @@ void convertCapella(Score* score, Capella* cap, bool capxMode)
                   }
             */
             int mtick = 0;
-            foreach(CapStaff* cstaff, csys->staves) {
+            for (CapStaff* cstaff : csys->staves) {
                   //
                   // assumption: layout index is mscore staffIdx
                   //    which means that there is a 1:1 relation between layout/staff
@@ -1303,7 +1303,7 @@ void convertCapella(Score* score, Capella* cap, bool capxMode)
                   qDebug("  ReadCapStaff %d/%d", cstaff->numerator, 1 << cstaff->log2Denom);
                   int staffIdx = cstaff->iLayout;
                   int voice = 0;
-                  foreach(CapVoice* cvoice, cstaff->voices) {
+                  for (CapVoice* cvoice : cstaff->voices) {
                         int tick = readCapVoice(score, cvoice, staffIdx, systemTick, capxMode);
                         ++voice;
                         if (tick > mtick)
@@ -1412,7 +1412,14 @@ void TextObj::read()
       {
       BasicRectObj::read();
       unsigned size = cap->readUnsigned();
+#if (!defined (_MSCVER) && !defined (_MSC_VER))
       char txt[size+1];
+#else
+      // MSVC does not support VLA. Replace with std::vector. If profiling determines that the
+      //    heap allocation is slow, an optimization might be used.
+      std::vector<char> vtxt(size+1);
+      char* txt = vtxt.data();
+#endif
       cap->read(txt, size);
       txt[size] = 0;
       text = QString(txt);
@@ -1496,7 +1503,14 @@ void MetafileObj::read()
       {
       BasicRectObj::read();
       unsigned size = cap->readUnsigned();
+#if (!defined (_MSCVER) && !defined (_MSC_VER))
       char enhMetaFileBits[size];
+#else
+      // MSVC does not support VLA. Replace with std::vector. If profiling determines that the
+      //    heap allocation is slow, an optimization might be used.
+      std::vector<char> vEnhMetaFileBits(size);
+      char* enhMetaFileBits = vEnhMetaFileBits.data();
+#endif
       cap->read(enhMetaFileBits, size);
       // qDebug("MetaFileObj::read %d bytes", size);
       }
@@ -2210,7 +2224,7 @@ void Capella::readStaveLayout(CapStaffLayout* sl, int idx)
             uchar iMin = readByte();
             Q_UNUSED(iMin);
             uchar n    = readByte();
-            Q_ASSERT (n > 0 and iMin + n <= 128);
+            Q_ASSERT (n > 0 && iMin + n <= 128);
             f->read(sl->soundMapIn, n);
             curPos += n;
             }
@@ -2218,7 +2232,7 @@ void Capella::readStaveLayout(CapStaffLayout* sl, int idx)
             unsigned char iMin = readByte();
             Q_UNUSED(iMin);
             unsigned char n    = readByte();
-            Q_ASSERT (n > 0 and iMin + n <= 128);
+            Q_ASSERT (n > 0 && iMin + n <= 128);
             f->read(sl->soundMapOut, n);
             curPos += n;
             }

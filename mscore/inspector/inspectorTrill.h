@@ -28,7 +28,6 @@ namespace Ms {
 class InspectorTrill : public InspectorElementBase {
       Q_OBJECT
 
-      Ui::InspectorLine l;
       Ui::InspectorTrill t;
 
    public:

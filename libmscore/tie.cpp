@@ -320,7 +320,7 @@ void TieSegment::computeBezier(QPointF p6o)
             QPointF point = t.map(p.pointAtPercent(i/float(nbShapes)));
             QRectF re = QRectF(start, point).normalized();
             if (re.height() < minH) {
-                  qreal d = (minH - re.height()) * .5;
+                  d = (minH - re.height()) * .5;
                   re.adjust(0.0, -d, 0.0, d);
                   }
 //            re.translate(staffOffset);
@@ -519,35 +519,9 @@ Tie::Tie(Score* s)
 
 void Tie::write(XmlWriter& xml) const
       {
-      xml.stag(QString("Tie id=\"%1\"").arg(xml.spannerId(this)));
+      xml.stag(name());
       SlurTie::writeProperties(xml);
       xml.etag();
-      }
-
-//---------------------------------------------------------
-//   read
-//---------------------------------------------------------
-
-void Tie::read(XmlReader& e)
-      {
-      e.addSpanner(e.intAttribute("id"), this);
-      while (e.readNextStartElement()) {
-            if (SlurTie::readProperties(e))
-                  ;
-            else
-                  e.unknown();
-            }
-      if (score()->mscVersion() <= 114 && spannerSegments().size() == 1) {
-            // ignore manual adjustments to single-segment ties in older scores
-            TieSegment* ss = frontSegment();
-            QPointF zeroP;
-            ss->ups(Grip::START).off     = zeroP;
-            ss->ups(Grip::BEZIER1).off   = zeroP;
-            ss->ups(Grip::BEZIER2).off   = zeroP;
-            ss->ups(Grip::END).off       = zeroP;
-            ss->setUserOff(zeroP);
-            ss->setUserOff2(zeroP);
-            }
       }
 
 //---------------------------------------------------------
@@ -772,7 +746,7 @@ bool Tie::readProperties(XmlReader& e)
       {
       const QStringRef& tag(e.name());
 
-      if (tag == "SlurSegment") {
+      if (tag == "TieSegment") {
             int idx = e.intAttribute("no", 0);
             int n = spannerSegments().size();
             for (int i = n; i < idx; ++i)

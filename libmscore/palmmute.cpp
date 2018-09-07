@@ -21,6 +21,29 @@
 
 namespace Ms {
 
+static const ElementStyle palmMuteStyle {
+      { Sid::palmMuteFontFace,                      Pid::BEGIN_FONT_FACE        },
+      { Sid::palmMuteFontFace,                      Pid::CONTINUE_FONT_FACE     },
+      { Sid::palmMuteFontFace,                      Pid::END_FONT_FACE          },
+      { Sid::palmMuteFontSize,                      Pid::BEGIN_FONT_SIZE        },
+      { Sid::palmMuteFontSize,                      Pid::CONTINUE_FONT_SIZE     },
+      { Sid::palmMuteFontSize,                      Pid::END_FONT_SIZE          },
+      { Sid::palmMuteFontBold,                      Pid::BEGIN_FONT_BOLD        },
+      { Sid::palmMuteFontBold,                      Pid::CONTINUE_FONT_BOLD     },
+      { Sid::palmMuteFontBold,                      Pid::END_FONT_BOLD          },
+      { Sid::palmMuteFontItalic,                    Pid::BEGIN_FONT_ITALIC      },
+      { Sid::palmMuteFontItalic,                    Pid::CONTINUE_FONT_ITALIC   },
+      { Sid::palmMuteFontItalic,                    Pid::END_FONT_ITALIC        },
+      { Sid::palmMuteFontUnderline,                 Pid::BEGIN_FONT_UNDERLINE   },
+      { Sid::palmMuteFontUnderline,                 Pid::CONTINUE_FONT_UNDERLINE},
+      { Sid::palmMuteFontUnderline,                 Pid::END_FONT_UNDERLINE     },
+      { Sid::palmMuteTextAlign,                     Pid::BEGIN_TEXT_ALIGN       },
+      { Sid::palmMuteTextAlign,                     Pid::CONTINUE_TEXT_ALIGN    },
+      { Sid::palmMuteTextAlign,                     Pid::END_TEXT_ALIGN         },
+      { Sid::palmMuteHookHeight,                    Pid::BEGIN_HOOK_HEIGHT      },
+      { Sid::palmMuteHookHeight,                    Pid::END_HOOK_HEIGHT        },
+      };
+
 //---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
@@ -57,7 +80,7 @@ void PalmMuteSegment::layout()
 PalmMute::PalmMute(Score* s)
    : TextLineBase(s)
       {
-      initSubStyle(SubStyleId::PALM_MUTE);
+      initElementStyle(&palmMuteStyle);
       resetProperty(Pid::LINE_VISIBLE);
       }
 
@@ -67,8 +90,6 @@ PalmMute::PalmMute(Score* s)
 
 void PalmMute::read(XmlReader& e)
       {
-      int id = e.intAttribute("id", -1);
-      e.addSpanner(id, this);
       while (e.readNextStartElement()) {
             if (!TextLineBase::readProperties(e))
                   e.unknown();
@@ -83,10 +104,10 @@ void PalmMute::write(XmlWriter& xml) const
       {
       if (!xml.canWrite(this))
             return;
-      xml.stag(QString("%1 id=\"%2\"").arg(name()).arg(xml.spannerId(this)));
+      xml.stag(name());
 
-      for (const StyledProperty* spp = styledProperties(); spp->sid != Sid::NOSTYLE; ++spp)
-            writeProperty(xml, spp->pid);
+      for (const StyledProperty& spp : *styledProperties())
+            writeProperty(xml, spp.pid);
 
       Element::writeProperties(xml);
       xml.etag();
@@ -197,7 +218,7 @@ Sid PalmMute::getPropertyStyle(Pid id) const
 
 QPointF PalmMute::linePos(Grip grip, System** sys) const
       {
-      qreal x;
+      qreal x = 0.0;
       qreal nhw = score()->noteHeadWidth();
       System* s = nullptr;
       if (grip == Grip::START) {

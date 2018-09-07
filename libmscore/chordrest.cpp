@@ -171,13 +171,6 @@ void ChordRest::writeProperties(XmlWriter& xml) const
             //xml.tagE("duration z=\"%d\" n=\"%d\"", duration().numerator(), duration().denominator());
             }
 
-#ifndef NDEBUG
-      if (_beam && (MScore::testMode || !_beam->generated()))
-            xml.tag("Beam", _beam->id());
-#else
-      if (_beam && !_beam->generated())
-            xml.tag("Beam", _beam->id());
-#endif
       for (Lyrics* lyrics : _lyrics)
             lyrics->write(xml);
       if (!isGrace()) {
@@ -191,14 +184,10 @@ void ChordRest::writeProperties(XmlWriter& xml) const
             if (s->generated() || !s->isSlur() || toSlur(s)->broken() || !xml.canWrite(s))
                   continue;
 
-            if (s->startElement() == this) {
-                  int id = xml.spannerId(s);
-                  xml.tagE(QString("Slur type=\"start\" id=\"%1\"").arg(id));
-                  }
-            else if (s->endElement() == this) {
-                  int id = xml.spannerId(s);
-                  xml.tagE(QString("Slur type=\"stop\" id=\"%1\"").arg(id));
-                  }
+            if (s->startElement() == this)
+                  s->writeSpannerStart(xml, this, track());
+            else if (s->endElement() == this)
+                  s->writeSpannerEnd(xml, this, track());
             }
       }
 
@@ -268,14 +257,6 @@ bool ChordRest::readProperties(XmlReader& e)
             qDebug("ChordRest: %s obsolete", tag.toLocal8Bit().data());
             e.skipCurrentElement();
             }
-      else if (tag == "Beam") {
-            int id = e.readInt();
-            Beam* beam = e.findBeam(id);
-            if (beam)
-                  beam->add(this);        // also calls this->setBeam(beam)
-            else
-                  qDebug("Beam id %d not found", id);
-            }
       else if (tag == "small")
             _small = e.readInt();
       else if (tag == "duration")
@@ -297,85 +278,12 @@ bool ChordRest::readProperties(XmlReader& e)
             }
       else if (tag == "dots")
             setDots(e.readInt());
-      else if (tag == "move")
+      else if (tag == "staffMove")
             _staffMove = e.readInt();
-      else if (tag == "Slur") {
-            int id = e.intAttribute("id");
-            if (id == 0)
-                  id = e.intAttribute("number");                  // obsolete
-            Spanner* spanner = e.findSpanner(id);
-            QString atype(e.attribute("type"));
-
-            if (!spanner) {
-                  if (atype == "stop") {
-                        SpannerValues sv;
-                        sv.spannerId = id;
-                        sv.track2    = track();
-                        sv.tick2     = e.tick();
-                        e.addSpannerValues(sv);
-                        }
-                  else if (atype == "start")
-                        qDebug("spanner: start without spanner");
-                  }
-            else {
-                  if (atype == "start") {
-                        if (spanner->ticks() > 0 && spanner->tick() == -1) // stop has been read first
-                              spanner->setTicks(spanner->ticks() - e.tick() - 1);
-                        spanner->setTick(e.tick());
-                        spanner->setTrack(track());
-                        if (spanner->type() == ElementType::SLUR)
-                              spanner->setStartElement(this);
-                        if (e.pasteMode()) {
-                              for (ScoreElement* e : spanner->linkList()) {
-                                    if (e == spanner)
-                                          continue;
-                                    Spanner* ls = static_cast<Spanner*>(e);
-                                    ls->setTick(spanner->tick());
-                                    for (ScoreElement* ee : linkList()) {
-                                          ChordRest* cr = toChordRest(ee);
-                                          if (cr->score() == ee->score() && cr->staffIdx() == ls->staffIdx()) {
-                                                ls->setTrack(cr->track());
-                                                if (ls->type() == ElementType::SLUR)
-                                                      ls->setStartElement(cr);
-                                                break;
-                                                }
-                                          }
-                                    }
-                              }
-                        }
-                  else if (atype == "stop") {
-                        spanner->setTick2(e.tick());
-                        spanner->setTrack2(track());
-                        if (spanner->isSlur())
-                              spanner->setEndElement(this);
-                        ChordRest* start = toChordRest(spanner->startElement());
-                        if (start)
-                              spanner->setTrack(start->track());
-                        if (e.pasteMode()) {
-                              for (ScoreElement* e : spanner->linkList()) {
-                                    if (e == spanner)
-                                          continue;
-                                    Spanner* ls = static_cast<Spanner*>(e);
-                                    ls->setTick2(spanner->tick2());
-                                    for (ScoreElement* ee : linkList()) {
-                                          ChordRest* cr = toChordRest(ee);
-                                          if (cr->score() == ee->score() && cr->staffIdx() == ls->staffIdx()) {
-                                                ls->setTrack2(cr->track());
-                                                if (ls->type() == ElementType::SLUR)
-                                                      ls->setEndElement(cr);
-                                                break;
-                                                }
-                                          }
-                                    }
-                              }
-                        }
-                  else
-                        qDebug("ChordRest::read(): unknown Slur type <%s>", qPrintable(atype));
-                  }
-            e.readNext();
-            }
-      else if (tag == "Lyrics" /*|| tag == "FiguredBass"*/) {
-            Element* element = Element::name2Element(tag, score());
+      else if (tag == "Spanner")
+            Spanner::readSpanner(e, this, track());
+      else if (tag == "Lyrics") {
+            Element* element = new Lyrics(score());
             element->setTrack(e.track());
             element->read(e);
             add(element);
@@ -389,6 +297,75 @@ bool ChordRest::readProperties(XmlReader& e)
       else if (!DurationElement::readProperties(e))
             return false;
       return true;
+      }
+
+//---------------------------------------------------------
+//   ChordRest::readAddConnector
+//---------------------------------------------------------
+
+void ChordRest::readAddConnector(ConnectorInfoReader* info, bool pasteMode)
+      {
+      const ElementType type = info->type();
+      switch(type) {
+            case ElementType::SLUR:
+                  {
+                  Spanner* spanner = toSpanner(info->connector());
+                  const Location& l = info->location();
+
+                  if (info->isStart()) {
+                        spanner->setTrack(l.track());
+                        spanner->setTick(tick());
+                        spanner->setStartElement(this);
+                        if (pasteMode) {
+                              score()->undoAddElement(spanner);
+                              for (ScoreElement* ee : spanner->linkList()) {
+                                    if (ee == spanner)
+                                          continue;
+                                    Spanner* ls = static_cast<Spanner*>(ee);
+                                    ls->setTick(spanner->tick());
+                                    for (ScoreElement* eee : linkList()) {
+                                          ChordRest* cr = toChordRest(eee);
+                                          if (cr->score() == eee->score() && cr->staffIdx() == ls->staffIdx()) {
+                                                ls->setTrack(cr->track());
+                                                if (ls->type() == ElementType::SLUR)
+                                                      ls->setStartElement(cr);
+                                                break;
+                                                }
+                                          }
+                                    }
+                              }
+                        else
+                              score()->addSpanner(spanner);
+                        }
+                  else if (info->isEnd()) {
+                        spanner->setTrack2(l.track());
+                        spanner->setTick2(tick());
+                        spanner->setEndElement(this);
+                        if (pasteMode) {
+                              for (ScoreElement* ee : spanner->linkList()) {
+                                    if (ee == spanner)
+                                          continue;
+                                    Spanner* ls = static_cast<Spanner*>(ee);
+                                    ls->setTick2(spanner->tick2());
+                                    for (ScoreElement* eee : linkList()) {
+                                          ChordRest* cr = toChordRest(eee);
+                                          if (cr->score() == eee->score() && cr->staffIdx() == ls->staffIdx()) {
+                                                ls->setTrack2(cr->track());
+                                                if (ls->type() == ElementType::SLUR)
+                                                      ls->setEndElement(cr);
+                                                break;
+                                                }
+                                          }
+                                    }
+                              }
+                        }
+                  else
+                        qDebug("ChordRest::readAddConnector(): Slur end is neither start nor end");
+                  }
+                  break;
+            default:
+                  break;
+            }
       }
 
 //---------------------------------------------------------
@@ -542,9 +519,24 @@ Element* ChordRest::drop(EditData& data)
                         return 0;
                         }
                   // fall through
+
             case ElementType::REHEARSAL_MARK:
                   e->setParent(segment());
                   e->setTrack((track() / VOICES) * VOICES);
+                  {
+                  TextBase* t = toTextBase(e);
+#if 0
+                  Tid st = t->subStyleId();           { Tid::EMPTY };
+                  // for palette items, we want to use current score text style settings
+                  // except where the source element had explicitly overridden these via text properties
+                  // palette text style will be relative to baseStyle, so rebase this to score
+                  if (st >= Tid::DEFAULT && fromPalette)
+                        t->textStyle().restyle(MScore::baseStyle()->textStyle(st), score()->textStyle(st));
+#endif
+                  if (e->isRehearsalMark() && fromPalette)
+                        t->setXmlText(score()->createRehearsalMarkText(toRehearsalMark(e)));
+                  }
+
                   score()->undoAddElement(e);
                   return e;
 
@@ -843,7 +835,8 @@ QVariant ChordRest::propertyDefault(Pid propertyId) const
             default:
                   return DurationElement::propertyDefault(propertyId);
             }
-      triggerLayout();
+      // Prevent unreachable code warning 
+      // triggerLayout();
       }
 
 //---------------------------------------------------------
@@ -881,11 +874,10 @@ bool ChordRest::isGraceAfter() const
 //   writeBeam
 //---------------------------------------------------------
 
-void ChordRest::writeBeam(XmlWriter& xml)
+void ChordRest::writeBeam(XmlWriter& xml) const
       {
       Beam* b = beam();
       if (b && b->elements().front() == this && (MScore::testMode || !b->generated())) {
-            b->setId(xml.nextBeamId());
             b->write(xml);
             }
       }
@@ -899,9 +891,9 @@ void ChordRest::writeBeam(XmlWriter& xml)
 Segment* ChordRest::nextSegmentAfterCR(SegmentType types) const
       {
       for (Segment* s = segment()->next1MM(types); s; s = s->next1MM(types)) {
-            // chordrest ends at tick+actualTicks
+            // chordrest ends at afrac+actualFraction
             // we return the segment at or after the end of the chordrest
-            if (s->tick() >= tick() + actualTicks())
+            if (s->afrac() >= afrac() + actualFraction())
                   return s;
             }
       return 0;
@@ -1161,20 +1153,21 @@ QString ChordRest::accessibleExtraInfo() const
 
 Shape ChordRest::shape() const
       {
-      Shape shape;
-      qreal margin = spatium() * .5;
-      qreal x1 = 1000000.0;
-      qreal x2 = -1000000.0;
-      for (Lyrics* l : _lyrics) {
-            if (l->autoplace())
-                  l->rUserYoffset() = 0.0;
-            // for horizontal spacing we only need the lyrics width:
-            x1 = qMin(x1, l->bbox().x() - margin + l->pos().x());
-            x2 = qMax(x2, x1 + l->bbox().width() + margin);
+      if (!_lyrics.empty()) {
+            qreal margin = spatium() * .5;
+            qreal x1 = 1000000.0;
+            qreal x2 = -1000000.0;
+            for (Lyrics* l : _lyrics) {
+                  // for horizontal spacing we only need the lyrics width:
+                  x1 = qMin(x1, l->bbox().x() - margin + l->pos().x());
+                  // x2 = qMax(x2, x1 + l->bbox().width() + margin);
+                  x2 = qMax(x2, l->bbox().x() + l->bbox().width() + margin);
+                  if (l->ticks() == Lyrics::TEMP_MELISMA_TICKS)
+                        x2 += spatium();
+                  }
+            return Shape(QRectF(x1, 0.0, x2-x1, 1.0));
             }
-      if (x2 > x1)
-            shape.add(QRectF(x1, 1.0, x2-x1, 0.0));
-      return shape;
+      return Shape();
       }
 
 //---------------------------------------------------------
@@ -1209,23 +1202,6 @@ int ChordRest::lastVerse(Placement p) const
       }
 
 //---------------------------------------------------------
-//   flipLyrics
-//---------------------------------------------------------
-
-void ChordRest::flipLyrics(Lyrics* l)
-      {
-      Placement p = l->placement();
-      if (p == Placement::ABOVE)
-            p = Placement::BELOW;
-      else
-            p = Placement::ABOVE;
-      int verses = lastVerse(p);
-      l->undoChangeProperty(Pid::VERSE, verses + 1);
-      l->undoChangeProperty(Pid::AUTOPLACE, true);
-      l->undoChangeProperty(Pid::PLACEMENT, int(p));
-      }
-
-//---------------------------------------------------------
 //   removeMarkings
 //    - this is normally called after cloning a chord to tie a note over the barline
 //    - there is no special undo handling; the assumption is that undo will simply remove the cloned chord
@@ -1236,9 +1212,9 @@ void ChordRest::flipLyrics(Lyrics* l)
 void ChordRest::removeMarkings(bool /* keepTremolo */)
       {
       qDeleteAll(el());
-      if (isChord())
-            qDeleteAll(toChord(this)->articulations());
+      el().clear();
       qDeleteAll(lyrics());
+      lyrics().clear();
       }
 
 //---------------------------------------------------------

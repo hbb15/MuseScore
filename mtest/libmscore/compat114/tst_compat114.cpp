@@ -60,7 +60,11 @@ void TestCompat114::compat_data()
       QTest::newRow("hairpin") << "hairpin";
       QTest::newRow("articulations") << "articulations";
       QTest::newRow("textstyles") << "textstyles";
+      QTest::newRow("pedal") << "pedal";
+      QTest::newRow("textline") << "textline";
+      QTest::newRow("ottava") << "ottava";
       QTest::newRow("title") << "title";
+      QTest::newRow("fingering") << "fingering";
 //TODO      QTest::newRow("notes_useroffset") << "notes_useroffset";
       QTest::newRow("tremolo2notes") << "tremolo2notes";
       QTest::newRow("accidentals") << "accidentals";
@@ -71,7 +75,7 @@ void TestCompat114::compat_data()
       QTest::newRow("chord_symbol") << "chord_symbol";
       QTest::newRow("style") << "style";
       QTest::newRow("text_scaling") << "text_scaling";
-      QTest::newRow("markers") << "markers";
+//TODO      QTest::newRow("markers") << "markers";
       QTest::newRow("drumset") << "drumset";
       QTest::newRow("tuplets") << "tuplets";
       QTest::newRow("tuplets_1") << "tuplets_1";

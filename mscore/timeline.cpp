@@ -936,9 +936,15 @@ void Timeline::drawGrid(int global_rows, int global_cols)
       int x_pos = 0;
 
       //Create stagger array if collapsed_meta is false
+#if (!defined (_MSCVER) && !defined (_MSC_VER))
       int stagger_arr[num_metas];
       for (unsigned int row = 0; row < num_metas; row++)
-            stagger_arr[row] = 0;
+         stagger_arr[row] = 0;
+#else
+      // MSVC does not support VLA. Replace with std::vector. If profiling determines that the
+      //    heap allocation is slow, an optimization might be used.
+      std::vector<int> stagger_arr(num_metas, 0);  // Default initialized, loop not required
+#endif
 
       bool no_key = true;
       std::get<4>(repeat_info) = false;
@@ -2200,7 +2206,7 @@ void Timeline::wheelEvent(QWheelEvent* event)
 
 void Timeline::updateGrid()
       {
-      if (_score) {
+      if (_score && _score->firstMeasure()) {
             drawGrid(nstaves(), _score->nmeasures());
             updateView();
             drawSelection();
@@ -2227,9 +2233,9 @@ void Timeline::setScore(Score* s)
             }
       else {
             //Clear timeline if no score is present
-            QSplitter* s = scrollArea->grid();
-            if (s && s->count() > 0) {
-                  TRowLabels* t_row_labels = static_cast<TRowLabels*>(s->widget(0));
+            QSplitter* sp = scrollArea->grid();
+            if (sp && sp->count() > 0) {
+                  TRowLabels* t_row_labels = static_cast<TRowLabels*>(sp->widget(0));
                   std::vector<std::pair<QString, bool>> no_labels;
                   t_row_labels->updateLabels(no_labels, 0);
                   }

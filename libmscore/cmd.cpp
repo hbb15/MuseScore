@@ -250,6 +250,8 @@ void Score::update()
                   }
             cs.reset();
             }
+      if (_selection.isRange())
+            _selection.updateSelectedElements();
       }
 
 //---------------------------------------------------------
@@ -1027,11 +1029,11 @@ bool Score::makeGapVoice(Segment* seg, int track, Fraction len, int tick)
                   }
             // first segment in measure was removed, have to recreate it
             Segment* s = m->undoGetSegment(SegmentType::ChordRest, m->tick());
-            int track  = cr->track();
-            cr = toChordRest(s->element(track));
+            int t  = cr->track();
+            cr = toChordRest(s->element(t));
             if (cr == 0) {
-                  addRest(s, track, TDuration(TDuration::DurationType::V_MEASURE), 0);
-                  cr = toChordRest(s->element(track));
+                  addRest(s, t, TDuration(TDuration::DurationType::V_MEASURE), 0);
+                  cr = toChordRest(s->element(t));
                   }
             }
       return true;
@@ -1647,6 +1649,8 @@ void Score::changeAccidental(Note* note, AccidentalType accidental)
             if (forceRemove) {
                   if (a)
                         lns->undoRemoveElement(a);
+                  if (ln->tieBack())
+                        continue;
                   }
             else if (forceAdd) {
                   if (a)
@@ -2322,26 +2326,10 @@ void Score::cmdMoveRest(Rest* rest, Direction dir)
 
 void Score::cmdMoveLyrics(Lyrics* lyrics, Direction dir)
       {
-      ChordRest* cr       = lyrics->chordRest();
-      int verse           = lyrics->no();
-      Placement placement = lyrics->placement();
-      int newVerse;
-      if (lyrics->placeAbove())
-            dir = (dir == Direction::UP) ? Direction::DOWN : Direction::UP;
-
-      if (dir == Direction::UP) {
-            if (verse)
-                  newVerse = verse - 1;
-            else
-                  return;
-            }
-      else
-            newVerse = verse + 1;
-      Lyrics* nl = cr->lyrics(newVerse, placement);
-      if (nl)
-            nl->undoChangeProperty(Pid::VERSE, verse);
-      lyrics->undoChangeProperty(Pid::VERSE, newVerse);
-      score()->setLayout(cr->tick());
+      int verse = lyrics->no() + (dir == Direction::UP ? -1 : 1);
+      if (verse < 0)
+            return;
+      lyrics->undoChangeProperty(Pid::VERSE, verse);
       }
 
 //---------------------------------------------------------
@@ -3344,7 +3332,7 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
                   int curPitch = 60;
                   if (is.segment()) {
                         Staff* staff = Score::staff(is.track() / VOICES);
-                        Segment* seg = is.segment()->prev1(SegmentType::ChordRest | SegmentType::Clef);
+                        Segment* seg = is.segment()->prev1(SegmentType::ChordRest | SegmentType::Clef | SegmentType::HeaderClef);
                         while (seg) {
                               if (seg->isChordRestType()) {
                                     Element* p = seg->element(is.track());
@@ -3353,7 +3341,7 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
                                           break;
                                           }
                                     }
-                              else if (seg->isClefType()) {
+                              else if (seg->isClefType() || seg->isHeaderClefType()) {
                                     Element* p = seg->element( (is.track() / VOICES) * VOICES); // clef on voice 1
                                     if (p && p->isClef()) {
                                           Clef* clef = toClef(p);

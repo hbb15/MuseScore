@@ -393,7 +393,10 @@ void Debugger::addMeasure(ElementItem* mi, Measure* measure)
                   ElementItem* sei = new ElementItem(segItem, e);
                   if (e->isChord())
                         addChord(sei, toChord(e));
-                  else if (e->isChordRest()) {
+                  else if (e->isRest()) {
+                        Rest* rest = toRest(e);
+                        for (int i = 0; i < rest->dots(); ++i)
+                              new ElementItem(sei, rest->dot(i));
                         ChordRest* cr = toChordRest(e);
                         if (cr->beam() && cr->beam()->elements().front() == cr)
                               new ElementItem(sei, cr->beam());
@@ -446,8 +449,8 @@ void Debugger::updateList(Score* s)
             QTreeWidgetItem* mi = new QTreeWidgetItem(list, int(ElementType::INVALID));
             mi->setText(0, "Movements");
             for (MasterScore* ms : *s->masterScore()->movements()) {
-                  QTreeWidgetItem* s = new QTreeWidgetItem(mi, int(ElementType::INVALID));
-                  s->setText(0, ms->metaTag("movementTitle"));
+                  QTreeWidgetItem* i = new QTreeWidgetItem(mi, int(ElementType::INVALID));
+                  i->setText(0, ms->metaTag("movementTitle"));
                   }
             }
 
@@ -466,7 +469,7 @@ void Debugger::updateList(Score* s)
       foreach (Page* page, cs->pages()) {
             ElementItem* pi = new ElementItem(list, page);
 
-            foreach (System* system, page->systems()) {
+            for (System* system : page->systems()) {
                   ElementItem* si = new ElementItem(pi, system);
                   for (Bracket* b : system->brackets())
                         new ElementItem(si, b);
@@ -808,11 +811,11 @@ void MeasureView::setElement(Element* e)
       mb.hasCourtesyKeySig->setChecked(m->hasCourtesyKeySig());
       mb.hasVoices->setChecked(m->hasVoices(0));
       mb.sel->clear();
-      foreach(const Element* e, m->el()) {
+      for (const Element* el : m->el()) {
             QTreeWidgetItem* item = new QTreeWidgetItem;
-            item->setText(0, e->name());
-//            item->setText(1, QString("%1").arg(e->subtype()));
-            void* p = (void*) e;
+            item->setText(0, el->name());
+//            item->setText(1, QString("%1").arg(el->subtype()));
+            void* p = (void*) el;
             item->setData(0, Qt::UserRole, QVariant::fromValue<void*>(p));
             mb.sel->addTopLevelItem(item);
             }
@@ -1123,6 +1126,7 @@ ShowNoteWidget::ShowNoteWidget()
       connect(nb.dot1,       SIGNAL(clicked()), SLOT(dot1Clicked()));
       connect(nb.dot2,       SIGNAL(clicked()), SLOT(dot2Clicked()));
       connect(nb.dot3,       SIGNAL(clicked()), SLOT(dot3Clicked()));
+      connect(nb.dot4,       SIGNAL(clicked()), SLOT(dot4Clicked()));
       }
 
 //---------------------------------------------------------
@@ -1153,6 +1157,7 @@ void ShowNoteWidget::setElement(Element* e)
       nb.dot1->setEnabled(note->dots().size() > 0);
       nb.dot2->setEnabled(note->dots().size() > 1);
       nb.dot3->setEnabled(note->dots().size() > 2);
+      nb.dot4->setEnabled(note->dots().size() > 3);
 
       nb.fingering->clear();
       for (Element* text : note->el()) {
@@ -1163,8 +1168,8 @@ void ShowNoteWidget::setElement(Element* e)
             nb.fingering->addItem(item);
             }
       nb.noteEvents->clear();
-      for (const NoteEvent& e : note->playEvents()) {
-            QString s = QString("%1 %2 %3").arg(e.pitch()).arg(e.ontime()).arg(e.len());
+      for (const NoteEvent& el : note->playEvents()) {
+            QString s = QString("%1 %2 %3").arg(el.pitch()).arg(el.ontime()).arg(el.len());
             QListWidgetItem* item = new QListWidgetItem(s);
             nb.noteEvents->addItem(item);
             }
@@ -1195,6 +1200,15 @@ void ShowNoteWidget::dot2Clicked()
 void ShowNoteWidget::dot3Clicked()
       {
       emit elementChanged(((Note*)element())->dot(2));
+      }
+
+//---------------------------------------------------------
+//   dot4Clicked
+//---------------------------------------------------------
+
+void ShowNoteWidget::dot4Clicked()
+      {
+      emit elementChanged(((Note*)element())->dot(3));
       }
 
 //---------------------------------------------------------
@@ -1246,6 +1260,11 @@ RestView::RestView()
       connect(crb.tupletButton, SIGNAL(clicked()), SLOT(tupletClicked()));
       connect(crb.attributes,   SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
       connect(crb.lyrics,       SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
+
+      connect(rb.dot1,          SIGNAL(clicked()), SLOT(dot1Clicked()));
+      connect(rb.dot2,          SIGNAL(clicked()), SLOT(dot2Clicked()));
+      connect(rb.dot3,          SIGNAL(clicked()), SLOT(dot3Clicked()));
+      connect(rb.dot4,          SIGNAL(clicked()), SLOT(dot4Clicked()));
       }
 
 //---------------------------------------------------------
@@ -1282,6 +1301,47 @@ void RestView::setElement(Element* e)
       rb.dotline->setValue(rest->getDotline());
       rb.mmWidth->setValue((rest->measure() && rest->measure()->isMMRest()) ? rest->mmWidth() : 0.0);
       rb.gap->setChecked(rest->isGap());
+      int dots = rest->dots();
+      rb.dot1->setEnabled(dots > 0);
+      rb.dot2->setEnabled(dots > 1);
+      rb.dot3->setEnabled(dots > 2);
+      rb.dot4->setEnabled(dots > 3);
+      }
+
+//---------------------------------------------------------
+//   dot1Clicked
+//---------------------------------------------------------
+
+void RestView::dot1Clicked()
+      {
+      emit elementChanged(toRest(element())->dot(0));
+      }
+
+//---------------------------------------------------------
+//   dot2Clicked
+//---------------------------------------------------------
+
+void RestView::dot2Clicked()
+      {
+      emit elementChanged(toRest(element())->dot(1));
+      }
+
+//---------------------------------------------------------
+//   dot3Clicked
+//---------------------------------------------------------
+
+void RestView::dot3Clicked()
+      {
+      emit elementChanged(toRest(element())->dot(2));
+      }
+
+//---------------------------------------------------------
+//   dot4Clicked
+//---------------------------------------------------------
+
+void RestView::dot4Clicked()
+      {
+      emit elementChanged(toRest(element())->dot(3));
       }
 
 //---------------------------------------------------------
@@ -1367,7 +1427,7 @@ void TextView::setElement(Element* e)
       {
       Text* te = static_cast<Text*>(e);
 
-      tb.subStyle->setText(subStyleName(te->subStyleId()));
+      tb.subStyle->setText(textStyleName(te->tid()));
 
       ShowElementBase::setElement(e);
       tb.text->setPlainText(te->xmlText());
@@ -1508,10 +1568,10 @@ void SpannerView::setElement(Element* e)
       sp.track2->setValue(spanner->track2());
 
       sp.segments->clear();
-      foreach(const Element* e, spanner->spannerSegments()) {
+      for (const Element* el : spanner->spannerSegments()) {
             QTreeWidgetItem* item = new QTreeWidgetItem;
-            item->setText(0, e->name());
-            void* p = (void*) e;
+            item->setText(0, el->name());
+            void* p = (void*) el;
             item->setData(0, Qt::UserRole, QVariant::fromValue<void*>(p));
             sp.segments->addTopLevelItem(item);
             }
@@ -1681,12 +1741,12 @@ void TupletView::setElement(Element* e)
       tb.duration->setText(tuplet->duration().print());
 
       tb.elements->clear();
-      for (DurationElement* e : tuplet->elements()) {
+      for (DurationElement* el : tuplet->elements()) {
             QTreeWidgetItem* item = new QTreeWidgetItem;
-            item->setText(0, e->name());
-            item->setText(1, QString("%1").arg(e->tick()));
-            item->setText(2, QString("%1").arg(e->actualTicks()));
-            void* p = (void*) e;
+            item->setText(0, el->name());
+            item->setText(1, QString("%1").arg(el->tick()));
+            item->setText(2, QString("%1").arg(el->actualTicks()));
+            void* p = (void*) el;
             item->setData(0, Qt::UserRole, QVariant::fromValue<void*>(p));
             tb.elements->addTopLevelItem(item);
             }
@@ -2060,10 +2120,10 @@ void VoltaView::setElement(Element* e)
 
       sp.segments->clear();
       const QList<SpannerSegment*>& el = volta->spannerSegments();
-      foreach(const SpannerSegment* e, el) {
+      for (const SpannerSegment* elm : el) {
             QTreeWidgetItem* item = new QTreeWidgetItem;
-            item->setText(0, QString("%1").arg((quintptr)e, 8, 16));
-            item->setData(0, Qt::UserRole, QVariant::fromValue<void*>((void*)e));
+            item->setText(0, QString("%1").arg((quintptr)elm, 8, 16));
+            item->setData(0, Qt::UserRole, QVariant::fromValue<void*>((void*)elm));
             sp.segments->addTopLevelItem(item);
             }
 
@@ -2720,10 +2780,10 @@ void SystemView::setElement(Element* e)
       System* vs = (System*)e;
       ShowElementBase::setElement(e);
       mb.spanner->clear();
-      foreach(const Element* e, vs->spannerSegments()) {
+      for (const Element* el : vs->spannerSegments()) {
             QTreeWidgetItem* item = new QTreeWidgetItem;
-            item->setText(0, e->name());
-            void* p = (void*) e;
+            item->setText(0, el->name());
+            void* p = (void*) el;
             item->setData(0, Qt::UserRole, QVariant::fromValue<void*>(p));
             mb.spanner->addTopLevelItem(item);
             }

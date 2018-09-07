@@ -295,6 +295,7 @@ Score::Score(MasterScore* parent)
             style().set(Sid::dividerRight, false);
             }
       _synthesizerState = parent->_synthesizerState;
+      _mscVersion = parent->_mscVersion;
       }
 
 Score::Score(MasterScore* parent, const MStyle& s)
@@ -865,7 +866,8 @@ void Score::appendPart(Part* p)
 Page* Score::searchPage(const QPointF& p) const
       {
       for (Page* page : pages()) {
-            if (page->bbox().translated(page->pos()).contains(p))
+            QRectF r = page->bbox().translated(page->pos());
+            if (r.contains(p))
                   return page;
             }
       return 0;
@@ -945,13 +947,13 @@ static Segment* getNextValidInputSegment(Segment* s, int track, int voice)
             return 0;
       Q_ASSERT(s->segmentType() == SegmentType::ChordRest);
       // Segment* s1 = s;
-      ChordRest* cr1;
+      ChordRest* cr1 = nullptr;
       for (Segment* s1 = s; s1; s1 = s1->prev(SegmentType::ChordRest)) {
             cr1 = toChordRest(s1->element(track + voice));
             if (cr1)
                   break;
             }
-      int nextTick = (cr1 == 0) ? s->measure()->tick() : cr1->tick() + cr1->actualTicks();
+      int nextTick = (cr1 == nullptr) ? s->measure()->tick() : cr1->tick() + cr1->actualTicks();
 
       static const SegmentType st { SegmentType::ChordRest };
       while (s) {
@@ -1132,8 +1134,8 @@ bool Score::getPosition(Position* pos, const QPointF& p, int voice) const
 
 bool Score::checkHasMeasures() const
       {
-      Page* page = pages().front();
-      const QList<System*>* sl = &page->systems();
+      Page* page = pages().isEmpty() ? 0 : pages().front();
+      const QList<System*>* sl = page ? &page->systems() : 0;
       if (sl == 0 || sl->empty() || sl->front()->measures().empty()) {
             qDebug("first create measure, then repeat operation");
             return false;
@@ -1326,6 +1328,8 @@ void Score::addElement(Element* element)
 
             case ElementType::INSTRUMENT_CHANGE: {
                   InstrumentChange* ic = toInstrumentChange(element);
+                  ic->part()->setInstrument(ic->instrument(), ic->segment()->tick());
+#if 0
                   int tickStart = ic->segment()->tick();
                   auto i = ic->part()->instruments()->upper_bound(tickStart);
                   int tickEnd;
@@ -1336,6 +1340,7 @@ void Score::addElement(Element* element)
                   Interval oldV = ic->part()->instrument(tickStart)->transpose();
                   ic->part()->setInstrument(ic->instrument(), tickStart);
                   transpositionChanged(ic->part(), oldV, tickStart, tickEnd);
+#endif
                   masterScore()->rebuildMidiMapping();
                   cmdState()._instrumentsChanged = true;
                   }
@@ -1397,6 +1402,22 @@ void Score::removeElement(Element* element)
             if (element->isVBox() && system->measures().size() == 1) {
                   auto i = std::find(page->systems().begin(), page->systems().end(), system);
                   page->systems().erase(i);
+                  mb->setSystem(0);
+                  if (page->systems().isEmpty()) {
+                        // Remove this page, since it is now empty.
+                        // This involves renumbering and repositioning all subsequent pages.
+                        QPointF pos = page->pos();
+                        auto i = std::find(pages().begin(), pages().end(), page);
+                        pages().erase(i);
+                        while (i != pages().end()) {
+                              page = *i;
+                              page->setNo(page->no() - 1);
+                              QPointF p = page->pos();
+                              page->setPos(pos);
+                              pos = p;
+                              i++;
+                              }
+                        }
                   }
 //            setLayout(mb->tick());
             return;
@@ -1480,6 +1501,8 @@ void Score::removeElement(Element* element)
                   break;
             case ElementType::INSTRUMENT_CHANGE: {
                   InstrumentChange* ic = toInstrumentChange(element);
+                  ic->part()->removeInstrument(ic->segment()->tick());
+#if 0
                   int tickStart = ic->segment()->tick();
                   auto i = ic->part()->instruments()->upper_bound(tickStart);
                   int tickEnd;
@@ -1490,6 +1513,7 @@ void Score::removeElement(Element* element)
                   Interval oldV = ic->part()->instrument(tickStart)->transpose();
                   ic->part()->removeInstrument(tickStart);
                   transpositionChanged(ic->part(), oldV, tickStart, tickEnd);
+#endif
                   masterScore()->rebuildMidiMapping();
                   cmdState()._instrumentsChanged = true;
                   }
@@ -1508,7 +1532,6 @@ void Score::removeElement(Element* element)
             default:
                   break;
             }
-      setLayout(element->tick());
       }
 
 //---------------------------------------------------------
@@ -1741,12 +1764,12 @@ void Score::setSelection(const Selection& s)
 //   getText
 //---------------------------------------------------------
 
-Text* Score::getText(SubStyleId subStyle)
+Text* Score::getText(Tid tid)
       {
       MeasureBase* m = first();
-      if (m && m->type() == ElementType::VBOX) {
+      if (m && m->isVBox()) {
             for (Element* e : m->el()) {
-                  if (e->type() == ElementType::TEXT && toText(e)->subStyleId() == subStyle)
+                  if (e->isText() && toText(e)->tid() == tid)
                         return toText(e);
                   }
             }
@@ -1872,6 +1895,16 @@ void Score::removeAudio()
       {
       delete _audio;
       _audio = 0;
+      }
+
+//---------------------------------------------------------
+//   isScoreLoaded
+//---------------------------------------------------------
+
+bool& Score::isScoreLoaded()
+      {
+      static bool scoreLoaded = false;
+      return scoreLoaded;
       }
 
 //---------------------------------------------------------
@@ -2399,6 +2432,7 @@ void Score::cmdRemoveStaff(int staffIdx)
                   sl.append(s);
             }
       for (auto i : sl) {
+printf("remove %p <%s>\n", i, i->name());
             i->undoUnlink();
             undo(new RemoveElement(i));
             }
@@ -2683,7 +2717,7 @@ void Score::deselect(Element* el)
       addRefresh(el->abbox());
       _selection.remove(el);
       setSelectionChanged(true);
-      update();
+      _selection.update();
       }
 
 //---------------------------------------------------------
@@ -2753,6 +2787,18 @@ void Score::selectSingle(Element* e, int staffIdx)
       _selection.setActiveTrack(0);
 
       _selection.setState(selState);
+      }
+
+//---------------------------------------------------------
+//   switchToPageMode
+//---------------------------------------------------------
+
+void Score::switchToPageMode()
+      {
+            if (_layoutMode != LayoutMode::PAGE) {
+                  setLayoutMode(LayoutMode::PAGE);
+                  doLayout();
+            }
       }
 
 //---------------------------------------------------------
@@ -3031,8 +3077,8 @@ void Score::selectSimilar(Element* e, bool sameStaff)
       score->scanElements(&pattern, collectMatch);
 
       score->select(0, SelectType::SINGLE, 0);
-      for (Element* e : pattern.el)
-            score->select(e, SelectType::ADD, 0);
+      for (Element* ee : pattern.el)
+            score->select(ee, SelectType::ADD, 0);
       }
 
 //---------------------------------------------------------
@@ -3063,8 +3109,8 @@ void Score::selectSimilarInRange(Element* e)
       score->scanElementsInRange(&pattern, collectMatch);
 
       score->select(0, SelectType::SINGLE, 0);
-      for (Element* e : pattern.el)
-            score->select(e, SelectType::ADD, 0);
+      for (Element* ee : pattern.el)
+            score->select(ee, SelectType::ADD, 0);
       }
 
 //---------------------------------------------------------
@@ -3421,12 +3467,12 @@ void Score::addText(const QString& type, const QString& txt)
             insertMeasure(ElementType::VBOX, measure);
             measure = first();
             }
-      SubStyleId stid = SubStyleId::DEFAULT;
+      Tid tid = Tid::DEFAULT;
       if (type == "title")
-            stid = SubStyleId::TITLE;
+            tid = Tid::TITLE;
       else if (type == "subtitle")
-            stid = SubStyleId::SUBTITLE;
-      Text* text = new Text(stid, this);
+            tid = Tid::SUBTITLE;
+      Text* text = new Text(this, tid);
       text->setParent(measure);
       text->setXmlText(txt);
       undoAddElement(text);
@@ -4130,26 +4176,19 @@ void Score::cropPage(qreal margins)
 //   getProperty
 //---------------------------------------------------------
 
-QVariant Score::getProperty(Pid id) const
+QVariant Score::getProperty(Pid /*id*/) const
       {
-      switch (id) {
-            default:
-                  qDebug("Score::getProperty: unhandled id");
-                  return QVariant();
-            }
+      qDebug("Score::getProperty: unhandled id");
+      return QVariant();
       }
 
 //---------------------------------------------------------
 //   setProperty
 //---------------------------------------------------------
 
-bool Score::setProperty(Pid id, const QVariant& /*v*/)
+bool Score::setProperty(Pid /*id*/, const QVariant& /*v*/)
       {
-      switch (id) {
-            default:
-                  qDebug("Score::setProperty: unhandled id");
-                  break;
-            }
+      qDebug("Score::setProperty: unhandled id");
       setLayoutAll();
       return true;
       }
@@ -4158,12 +4197,9 @@ bool Score::setProperty(Pid id, const QVariant& /*v*/)
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant Score::propertyDefault(Pid id) const
+QVariant Score::propertyDefault(Pid /*id*/) const
       {
-      switch (id) {
-            default:
-                  return QVariant();
-            }
+      return QVariant();
       }
 
 //---------------------------------------------------------

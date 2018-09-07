@@ -33,7 +33,9 @@ class TempoText final : public TextBase  {
       bool _isRelative;
 
       void updateScore();
-      void textChanged();
+      void updateTempo();
+      virtual void endEdit(EditData&) override;
+      virtual void undoChangeProperty(Pid id, const QVariant&, PropertyFlags ps) override;
 
    public:
       TempoText(Score*);
@@ -42,6 +44,7 @@ class TempoText final : public TextBase  {
 
       virtual void write(XmlWriter& xml) const override;
       virtual void read(XmlReader&) override;
+      virtual void read300(XmlReader&) override;
 
       Segment* segment() const   { return toSegment(parent()); }
       Measure* measure() const   { return toMeasure(parent()->parent()); }

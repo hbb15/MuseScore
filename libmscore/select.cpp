@@ -474,12 +474,10 @@ void Selection::updateSelectedElements()
                   for (Element* e : s->annotations()) {
                         if (e->track() != st)
                               continue;
-                        // if (e->systemFlag()) //exclude system text  // ws: why?
-                        //      continue;
                         appendFiltered(e);
                         }
                   Element* e = s->element(st);
-                  if (!e || e->generated() || e->type() == ElementType::TIMESIG || e->type() == ElementType::KEYSIG)
+                  if (!e || e->generated() || e->isTimeSig() || e->isKeySig())
                         continue;
                   if (e->isChordRest()) {
                         ChordRest* cr = toChordRest(e);
@@ -498,6 +496,11 @@ void Selection::updateSelectedElements()
                         }
                   else {
                         appendFiltered(e);
+                        if (e->isRest()) {
+                              Rest* r = toRest(e);
+                              for (int i = 0; i < r->dots(); ++i)
+                                    appendFiltered(r->dot(i));
+                              }
                         }
                   }
             }
@@ -706,6 +709,7 @@ QByteArray Selection::staffMimeData() const
                   xml.tag("transposeChromatic", interval.chromatic);
             if (interval.diatonic)
                   xml.tag("transposeDiatonic", interval.diatonic);
+            xml.stag("voiceOffset");
             for (int voice = 0; voice < VOICES; voice++) {
                   if (hasElementInTrack(seg1, seg2, startTrack + voice)
                      && xml.canWriteVoice(voice)) {
@@ -713,7 +717,9 @@ QByteArray Selection::staffMimeData() const
                         xml.tag(QString("voice id=\"%1\"").arg(voice), offset);
                         }
                   }
-            _score->writeSegments(xml, startTrack, endTrack, seg1, seg2, false, true, true, false);
+            xml.etag(); // </voiceOffset>
+            xml.setCurTrack(startTrack);
+            _score->writeSegments(xml, startTrack, endTrack, seg1, seg2, false, false);
             xml.etag();
             }
 

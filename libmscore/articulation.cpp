@@ -30,9 +30,8 @@ namespace Ms {
 //---------------------------------------------------------
 
 Articulation::Articulation(Score* s)
-   : Element(s)
+   : Element(s, ElementFlag::MOVABLE)
       {
-      setFlags(ElementFlag::MOVABLE | ElementFlag::SELECTABLE);
       _symId         = SymId::noSym;
       _anchor        = ArticulationAnchor::TOP_STAFF;
       _direction     = Direction::AUTO;
@@ -436,6 +435,9 @@ const char* Articulation::symId2ArticulationName(SymId symId)
             case SymId::stringsHarmonic:
                   return "harmonic";
 
+            case SymId::ornamentMordentInverted:
+                  return "mordent-inverted";
+
             default:
                   return "---";
             }
@@ -454,12 +456,8 @@ const char* Articulation::articulationName() const
 //   getPropertyStyle
 //---------------------------------------------------------
 
-Sid Articulation::getPropertyStyle(Pid id) const
+Sid Articulation::getPropertyStyle(Pid /*id*/) const
       {
-      switch (id) {
-            default:
-                  break;
-            }
       return Sid::NOSTYLE;
       }
 

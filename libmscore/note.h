@@ -264,7 +264,7 @@ class Note final : public Element {
       virtual void startDrag(EditData&) override;
       virtual QRectF drag(EditData&) override;
       virtual void endDrag(EditData&) override;
-      void endEdit(EditData&);
+      virtual void editDrag(EditData&) override;
       void addSpanner(Spanner*);
       void removeSpanner(Spanner*);
       int concertPitchIdx() const;
@@ -379,6 +379,8 @@ class Note final : public Element {
       void setTieBack(Tie* t)         { _tieBack = t;    }
       Note* firstTiedNote() const;
       const Note* lastTiedNote() const;
+      void disconnectTiedNotes();
+      void connectTiedNotes();
 
       Chord* chord() const            { return (Chord*)parent(); }
       void setChord(Chord* a)         { setParent((Element*)a);  }
@@ -386,6 +388,9 @@ class Note final : public Element {
 
       virtual void read(XmlReader&) override;
       virtual bool readProperties(XmlReader&) override;
+      virtual void readAddConnector(ConnectorInfoReader* info, bool pasteMode) override;
+      virtual void read300(XmlReader&) override;
+      virtual bool readProperties300(XmlReader&) override;
       virtual void write(XmlWriter&) const override;
 
       bool acceptDrop(EditData&) const override;

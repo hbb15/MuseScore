@@ -9,6 +9,7 @@
 //  as published by the Free Software Foundation and appearing in
 //  the file LICENCE.GPL
 //=============================================================================
+
 #include "tremolo.h"
 #include "score.h"
 #include "style.h"
@@ -39,12 +40,11 @@ static const char* tremoloName[] = {
       };
 
 Tremolo::Tremolo(Score* score)
-   : Element(score)
+   : Element(score, ElementFlag::MOVABLE)
       {
       setTremoloType(TremoloType::R8);
       _chord1  = 0;
       _chord2  = 0;
-      setFlags(ElementFlag::MOVABLE | ElementFlag::SELECTABLE);
       }
 
 Tremolo::Tremolo(const Tremolo& t)
@@ -53,7 +53,6 @@ Tremolo::Tremolo(const Tremolo& t)
       setTremoloType(t.tremoloType());
       _chord1  = t.chord1();
       _chord2  = t.chord2();
-      setFlags(ElementFlag::MOVABLE | ElementFlag::SELECTABLE);
       }
 
 //---------------------------------------------------------
@@ -71,12 +70,15 @@ qreal Tremolo::mag() const
 
 void Tremolo::draw(QPainter* painter) const
       {
-      painter->setBrush(QBrush(curColor()));
-      painter->setPen(Qt::NoPen);
-      if (tremoloType() == TremoloType::BUZZ_ROLL)
+      if (tremoloType() == TremoloType::BUZZ_ROLL) {
+            painter->setPen(curColor());
             drawSymbol(SymId::buzzRoll, painter);
-      else
+            }
+      else {
+            painter->setBrush(QBrush(curColor()));
+            painter->setPen(Qt::NoPen);
             painter->drawPath(path);
+            }
       if ((parent() == 0) && !twoNotes()) {
             qreal x = 0.0; // bbox().width() * .25;
             QPen pen(curColor(), point(score()->styleS(Sid::stemWidth)));

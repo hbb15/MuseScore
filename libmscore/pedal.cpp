@@ -22,6 +22,33 @@
 
 namespace Ms {
 
+static const ElementStyle pedalStyle {
+      { Sid::pedalFontFace,                      Pid::BEGIN_FONT_FACE         },
+      { Sid::pedalFontFace,                      Pid::CONTINUE_FONT_FACE      },
+      { Sid::pedalFontFace,                      Pid::END_FONT_FACE           },
+      { Sid::pedalFontSize,                      Pid::BEGIN_FONT_SIZE         },
+      { Sid::pedalFontSize,                      Pid::CONTINUE_FONT_SIZE      },
+      { Sid::pedalFontSize,                      Pid::END_FONT_SIZE           },
+      { Sid::pedalFontBold,                      Pid::BEGIN_FONT_BOLD         },
+      { Sid::pedalFontBold,                      Pid::CONTINUE_FONT_BOLD      },
+      { Sid::pedalFontBold,                      Pid::END_FONT_BOLD           },
+      { Sid::pedalFontItalic,                    Pid::BEGIN_FONT_ITALIC       },
+      { Sid::pedalFontItalic,                    Pid::CONTINUE_FONT_ITALIC    },
+      { Sid::pedalFontItalic,                    Pid::END_FONT_ITALIC         },
+      { Sid::pedalFontUnderline,                 Pid::BEGIN_FONT_UNDERLINE    },
+      { Sid::pedalFontUnderline,                 Pid::CONTINUE_FONT_UNDERLINE },
+      { Sid::pedalFontUnderline,                 Pid::END_FONT_UNDERLINE      },
+      { Sid::pedalTextAlign,                     Pid::BEGIN_TEXT_ALIGN        },
+      { Sid::pedalTextAlign,                     Pid::CONTINUE_TEXT_ALIGN     },
+      { Sid::pedalTextAlign,                     Pid::END_TEXT_ALIGN          },
+      { Sid::pedalHookHeight,                    Pid::BEGIN_HOOK_HEIGHT       },
+      { Sid::pedalHookHeight,                    Pid::END_HOOK_HEIGHT         },
+      { Sid::pedalBeginTextOffset,               Pid::BEGIN_TEXT_OFFSET       },
+      { Sid::pedalBeginTextOffset,               Pid::CONTINUE_TEXT_OFFSET    },
+      { Sid::pedalBeginTextOffset,               Pid::END_TEXT_OFFSET         },
+      { Sid::pedalPlacement,                     Pid::PLACEMENT               },
+      };
+
 //---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
@@ -62,6 +89,7 @@ void PedalSegment::layout()
 Pedal::Pedal(Score* s)
    : TextLineBase(s)
       {
+      initElementStyle(&pedalStyle);
       setLineVisible(true);
       resetProperty(Pid::BEGIN_TEXT);
       resetProperty(Pid::END_TEXT);
@@ -73,8 +101,7 @@ Pedal::Pedal(Score* s)
       resetProperty(Pid::END_HOOK_TYPE);
 
       resetProperty(Pid::BEGIN_TEXT_PLACE);
-
-      initSubStyle(SubStyleId::PEDAL);
+      resetProperty(Pid::LINE_VISIBLE);
       }
 
 //---------------------------------------------------------
@@ -83,8 +110,6 @@ Pedal::Pedal(Score* s)
 
 void Pedal::read(XmlReader& e)
       {
-      int id = e.intAttribute("id", -1);
-      e.addSpanner(id, this);
       while (e.readNextStartElement()) {
             if (!TextLineBase::readProperties(e))
                   e.unknown();
@@ -99,8 +124,7 @@ void Pedal::write(XmlWriter& xml) const
       {
       if (!xml.canWrite(this))
             return;
-      int id = xml.spannerId(this);
-      xml.stag(QString("%1 id=\"%2\"").arg(name()).arg(id));
+      xml.stag(name());
 
       for (auto i : {
          Pid::END_HOOK_TYPE,
@@ -112,8 +136,8 @@ void Pedal::write(XmlWriter& xml) const
          }) {
             writeProperty(xml, i);
             }
-      for (const StyledProperty* spp = styledProperties(); spp->sid != Sid::NOSTYLE; ++spp)
-            writeProperty(xml, spp->pid);
+      for (const StyledProperty& spp : *styledProperties())
+            writeProperty(xml, spp.pid);
 
       Element::writeProperties(xml);
       xml.etag();
@@ -146,21 +170,27 @@ QVariant Pedal::propertyDefault(Pid propertyId) const
       {
       switch (propertyId) {
             case Pid::LINE_WIDTH:
-                  return score()->styleV(Sid::pedalLineWidth);
+                  return score()->styleP(Sid::pedalLineWidth);    // return point, not spatium
 
             case Pid::LINE_STYLE:
                   return score()->styleV(Sid::pedalLineStyle);
 
             case Pid::BEGIN_TEXT:
+            case Pid::CONTINUE_TEXT:
             case Pid::END_TEXT:
                   return "";
 
             case Pid::BEGIN_TEXT_PLACE:
+            case Pid::CONTINUE_TEXT_PLACE:
+            case Pid::END_TEXT_PLACE:
                   return int(PlaceText::LEFT);
 
             case Pid::BEGIN_HOOK_TYPE:
             case Pid::END_HOOK_TYPE:
                   return int(HookType::NONE);
+
+            case Pid::LINE_VISIBLE:
+                  return true;
 
             default:
                   return TextLineBase::propertyDefault(propertyId);
@@ -174,17 +204,19 @@ QVariant Pedal::propertyDefault(Pid propertyId) const
 
 QPointF Pedal::linePos(Grip grip, System** sys) const
       {
-      qreal x;
+      qreal x = 0.0;
       qreal nhw = score()->noteHeadWidth();
       System* s = nullptr;
       if (grip == Grip::START) {
             ChordRest* c = toChordRest(startElement());
-            s = c->segment()->system();
-            x = c->pos().x() + c->segment()->pos().x() + c->segment()->measure()->pos().x();
-            if (c->type() == ElementType::REST && c->durationType() == TDuration::DurationType::V_MEASURE)
-                  x -= c->x();
-            if (beginHookType() == HookType::HOOK_45)
-                  x += nhw * .5;
+            if (c) {
+                  s = c->segment()->system();
+                  x = c->pos().x() + c->segment()->pos().x() + c->segment()->measure()->pos().x();
+                  if (c->type() == ElementType::REST && c->durationType() == TDuration::DurationType::V_MEASURE)
+                        x -= c->x();
+                  if (beginHookType() == HookType::HOOK_45)
+                        x += nhw * .5;
+                  }
             }
       else {
             Element* e = endElement();

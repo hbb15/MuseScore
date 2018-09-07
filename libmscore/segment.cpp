@@ -110,14 +110,14 @@ void Segment::removeElement(int track)
 //---------------------------------------------------------
 
 Segment::Segment(Measure* m)
-   : Element(m->score())
+   : Element(m->score(), ElementFlag::EMPTY | ElementFlag::ENABLED | ElementFlag::NOT_SELECTABLE)
       {
       setParent(m);
       init();
       }
 
 Segment::Segment(Measure* m, SegmentType st, int t)
-   : Element(m->score())
+   : Element(m->score(), ElementFlag::EMPTY | ElementFlag::ENABLED | ElementFlag::NOT_SELECTABLE)
       {
       setParent(m);
       _segmentType = st;
@@ -419,7 +419,8 @@ void Segment::removeStaff(int staff)
 
 void Segment::checkElement(Element* el, int track)
       {
-      if (_elist[track]) {
+      // generated elements can be overwritten
+      if (_elist[track] && !_elist[track]->generated()) {
             qDebug("add(%s): there is already a %s at %s(%d) track %d. score %p %s",
                el->name(), _elist[track]->name(),
                qPrintable(score()->sigmap()->pos(tick())), tick(), track, score(), score()->isMaster() ? "Master" : "Part");
@@ -585,10 +586,14 @@ void Segment::remove(Element* el)
                   auto spanners = smap.findOverlapping(tick(), tick());
                   for (auto interval : spanners) {
                         Spanner* s = interval.value;
+                        Element* start = s->startElement();
+                        Element* end = s->endElement();
                         if (s->startElement() == el)
-                              s->setStartElement(nullptr);
+                              start = nullptr;
                         if (s->endElement() == el)
-                              s->setEndElement(nullptr);
+                              end = nullptr;
+                        if (start != s->startElement() || end != s->endElement())
+                              score()->undo(new ChangeStartEndSpanner(s, start, end));
                         }
                   }
                   break;
@@ -759,13 +764,23 @@ void Segment::checkEmpty() const
       }
 
 //---------------------------------------------------------
-//   fpos
+//   rfrac
 //    return relative position of segment in measure
 //---------------------------------------------------------
 
-Fraction Segment::fpos() const
+Fraction Segment::rfrac() const
       {
       return Fraction::fromTicks(_tick);
+      }
+
+//---------------------------------------------------------
+//   afrac
+//    return absolute position of segment
+//---------------------------------------------------------
+
+Fraction Segment::afrac() const
+      {
+      return Fraction::fromTicks(tick());
       }
 
 //---------------------------------------------------------
@@ -1678,7 +1693,6 @@ Element* Segment::prevElement(int activeStaff)
                          }
                   }
             }
-            return nullptr;
       }
 
 //--------------------------------------------------------
@@ -1810,7 +1824,11 @@ void Segment::createShape(int staffIdx)
             BarLine* bl = toBarLine(element(0));
             if (bl) {
                   qreal w = BarLine::layoutWidth(score(), bl->barLineType());
+#ifndef NDEBUG
+                  s.add(QRectF(0.0, 0.0, w, spatium() * 4.0).translated(bl->pos()), bl->name());
+#else
                   s.add(QRectF(0.0, 0.0, w, spatium() * 4.0).translated(bl->pos()));
+#endif
                   }
             return;
             }
@@ -1823,10 +1841,10 @@ void Segment::createShape(int staffIdx)
             }
 
       for (Element* e : _annotations) {
-            // probably only allow for lyrics and chordnames
             if (e->staffIdx() == staffIdx
                && !e->isRehearsalMark()
                && !e->isFretDiagram()
+               && !e->isHarmony()
                && !e->isTempoText()
                && !e->isDynamic()
                && !e->isSymbol()

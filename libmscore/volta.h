@@ -31,15 +31,13 @@ extern LineSegment* voltaDebug;
 
 class VoltaSegment final : public TextLineBaseSegment {
    public:
-      VoltaSegment(Score* s) : TextLineBaseSegment(s) {}
+      VoltaSegment(Score* s) : TextLineBaseSegment(s, ElementFlag::MOVABLE | ElementFlag::ON_STAFF) {}
       virtual ElementType type() const override     { return ElementType::VOLTA_SEGMENT; }
       virtual VoltaSegment* clone() const override  { return new VoltaSegment(*this); }
       Volta* volta() const                          { return (Volta*)spanner(); }
       virtual void layout() override;
 
-      virtual QVariant getProperty(Pid propertyId) const override;
-      virtual bool setProperty(Pid propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(Pid) const override;
+      virtual Element* propertyDelegate(Pid) override;
       };
 
 //---------------------------------------------------------
@@ -62,6 +60,7 @@ class Volta final : public TextLineBase {
 
       virtual void write(XmlWriter&) const override;
       virtual void read(XmlReader& e) override;
+      virtual void read300(XmlReader&) override;
 
       QList<int> endings() const           { return _endings; }
       QList<int>& endings()                { return _endings; }
@@ -78,7 +77,6 @@ class Volta final : public TextLineBase {
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(Pid) const override;
 
-      virtual bool systemFlag() const override  { return true;  }
       virtual QString accessibleInfo() const override;
       };
 

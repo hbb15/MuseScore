@@ -89,8 +89,8 @@ DrumrollEditor::DrumrollEditor(QWidget* parent)
             QPalette p(b->palette());
             p.setColor(QPalette::Base, MScore::selectColor[i]);
             b->setPalette(p);
-            QAction* a = getAction(voiceActions[i]);
-            b->setDefaultAction(a);
+            QAction* aa = getAction(voiceActions[i]);
+            b->setDefaultAction(aa);
             tb->addWidget(b);
             }
 
@@ -384,9 +384,9 @@ void DrumrollEditor::keyReleased(int /*pitch*/)
 //   heartBeat
 //---------------------------------------------------------
 
-void DrumrollEditor::heartBeat(Seq* seq)
+void DrumrollEditor::heartBeat(Seq* s)
       {
-      unsigned t = seq->getCurTick();
+      unsigned t = s->getCurTick();
       if (locator[0].tick() != t) {
             locator[0].setTick(t);
             gv->moveLocator(0);

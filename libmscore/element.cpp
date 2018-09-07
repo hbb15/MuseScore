@@ -30,6 +30,7 @@
 #include "chordline.h"
 #include "chordrest.h"
 #include "clef.h"
+#include "connector.h"
 #include "dynamic.h"
 #include "figuredbass.h"
 #include "fingering.h"
@@ -76,6 +77,7 @@
 #include "textframe.h"
 #include "text.h"
 #include "textline.h"
+#include "tie.h"
 #include "timesig.h"
 #include "tremolobar.h"
 #include "tremolo.h"
@@ -91,6 +93,7 @@
 #include "vibrato.h"
 #include "palmmute.h"
 #include "fermata.h"
+#include "shape.h"
 
 namespace Ms {
 
@@ -151,7 +154,7 @@ QString Element::subtypeName() const
 Element::Element(Score* s, ElementFlags f)
    : ScoreElement(s)
       {
-      _flags         = f | ElementFlag::ENABLED | ElementFlag::EMPTY | ElementFlag::AUTOPLACE | ElementFlag::SELECTABLE | ElementFlag::VISIBLE;
+      _flags         = f;
       _placement     = Placement::BELOW;
       _track         = -1;
       _color         = MScore::defaultColor;
@@ -170,7 +173,6 @@ Element::Element(const Element& e)
       _mag        = e._mag;
       _pos        = e._pos;
       _userOff    = e._userOff;
-//      _readPos    = e._readPos;
       _bbox       = e._bbox;
       _tag        = e._tag;
       _z          = e._z;
@@ -285,10 +287,15 @@ QColor Element::curColor() const
 
 QColor Element::curColor(bool isVisible) const
       {
+      return curColor(isVisible, color());
+      }
+
+QColor Element::curColor(bool isVisible, QColor normalColor) const
+      {
       // the default element color is always interpreted as black in
       // printing
       if (score() && score()->printing())
-            return (color() == MScore::defaultColor) ? Qt::black : color();
+            return (normalColor == MScore::defaultColor) ? Qt::black : normalColor;
 
       if (flag(ElementFlag::DROP_TARGET))
             return MScore::dropColor;
@@ -309,13 +316,13 @@ QColor Element::curColor(bool isVisible) const
                   int red = originalColor.red();
                   int green = originalColor.green();
                   int blue = originalColor.blue();
-                  float tint = .6;  // Between 0 and 1. Higher means lighter, lower means darker
+                  float tint = .6f;  // Between 0 and 1. Higher means lighter, lower means darker
                   return QColor(red + tint * (255 - red), green + tint * (255 - green), blue + tint * (255 - blue));
                   }
             }
       if (!isVisible)
             return Qt::gray;
-      return color();
+      return normalColor;
       }
 
 //---------------------------------------------------------
@@ -369,12 +376,12 @@ QPointF Element::pagePos() const
 QPointF Element::canvasPos() const
       {
       QPointF p(pos());
-      if (parent() == 0)
+      if (parent() == nullptr)
             return p;
 
       if (_flags & ElementFlag::ON_STAFF) {
-            System* system = 0;
-            Measure* measure = 0;
+            System* system = nullptr;
+            Measure* measure = nullptr;
             if (parent()->isSegment())
                   measure = toSegment(parent())->measure();
             else if (parent()->isMeasure())     // used in measure number
@@ -459,8 +466,47 @@ bool Element::intersects(const QRectF& rr) const
 void Element::writeProperties(XmlWriter& xml) const
       {
       // copy paste should not keep links
-      if (_links && (_links->size() > 1) && !xml.clipboardmode())
-            xml.tag("lid", _links->lid());
+      if (_links && (_links->size() > 1) && !xml.clipboardmode()) {
+            if (MScore::debugMode)
+                  xml.tag("lid", _links->lid());
+            Element* me = static_cast<Element*>(_links->mainElement());
+            Q_ASSERT(type() == me->type());
+            Staff* s = staff();
+            if (!s) {
+                  s = score()->staff(xml.curTrack() / VOICES);
+                  if (!s)
+                        qWarning("Element::writeProperties: linked element's staff not found (%s)", name());
+                  }
+            Location loc = Location::positionForElement(this);
+            if (me == this) {
+                  xml.tagE("linkedMain");
+                  xml.setLidLocalIndex(_links->lid(), xml.assignLocalIndex(loc));
+                  }
+            else {
+                  if (s->links()) {
+                        Staff* linkedStaff = toStaff(s->links()->mainElement());
+                        loc.setStaff(linkedStaff->idx());
+                        }
+                  xml.stag("linked");
+                  if (!me->score()->isMaster()) {
+                        if (me->score() == score()) {
+                              xml.tag("score", "same");
+                              }
+                        else {
+                              qWarning("Element::writeProperties: linked elements belong to different scores but none of them is master score: (%s lid=%d)", name(), _links->lid());
+                              }
+                        }
+                  Location mainLoc = Location::positionForElement(me);
+                  const int guessedLocalIndex = xml.assignLocalIndex(mainLoc);
+                  if (loc != mainLoc) {
+                        mainLoc.toRelative(loc);
+                        mainLoc.write(xml);
+                        }
+                  const int indexDiff = xml.lidLocalIndex(_links->lid()) - guessedLocalIndex;
+                  xml.tag("indexDiff", indexDiff, 0);
+                  xml.etag(); // </linked>
+                  }
+            }
       if (!autoplace() && !userOff().isNull()) {      // TODO: remove pos of offset
             if (isFingering() || isHarmony() || isTuplet() || isStaffText()) {
                   QPointF p = userOff() / score()->spatium();
@@ -472,7 +518,9 @@ void Element::writeProperties(XmlWriter& xml) const
             else
                   xml.tag("offset", userOff() / score()->spatium());
             }
-      if (((track() != xml.curTrack()) || isSlur()) && (track() != -1)) {
+      if ((track() != xml.curTrack()) && (track() != -1) && !isBeam()) {
+            // Writing track number for beams is redundant as it is calculated
+            // during layout.
             int t;
             t = track() + xml.trackDiff();
             xml.tag("track", t);
@@ -507,7 +555,68 @@ bool Element::readProperties(XmlReader& e)
             setVisible(e.readInt());
       else if (tag == "selected") // obsolete
             e.readInt();
+      else if ((tag == "linked") || (tag == "linkedMain")) {
+            Staff* s = staff();
+            if (!s) {
+                  s = score()->staff(e.track() / VOICES);
+                  if (!s) {
+                        qWarning("Element::readProperties: linked element's staff not found (%s)", name());
+                        e.skipCurrentElement();
+                        return true;
+                        }
+                  }
+            if (tag == "linkedMain") {
+                  _links = new LinkedElements(score());
+                  _links->push_back(this);
+                  e.addLink(s, _links);
+                  e.readNext();
+                  }
+            else {
+                  Staff* ls = s->links() ? toStaff(s->links()->mainElement()) : nullptr;
+                  bool linkedIsMaster = ls ? ls->score()->isMaster() : false;
+                  Location loc = e.location(true);
+                  if (ls)
+                        loc.setStaff(ls->idx());
+                  Location mainLoc = Location::relative();
+                  bool locationRead = false;
+                  int localIndexDiff = 0;
+                  while (e.readNextStartElement()) {
+                        const QStringRef& tag(e.name());
+
+                        if (tag == "score") {
+                              QString val(e.readElementText());
+                              if (val == "same")
+                                    linkedIsMaster = score()->isMaster();
+                              }
+                        else if (tag == "location") {
+                              mainLoc.read(e);
+                              mainLoc.toAbsolute(loc);
+                              locationRead = true;
+                              }
+                        else if (tag == "indexDiff")
+                              localIndexDiff = e.readInt();
+                        else
+                              e.unknown();
+                        }
+                  if (!locationRead)
+                        mainLoc = loc;
+                  LinkedElements* link = e.getLink(linkedIsMaster, mainLoc, localIndexDiff);
+                  if (link) {
+                        ScoreElement* linked = link->mainElement();
+                        if (linked->type() == type())
+                              linkTo(linked);
+                        else
+                              qWarning("Element::readProperties: linked elements have different types: %s, %s. Input file corrupted?", name(), linked->name());
+                        }
+                  if (!_links)
+                        qWarning("Element::readProperties: could not link %s at staff %d", name(), mainLoc.staff() + 1);
+                  }
+            }
       else if (tag == "lid") {
+            if (score()->mscVersion() >= 301) {
+                  e.skipCurrentElement();
+                  return true;
+                  }
             int id = e.readInt();
             _links = e.linkIds().value(id);
             if (!_links) {
@@ -535,20 +644,8 @@ bool Element::readProperties(XmlReader& e)
             if (val >= 0)
                   e.initTick(score()->fileDivision(val));
             }
-#if 0
-      else if (tag == "userOff") {
-            _userOff = e.readPoint();
-            setAutoplace(false);
-            }
-#endif
-      else if (tag == "offset") {
+      else if (tag == "offset" || tag == "pos") {
             setUserOff(e.readPoint() * score()->spatium());
-            setAutoplace(false);
-            }
-      else if (tag == "pos") {
-            QPointF pt = e.readPoint();
-//            _readPos = pt * score()->spatium();
-            _userOff = pt * score()->spatium();
             setAutoplace(false);
             }
       else if (tag == "voice")
@@ -876,6 +973,7 @@ Element* Element::create(ElementType type, Score* score)
             case ElementType::FIGURED_BASS:      return new FiguredBass(score);
             case ElementType::STEM:              return new Stem(score);
             case ElementType::SLUR:              return new Slur(score);
+            case ElementType::TIE:               return new Tie(score);
             case ElementType::FINGERING:          return new Fingering(score);
             case ElementType::HBOX:              return new HBox(score);
             case ElementType::VBOX:              return new VBox(score);
@@ -894,7 +992,6 @@ Element* Element::create(ElementType type, Score* score)
             case ElementType::SLUR_SEGMENT:
             case ElementType::TIE_SEGMENT:
             case ElementType::STEM_SLASH:
-            case ElementType::TIE:
             case ElementType::PAGE:
             case ElementType::BEAM:
             case ElementType::HOOK:
@@ -1045,12 +1142,12 @@ bool Element::setProperty(Pid propertyId, const QVariant& v)
                   setSystemFlag(v.toBool());
                   break;
             default:
-                  qFatal("%s unknown <%s>(%d), data <%s>", name(), propertyName(propertyId), int(propertyId), qPrintable(v.toString()));
-//                  qDebug("%s unknown <%s>(%d), data <%s>", name(), propertyName(propertyId), int(propertyId), qPrintable(v.toString()));
+//                  qFatal("<%s> unknown <%s>(%d), data <%s>", name(), propertyQmlName(propertyId), int(propertyId), qPrintable(v.toString()));
+                  qDebug("%s unknown <%s>(%d), data <%s>", name(), propertyQmlName(propertyId), int(propertyId), qPrintable(v.toString()));
                   return false;
             }
       triggerLayout();
-      setGenerated(false);
+//      setGenerated(false);
       return true;
       }
 
@@ -1058,9 +1155,9 @@ bool Element::setProperty(Pid propertyId, const QVariant& v)
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant Element::propertyDefault(Pid id) const
+QVariant Element::propertyDefault(Pid pid) const
       {
-      switch(id) {
+      switch (pid) {
             case Pid::GENERATED:
                   return false;
             case Pid::VISIBLE:
@@ -1078,7 +1175,7 @@ QVariant Element::propertyDefault(Pid id) const
             case Pid::Z:
                   return int(type()) * 100;
             default:
-                  return ScoreElement::propertyDefault(id);
+                  return ScoreElement::propertyDefault(pid);
             }
       }
 
@@ -1135,6 +1232,40 @@ Element* Element::findMeasure()
       }
 
 //---------------------------------------------------------
+//   findMeasure
+//---------------------------------------------------------
+
+const Element* Element::findMeasure() const
+      {
+      Element* e = const_cast<Element*>(this);
+      return e->findMeasure();
+      }
+
+//---------------------------------------------------------
+//   findMeasureBase
+//---------------------------------------------------------
+
+MeasureBase* Element::findMeasureBase()
+      {
+      if (isMeasureBase())
+            return toMeasureBase(this);
+      else if (_parent)
+            return _parent->findMeasureBase();
+      else
+            return 0;
+      }
+
+//---------------------------------------------------------
+//   findMeasureBase
+//---------------------------------------------------------
+
+const MeasureBase* Element::findMeasureBase() const
+      {
+      Element* e = const_cast<Element*>(this);
+      return e->findMeasureBase();
+      }
+
+//---------------------------------------------------------
 //   undoSetColor
 //---------------------------------------------------------
 
@@ -1161,8 +1292,8 @@ void Element::undoSetVisible(bool v)
 QRectF Element::scriptBbox() const
       {
       qreal  _sp = spatium();
-      QRectF _bbox = bbox();
-      return QRectF(_bbox.x() / _sp, _bbox.y() / _sp, _bbox.width() / _sp, _bbox.height() / _sp);
+      QRectF bbox_ = bbox();
+      return QRectF(bbox_.x() / _sp, bbox_.y() / _sp, bbox_.width() / _sp, bbox_.height() / _sp);
       }
 
 //---------------------------------------------------------
@@ -1533,8 +1664,8 @@ bool Element::prevGrip(EditData& ed) const
 
 bool Element::isUserModified() const
       {
-      for (const StyledProperty* spp = styledProperties(); spp->sid != Sid::NOSTYLE; ++spp) {
-            Pid pid               = spp->pid;
+      for (const StyledProperty& spp : *styledProperties()) {
+            Pid pid               = spp.pid;
             QVariant val          = getProperty(pid);
             QVariant defaultValue = propertyDefault(pid);
 
@@ -1579,6 +1710,43 @@ int Element::rtick() const
       while (e) {
             if (e->isSegment())
                   return toSegment(e)->rtick();
+            e = e->parent();
+            }
+      return -1;
+      }
+
+//---------------------------------------------------------
+//   rfrac
+//    Position of element in fractions relative to a
+//    measure start.
+//---------------------------------------------------------
+
+Fraction Element::rfrac() const
+      {
+      const Element* e = this;
+      while (e) {
+            if (e->isSegment())
+                  return toSegment(e)->rfrac();
+            else if (e->isMeasureBase())
+                  return toMeasureBase(e)->rfrac();
+            e = e->parent();
+            }
+      return -1;
+      }
+
+//---------------------------------------------------------
+//   afrac
+//    Absolute position of element in fractions.
+//---------------------------------------------------------
+
+Fraction Element::afrac() const
+      {
+      const Element* e = this;
+      while (e) {
+            if (e->isSegment())
+                  return toSegment(e)->afrac();
+            else if (e->isMeasureBase())
+                  return toMeasureBase(e)->afrac();
             e = e->parent();
             }
       return -1;
@@ -1704,7 +1872,7 @@ QRectF Element::drag(EditData& ed)
             }
 
       setUserOff(QPointF(x, y));
-      setGenerated(false);
+//      setGenerated(false);
 
       if (isTextBase()) {         // TODO: check for other types
             //
@@ -1820,8 +1988,10 @@ void Element::endEditDrag(EditData& ed)
                   }
             eed->propertyData.clear();
             }
-      if (changed)
+      if (changed) {
             undoChangeProperty(Pid::AUTOPLACE, false);
+            undoChangeProperty(Pid::GENERATED, false);
+            }
       }
 
 //---------------------------------------------------------
@@ -1855,27 +2025,107 @@ void Element::autoplaceSegmentElement(qreal minDistance)
             Shape s1          = m->staffShape(si);
             Shape s2          = shape().translated(s->pos() + pos());
 
-            // look for collisions in the next measure
-            // if necessary
+            if (isTextBase()) {
+                  // look for collisions in next measures
+                  qreal totalWidth = m->width();
+                  for (Measure* nm = m->nextMeasure(); nm; nm = nm->nextMeasure()) {
+                        if (s2.right() > totalWidth) {
+                              s1.add(nm->staffShape(si).translated(QPointF(totalWidth, 0.0)));
+                              totalWidth += nm->width();
+                              }
+                        else
+                              break;
+                        }
 
-            bool cnm = (s2.right() > m->width()) && m->nextMeasure() && m->nextMeasure()->system() == m->system();
-            if (cnm) {
-                  Measure* nm = m->nextMeasure();
-                  s1.add(nm->staffShape(si).translated(QPointF(m->width(), 0.0)));
+                  // look for collisions in previous measures
+                  totalWidth = 0;
+                  for (Measure* pm = m->prevMeasure(); pm; pm = pm->prevMeasure()) {
+                        if (s2.left() > totalWidth) {
+                              s1.add(pm->staffShape(si).translated(QPointF(-(totalWidth + pm->width()), 0.0)));
+                              totalWidth += pm->width();
+                              }
+                        else
+                              break;
+                        }
+
+                  // actually check for collisions
+                  bool intersection = true;
+                  qreal totalYOff = 0;
+                  while (intersection) {
+                        intersection = false;
+                        for (ShapeElement se : s1) {
+                              if (s2.intersects(se)){
+                                    intersection = true;
+                                    break;
+                                    }
+                              }
+                        if (! intersection)
+                              break;
+                        else {
+                              qreal yd = -1;
+                              if (placeAbove())
+                                    yd = 1;
+                              totalYOff -= yd;
+                              s2.translateY(-yd);
+                              }
+                        }
+
+                  // margin of 5 to stop slight overlap, hardcoded for now
+                  qreal textMarginBottom = 5;  
+                  s2.translateY(-textMarginBottom);
+                  rUserYoffset() = totalYOff - textMarginBottom;
+
+                  m->staffShape(si).add(s2);
+
+                  Shape s3 = s2.translated(QPointF()); // make a copy of s2
+                  totalWidth = m->width();
+                  for (Measure* nm = m->nextMeasure(); nm; nm = nm->nextMeasure()) {
+                        if (s2.right() > totalWidth) {
+                              s3.translateX(-totalWidth);
+                              nm->staffShape(staffIdx()).add(s3);
+                              totalWidth += nm->width();
+                              s3 = s2.translated(QPointF()); // reset translation
+                              }
+                        else
+                              break;
+                        }
+
+                  s3 = s2.translated(QPointF());
+                  totalWidth = 0;
+                  for (Measure* pm = m->prevMeasure(); pm; pm = pm->prevMeasure()) {
+                        if (s2.left() > totalWidth) {
+                              s3.translateX(totalWidth+pm->width());
+                              pm->staffShape(staffIdx()).add(s3);
+                              totalWidth += pm->width();
+                              s3 = s2.translated(QPointF()); // reset translation
+                              }
+                        else
+                              break;
+                        }
+
                   }
-            qreal d = placeAbove() ? s2.minVerticalDistance(s1) : s1.minVerticalDistance(s2);
-            if (d > -minDistance) {
-                  qreal yd = d + minDistance;
-                  if (placeAbove())
-                        yd *= -1.0;
-                  rUserYoffset() = yd;
-                  s2.translateY(yd);
-                  }
-            m->staffShape(si).add(s2);
-            if (cnm) {
-                  Measure* nm = m->nextMeasure();
-                  s2.translateX(-m->width());
-                  nm->staffShape(staffIdx()).add(s2);
+            else {
+                  // look for collisions in the next measure
+                  // if necessary
+                  bool cnm = (s2.right() > m->width()) && m->nextMeasure() && m->nextMeasure()->system() == m->system();
+                  if (cnm) {
+                        Measure* nm = m->nextMeasure();
+                        s1.add(nm->staffShape(si).translated(QPointF(m->width(), 0.0)));
+                        }
+                  qreal d = placeAbove() ? s2.minVerticalDistance(s1) : s1.minVerticalDistance(s2);
+                  if (d > -minDistance) {
+                        qreal yd = d + minDistance;
+                        if (placeAbove())
+                              yd *= -1.0;
+                        rUserYoffset() = yd;
+                        s2.translateY(yd);
+                        }
+                  m->staffShape(si).add(s2);
+                  if (cnm) {
+                        Measure* nm = m->nextMeasure();
+                        s2.translateX(-m->width());
+                        nm->staffShape(staffIdx()).add(s2);
+                        }
                   }
             }
       }
