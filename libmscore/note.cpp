@@ -1515,15 +1515,6 @@ class NoteEditData : public ElementEditData {
 
 void Note::startDrag(EditData& ed)
       {
-      NoteEditData* ned = new NoteEditData();
-      ned->e      = this;
-      ned->line   = _line;
-      ned->string = _string;
-      ned->pushProperty(Pid::PITCH);
-      ned->pushProperty(Pid::TPC1);
-      ned->pushProperty(Pid::TPC2);
-      ned->pushProperty(Pid::FRET);
-      ned->pushProperty(Pid::STRING);
       if (staff()->isNumericStaff(chord()->tick())) {
 
             NoteEditData* ned = new NoteEditData();
@@ -1536,12 +1527,16 @@ void Note::startDrag(EditData& ed)
             ed.addData(ned);
             }
       else{
-            NoteEditData* ned = new NoteEditData();
-            ned->e    = this;
-            ned->line = _line;
-            ned->pushProperty(Pid::PITCH);
-            ned->pushProperty(Pid::TPC1);
-            ned->pushProperty(Pid::TPC2);
+
+          NoteEditData* ned = new NoteEditData();
+          ned->e      = this;
+          ned->line   = _line;
+          ned->string = _string;
+          ned->pushProperty(Pid::PITCH);
+          ned->pushProperty(Pid::TPC1);
+          ned->pushProperty(Pid::TPC2);
+          ned->pushProperty(Pid::FRET);
+          ned->pushProperty(Pid::STRING);
 
             ed.addData(ned);
             }
@@ -1587,10 +1582,17 @@ QRectF Note::drag(EditData& ed)
       else {
             if (staff()->isNumericStaff(_tick)) {
                   _pitch = ned->line - lrint(ed.delta.y() / 30.0);
-                  }
-            _tpc[0] = pitch2tpc(_pitch, key, Prefer::NEAREST);
-            _tpc[1] = pitch2tpc(_pitch - transposition(), key, Prefer::NEAREST);
-            }
+                  }            else {
+                Key key = staff()->key(_tick);
+                _pitch = line2pitch(ned->line + lineOffset, staff()->clef(_tick), key);
+                if (!concertPitch()) {
+                      Interval interval = staff()->part()->instrument(_tick)->transpose();
+                      _pitch += interval.chromatic;
+                      }
+                _tpc[0] = pitch2tpc(_pitch, key, Prefer::NEAREST);
+                _tpc[1] = pitch2tpc(_pitch - transposition(), key, Prefer::NEAREST);
+           }
+    }
       triggerLayout();
       return QRectF();
       }

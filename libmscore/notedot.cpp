@@ -36,12 +36,11 @@ NoteDot::NoteDot(Score* s)
 
 void NoteDot::draw(QPainter* p) const
       {
-      int tick = note()->chord()->tick();
+    int tick = note() ? note()->chord()->tick() : rest()->tick();
       if(staff()->isNumericStaff(tick))
             return;
       if (note() && (note()->dotsHidden()))     // don't draw dot if note is hidden
             return;
-      int tick = note() ? note()->chord()->tick() : rest()->tick();
       if (!staff()->isTabStaff(tick) || staff()->staffType(tick)->stemThrough()) {
             p->setPen(curColor());
             drawSymbol(SymId::augmentationDot, p);

@@ -572,7 +572,7 @@ QString EditStaffType::createUniqueStaffTypeName(StaffGroup group)
                         sn = QString("Tab-%1 [*]").arg(idx);
                         break;
                   case StaffGroup::NUMERIC:
-                        name = QString("Num-%1 [*]").arg(idx);
+                        sn = QString("Num-%1 [*]").arg(idx);
                         break;
                   }
             bool found = false;
