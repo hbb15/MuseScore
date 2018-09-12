@@ -21,6 +21,7 @@
 #include "segment.h"
 #include "undo.h"
 #include "textedit.h"
+#include "measure.h"
 
 namespace Ms {
 
@@ -322,6 +323,7 @@ void Lyrics::layout()
                   _separator = 0;
                   }
             }
+      printf("lyrics %f %f %f %f\n", bbox().x(), bbox().y(), bbox().width(), bbox().height());
       }
 
 //---------------------------------------------------------
@@ -335,9 +337,9 @@ void Lyrics::layout2(int nAbove)
       qreal y;
 
       if (placeBelow())
-            y  = lh * (_no-1-nAbove) + score()->styleP(Sid::lyricsPosBelow) + staff()->height();
+            y  = lh * (_no - nAbove) + score()->styleP(Sid::lyricsPosBelow) + segment()->measure()->system()->staff(staffIdx())->bbox().height();
       else
-            y = -lh * (nAbove - 1 - _no) + score()->styleP(Sid::lyricsPosAbove);
+            y = -lh * (nAbove - _no - 1) + score()->styleP(Sid::lyricsPosAbove);
 
       rypos() = y;
       }

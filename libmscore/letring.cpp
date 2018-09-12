@@ -50,27 +50,8 @@ static const ElementStyle letRingStyle {
 
 void LetRingSegment::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
       TextLineBaseSegment::layout();
-      if (parent()) {     // for palette
-            rypos() += score()->styleP(letRing()->placeBelow() ? Sid::letRingPosBelow : Sid::letRingPosAbove);
-            if (autoplace()) {
-                  qreal minDistance = spatium() * .7;
-                  Shape s1 = shape().translated(pos());
-
-                  if (letRing()->placeBelow()) {
-                        qreal d  = system()->bottomDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = d + minDistance;
-                        }
-                  else {
-                        qreal d  = system()->topDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = -(d + minDistance);
-                        }
-                  }
-            }
+      autoplaceSpannerSegment(spatium() * .7, Sid::letRingPosBelow, Sid::letRingPosAbove);
       }
 
 //---------------------------------------------------------

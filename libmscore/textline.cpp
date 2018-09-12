@@ -58,32 +58,8 @@ TextLineSegment::TextLineSegment(Score* s)
 
 void TextLineSegment::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
-
       TextLineBaseSegment::layout();
-      if (parent()) {
-            if (textLine()->placeBelow()) {
-                  qreal sh = staff() ? staff()->height() : 0.0;
-                  rypos() = sh + score()->styleP(Sid::textLinePosBelow) * mag();
-                  }
-            else
-                  rypos() = score()->styleP(Sid::textLinePosAbove) * mag();
-            if (autoplace()) {
-                  qreal minDistance = spatium() * .7;
-                  Shape s1 = shape().translated(pos());
-                  if (textLine()->placeAbove()) {
-                        qreal d  = system()->topDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = -d - minDistance;
-                        }
-                  else {
-                        qreal d  = system()->bottomDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = d + minDistance;
-                        }
-                  }
-            }
+      autoplaceSpannerSegment(spatium() * .7, Sid::textLinePosBelow, Sid::textLinePosAbove);
       }
 
 //---------------------------------------------------------

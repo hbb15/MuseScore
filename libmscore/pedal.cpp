@@ -55,30 +55,8 @@ static const ElementStyle pedalStyle {
 
 void PedalSegment::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
       TextLineBaseSegment::layout();
-      if (parent()) {     // for palette
-            if (pedal()->placeBelow())
-                  rypos() += score()->styleP(Sid::pedalPosBelow) + (staff() ? staff()->height() : 0.0);
-            else
-                  rypos() += score()->styleP(Sid::pedalPosAbove);
-            if (autoplace()) {
-                  qreal minDistance = spatium() * .7;
-                  Shape s1 = shape().translated(pos());
-
-                  if (pedal()->placeBelow()) {
-                        qreal d  = system()->bottomDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = d + minDistance;
-                        }
-                  else {
-                        qreal d  = system()->topDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = -(d + minDistance);
-                        }
-                  }
-            }
+      autoplaceSpannerSegment(spatium() * .7, Sid::pedalPosBelow, Sid::pedalPosAbove);
       }
 
 

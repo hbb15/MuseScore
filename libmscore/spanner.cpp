@@ -27,6 +27,7 @@ namespace Ms {
 //   @@ SpannerWriter
 ///   Helper class for writing Spanners
 //-----------------------------------------------------------------------------
+
 class SpannerWriter : public ConnectorInfoWriter {
    protected:
       const char* tagName() const override { return "Spanner"; }
@@ -1108,6 +1109,36 @@ SpannerWriter::SpannerWriter(XmlWriter& xml, const Element* current, const Spann
                   updateLocation(sp->startElement(), _prevLoc, clipboardmode);
             else
                   updateLocation(sp->endElement(), _nextLoc, clipboardmode);
+            }
+      }
+
+//---------------------------------------------------------
+//   autoplaceSpannerSegment
+//---------------------------------------------------------
+
+void SpannerSegment::autoplaceSpannerSegment(qreal minDistance, Sid posBelow, Sid posAbove)
+      {
+      if (!parent())
+            return;
+      if (spanner()->placeBelow())
+            rypos() = score()->styleP(posBelow) + (staff() ? staff()->height() : 0.0);
+      else
+            rypos() = score()->styleP(posAbove);
+      if (autoplace()) {
+            setUserOff(QPointF());
+
+            SkylineLine sl(!spanner()->placeAbove());
+            sl.add(shape().translated(pos()));
+            if (spanner()->placeAbove()) {
+                  qreal d  = system()->topDistance(staffIdx(), sl);
+                  if (d > -minDistance)
+                        rUserYoffset() = -(d + minDistance);
+                  }
+            else {
+                  qreal d  = system()->bottomDistance(staffIdx(), sl);
+                  if (d > -minDistance)
+                        rUserYoffset() = d + minDistance;
+                  }
             }
       }
 

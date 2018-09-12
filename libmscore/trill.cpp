@@ -126,9 +126,6 @@ void TrillSegment::symbolLine(SymId start, SymId fill, SymId end)
 
 void TrillSegment::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
-
       if (staff())
             setMag(staff()->mag(tick()));
       if (isSingleType() || isBeginType()) {
@@ -160,24 +157,7 @@ void TrillSegment::layout()
       else
             symbolLine(SymId::wiggleTrill, SymId::wiggleTrill);
 
-      if (parent()) {
-            qreal yo = score()->styleP(trill()->placeBelow() ? Sid::trillPosBelow : Sid::trillPosAbove);
-            rypos() = yo;
-            if (autoplace()) {
-                  qreal minDistance = spatium();
-                  Shape s1 = shape().translated(pos());
-                  if (trill()->placeAbove()) {
-                        qreal d  = system()->topDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = -d - minDistance;
-                        }
-                  else {
-                        qreal d  = system()->bottomDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = d + minDistance;
-                        }
-                  }
-            }
+      autoplaceSpannerSegment(spatium() * 1.0, Sid::trillPosBelow, Sid::trillPosAbove);
       }
 
 //---------------------------------------------------------

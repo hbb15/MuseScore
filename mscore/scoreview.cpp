@@ -1128,27 +1128,6 @@ void ScoreView::paint(const QRect& r, QPainter& p)
                                           }
                                     }
                               }
-                        if (MScore::showMeasureShapes) {
-                              for (const System* system : page->systems()) {
-                                    for (const MeasureBase* mb : system->measures()) {
-                                          if (mb->isMeasure()) {
-                                                const Measure* m = toMeasure(mb);
-                                                p.setPen(Qt::NoPen);
-                                                p.setBrush(QBrush(QColor(0, 0, 255, 60)));
-                                                for (int staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx) {
-                                                      Staff* staff = score()->staff(staffIdx);
-                                                      if (staff->show()) {
-                                                            QPointF pt(m->pos().x() + system->pos().x(), 0);
-                                                            p.translate(pt);
-                                                            QPointF o(0.0, m->system()->staffYpage(staffIdx));
-                                                            m->staffShape(staffIdx).translated(o).paint(p);
-                                                            p.translate(-pt);
-                                                            }
-                                                      }
-                                                }
-                                          }
-                                    }
-                              }
                         if (MScore::showSkylines) {
                               for (const System* system : page->systems()) {
                                     for (SysStaff* ss : *system->staves()) {
@@ -2146,7 +2125,7 @@ void ScoreView::cmd(const char* s)
                         }
                   }
             }
-      else if (cmd == "insert-fretframe")
+      else if (cmd == "insert-fretframe" && enableExperimental)
             cmdInsertMeasure(ElementType::FBOX);
       else if (cmd == "move-left")
             cmdMoveCR(true);
@@ -3012,11 +2991,11 @@ void ScoreView::cmdEnterRest()
 
 void ScoreView::cmdEnterRest(const TDuration& d)
       {
-//TODO      if (!noteEntryMode())
-//            sm->postEvent(new CommandEvent("note-input"));
-//      if (_score->usingNoteEntryMethod(NoteEntryMethod::RHYTHM))
-//            _score->cmd(getAction("pad-rest"));
-//      else
+      if (!noteEntryMode())
+            cmd("note-input");
+      if (_score->usingNoteEntryMethod(NoteEntryMethod::RHYTHM))
+            _score->cmd(getAction("pad-rest"), editData);
+      else
             _score->cmdEnterRest(d);
 #if 0
       expandVoice();
@@ -3479,7 +3458,7 @@ void ScoreView::cmdCreateTuplet(ChordRest* cr, Tuplet* tuplet)
       _score->cmdCreateTuplet(cr, tuplet);
 
       const std::vector<DurationElement*>& cl = tuplet->elements();
-      int ne = cl.size();
+      size_t ne = cl.size();
       DurationElement* el = 0;
       if (ne && cl[0]->type() == ElementType::REST)
             el  = cl[0];
@@ -4227,7 +4206,7 @@ Element* ScoreView::elementNear(QPointF p)
       qSort(ll.begin(), ll.end(), elementLower);
 
 #if 0
-      qDebug("elementNear");
+      qDebug("==");
       for (const Element* e : ll)
             qDebug("  %s selected %d z %d", e->name(), e->selected(), e->z());
 #endif

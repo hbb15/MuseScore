@@ -50,27 +50,8 @@ static const ElementStyle palmMuteStyle {
 
 void PalmMuteSegment::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
       TextLineBaseSegment::layout();
-      if (parent()) {     // for palette
-            rypos() += score()->styleP(palmMute()->placeBelow() ? Sid::palmMutePosBelow : Sid::palmMutePosAbove);
-            if (autoplace()) {
-                  qreal minDistance = spatium() * .7;
-                  Shape s1 = shape().translated(pos());
-
-                  if (palmMute()->placeBelow()) {
-                        qreal d  = system()->bottomDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = d + minDistance;
-                        }
-                  else {
-                        qreal d  = system()->topDistance(staffIdx(), s1);
-                        if (d > -minDistance)
-                              rUserYoffset() = -(d + minDistance);
-                        }
-                  }
-            }
+      autoplaceSpannerSegment(spatium() * .7, Sid::palmMutePosBelow, Sid::palmMutePosAbove);
       }
 
 //---------------------------------------------------------
