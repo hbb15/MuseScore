@@ -364,5 +364,7 @@
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 	<key>ATSApplicationFontsPath</key>
 	<string>fonts/</string>
+	<key>SUFeedURL</key>
+	<string>${MAC_APPCAST_URL}</string>
 </dict>
 </plist>

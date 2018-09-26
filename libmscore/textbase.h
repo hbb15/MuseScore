@@ -245,7 +245,7 @@ class TextBase : public Element {
 
    protected:
       bool layoutInvalid            { true  };
-      
+
       QColor textColor() const;
       QRectF frame;           // calculated in layout()
       void layoutFrame();
@@ -274,6 +274,7 @@ class TextBase : public Element {
 
       virtual void layout() override;
       virtual void layout1();
+      void layout2(Sid placeAbove, Sid placeBelow);       // helper function
       qreal lineSpacing() const;
       qreal lineHeight() const;
       virtual qreal baseLine() const override;
@@ -297,12 +298,10 @@ class TextBase : public Element {
 
       virtual void write(XmlWriter& xml) const override;
       virtual void read(XmlReader&) override;
-      virtual void read300(XmlReader&) override;
       virtual void writeProperties(XmlWriter& xml) const { writeProperties(xml, true, true); }
       void writeProperties(XmlWriter& xml, bool writeText) const { writeProperties(xml, writeText, true); }
       void writeProperties(XmlWriter&, bool, bool) const;
       bool readProperties(XmlReader&);
-      bool readProperties300(XmlReader&);
 
       virtual void paste(EditData&);
 

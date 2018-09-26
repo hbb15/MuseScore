@@ -118,14 +118,17 @@
 #ifdef USE_LAME
 #include "exportmp3.h"
 #endif
-
 #ifdef Q_OS_MAC
 #include "macos/cocoabridge.h"
+#ifdef MAC_SPARKLE_ENABLED
+#include "macos/SparkleAutoUpdater.h"
+#endif
 #endif
 
 #ifdef AEOLUS
 extern Ms::Synthesizer* createAeolus();
 #endif
+
 #ifdef ZERBERUS
 extern Ms::Synthesizer* createZerberus();
 #endif
@@ -463,18 +466,19 @@ void updateExternalValuesFromPreferences() {
       MScore::setNudgeStep10(1.0);      // Ctrl + cursor key (default 1.0)
       MScore::setNudgeStep50(0.01);     // Alt  + cursor key (default 0.01)
 
-      //Create directories if they are missing
-      QDir dir;
-      dir.mkpath(preferences.getString(PREF_APP_PATHS_MYSCORES));
-      dir.mkpath(preferences.getString(PREF_APP_PATHS_MYSTYLES));
-      dir.mkpath(preferences.getString(PREF_APP_PATHS_MYIMAGES));
-      dir.mkpath(preferences.getString(PREF_APP_PATHS_MYTEMPLATES));
-      dir.mkpath(preferences.getString(PREF_APP_PATHS_MYEXTENSIONS));
-      dir.mkpath(preferences.getString(PREF_APP_PATHS_MYPLUGINS));
-      foreach (QString path, preferences.getString(PREF_APP_PATHS_MYSOUNDFONTS).split(";"))
-            dir.mkpath(path);
-
-      }
+      if (!preferences.getBool(PREF_APP_STARTUP_FIRSTSTART)) {
+            //Create directories if they are missing
+            QDir dir;
+            dir.mkpath(preferences.getString(PREF_APP_PATHS_MYSCORES));
+            dir.mkpath(preferences.getString(PREF_APP_PATHS_MYSTYLES));
+            dir.mkpath(preferences.getString(PREF_APP_PATHS_MYIMAGES));
+            dir.mkpath(preferences.getString(PREF_APP_PATHS_MYTEMPLATES));
+            dir.mkpath(preferences.getString(PREF_APP_PATHS_MYEXTENSIONS));
+            dir.mkpath(preferences.getString(PREF_APP_PATHS_MYPLUGINS));
+            foreach (QString path, preferences.getString(PREF_APP_PATHS_MYSOUNDFONTS).split(";"))
+                  dir.mkpath(path);
+                  }
+            }
 
 //---------------------------------------------------------
 //   preferencesChanged
@@ -3420,8 +3424,13 @@ bool MuseScore::hasToCheckForExtensionsUpdate()
 
 void MuseScore::checkForUpdate()
       {
+#ifdef MAC_SPARKLE_ENABLED
+      SparkleAutoUpdater::checkUpdates();
+#else
       if (ucheck)
             ucheck->check(version(), sender() != 0);
+
+#endif
       }
 
 //---------------------------------------------------------
@@ -3662,6 +3671,8 @@ void MuseScore::changeState(ScoreState val)
                   break;
             case STATE_NOTE_ENTRY_STAFF_DRUM:
                   {
+                  if (getAction("note-input-repitch")->isChecked())
+                        cs->setNoteEntryMethod(NoteEntryMethod::REPITCH);
                   showModeText(tr("Drum input mode"));
                   InputState& is = cs->inputState();
                   showDrumTools(is.drumset(), cs->staff(is.track() / VOICES));
@@ -6793,6 +6804,19 @@ int main(int argc, char* av[])
                               }
                         }
                   delete sw;
+
+                  // reinitialize preferences so some default values are calculated based on chosen language
+                  preferences.init();
+                  // store preferences with locale-dependent default values
+                  // so that the values from first start will be used later
+                  preferences.setToDefaultValue(PREF_APP_PATHS_MYSCORES);
+                  preferences.setToDefaultValue(PREF_APP_PATHS_MYSTYLES);
+                  preferences.setToDefaultValue(PREF_APP_PATHS_MYIMAGES);
+                  preferences.setToDefaultValue(PREF_APP_PATHS_MYTEMPLATES);
+                  preferences.setToDefaultValue(PREF_APP_PATHS_MYPLUGINS);
+                  preferences.setToDefaultValue(PREF_APP_PATHS_MYSOUNDFONTS);
+                  preferences.setToDefaultValue(PREF_APP_PATHS_MYEXTENSIONS);
+                  updateExternalValuesFromPreferences();
                   }
             QString keyboardLayout = preferences.getString(PREF_APP_KEYBOARDLAYOUT);
             StartupWizard::autoSelectShortcuts(keyboardLayout);

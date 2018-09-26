@@ -159,16 +159,7 @@ void Dynamic::read(XmlReader& e)
 
 void Dynamic::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
-
-      qreal y;
-      if (placeAbove())
-            y = score()->styleP(Sid::dynamicsPosAbove);
-      else
-            y = score()->styleP(Sid::dynamicsPosBelow) + (staff() ? staff()->height() : 0.0);
-      setPos(QPointF(0.0, y));
-      TextBase::layout1();
+      layout2(Sid::dynamicsPosAbove, Sid::dynamicsPosBelow);
 
       Segment* s = segment();
       if (s) {

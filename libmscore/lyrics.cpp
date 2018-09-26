@@ -314,7 +314,7 @@ void Lyrics::layout()
             _separator->setTick(cr->tick());
             _separator->setTrack(track());
             _separator->setTrack2(track());
-            bbox().setWidth(bbox().width());  // ??
+            // bbox().setWidth(bbox().width());  // ??
             }
       else {
             if (_separator) {
@@ -323,7 +323,6 @@ void Lyrics::layout()
                   _separator = 0;
                   }
             }
-      printf("lyrics %f %f %f %f\n", bbox().x(), bbox().y(), bbox().width(), bbox().height());
       }
 
 //---------------------------------------------------------
@@ -584,16 +583,16 @@ void Lyrics::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps)
             }
       if (id == Pid::PLACEMENT) {
             if (Placement(v.toInt()) == Placement::ABOVE) {
-                  // change placment of all verse upto this one to ABOVE
+                  // change placment of all verse for the same voice upto this one to ABOVE
                   score()->forAllLyrics([this,id,v,ps](Lyrics* l) {
-                        if (l->no() <= no())
+                        if (l->no() <= no() && l->voice() == voice())
                               l->TextBase::undoChangeProperty(id, v, ps);
                         });
                   }
             else {
-                  // change placment of all verse starting from this one to BELOW
+                  // change placment of all verse for the same voce starting from this one to BELOW
                   score()->forAllLyrics([this,id,v,ps](Lyrics* l) {
-                        if (l->no() >= no())
+                        if (l->no() >= no() && l->voice() == voice())
                               l->TextBase::undoChangeProperty(id, v, ps);
                         });
                   }

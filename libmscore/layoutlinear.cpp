@@ -115,6 +115,9 @@ static void processLines(System* system, std::vector<Spanner*> lines, bool align
  void Score::collectLinearSystem(LayoutContext& lc)
       {
       System* system = systems().front();
+      // we need to reset tempo because fermata is setted 
+      //inside getNextMeasure and it lead to twice timeStretch
+      resetTempo();
 
       QPointF pos;
       bool firstMeasure = true;
@@ -451,6 +454,7 @@ void LayoutContext::layoutLinear()
       page->setPos(0, 0);
       system->setPos(page->lm(), page->tm() + score->styleP(Sid::staffUpperBorder));
       page->setWidth(system->width() + system->pos().x());
+      page->setHeight(system->height() + system->pos().y());
       page->rebuildBspTree();
       }
 

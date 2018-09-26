@@ -124,6 +124,7 @@ QT5_WRAP_UI (ui_headers
       inspector/inspector_accidental.ui
       inspector/inspector_tempotext.ui
       inspector/inspector_dynamic.ui
+      inspector/inspector_instrchange.ui
       inspector/inspector_lyric.ui
       inspector/inspector_line.ui
       inspector/inspector_textline.ui
@@ -230,6 +231,9 @@ if (APPLE)
       set (MACOSX_BUNDLE_BUNDLE_NAME MuseScore)
       set (MACOSX_BUNDLE_SHORT_VERSION_STRING ${MUSESCORE_VERSION})
       set (MACOSX_BUNDLE_BUNDLE_VERSION ${MUSESCORE_VERSION_FULL})
+      if(CMAKE_BUILD_NUMBER)
+        set (MACOSX_BUNDLE_BUNDLE_VERSION ${MUSESCORE_VERSION_FULL}.${CMAKE_BUILD_NUMBER})
+      endif(CMAKE_BUILD_NUMBER)
       set (MACOSX_BUNDLE_COPYRIGHT musescore.org)
 else (APPLE)
       set (ExecutableName mscore)
@@ -242,9 +246,13 @@ endif (OMR)
 if (APPLE)
       file(GLOB_RECURSE INCS "*.h")
       set(COCOABRIDGE "macos/cocoabridge.mm")
+      if (SPARKLE_FOUND)
+            set(MAC_SPARKLE_FILES "macos/SparkleAutoUpdater.mm")
+      endif(SPARKLE_FOUND)
 else (APPLE)
       set(INCS "")
       set(COCOABRIDGE "")
+      set(MAC_SPARKLE_FILES  "")
 endif (APPLE)
 
 if (NOT MSVC)
@@ -365,6 +373,7 @@ add_executable ( ${ExecutableName}
       inspector/inspectorPalmMute.cpp
       inspector/inspectorPedal.cpp
       inspector/inspectorDynamic.cpp
+      inspector/inspectorInstrchange.cpp
       inspector/inspectorElementBase.cpp
       enableplayforwidget.cpp
       editelement.cpp
@@ -413,9 +422,12 @@ add_executable ( ${ExecutableName}
       ${OMR_FILES}
       ${AUDIO}
       ${SCRIPT_FILES}
+      ${MAC_SPARKLE_FILES}
       driver.h
       tremolobarcanvas.h bendcanvas.h fretcanvas.h keycanvas.h harmonycanvas.h
       )
+
+
 
 if (MSVC)
 	target_link_libraries(mscore vorbisfiledll)
@@ -898,7 +910,7 @@ else (MINGW)
             DESTINATION bin/webengineresources/translations
             )
       endif (USE_WEBENGINE)
-      
+
       install(DIRECTORY
          ${QT_INSTALL_PREFIX}/qml
          DESTINATION .

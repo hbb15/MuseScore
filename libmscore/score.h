@@ -373,6 +373,7 @@ class Score : public QObject, public ScoreElement {
             FILE_NO_ROOTFILE,
             FILE_TOO_OLD,
             FILE_TOO_NEW,
+            FILE_OLD_300_FORMAT,
             FILE_CORRUPTED,
             FILE_USER_ABORT,
             FILE_IGNORE_ERROR
@@ -443,6 +444,7 @@ class Score : public QObject, public ScoreElement {
 
       QMap<QString, QString> _metaTags;
 
+      constexpr static double defaultTempo = 2.0; //defautl tempo is equal 120 bpm
 
       Selection _selection;
       SelectionFilter _selectionFilter;
@@ -510,6 +512,7 @@ class Score : public QObject, public ScoreElement {
 
       void resetSystems(bool layoutAll, LayoutContext& lc);
       void collectLinearSystem(LayoutContext& lc);
+      void resetTempo();
 
    protected:
       int _fileDivision; ///< division of current loading *.msc file
@@ -557,9 +560,7 @@ class Score : public QObject, public ScoreElement {
       void removeStaff(Staff*);
       void addMeasure(MeasureBase*, MeasureBase*);
       void readStaff(XmlReader&);
-      void readStaff300(XmlReader&);
       bool read(XmlReader&);
-      bool read300(XmlReader&);
 
       Excerpt* excerpt()            { return _excerpt; }
       void setExcerpt(Excerpt* e)   { _excerpt = e;     }
@@ -1203,7 +1204,6 @@ class MasterScore : public Score {
       QFileInfo info;
 
       bool read(XmlReader&);
-      bool read300(XmlReader&);
       void setPrev(MasterScore* s) { _prev = s; }
       void setNext(MasterScore* s) { _next = s; }
 
@@ -1254,7 +1254,6 @@ class MasterScore : public Score {
       FileError loadMsc(QString name, QIODevice*, bool ignoreVersionError);
       FileError read114(XmlReader&);
       FileError read206(XmlReader&);
-      FileError readScore300(XmlReader&);
       FileError read301(XmlReader&);
       QByteArray readToBuffer();
       QByteArray readCompressedToBuffer();

@@ -1832,10 +1832,20 @@ void Segment::createShape(int staffIdx)
                   }
             return;
             }
-
+#if 0
       for (int track = staffIdx * VOICES; track < (staffIdx + 1) * VOICES; ++track) {
             Element* e = _elist[track];
             if (e)
+                  s.add(e->shape().translated(e->pos()));
+            }
+#endif
+      int strack = staffIdx * VOICES;
+      int etrack = strack + VOICES;
+      for (Element* e : _elist) {
+            if (!e)
+                  continue;
+            int effectiveTrack = e->vStaffIdx() * VOICES + e->voice();
+            if (effectiveTrack >= strack && effectiveTrack < etrack)
                   s.add(e->shape().translated(e->pos()));
             }
 
@@ -1849,6 +1859,7 @@ void Segment::createShape(int staffIdx)
                && !e->isSymbol()
                && !e->isFSymbol()
                && !e->isSystemText()
+               && !e->isInstrumentChange()
                && !e->isArticulation()
                && !e->isFermata()
                && !e->isStaffText())

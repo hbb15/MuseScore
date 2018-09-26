@@ -198,7 +198,9 @@ class Element : public ScoreElement {
       bool generated() const                  { return flag(ElementFlag::GENERATED);  }
       void setGenerated(bool val)             { setFlag(ElementFlag::GENERATED, val);   }
 
+      //TODO: rename to pos()
       const QPointF& ipos() const             { return _pos;                    }
+      //TODO: rename to posWithUserOffset()
       virtual const QPointF pos() const       { return _pos + _userOff;         }
       virtual qreal x() const                 { return _pos.x() + _userOff.x(); }
       virtual qreal y() const                 { return _pos.y() + _userOff.y(); }
@@ -260,11 +262,9 @@ class Element : public ScoreElement {
 
       virtual void writeProperties(XmlWriter& xml) const;
       virtual bool readProperties(XmlReader&);
-      virtual bool readProperties300(XmlReader& xml) { return Element::readProperties(xml); }
 
       virtual void write(XmlWriter&) const;
       virtual void read(XmlReader&);
-      virtual void read300(XmlReader& xml) { read(xml); }
 
       virtual void startDrag(EditData&);
       virtual QRectF drag(EditData&);

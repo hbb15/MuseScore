@@ -47,8 +47,6 @@ class Stem final : public Element {
       virtual void write(XmlWriter& xml) const override;
       virtual void read(XmlReader& e) override;
       virtual bool readProperties(XmlReader&) override;
-      virtual void read300(XmlReader& e) override;
-      virtual bool readProperties300(XmlReader&) override;
       virtual void reset() override;
       virtual bool acceptDrop(EditData&) const override;
       virtual Element* drop(EditData&) override;
@@ -56,6 +54,8 @@ class Stem final : public Element {
       virtual QVariant getProperty(Pid propertyId) const override;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(Pid id) const override;
+
+      virtual int vStaffIdx() const override;
 
       Chord* chord() const            { return toChord(parent()); }
       bool up() const;

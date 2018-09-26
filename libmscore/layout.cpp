@@ -2450,6 +2450,7 @@ void Score::getNextMeasure(LayoutContext& lc)
                   }
             }
 
+      measure->computeTicks();
       for (Segment& segment : measure->segments()) {
             if (segment.isBreathType()) {
                   qreal length = 0.0;
@@ -2717,7 +2718,7 @@ static void applyLyricsMax(Segment& s, int staffIdx, qreal yMax)
             if (cr && !cr->lyrics().empty()) {
                   qreal lyricsMinBottomDistance = s.score()->styleP(Sid::lyricsMinBottomDistance);
                   for (Lyrics* l : cr->lyrics()) {
-                        if (l->autoplace() && l->placeBelow()) {
+                        if (l->visible() && l->autoplace() && l->placeBelow()) {
                               l->rUserYoffset() = yMax;
                               QPointF offset = l->pos() + cr->pos() + s.pos() + s.measure()->pos();
                               sk.add(l->bbox().translated(offset).adjusted(0.0, 0.0, 0.0, lyricsMinBottomDistance));
@@ -2741,7 +2742,7 @@ static void applyLyricsMin(ChordRest* cr, int staffIdx, qreal yMin)
       {
       Skyline& sk = cr->measure()->system()->staff(staffIdx)->skyline();
       for (Lyrics* l : cr->lyrics()) {
-            if (l->autoplace() && l->placeAbove()) {
+            if (l->visible() && l->autoplace() && l->placeAbove()) {
                   l->rUserYoffset() = yMin;
                   QPointF offset = l->pos() + cr->pos() + cr->segment()->pos() + cr->segment()->measure()->pos();
                   sk.add(l->bbox().translated(offset));
@@ -2774,7 +2775,7 @@ static void restoreBeams(Measure* m)
                         ChordRest* cr = toChordRest(e);
                         if (isTopBeam(cr)) {
                               cr->beam()->layout();
-                              s->staffShape(cr->staffIdx()).add(cr->beam()->shape().translated(-(cr->segment()->pos()+m->pos())));
+                              cr->beam()->addSkyline(m->system()->staff(cr->beam()->staffIdx())->skyline());
                               }
                         }
                   }
@@ -2891,8 +2892,8 @@ void Score::layoutLyrics(System* system)
       for (SpannerSegment* ss : system->spannerSegments()) {
             if (ss->isLyricsLineSegment()) {
                   LyricsLineSegment* lls = toLyricsLineSegment(ss);
-                  lls->rUserYoffset() = lls->lyrics()->rUserYoffset();
                   lls->layout();
+                  lls->rUserYoffset() = lls->lyrics()->rUserYoffset();
                   }
             }
       }
@@ -2923,7 +2924,7 @@ static void processLines(System* system, std::vector<Spanner*> lines, bool align
       std::vector<SpannerSegment*> segments;
       for (Spanner* sp : lines) {
             SpannerSegment* ss = sp->layoutSystem(system);     // create/layout spanner segment for this system
-            if (ss->autoplace())
+            if (ss->visible() && ss->autoplace())
                   segments.push_back(ss);
             }
 
@@ -3235,19 +3236,34 @@ System* Score::collectSystem(LayoutContext& lc)
 
 
       //-------------------------------------------------------------
+      // layout beams
+      //-------------------------------------------------------------
+
+      for (Segment* s : sl) {
+            for (Element* e : s->elist()) {
+                  if (!e || !score()->staff(e->staffIdx())->show())
+                        continue;
+                  if (e->isChordRest()) {
+                        ChordRest* cr = toChordRest(e);
+                        if (isTopBeam(cr)) {
+                              cr->beam()->layout();
+                              cr->beam()->addSkyline(system->staff(cr->beam()->staffIdx())->skyline());
+                              }
+                        }
+                  }
+            }
+
+      //-------------------------------------------------------------
       // layout tuplet
       //-------------------------------------------------------------
 
       for (Segment* s : sl) {
-            for (int track = 0; track < score()->ntracks(); ++track) {
-                  if (!score()->staff(track / VOICES)->show()) {
-                        track += VOICES-1;
+            for (Element* e : s->elist()) {
+                  if (!e || !e->isChordRest() || !score()->staff(e->staffIdx())->show())
                         continue;
-                        }
-                  ChordRest* cr = s->cr(track);
-                  if (!cr)
+                  if (notTopBeam(toChordRest(e)))
                         continue;
-                  DurationElement* de = cr;
+                  DurationElement* de = toChordRest(e);
                   while (de->tuplet() && de->tuplet()->elements().front() == de) {
                         Tuplet* t = de->tuplet();
                         t->layout();
@@ -3280,28 +3296,20 @@ System* Score::collectSystem(LayoutContext& lc)
             for (Element* e : s->elist()) {
                   if (!e)
                         continue;
-                  if (e->isChordRest()) {
-                        ChordRest* cr = toChordRest(e);
-                        if (isTopBeam(cr)) {
-                              cr->beam()->layout();
-                              cr->beam()->addSkyline(system->staff(cr->staffIdx())->skyline());
-                              //system->staff(cr->staffIdx())->skyline().add(cr->beam()->shape());
-                              }
-                        if (e->isChord()) {
-                              Chord* c = toChord(e);
-                              for (Chord* ch : c->graceNotes())
-                                    layoutTies(ch, system, stick);
-                              layoutTies(c, system, stick);
-                              c->layoutArticulations2();
-                              }
+                  if (e->isChord()) {
+                        Chord* c = toChord(e);
+                        for (Chord* ch : c->graceNotes())
+                              layoutTies(ch, system, stick);
+                        layoutTies(c, system, stick);
+                        c->layoutArticulations2();
                         }
                   }
             for (Element* e : s->annotations()) {
-                  if (e->visible() && e->isDynamic()) {
+                  if (e->isDynamic()) {
                         Dynamic* d = toDynamic(e);
                         d->layout();
 
-                        if (d->autoplace()) {
+                        if (e->visible() && d->autoplace()) {
                               // If dynamic is at start or end of a hairpin
                               // don't autoplace. This is done later on layout of hairpin
                               // and allows horizontal alignment of dynamic and hairpin.
@@ -3365,36 +3373,24 @@ System* Score::collectSystem(LayoutContext& lc)
       //
       // vertical align volta segments
       //
-      std::vector<SpannerSegment*> voltaSegments;
-      for (SpannerSegment* ss : system->spannerSegments()) {
-            if (ss->isVoltaSegment())
-                 voltaSegments.push_back(ss);
-           }
-      if (voltaSegments.size() > 1) {
-            qreal y = 0;
-            for (SpannerSegment* ss : voltaSegments)
-                  y = qMin(y, ss->userOff().y());
-            for (SpannerSegment* ss : voltaSegments)
-                  ss->setUserYoffset(y);
+      for (int staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
+            std::vector<SpannerSegment*> voltaSegments;
+            for (SpannerSegment* ss : system->spannerSegments()) {
+                  if (ss->isVoltaSegment() && ss->staffIdx() == staffIdx)
+                        voltaSegments.push_back(ss);
+                  }
+            if (voltaSegments.size() > 1) {
+                  qreal y = 0;
+                  for (SpannerSegment* ss : voltaSegments)
+                        y = qMin(y, ss->userOff().y());
+                  for (SpannerSegment* ss : voltaSegments)
+                        ss->setUserYoffset(y);
+                  }
             }
       for (Spanner* sp : _unmanagedSpanner) {
             if (sp->tick() >= etick || sp->tick2() < stick)
                   continue;
             sp->layout();
-            }
-      //
-      // add SpannerSegment shapes to staff shapes
-      //
-
-      for (MeasureBase* mb : system->measures()) {
-            if (!mb->isMeasure())
-                  continue;
-            Measure* m = toMeasure(mb);
-            for (SpannerSegment* ss : system->spannerSegments()) {
-                  Spanner* sp = ss->spanner();
-                  if (sp->tick() < m->endTick() && sp->tick2() > m->tick())
-                        system->staff(sp->staffIdx())->skyline().add(ss->shape().translated(ss->pos()));
-                  }
             }
 
       //-------------------------------------------------------------
@@ -3403,16 +3399,14 @@ System* Score::collectSystem(LayoutContext& lc)
 
       for (const Segment* s : sl) {
             for (Element* e : s->annotations()) {
-                  if (e->visible()) {
-                        if (e->isTempoText()) {
-                              TempoText* tt = toTempoText(e);
-                              if (score()->isMaster())
-                                    setTempo(tt->segment(), tt->tempo());
-                              tt->layout();
-                              }
-                        else if (e->isFermata())
-                              e->layout();
+                  if (e->isTempoText()) {
+                        TempoText* tt = toTempoText(e);
+                        if (score()->isMaster())
+                              setTempo(tt->segment(), tt->tempo());
+                        tt->layout();
                         }
+                  else if (e->isFermata())
+                        e->layout();
                   }
             }
 
@@ -3425,7 +3419,7 @@ System* Score::collectSystem(LayoutContext& lc)
                   continue;
             Measure* m = toMeasure(mb);
             for (Element* e : m->el()) {
-                  if (e->visible() && (e->isJump() || e->isMarker()))
+                  if (e->isJump() || e->isMarker())
                         e->layout();
                   }
             }
@@ -3436,18 +3430,18 @@ System* Score::collectSystem(LayoutContext& lc)
 
       for (const Segment* s : sl) {
             for (Element* e : s->annotations()) {
-                  if (e->visible() && e->isFretDiagram())
+                  if (e->isFretDiagram())
                         e->layout();
                   }
             }
 
       //-------------------------------------------------------------
-      // StaffText, Harmony
+      // StaffText, Harmony, InstrumentChange
       //-------------------------------------------------------------
 
       for (const Segment* s : sl) {
             for (Element* e : s->annotations()) {
-                  if (e->visible() && (e->isStaffText() || e->isHarmony()))
+                  if (e->isStaffText() || e->isHarmony() || e->isInstrumentChange())
                         e->layout();
                   }
             }
@@ -3458,7 +3452,7 @@ System* Score::collectSystem(LayoutContext& lc)
 
       for (const Segment* s : sl) {
             for (Element* e : s->annotations()) {
-                  if (e->visible() && e->isRehearsalMark())
+                  if (e->isRehearsalMark())
                         e->layout();
                   }
             }
@@ -3603,7 +3597,7 @@ void LayoutContext::collectPage()
                   }
             if (breakPage) {
                   Box* vbox = prevSystem->vbox();
-                  qreal dist = vbox ? vbox->bottomGap() : qMax(prevSystem->minBottom(), slb);
+                  qreal dist = vbox ? vbox->bottomGap() : qMax(-prevSystem->minBottom(), slb);
                   layoutPage(page, ey - (y + dist));
                   break;
                   }
@@ -3630,8 +3624,18 @@ void LayoutContext::collectPage()
                                     if (!currentScore->staff(track2staff(track))->show())
                                           continue;
                                     ChordRest* cr = toChordRest(e);
-                                    if (notTopBeam(cr))                   // layout cross staff beams
+                                    if (notTopBeam(cr)) {                   // layout cross staff beams
                                           cr->beam()->layout();
+
+                                          // fix layout of tuplets
+                                          DurationElement* de = cr;
+                                          while (de->tuplet() && de->tuplet()->elements().front() == de) {
+                                                Tuplet* t = de->tuplet();
+                                                t->layout();
+                                                m->system()->staff(t->staffIdx())->skyline().add(t->shape().translated(t->measure()->pos()));
+                                                de = de->tuplet();
+                                                }
+                                          }
 
                                     if (cr->isChord()) {
                                           Chord* c = toChord(cr);
@@ -3743,10 +3747,6 @@ void Score::doLayoutRange(int stick, int etick)
 //      qDebug("start <%s> tick %d, system %p", m->name(), m->tick(), m->system());
       lc.score        = m->score();
 
-      if (lineMode()) {
-            layoutLinear(layoutAll, lc);
-            return;
-            }
       std::vector<std::pair<int, BracketItem*>> selectedBrackets;
 
       if (!layoutAll && m->system()) {
@@ -3813,7 +3813,17 @@ void Score::doLayoutRange(int stick, int etick)
             lc.nextMeasure = _measures.first();
             }
 
+      if (lineMode()) {
+            layoutLinear(layoutAll, lc);
+            return;
+            }
+
       lc.prevMeasure = 0;
+
+      // we need to reset tempo because fermata is setted
+      //inside getNextMeasure and it lead to twice timeStretch
+      if (isMaster())
+            resetTempo();
 
       getNextMeasure(lc);
       lc.curSystem = collectSystem(lc);

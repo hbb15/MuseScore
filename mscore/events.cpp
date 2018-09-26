@@ -316,7 +316,7 @@ void ScoreView::mousePressEventNormal(QMouseEvent* ev)
             clickOffElement = false;
             }
       else {
-            // special case: chacke if measure is selected
+            // special case: check if measure is selected
             int staffIdx;
             Measure* m = _score->pos2measure(editData.startMove, &staffIdx, 0, 0, 0);
             if (m) {
@@ -330,6 +330,8 @@ void ScoreView::mousePressEventNormal(QMouseEvent* ev)
                         _score->setUpdateAll();
                         clickOffElement = false;
                         }
+                  else
+                        clickOffElement = true;
                   }
             else if (st != SelectType::ADD)
                   clickOffElement = true;
@@ -367,7 +369,7 @@ void ScoreView::mousePressEvent(QMouseEvent* ev)
                         break;
                   editData.element = _foto;
                   bool gripClicked = false;
-                  qreal a = editData.grip[0].width() * 1.0;
+                  qreal a = editData.grip[0].width() * 0.5;
                   for (int i = 0; i < editData.grips; ++i) {
                         if (editData.grip[i].adjusted(-a, -a, a, a).contains(editData.startMove)) {
                               editData.curGrip = Grip(i);
@@ -397,7 +399,7 @@ void ScoreView::mousePressEvent(QMouseEvent* ev)
 
             case ViewState::EDIT: {
                   if (editData.grips) {
-                        qreal a = editData.grip[0].width() * 1.0;
+                        qreal a = editData.grip[0].width() * 0.5;
                         bool gripFound = false;
                         for (int i = 0; i < editData.grips; ++i) {
                               if (editData.grip[i].adjusted(-a, -a, a, a).contains(editData.startMove)) {
