@@ -194,7 +194,7 @@
      </widget>
      <widget class="QStackedWidget" name="pageStack">
       <property name="currentIndex">
-       <number>3</number>
+       <number>25</number>
       </property>
       <widget class="QWidget" name="PageScore">
        <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -8894,28 +8894,18 @@
               <property name="verticalSpacing">
                <number>3</number>
               </property>
-              <item row="0" column="3">
-               <widget class="QLabel" name="label_186">
-                <property name="text">
-                 <string>Default vertical position B:</string>
-                </property>
-                <property name="buddy">
-                 <cstring>chordSymbolPosAboveA</cstring>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_17">
                 <property name="text">
-                 <string>Default vertical position A:</string>
+                 <string>Default vertical position:</string>
                 </property>
                 <property name="buddy">
-                 <cstring>chordSymbolPosAboveA</cstring>
+                 <cstring>chordSymbolPosAbove</cstring>
                 </property>
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QDoubleSpinBox" name="chordSymbolPosAboveA">
+               <widget class="QDoubleSpinBox" name="chordSymbolPosAbove">
                 <property name="suffix">
                  <string extracomment="spatium unit">sp</string>
                 </property>
@@ -9036,44 +9026,8 @@
                 </property>
                </spacer>
               </item>
-              <item row="0" column="4">
-               <widget class="QDoubleSpinBox" name="chordSymbolPosAboveB">
-                <property name="suffix">
-                 <string extracomment="spatium unit">sp</string>
-                </property>
-                <property name="minimum">
-                 <double>-10000.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10000.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.500000000000000</double>
-                </property>
-                <property name="value">
-                 <double>2.500000000000000</double>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="2">
-               <widget class="QToolButton" name="resetChordSymbolPosAboveA">
-                <property name="toolTip">
-                 <string>Reset to default</string>
-                </property>
-                <property name="accessibleName">
-                 <string>Reset 'Autoplace min. distance' value</string>
-                </property>
-                <property name="text">
-                 <string notr="true"/>
-                </property>
-                <property name="icon">
-                 <iconset resource="musescore.qrc">
-                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="5">
-               <widget class="QToolButton" name="resetChordSymbolPosAboveB">
+               <widget class="QToolButton" name="resetChordSymbolPosAbove">
                 <property name="toolTip">
                  <string>Reset to default</string>
                 </property>
@@ -11371,7 +11325,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="label_188">
              <property name="text">
-              <string>Melisma pad:</string>
+              <string>Pad:</string>
              </property>
             </widget>
            </item>
@@ -11392,7 +11346,7 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
+           <item row="7" column="0">
             <widget class="QLabel" name="label_119">
              <property name="text">
               <string/>
@@ -11416,7 +11370,7 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="6" column="0">
             <widget class="QLabel" name="label_93">
              <property name="text">
               <string/>
@@ -11442,11 +11396,11 @@
            <item row="0" column="0">
             <widget class="QLabel" name="label_80">
              <property name="text">
-              <string>Melisma thickness:</string>
+              <string>Thickness:</string>
              </property>
             </widget>
            </item>
-           <item row="7" column="0">
+           <item row="8" column="0">
             <widget class="QLabel" name="label_123">
              <property name="text">
               <string/>
@@ -11466,6 +11420,33 @@
              </property>
              <property name="value">
               <double>0.100000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_198">
+             <property name="text">
+              <string>Align:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="Ms::AlignSelect" name="lyricsMelismaAlign" native="true"/>
+           </item>
+           <item row="2" column="2">
+            <widget class="QToolButton" name="resetLyricsMelismaAlign">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Melisma pad' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
              </property>
             </widget>
            </item>
@@ -11813,6 +11794,13 @@
            <property name="spacing">
             <number>0</number>
            </property>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_170">
+             <property name="text">
+              <string>Font face:</string>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="4">
             <widget class="QDoubleSpinBox" name="lyricsEvenFontSize">
              <property name="suffix">
@@ -11939,13 +11927,6 @@
              </item>
             </layout>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_170">
-             <property name="text">
-              <string>Font face:</string>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="3">
             <widget class="QLabel" name="label_171">
              <property name="text">
@@ -11990,6 +11971,33 @@
              </property>
              <property name="accessibleName">
               <string>Reset 'Font size' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_199">
+             <property name="text">
+              <string>Align:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="Ms::AlignSelect" name="lyricsEvenAlign" native="true"/>
+           </item>
+           <item row="2" column="2">
+            <widget class="QToolButton" name="resetLyricsEvenAlign">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Font face' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12196,7 +12204,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
+           <item row="2" column="0">
             <spacer name="verticalSpacer_17">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -12208,6 +12216,33 @@
               </size>
              </property>
             </spacer>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_200">
+             <property name="text">
+              <string>Align:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="Ms::AlignSelect" name="lyricsOddAlign" native="true"/>
+           </item>
+           <item row="1" column="2">
+            <widget class="QToolButton" name="resetLyricsOddAlign">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Font face' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -12454,7 +12489,7 @@
   <tabstop>lowerCaseMinorChords</tabstop>
   <tabstop>lowerCaseBassNotes</tabstop>
   <tabstop>allCapsNoteNames</tabstop>
-  <tabstop>chordSymbolPosAboveA</tabstop>
+  <tabstop>chordSymbolPosAbove</tabstop>
   <tabstop>harmonyFretDist</tabstop>
   <tabstop>minHarmonyDistance</tabstop>
   <tabstop>maxHarmonyBarDistance</tabstop>

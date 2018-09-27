@@ -194,10 +194,12 @@ bool Lyrics::isMelisma() const
       if (_syllabic == Syllabic::BEGIN || _syllabic == Syllabic::MIDDLE) {
             // find next CR on same track and check for existence of lyric in same verse
             ChordRest* cr  = chordRest();
-            Segment* s     = cr->segment()->next1();
-            ChordRest* ncr = s ? s->nextChordRest(cr->track()) : 0;
-            if (ncr && !ncr->lyrics(_no, placement()))
-                  return true;
+            if (cr) {
+                  Segment* s     = cr->segment()->next1();
+                  ChordRest* ncr = s ? s->nextChordRest(cr->track()) : 0;
+                  if (ncr && !ncr->lyrics(_no, placement()))
+                        return true;
+                  }
             }
 
       // default - not a melisma
@@ -267,22 +269,16 @@ void Lyrics::layout()
             _even             = false;
             styleDidChange    = true;
             }
-#if 0
-      if (isMelisma() || hasNumber) {
+
+      if (isMelisma() || hasNumber)
             if (isStyled(Pid::ALIGN)) {
-                  // setAlign(score()->styleI(Sid::lyricsMelismaAlign));
-                  }
+                  setAlign(score()->styleV(Sid::lyricsMelismaAlign).value<Align>());
             }
-      else {
-            }
-#else
-      Q_UNUSED(hasNumber);
-#endif
       if (styleDidChange)
             styleChanged();
 
       QPointF o(offset() * (offsetType() == OffsetType::SPATIUM ? spatium() : DPI));
-      setPos(o);
+      rxpos() = o.x();
       qreal x = pos().x();
       TextBase::layout1();
 
@@ -533,12 +529,16 @@ QVariant Lyrics::propertyDefault(Pid id) const
             case Pid::SUB_STYLE:
                   return int((_no & 1) ? Tid::LYRICS_EVEN : Tid::LYRICS_ODD);
             case Pid::PLACEMENT:
-                  return score()->styleI(Sid::lyricsPlacement);
+                  return score()->styleV(Sid::lyricsPlacement);
             case Pid::SYLLABIC:
                   return int(Syllabic::SINGLE);
             case Pid::LYRIC_TICKS:
             case Pid::VERSE:
                   return 0;
+            case Pid::ALIGN:
+                  if (isMelisma())
+                        return score()->styleV(Sid::lyricsMelismaAlign);
+                  // fall through
             default:
                   return TextBase::propertyDefault(id);
             }
