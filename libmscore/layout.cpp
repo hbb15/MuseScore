@@ -2908,12 +2908,17 @@ void Score::layoutLyrics(System* system)
 void layoutTies(Chord* ch, System* system, int stick)
       {
       for (Note* note : ch->notes()) {
-            if (note->tieFor())
-                  note->tieFor()->layoutFor(system);
+            Tie* t = note->tieFor();
+            if (t) {
+                  TieSegment* ts = t->layoutFor(system);
+                  system->staff(ch->staffIdx())->skyline().add(ts->shape().translated(ts->pos()));
+                  }
             if (note->tieBack()) {
-                  Tie* tie = note->tieBack();
-                  if (tie->startNote()->tick() < stick)
-                        tie->layoutBack(system);
+                  Tie* t = note->tieBack();
+                  if (t->startNote()->tick() < stick) {
+                        TieSegment* ts = t->layoutBack(system);
+                        system->staff(ch->staffIdx())->skyline().add(ts->shape().translated(ts->pos()));
+                        }
                   }
             }
       }
@@ -2942,7 +2947,6 @@ static void processLines(System* system, std::vector<Spanner*> lines, bool align
       //
       // add shapes to skyline
       //
-
       for (SpannerSegment* ss : segments)
             system->staff(ss->staffIdx())->skyline().add(ss->shape().translated(ss->pos()));
       }
@@ -3229,7 +3233,7 @@ System* Score::collectSystem(LayoutContext& lc)
                         continue;
                   Measure* m = toMeasure(mb);
                   for (Segment& s : m->segments()) {
-                        if (s.isTimeSigType())       // hack: ignore time signatures
+                        if (!s.enabled() || s.isTimeSigType())       // hack: ignore time signatures
                               continue;
                         ss->skyline().add(s.staffShape(staffIdx).translated(s.pos() + m->pos()));
                         }
