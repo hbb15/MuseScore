@@ -905,6 +905,13 @@ qreal Note::tabHeadWidth(StaffType* tab) const
             QFontMetricsF fm(f, MScore::paintDevice());
             val  = fm.width(_fretString) * magS();
             }
+      else if (tab && _fretString != "" && (staff()->isNumericStaff(chord()->tick()))){
+
+            QFont f    = tab->fretFont();
+            f.setPointSizeF(tab->fretFontSize());
+            QFontMetricsF fm(f, MScore::paintDevice());
+            val  = fm.width(_fretString) * magS();
+            }
       else
             val = headWidth();
       return val;
@@ -1147,10 +1154,10 @@ void Note::draw(QPainter* painter) const
             StaffType* tab = staff()->staffType(tick());
 
             QFont f(tab->fretFont());
-            f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
+            f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
             painter->setFont(f);
             painter->setPen(c);
-            painter->drawText(QPointF(bbox().x(), ((tab->fretFontYOffset())-_fretStringYShift) * magS()), _fretString);
+            painter->drawText(QPointF(bbox().x(), _numericHigth*0.5-_fretStringYShift), _fretString);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
                         score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*0.5, QPointF(-20.0*magS(), (5.0 -_fretStringYShift) * magS()));
@@ -1582,7 +1589,8 @@ QRectF Note::drag(EditData& ed)
       else {
             if (staff()->isNumericStaff(_tick)) {
                   _pitch = ned->line - lrint(ed.delta.y() / 30.0);
-                  }            else {
+                  }
+            else {
                 Key key = staff()->key(_tick);
                 _pitch = line2pitch(ned->line + lineOffset, staff()->clef(_tick), key);
                 if (!concertPitch()) {
@@ -2133,6 +2141,8 @@ void Note::layout()
             bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
             }
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
+            StaffType* numeric = staff()->staffType(tick());
+            qreal mags = magS();
             int accidentalshift=0;
             _drawFlat = false;
             _drawSharp = false;
@@ -2150,10 +2160,17 @@ void Note::layout()
                   clefshift=-12;
             int grundtonverschibung=getNumericTrans(staff()->key(tick()));
             int zifferkomatik=((_pitch+grundtonverschibung+clefshift)%12)+1;
-            _fretString = getNumericString(zifferkomatik+accidentalshift)+
+            _fretString = getNumericString(zifferkomatik+accidentalshift);
+            _numericWidth=tabHeadWidth(numeric);
+            _fretString = _fretString+
                         getNumericDuration[int(chord()->durationType().type())]+
                         getNumericDurationDot[int(chord()->durationType().dots())];
-            _fretStringYShift=((_pitch+grundtonverschibung+clefshift+accidentalshift)/12-5)*25;
+            _fretStringYShift=((_pitch+grundtonverschibung+clefshift+accidentalshift)/12-5)*_numericHigth*0.5;
+            bbox().setRect(0.0, numeric->fretBoxY() * mags, _numericWidth, numeric->fretBoxH() * mags);
+            _numericHigth = bbox().height();
+            QRectF stringbox = QRectF(0.0, _numericHigth*-0.5-_fretStringYShift,
+                             _numericWidth,( _numericHigth));
+            setbbox(stringbox);
             }
       else {
             SymId nh = noteHead();

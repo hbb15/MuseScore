@@ -42,6 +42,11 @@ class Rest : public ChordRest {
 
 
       QString _fretString;
+      qreal _numericLineWidht;
+      qreal _numericLineThick;
+      qreal _numericLineSpace;
+      qreal _numericHigthLine;
+      qreal _numericHigth;
 
 
    public:
@@ -78,6 +83,7 @@ class Rest : public ChordRest {
 
       void layoutMMRest(qreal val);
       qreal mmWidth() const        { return _mmWidth; }
+      qreal numericGetWidthRest(StaffType* numeric, QString string)const;
       SymId getSymbol(TDuration::DurationType type, int line, int lines,  int* yoffset);
 
       void checkDots();

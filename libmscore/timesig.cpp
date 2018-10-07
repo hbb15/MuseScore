@@ -281,6 +281,48 @@ void TimeSig::layout()
             ns.push_back(SymId::timeSigCutCommon);
             ds.clear();
             }
+      else if (staff() && staff()->isNumericStaff( tick())) {
+            StaffType* numeric = staff()->staffType(tick());
+            _numeric_ns = _numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString;//toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
+            _numeric_ds = _denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString;//toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
+
+            ns = toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
+            ds = toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
+
+            QSizeF mag(magS() * _scale);
+            qreal wn = numericGetWidth(numeric, _numeric_ns);
+            qreal wd = numericGetWidth(numeric, _numeric_ds);
+            QRectF numRect = QRectF(0.0, numeric->fretBoxY() * magS(), wn, numeric->fretBoxH() * magS());
+            QRectF denRect = QRectF(0.0, numeric->fretBoxY() * magS(), wd, numeric->fretBoxH() * magS());
+            qreal displ = (numOfLines & 1) ? 0.0 : (0.05 * _spatium);
+
+            //align on the wider
+            qreal pzY = yoff - displ + numRect.height();
+            qreal pnY = yoff + displ;
+            qreal numericLineWidht=25.0;
+
+            if (numRect.width() >= denRect.width()) {
+                  // numerator: one space above centre line, unless denomin. is empty (if so, directly centre in the middle)
+                  pz = QPointF(0.0, pzY);
+                  // denominator: horiz: centred around centre of numerator | vert: one space below centre line
+                  pn = QPointF((numRect.width() - denRect.width())*.5, pnY);
+                  numericLineWidht = numRect.width();
+                  }
+            else {
+                  // numerator: one space above centre line, unless denomin. is empty (if so, directly centre in the middle)
+                  pz = QPointF((denRect.width() - numRect.width())*.5, pzY);
+                  // denominator: horiz: centred around centre of numerator | vert: one space below centre line
+                  pn = QPointF(0.0, pnY);
+                  numericLineWidht = denRect.width();
+                  }
+
+            numericLine = QLineF(0, 0, numericLineWidht, 0);
+            _numericlinethick=numRect.height()*0.1;
+            setbbox(symBbox(SymId::timeSigCutCommon).translated(pz));
+            ns.clear();
+            ns.push_back(SymId::timeSigCutCommon);
+            ds.clear();
+            }
       else {
             ns = toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
             ds = toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
@@ -313,7 +355,6 @@ void TimeSig::layout()
                   // denominator: horiz: centred around centre of numerator | vert: one space below centre line
                   pn = QPointF(0.0, pnY);
                   }
-
             // centering of parenthesis so the middle of the parenthesis is at the divisor marking level
             int centerY = yoff/2 + _spatium;
             int widestPortion = numRect.width() > denRect.width() ? numRect.width() : denRect.width();
@@ -337,6 +378,24 @@ void TimeSig::draw(QPainter* painter) const
       {
       if (staff() && !staff()->staffType(tick())->genTimesig())
             return;
+      if (staff() && staff()->isNumericStaff( tick())) {
+          if(tick()==0 && staff() && (staff()->idx())<1){
+                StaffType* numeric = staff()->staffType(tick());
+
+                QFont f(numeric->fretFont());
+
+                QColor c(curColor());
+                f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
+                painter->setFont(f);
+                painter->setPen(c);
+                painter->drawText(pz,_numeric_ns);
+                painter->drawText(pn,_numeric_ds);
+                painter->setPen(QPen(curColor(),_numericlinethick));
+                painter->drawLine(numericLine);
+
+                    }
+          return;
+              }
       painter->setPen(curColor());
 
       drawSymbols(ns, painter, pz, _scale);
@@ -538,5 +597,22 @@ bool TimeSig::operator==(const TimeSig& ts) const
          ;
       }
 
-}
 
+//---------------------------------------------------------
+//   numericWidth
+//---------------------------------------------------------
+
+qreal TimeSig::numericGetWidth(StaffType* numeric, QString string) const
+      {
+      qreal val;
+      if (numeric) {
+            QFont f    = numeric->fretFont();
+            f.setPointSizeF(numeric->fretFontSize());
+            QFontMetricsF fm(f, MScore::paintDevice());
+            val  = fm.width(string) * magS();
+            }
+      else
+            val = 5.0;
+      return val;
+      }
+}

@@ -1433,6 +1433,7 @@ void Chord::layoutStem()
             if (_hook) {
                   QPointF p(0,0);
                   p.ry() -= (_notes[0]->fretStringYShift()) * magS();
+                  p.rx() = _notes[0]->bbox().x();
 
                   _hook->setPos(p);
                   }
@@ -2460,7 +2461,7 @@ void Chord::layoutNumeric()
             // centre fret string on stem
             qreal x = stemX - fretWidth*0.5;
             qreal y = note->fixed() ? note->line() * lineDist / 2 : tab->physStringToYOffset(note->string()) * _spatium;
-            note->setPos(x, y);
+            //note->setPos(x, y);
             if (y < minY)
                   minY  = y;
             //int   currLedgerLines   = tab->numOfTabLedgerLines(note->string());
@@ -2636,6 +2637,11 @@ void Chord::layoutNumeric()
             }
 
       if (_hook) {
+            if (numOfNotes>0){
+
+                  Note* note = _notes.at(0);
+                  _hook->setNumericHookDimension(note->get_numericWidth(),note->get_numericHigth());
+                  }
             _hook->layout();
             if (up()) {
                   // hook position is not set yet
@@ -2704,11 +2710,6 @@ void Chord::layoutNumeric()
 
       for (int i = 0; i < numOfNotes; ++i)
             _notes.at(i)->layout2();
-      QRectF bb;
-      processSiblings([&bb] (Element* e) { bb |= e->bbox().translated(e->pos()); } );
-      if (_tabDur)
-            bb |= _tabDur->bbox().translated(_tabDur->pos());
-      setbbox(bb);
       }
 
 //---------------------------------------------------------

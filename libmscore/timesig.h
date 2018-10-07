@@ -41,6 +41,11 @@ enum class TimeSigType : char {
 class TimeSig final : public Element {
       QString _numeratorString;     // calculated from actualSig() if !customText
       QString _denominatorString;
+      QString _numeric_ns;
+      QString _numeric_ds;
+
+      qreal _numericlinethick;
+
 
       std::vector<SymId> ns;
       std::vector<SymId> ds;
@@ -49,6 +54,7 @@ class TimeSig final : public Element {
       QPointF pn;
       QPointF pointLargeLeftParen;
       QPointF pointLargeRightParen;
+      QLineF numericLine;
       Fraction _sig;
       Fraction _stretch;      // localSig / globalSig
       Groups _groups;
@@ -105,6 +111,8 @@ class TimeSig final : public Element {
       void setLargeParentheses(bool v)    { _largeParentheses = v;    }
 
       void setScale(const QSizeF& s)      { _scale = s; }
+
+      qreal numericGetWidth(StaffType* numeric, QString string)const;
 
 
       void setFrom(const TimeSig*);

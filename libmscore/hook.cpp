@@ -67,8 +67,20 @@ void Hook::setHookType(int i)
 
 void Hook::layout()
       {
-      setbbox(symBbox(_sym));
-      }
+      if (staff() && staff()->isNumericStaff( tick())) {
+
+            _numericLineThick=_numericHigth*0.1;
+            _numericLineSpace=_numericHigth*-0.3;
+            _numericHigthLine=_numericHigth*-0.75;
+            QRectF hookbox = QRectF(0.0, _numericHigthLine+((qAbs(_hookType)-1)*_numericLineSpace)-_numericLineThick, _numericLineWidht,
+                                    ( _numericHigthLine+((qAbs(_hookType)-1)*_numericLineSpace)-_numericLineThick)*-1-_numericHigthLine*-1);
+            setbbox(hookbox);
+
+            }
+      else{
+            setbbox(symBbox(_sym));
+            }
+}
 
 //---------------------------------------------------------
 //   draw
@@ -79,10 +91,10 @@ void Hook::draw(QPainter* painter) const
 
 
       if (staff() && staff()->isNumericStaff( tick())) {
-            painter->setPen(QPen(curColor(), 3.0 * magS()));
+            painter->setPen(QPen(curColor(), _numericLineThick));
             for (int i = 0; i < qAbs(_hookType); ++i){
 
-                  painter->drawLine(QLineF(0, (-25.0+i*-10) * magS(), (25.0) * magS(), (-25.0+i*-10) * magS()));
+                  painter->drawLine(QLineF(0, _numericHigthLine+(i*_numericLineSpace), _numericLineWidht, _numericHigthLine+(i*_numericLineSpace)));
                   }
             }
       else{

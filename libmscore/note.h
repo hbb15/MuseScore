@@ -258,6 +258,8 @@ class Note final : public Element {
 
       QString _fretString;
       qreal _fretStringYShift;
+      qreal _numericWidth;
+      qreal _numericHigth;
       bool _fretHidden = false;
       bool _drawFlat = false;
       bool _drawSharp = false;
@@ -328,6 +330,8 @@ class Note final : public Element {
       int fixedLine() const               { return _fixedLine; }
       void setFixedLine(int v)            { _fixedLine = v;    }
       qreal fretStringYShift() const                { return _fretStringYShift;   }
+      qreal get_numericWidth()                      { return _numericWidth;   }
+      qreal get_numericHigth()                      { return _numericHigth;   }
 
       int tpc() const;
       int tpc1() const            { return _tpc[0]; }     // non transposed tpc

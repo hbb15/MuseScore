@@ -271,46 +271,23 @@ void KeySig::layout()
 //   getNumericString
 //---------------------------------------------------------
 QString NumericString[15][2]={
-      {"H - Dur a=#6","gis - Moll a=#6"},
-      {"Fis - Dur a=#2","es - Moll a=#2"},
-      {"Cis - Dur a=#5","B - Moll a=#5"},
-      {"Gis - Dur a=#1","f - Moll a=#1"},
-      {"Es - Dur a=#4","c - Moll a=#4"},
-      {"B - Dur a=7","g - Moll a=7"},
-      {"F - Dur a=3","d - Moll a=3"},
-      {"C - Dur a=6","a - Moll a=6"},
-      {"G - Dur a=2","e - Moll a=2"},
-      {"D - Dur a=5","h - Moll a=5"},
-      {"A - Dur a=1","fis - Moll a=1"},
-      {"E - Dur a=4","cis - Moll a=4"},
-      {"H - Dur a=#6","gis - Moll a=#6"},
-      {"Fis - Dur a=#2","es - Moll a=#2"},
-      {"Cis - Dur a=#5","B - Moll a=#5"}
+      {"H-Dur a=#6","gis-Moll a=#6"},
+      {"Fis-Dur a=#2","es-Moll a=#2"},
+      {"Cis-Dur a=#5","B-Moll a=#5"},
+      {"Gis-Dur a=#1","f-Moll a=#1"},
+      {"Es-Dur a=#4","c-Moll a=#4"},
+      {"B-Dur a=7","g-Moll a=7"},
+      {"F-Dur a=3","d-moll a=3"},
+      {"C-Dur a=6","a-Moll a=6"},
+      {"G-Dur a=2","e-Moll a=2"},
+      {"D-Dur a=5","h-Moll a=5"},
+      {"A-Dur a=1","fis-Moll a=1"},
+      {"E-Dur a=4","cis-Moll a=4"},
+      {"H-Dur a=#6","gis-Moll a=#6"},
+      {"Fis-Dur a=#2","es-Moll a=#2"},
+      {"Cis-Dur a=#5","B-Moll a=#5"}
 
 };
-QString KeySig::getNumericString(Key key) const{
-    switch(key) {
-        case Key::C_B:  return "H - Dur a=#6";
-        case Key::G_B:  return "Fis - Dur a=#2";
-        case Key::D_B:  return "Cis - Dur a=#5";
-        case Key::A_B:  return "Gis - Dur a=#1";
-        case Key::E_B:  return "Es - Dur a=#4";
-        case Key::B_B:  return "B - Dur a=7";
-        case Key::F:  return "F - Dur a=3";
-        case Key::C:  return "C - Dur a=6";
-        case Key::G:  return "G - Dur a=2";
-        case Key::D:  return "D - Dur a=5";
-        case Key::A:  return "A - Dur a=1";
-        case Key::E:  return "E - Dur a=4";
-        case Key::B:  return "H - Dur a=#6";
-        case Key::F_S:  return "Fis - Dur a=#2";
-        case Key::C_S:  return "Cis - Dur a=#5";
-          default:
-                return "C - Dur a=6";
-                break;
-          }
-    return "C - Dur a=6";
-}
 
 //---------------------------------------------------------
 //   set
@@ -328,7 +305,7 @@ void KeySig::draw(QPainter* p) const
                     f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
                     p->setFont(f);
                     p->setPen(c);
-                    p->drawText(QPointF(0, -150),NumericString[int(_sig.key())+8][int(_sig.mode())]);
+                    p->drawText(QPointF(0, -150),NumericString[int(_sig.key())+7][0]);
                   }
             }
 
