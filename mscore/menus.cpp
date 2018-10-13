@@ -309,7 +309,7 @@ Palette* MuseScore::newAccidentalsPalette(PaletteType t)
                   s->setAccidentalType(AccidentalType::NONE);
                   sp->append(s, s->subtypeUserName());
                   for (int i = int(AccidentalType::FLAT); i < end; ++i) {
-                        Accidental* s = new Accidental(gscore);
+                        s = new Accidental(gscore);
                         s->setAccidentalType(AccidentalType(i));
                         if (s->symbol() != SymId::noSym)
                               sp->append(s, s->subtypeUserName());
@@ -324,7 +324,7 @@ Palette* MuseScore::newAccidentalsPalette(PaletteType t)
                   s->setAccidentalType(AccidentalType::NONE);
                   sp->append(s, s->subtypeUserName());
                   for (int i = int(AccidentalType::FLAT); i < end; ++i) {
-                        Accidental* s = new Accidental(gscore);
+                        s = new Accidental(gscore);
                         s->setAccidentalType(AccidentalType(i));
                         if (s->symbol() != SymId::noSym)
                               sp->append(s, s->subtypeUserName());
@@ -1125,12 +1125,12 @@ Palette* MuseScore::newLinesPalette(PaletteType t)
       sp->append(gabel3, QT_TRANSLATE_NOOP("Palette", "Diminuendo line"));
 
       if (t != PaletteType::BASIC) {
-            Hairpin* gabel0 = new Hairpin(gscore);
-            gabel0->setHairpinType(HairpinType::CRESC_HAIRPIN);
-            gabel0->setBeginText("<sym>dynamicMezzo</sym><sym>dynamicForte</sym>");
-            gabel0->setBeginTextAlign(Align::VCENTER);
-            gabel0->setLen(w);
-            sp->append(gabel0, qApp->translate("lines", "Dynamics + hairpin"));
+            Hairpin* gabel4 = new Hairpin(gscore);
+            gabel4->setHairpinType(HairpinType::CRESC_HAIRPIN);
+            gabel4->setBeginText("<sym>dynamicMezzo</sym><sym>dynamicForte</sym>");
+            gabel4->setBeginTextAlign(Align::VCENTER);
+            gabel4->setLen(w);
+            sp->append(gabel4, qApp->translate("lines", "Dynamics + hairpin"));
             }
 
       Volta* volta = new Volta(gscore);
@@ -1426,12 +1426,10 @@ Palette* MuseScore::newTextPalette()
       rhm->setXmlText("B1");
       sp->append(rhm, tr("Rehearsal mark"));
 
-#if 0
-      st = new StaffText(Tid::TEMPO, gscore);
+      st = new StaffText(gscore, Tid::TEMPO);
       st->setXmlText(tr("Swing"));
       st->setSwing(true);
       sp->append(st, tr("Swing"));
-#endif
 
       SystemText* stxt = new SystemText(gscore);
       stxt->setXmlText(tr("System Text"));

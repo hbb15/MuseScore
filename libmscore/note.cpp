@@ -1629,8 +1629,8 @@ bool Note::acceptDrop(EditData& data) const
       Element* e = data.element;
       ElementType type = e->type();
       if (type == ElementType::GLISSANDO) {
-            for (auto e : _spannerFor)
-                  if (e->type() == ElementType::GLISSANDO) {
+            for (auto ee : _spannerFor)
+                  if (ee->type() == ElementType::GLISSANDO) {
                         return false;
                   }
             return true;
@@ -1761,11 +1761,11 @@ Element* Note::drop(EditData& data)
 
                   if (group != _headGroup) {
                         if (links()) {
-                              for (ScoreElement* e : *links()) {
-                                    e->undoChangeProperty(Pid::HEAD_GROUP, int(group));
-                                    Note* note = toNote(e);
+                              for (ScoreElement* se : *links()) {
+                                    se->undoChangeProperty(Pid::HEAD_GROUP, int(group));
+                                    Note* note = toNote(se);
                                     if (note->staff() && note->staff()->isTabStaff(ch->tick()) && group == NoteHead::Group::HEAD_CROSS)
-                                          e->undoChangeProperty(Pid::GHOST, true);
+                                          se->undoChangeProperty(Pid::GHOST, true);
                                     }
                               }
                         else {
@@ -1836,7 +1836,6 @@ Element* Note::drop(EditData& data)
 
             case ElementType::NOTE:
                   {
-                  Chord* ch = chord();
                   if (ch->noteType() != NoteType::NORMAL) {
                         delete e;
                         return 0;
@@ -1855,8 +1854,8 @@ Element* Note::drop(EditData& data)
 
             case ElementType::GLISSANDO:
                   {
-                  for (auto e : _spannerFor) {
-                        if (e->type() == ElementType::GLISSANDO) {
+                  for (auto ee : _spannerFor) {
+                        if (ee->type() == ElementType::GLISSANDO) {
                               qDebug("there is already a glissando");
                               delete e;
                               return 0;
