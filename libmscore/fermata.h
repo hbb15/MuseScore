@@ -36,6 +36,7 @@ class Fermata final : public Element {
       bool _play;
 
       virtual void draw(QPainter*) const override;
+      virtual Sid getPropertyStyle(Pid) const override;
 
    public:
       Fermata(Score*);
@@ -58,14 +59,12 @@ class Fermata final : public Element {
       virtual void write(XmlWriter& xml) const override;
       virtual bool readProperties(XmlReader&) override;
 
-      virtual void reset() override;
       virtual QLineF dragAnchor() const override;
 
       virtual QVariant getProperty(Pid propertyId) const override;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(Pid) const override;
       virtual void resetProperty(Pid id) override;
-      Sid getPropertyStyle(Pid id) const override;
 
       ChordRest* chordRest() const;
       Segment* segment() const              { return toSegment(parent()); }

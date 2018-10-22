@@ -31,7 +31,7 @@ BSymbol::BSymbol(Score* s, ElementFlags f)
       }
 
 BSymbol::BSymbol(const BSymbol& s)
-   : Element(s), ElementLayout(s)
+   : Element(s)
       {
       for (Element* e : s._leafs) {
             Element* ee = e->clone();
@@ -46,8 +46,6 @@ BSymbol::BSymbol(const BSymbol& s)
 
 void BSymbol::writeProperties(XmlWriter& xml) const
       {
-      if (systemFlag())
-            xml.tag("systemFlag", systemFlag());
       for (const Element* e : leafs())
             e->write(xml);
       Element::writeProperties(xml);
@@ -143,7 +141,7 @@ Element* BSymbol::drop(EditData& data)
       if (el->isSymbol() || el->isImage()) {
             el->setParent(this);
             QPointF p = data.pos - pagePos() - data.dragOffset;
-            el->setUserOff(p);
+            el->setOffset(p);
             score()->undoAddElement(el);
             return el;
             }
@@ -160,6 +158,10 @@ void BSymbol::layout()
       {
       if (staff())
             setMag(staff()->mag(tick()));
+      if (!parent()) {
+            setOffset(.0, .0);
+            setPos(.0, .0);
+            }
       for (Element* e : _leafs)
             e->layout();
       }
@@ -189,7 +191,7 @@ QRectF BSymbol::drag(EditData& ed)
             y = vRaster * n;
             }
 
-      setUserOff(QPointF(x, y));
+      setOffset(QPointF(x, y));
 
       r |= canvasBoundingRect();
       foreach(const Element* e, _leafs)
@@ -206,7 +208,6 @@ QLineF BSymbol::dragAnchor() const
       if (parent() && parent()->type() == ElementType::SEGMENT) {
             System* system = segment()->measure()->system();
             qreal y        = system->staffCanvasYpage(staffIdx());
-//            QPointF anchor(segment()->pageX(), y);
             QPointF anchor(segment()->canvasPos().x(), y);
             return QLineF(canvasPos(), anchor);
             }

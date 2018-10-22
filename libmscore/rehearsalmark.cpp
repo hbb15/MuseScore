@@ -42,7 +42,7 @@ RehearsalMark::RehearsalMark(Score* s)
 
 void RehearsalMark::layout()
       {
-      layout2(Sid::rehearsalMarkPosAbove, Sid::rehearsalMarkPosBelow);
+      TextBase::layout();
 
       Segment* s = segment();
       if (s) {
@@ -78,6 +78,17 @@ QVariant RehearsalMark::propertyDefault(Pid id) const
             default:
                   return TextBase::propertyDefault(id);
             }
+      }
+
+//---------------------------------------------------------
+//   getPropertyStyle
+//---------------------------------------------------------
+
+Sid RehearsalMark::getPropertyStyle(Pid pid) const
+      {
+      if (pid == Pid::OFFSET)
+            return placeAbove() ? Sid::rehearsalMarkPosAbove : Sid::rehearsalMarkPosBelow;
+      return TextBase::getPropertyStyle(pid);
       }
 
 } // namespace Ms

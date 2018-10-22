@@ -175,7 +175,7 @@ class ScoreElement {
       const ElementStyle* _elementStyle { &emptyStyle };
       PropertyFlags* _propertyFlagsList { 0 };
       LinkedElements* _links            { 0 };
-      int getPropertyFlagsIdx(Pid id) const;
+      virtual int getPropertyFlagsIdx(Pid id) const;
 
    public:
       ScoreElement(Score* s) : _score(s)   {}
@@ -198,6 +198,8 @@ class ScoreElement {
       virtual QVariant propertyDefault(Pid) const;
       virtual void resetProperty(Pid id);
       QVariant propertyDefault(Pid pid, Tid tid) const;
+      void setPidFromSid(Pid pid, Sid sid);
+      virtual bool sizeIsSpatiumDependent() const { return true; }
 
       virtual void reset();                     // reset all properties & position to default
 
@@ -425,6 +427,14 @@ static inline const DurationElement* toDurationElement(const ScoreElement* e) {
          || e->type() == ElementType::REPEAT_MEASURE || e->type() == ElementType::TUPLET);
       return (const DurationElement*)e;
       }
+static inline Rest* toRest(ScoreElement* e) {
+      Q_ASSERT(!e || e->isRest() || e->isRepeatMeasure());
+      return (Rest*)e;
+      }
+static inline const Rest* toRest(const ScoreElement* e) {
+      Q_ASSERT(!e || e->isRest() || e->isRepeatMeasure());
+      return (const Rest*)e;
+      }
 static inline SlurTieSegment* toSlurTieSegment(ScoreElement* e) {
       Q_ASSERT(e == 0 || e->type() == ElementType::SLUR_SEGMENT || e->type() == ElementType::TIE_SEGMENT);
       return (SlurTieSegment*)e;
@@ -479,7 +489,6 @@ static inline a* to##a(ScoreElement* e)             { Q_ASSERT(e == 0 || e->is##
 static inline const a* to##a(const ScoreElement* e) { Q_ASSERT(e == 0 || e->is##a()); return (const a*)e; }
 
       CONVERT(Note)
-      CONVERT(Rest)
       CONVERT(Chord)
       CONVERT(BarLine)
       CONVERT(Articulation)

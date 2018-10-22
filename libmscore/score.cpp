@@ -2421,22 +2421,6 @@ void Score::cmdRemoveStaff(int staffIdx)
       Staff* s = staff(staffIdx);
       adjustBracketsDel(staffIdx, staffIdx+1);
 
-      QList<Spanner*> sl;
-      for (auto i = _spanner.cbegin(); i != _spanner.cend(); ++i) {
-            Spanner* sp = i->second;
-            if (sp->staffIdx() == staffIdx && (staffIdx != 0 || !sp->systemFlag()))
-                  sl.append(sp);
-            }
-      for (Spanner* sp : _unmanagedSpanner) {
-            if (sp->staffIdx() == staffIdx && (staffIdx != 0 || !sp->systemFlag()))
-                  sl.append(sp);
-            }
-      for (auto i : sl) {
-printf("remove %p <%s>\n", i, i->name());
-            i->undoUnlink();
-            undo(new RemoveElement(i));
-            }
-
       undoRemoveStaff(s);
 
       // remove linked staff and measures in linked staves in excerpts
@@ -4437,5 +4421,30 @@ Movements::~Movements()
       delete _undo;
       }
 
+//---------------------------------------------------------
+//   styleValue
+//    returns style values in score units usable for
+//    setting property pid
+//---------------------------------------------------------
+
+QVariant Score::styleValue(Pid pid, Sid sid) const
+      {
+      switch (propertyType(pid)) {
+            case P_TYPE::SP_REAL:
+                  return score()->styleP(sid);
+            case P_TYPE::POINT_SP:
+                  return score()->styleV(sid).toPointF() * score()->spatium();
+            case P_TYPE::POINT_SP_MM: {
+                  QPointF val = score()->styleV(sid).toPointF();
+                  if (sizeIsSpatiumDependent())
+                        val *= score()->spatium();
+                  else
+                        val /= DPMM;
+                  return val;
+                  }
+            default:
+                  return score()->styleV(sid);
+            }
+      }
 }
 
