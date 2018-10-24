@@ -63,6 +63,7 @@
 #include "undo.h"
 #include "lyrics.h"
 #include "tempotext.h"
+#include "measurenumber.h"
 
 #ifdef OMR
 #include "omr/omr.h"
@@ -337,7 +338,6 @@ void readTextStyle206(MStyle* style, XmlReader& e)
       Align align = Align::LEFT;
       QPointF offset;
       OffsetType offsetType = OffsetType::SPATIUM;
-      bool offsetValid = false;
 
       FrameType frameType = FrameType::NO_FRAME;
       Spatium paddingWidth(0.0);
@@ -403,14 +403,12 @@ void readTextStyle206(MStyle* style, XmlReader& e)
                   if (offsetType == OffsetType::ABS)
                         xo /= INCH;
                   offset.setX(xo);
-                  offsetValid = true;
                   }
             else if (tag == "yoffset") {
                   qreal yo = e.readDouble();
                   if (offsetType == OffsetType::ABS)
                         yo /= INCH;
                   offset.setY(yo);
-                  offsetValid = true;
                   }
             else if (tag == "rxoffset" || tag == "ryoffset")         // obsolete
                   e.readDouble();
@@ -2912,10 +2910,8 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
             else if (tag == "Segment")
                   segment->read(e);
             else if (tag == "MeasureNumber") {
-                  Text* noText = new Text(score, Tid::MEASURE_NUMBER);
+                  MeasureNumber* noText = new MeasureNumber(score);
                   readText206(e, noText, m);
-                  noText->setFlag(ElementFlag::ON_STAFF, true);
-                  // noText->setFlag(ElementFlag::MOVABLE, false); ??
                   noText->setTrack(e.track());
                   noText->setParent(m);
                   m->setNoText(noText->staffIdx(), noText);

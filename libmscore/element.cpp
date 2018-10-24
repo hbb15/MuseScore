@@ -76,6 +76,7 @@
 #include "tempotext.h"
 #include "textframe.h"
 #include "text.h"
+#include "measurenumber.h"
 #include "textline.h"
 #include "tie.h"
 #include "timesig.h"
@@ -943,6 +944,7 @@ Element* Element::create(ElementType type, Score* score)
             case ElementType::ACCIDENTAL:        return new Accidental(score);
             case ElementType::DYNAMIC:           return new Dynamic(score);
             case ElementType::TEXT:              return new Text(score);
+            case ElementType::MEASURE_NUMBER:    return new MeasureNumber(score);
             case ElementType::INSTRUMENT_NAME:   return new InstrumentName(score);
             case ElementType::STAFF_TEXT:        return new StaffText(score);
             case ElementType::SYSTEM_TEXT:       return new SystemText(score);
@@ -1904,7 +1906,6 @@ void Element::endDrag(EditData& ed)
                   f = PropertyFlags::UNSTYLED;
             score()->undoPropertyChanged(this, pd.id, pd.data, f);
             }
-      undoChangeProperty(Pid::AUTOPLACE, false);
       }
 
 //---------------------------------------------------------
@@ -1950,7 +1951,6 @@ void Element::editDrag(EditData& ed)
       {
       score()->addRefresh(canvasBoundingRect());
       setOffset(offset() + ed.delta);
-      undoChangeProperty(Pid::AUTOPLACE, false);
       score()->addRefresh(canvasBoundingRect());
       }
 
@@ -1970,7 +1970,6 @@ void Element::endEditDrag(EditData& ed)
             eed->propertyData.clear();
             }
       if (changed) {
-            undoChangeProperty(Pid::AUTOPLACE, false);
             undoChangeProperty(Pid::GENERATED, false);
             }
       }

@@ -185,6 +185,7 @@ static const StyleType styleTypes[] {
       { Sid::propertyDistance,        "propertyDistance",        Spatium(1.0) },
 
       { Sid::articulationMag,         "articulationMag",         QVariant(1.0) },
+      { Sid::articulationPosAbove,    "articulationPosAbove",    QPointF(0.0, 0.0) },
       { Sid::lastSystemFillLimit,     "lastSystemFillLimit",     QVariant(0.3) },
 
       { Sid::hairpinPlacement,        "hairpinPlacement",        int(Placement::BELOW)  },
@@ -614,7 +615,7 @@ static const StyleType styleTypes[] {
       { Sid::measureNumberFontUnderline,    "measureNumberFontUnderline",   false },
       { Sid::measureNumberOffset,           "measureNumberOffset",          QPointF(0.0, -2.0) },
       { Sid::measureNumberOffsetType,       "measureNumberOffsetType",      int(OffsetType::SPATIUM)   },
-      { Sid::measureNumberAlign,            "measureNumberAlign",           QVariant::fromValue(Align::LEFT | Align::BASELINE) },
+      { Sid::measureNumberAlign,            "measureNumberAlign",           QVariant::fromValue(Align::HCENTER | Align::BASELINE) },
 
       { Sid::translatorFontFace,            "translatorFontFace",           "FreeSerif" },
       { Sid::translatorFontSize,            "translatorFontSize",           11.0 },
