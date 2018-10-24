@@ -785,6 +785,7 @@ InspectorKeySig::InspectorKeySig(QWidget* parent)
       const std::vector<InspectorItem> iiList = {
             { Pid::LEADING_SPACE,  1, s.leadingSpace,  s.resetLeadingSpace  },
             { Pid::SHOW_COURTESY,  0, k.showCourtesy,  k.resetShowCourtesy  },
+            { Pid::SET_KEY_TYPE,   0, k.setKey,  k.resetSetKey  },
 //          { Pid::SHOW_NATURALS,  0, k.showNaturals,  k.resetShowNaturals  }
             };
       const std::vector<InspectorPanel> ppList = {

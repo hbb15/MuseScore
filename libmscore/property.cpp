@@ -303,6 +303,8 @@ static constexpr PropertyMetaData propertyList[] = {
 
       { Pid::POS_ABOVE,               "pos_above",               false, "posAbove",              P_TYPE::SP_REAL         },
 
+      { Pid::SET_KEY_TYPE,            "set_key_type",            false, "setKeyType",            P_TYPE::INT             },
+
       { Pid::END, "++end++", false, "++end++", P_TYPE::INT }
       };
 

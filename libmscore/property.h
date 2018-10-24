@@ -324,6 +324,8 @@ enum class Pid {
 
       POS_ABOVE,
 
+      SET_KEY_TYPE,
+
       END
       };
 

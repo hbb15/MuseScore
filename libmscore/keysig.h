@@ -15,6 +15,7 @@
 
 #include "key.h"
 #include "element.h"
+#include "groups.h"
 
 namespace Ms {
 
@@ -33,6 +34,9 @@ class KeySig final : public Element {
       bool _hideNaturals;     // used in layout to override score style (needed for the Continuous panel)
       KeySigEvent _sig;
       void addLayout(SymId sym, qreal x, int y);
+      QString _numericString;
+      QPointF _numericPoint;
+      virtual void undoChangeProperty(Pid id, const QVariant&, PropertyFlags ps) override;
 
    public:
       KeySig(Score* = 0);
@@ -77,6 +81,8 @@ class KeySig final : public Element {
       virtual Element* nextSegmentElement() override;
       virtual Element* prevSegmentElement() override;
       virtual QString accessibleInfo() const override;
+
+      qreal numericGetWidth(StaffType* numeric, QString string) const;
 
       SymId convertFromOldId(int val) const;
       };

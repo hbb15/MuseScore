@@ -283,8 +283,8 @@ void TimeSig::layout()
             }
       else if (staff() && staff()->isNumericStaff( tick())) {
             StaffType* numeric = staff()->staffType(tick());
-            _numeric_ns = _numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString;//toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
-            _numeric_ds = _denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString;//toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
+            _numeric_ds = _numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString;//toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
+            _numeric_ns = _denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString;//toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
 
             ns = toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
             ds = toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);

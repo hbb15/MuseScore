@@ -43,12 +43,43 @@ const char* keyNames[] = {
       };
 
 //---------------------------------------------------------
+//   getNumericString
+//---------------------------------------------------------
+QString NumericString[15][2]={
+      {"H-Dur a=#6","gis-Moll a=#6"},
+      {"Fis-Dur a=#2","es-Moll a=#2"},
+      {"Cis-Dur a=#5","B-Moll a=#5"},
+      {"Gis-Dur a=#1","f-Moll a=#1"},
+      {"Es-Dur a=#4","c-Moll a=#4"},
+      {"B-Dur a=7","g-Moll a=7"},
+      {"F-Dur a=3","d-moll a=3"},
+      {"C-Dur a=6","a-Moll a=6"},
+      {"G-Dur a=2","e-Moll a=2"},
+      {"D-Dur a=5","h-Moll a=5"},
+      {"A-Dur a=1","fis-Moll a=1"},
+      {"E-Dur a=4","cis-Moll a=4"},
+      {"H-Dur a=#6","gis-Moll a=#6"},
+      {"Fis-Dur a=#2","es-Moll a=#2"},
+      {"Cis-Dur a=#5","B-Moll a=#5"}
+
+};
+
+//---------------------------------------------------------
+//   lyricsElementStyle
+//---------------------------------------------------------
+
+static const ElementStyle keysigElementStyle {
+      { Sid::SET_KEY_TYPE, Pid::SET_KEY_TYPE  },
+      };
+
+//---------------------------------------------------------
 //   KeySig
 //---------------------------------------------------------
 
 KeySig::KeySig(Score* s)
   : Element(s, ElementFlag::ON_STAFF)
       {
+      initElementStyle(&keysigElementStyle);
       _showCourtesy = true;
       _hideNaturals = false;
       }
@@ -191,7 +222,23 @@ void KeySig::layout()
       // add prefixed naturals, if any
 
       if (staff() && staff()->isNumericStaff( tick())) {
-            addLayout(SymId::accidentalSharp, 0,lines[0]);
+            if((tick()==0 || staff()->key(tick()-1) != _sig.key()) && staff() && (staff()->idx())<1){
+                  addLayout(SymId::accidentalSharp, 0,lines[0]);
+
+                  StaffType* numeric = staff()->staffType(tick());
+                  int sigMode =int(_sig.mode())-1;
+                  if(sigMode < 0 || sigMode > 2)
+                        sigMode =0;
+                  _numericString = NumericString[int(_sig.key())+7][sigMode];
+                  _numericPoint = QPointF(0, numeric->fretBoxH() * magS()*-5);
+                  qreal wd = numericGetWidth(numeric, _numericString);
+                  QRectF denRect = QRectF(_numericPoint.x(), _numericPoint.y()-numeric->fretBoxH(), wd, numeric->fretBoxH() * magS());
+                  setbbox(denRect);
+                  }
+            else {
+
+                  setbbox(QRectF());
+                  }
             }
       else{
 
@@ -268,27 +315,6 @@ void KeySig::layout()
             }
       }
 
-//---------------------------------------------------------
-//   getNumericString
-//---------------------------------------------------------
-QString NumericString[15][2]={
-      {"H-Dur a=#6","gis-Moll a=#6"},
-      {"Fis-Dur a=#2","es-Moll a=#2"},
-      {"Cis-Dur a=#5","B-Moll a=#5"},
-      {"Gis-Dur a=#1","f-Moll a=#1"},
-      {"Es-Dur a=#4","c-Moll a=#4"},
-      {"B-Dur a=7","g-Moll a=7"},
-      {"F-Dur a=3","d-moll a=3"},
-      {"C-Dur a=6","a-Moll a=6"},
-      {"G-Dur a=2","e-Moll a=2"},
-      {"D-Dur a=5","h-Moll a=5"},
-      {"A-Dur a=1","fis-Moll a=1"},
-      {"E-Dur a=4","cis-Moll a=4"},
-      {"H-Dur a=#6","gis-Moll a=#6"},
-      {"Fis-Dur a=#2","es-Moll a=#2"},
-      {"Cis-Dur a=#5","B-Moll a=#5"}
-
-};
 
 //---------------------------------------------------------
 //   set
@@ -306,7 +332,7 @@ void KeySig::draw(QPainter* p) const
                     f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
                     p->setFont(f);
                     p->setPen(c);
-                    p->drawText(QPointF(0, -150),NumericString[int(_sig.key())+7][0]);
+                    p->drawText(_numericPoint,_numericString);
                   }
             }
 
@@ -557,7 +583,7 @@ int KeySig::tick() const
 
 void KeySig::undoSetShowCourtesy(bool v)
       {
-      undoChangeProperty(Pid::SHOW_COURTESY, v);
+      Element::undoChangeProperty(Pid::SHOW_COURTESY, v);
       }
 
 //---------------------------------------------------------
@@ -568,6 +594,10 @@ QVariant KeySig::getProperty(Pid propertyId) const
       {
       switch (propertyId) {
             case Pid::SHOW_COURTESY: return int(showCourtesy());
+            case Pid::SET_KEY_TYPE:
+                  if(int(_sig.mode()) < 1 || int(_sig.mode()) > 2)
+                        return int(0);
+                  return int(_sig.mode())-1;
             default:
                   return Element::getProperty(propertyId);
             }
@@ -583,13 +613,19 @@ bool KeySig::setProperty(Pid propertyId, const QVariant& v)
             case Pid::SHOW_COURTESY:
                   if (generated())
                         return false;
-                  setShowCourtesy(v.toBool());
+                  break;
+            case Pid::SET_KEY_TYPE:
+                  if (generated())
+                        return false;
+                  _sig.setMode(KeyMode((v.toInt())+1));
                   break;
             default:
                   if (!Element::setProperty(propertyId, v))
                         return false;
                   break;
             }
+
+      triggerLayout();
       score()->setLayoutAll();
       setGenerated(false);
       return true;
@@ -603,6 +639,7 @@ QVariant KeySig::propertyDefault(Pid id) const
       {
       switch (id) {
             case Pid::SHOW_COURTESY:     return true;
+            case Pid::SET_KEY_TYPE:     return 0;
             default:
                   return Element::propertyDefault(id);
             }
@@ -648,7 +685,40 @@ QString KeySig::accessibleInfo() const
       return QString("%1: %2").arg(Element::accessibleInfo()).arg(keySigType);
       }
 
+
+//---------------------------------------------------------
+//   numericWidth
+//---------------------------------------------------------
+
+qreal KeySig::numericGetWidth(StaffType* numeric, QString string) const
+      {
+      qreal val;
+      if (numeric) {
+            QFont f    = numeric->fretFont();
+            f.setPointSizeF(numeric->fretFontSize());
+            QFontMetricsF fm(f, MScore::paintDevice());
+            val  = fm.width(string) * magS();
+            }
+      else
+            val = 5.0;
+      return val;
+      }
+
+//---------------------------------------------------------
+//   undoChangeProperty
+//---------------------------------------------------------
+
+void KeySig::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps)
+      {
+      if (id == Pid::SET_KEY_TYPE) {
+            _sig.setMode(KeyMode((v.toInt())+1));
+            Element::undoChangeProperty(id, v, ps);
+            return;
+            }
+
+      Element::undoChangeProperty(id, v, ps);
+      }
+
+
 }
-
-
 
