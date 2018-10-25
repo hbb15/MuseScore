@@ -3446,7 +3446,7 @@ void Score::undoChangeKeySig(Staff* ostaff, int tick, KeySigEvent key)
                   nkey.setKey(transposeKey(key.key(), interval));
                   }
             if (ks) {
-                  ks->Element::undoChangeProperty(Pid::GENERATED, false);
+                  ks->undoChangeProperty(Pid::GENERATED, false);
                   undo(new ChangeKeySig(ks, nkey, ks->showCourtesy()));
                   }
             else {

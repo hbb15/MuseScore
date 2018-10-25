@@ -36,7 +36,9 @@ class KeySig final : public Element {
       void addLayout(SymId sym, qreal x, int y);
       QString _numericString;
       QPointF _numericPoint;
-      virtual void undoChangeProperty(Pid id, const QVariant&, PropertyFlags ps) override;
+      bool _keyListSave = false;
+      int _keyListSaveTick = 0;
+      KeySigEvent _keyListSaveSig;
 
    public:
       KeySig(Score* = 0);
@@ -67,6 +69,7 @@ class KeySig final : public Element {
       void changeKeySigEvent(const KeySigEvent&);
       void setKeySigEvent(const KeySigEvent& e)      { _sig = e; }
       int tick() const;
+      void setKeyList(int tick, KeySigEvent k);
 
       bool showCourtesy() const           { return _showCourtesy; }
       void setShowCourtesy(bool v)        { _showCourtesy = v;    }

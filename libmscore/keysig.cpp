@@ -65,21 +65,12 @@ QString NumericString[15][2]={
 };
 
 //---------------------------------------------------------
-//   lyricsElementStyle
-//---------------------------------------------------------
-
-static const ElementStyle keysigElementStyle {
-      { Sid::SET_KEY_TYPE, Pid::SET_KEY_TYPE  },
-      };
-
-//---------------------------------------------------------
 //   KeySig
 //---------------------------------------------------------
 
 KeySig::KeySig(Score* s)
   : Element(s, ElementFlag::ON_STAFF)
       {
-      initElementStyle(&keysigElementStyle);
       _showCourtesy = true;
       _hideNaturals = false;
       }
@@ -120,6 +111,10 @@ void KeySig::addLayout(SymId sym, qreal x, int line)
 
 void KeySig::layout()
       {
+      if(_keyListSave){
+            _keyListSave = false;
+            setKeyList(_keyListSaveTick,_keyListSaveSig);
+            }
       qreal _spatium = spatium();
       setbbox(QRectF());
 
@@ -578,12 +573,21 @@ int KeySig::tick() const
       }
 
 //---------------------------------------------------------
+//   setKeyList
+//---------------------------------------------------------
+void KeySig::setKeyList(int tick, KeySigEvent k)
+      {
+
+      staff()->setKey(tick,k);
+
+      }
+//---------------------------------------------------------
 //   undoSetShowCourtesy
 //---------------------------------------------------------
 
 void KeySig::undoSetShowCourtesy(bool v)
       {
-      Element::undoChangeProperty(Pid::SHOW_COURTESY, v);
+      undoChangeProperty(Pid::SHOW_COURTESY, v);
       }
 
 //---------------------------------------------------------
@@ -618,6 +622,9 @@ bool KeySig::setProperty(Pid propertyId, const QVariant& v)
                   if (generated())
                         return false;
                   _sig.setMode(KeyMode((v.toInt())+1));
+                  _keyListSave = true;
+                  _keyListSaveSig = _sig;
+                  _keyListSaveTick = tick();
                   break;
             default:
                   if (!Element::setProperty(propertyId, v))
@@ -703,22 +710,6 @@ qreal KeySig::numericGetWidth(StaffType* numeric, QString string) const
             val = 5.0;
       return val;
       }
-
-//---------------------------------------------------------
-//   undoChangeProperty
-//---------------------------------------------------------
-
-void KeySig::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps)
-      {
-      if (id == Pid::SET_KEY_TYPE) {
-            _sig.setMode(KeyMode((v.toInt())+1));
-            Element::undoChangeProperty(id, v, ps);
-            return;
-            }
-
-      Element::undoChangeProperty(id, v, ps);
-      }
-
 
 }
 

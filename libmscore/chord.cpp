@@ -2459,7 +2459,6 @@ void Chord::layoutNumeric()
             if (headWidth < fretWidth)
                   headWidth = fretWidth;
             // centre fret string on stem
-            qreal x = stemX - fretWidth*0.5;
             qreal y = note->fixed() ? note->line() * lineDist / 2 : tab->physStringToYOffset(note->string()) * _spatium;
             //note->setPos(x, y);
             if (y < minY)

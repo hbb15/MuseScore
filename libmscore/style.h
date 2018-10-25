@@ -844,8 +844,6 @@ enum class Sid {
       fermataPosBelow,
       fermataMinDistance,
 
-      SET_KEY_TYPE,
-
       STYLES
       };
 

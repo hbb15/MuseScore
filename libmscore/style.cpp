@@ -863,8 +863,6 @@ static const StyleType styleTypes[] {
       { Sid::fermataPosAbove,               "fermataPosAbove",               QPointF(.0, -1.0) },
       { Sid::fermataPosBelow,               "fermataPosBelow",               QPointF(.0, 1.0)  },
       { Sid::fermataMinDistance,            "fermataMinDistance",            Spatium(0.4)  },
-
-      { Sid::SET_KEY_TYPE,                  "SetKeyType",                    0  },
       };
 #undef MM
 
