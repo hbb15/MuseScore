@@ -1351,15 +1351,15 @@ bool Note::readProperties(XmlReader& e)
       else if (tag == "small")
             setSmall(e.readInt());
       else if (tag == "mirror")
-            setProperty(Pid::MIRROR_HEAD, Ms::getProperty(Pid::MIRROR_HEAD, e));
+            readProperty(e, Pid::MIRROR_HEAD);
       else if (tag == "dotPosition")
-            setProperty(Pid::DOT_POSITION, Ms::getProperty(Pid::DOT_POSITION, e));
+            readProperty(e, Pid::DOT_POSITION);
       else if (tag == "fixed")
             setFixed(e.readBool());
       else if (tag == "fixedLine")
             setFixedLine(e.readInt());
       else if (tag == "head")
-            setProperty(Pid::HEAD_GROUP, Ms::getProperty(Pid::HEAD_GROUP, e));
+            readProperty(e, Pid::HEAD_GROUP);
       else if (tag == "velocity")
             setVeloOffset(e.readInt());
       else if (tag == "play")
@@ -1373,9 +1373,9 @@ bool Note::readProperties(XmlReader& e)
       else if (tag == "ghost")
             setGhost(e.readInt());
       else if (tag == "headType")
-            setProperty(Pid::HEAD_TYPE, Ms::getProperty(Pid::HEAD_TYPE, e));
+            readProperty(e, Pid::HEAD_TYPE);
       else if (tag == "veloType")
-            setProperty(Pid::VELO_TYPE, Ms::getProperty(Pid::VELO_TYPE, e));
+            readProperty(e, Pid::VELO_TYPE);
       else if (tag == "line")
             setLine(e.readInt());
       else if (tag == "Fingering") {
@@ -1571,18 +1571,13 @@ QRectF Note::drag(EditData& ed)
             int nString = ned->string + (st->upsideDown() ? -lineOffset : lineOffset);
             int nFret   = strData->fret(_pitch, nString, staff(), _tick);
             if (nFret >= 0) {                      // no fret?
-                  bool refret = false;
-                  if (fret() != nFret) {
-                        _fret = nFret;
-                        refret = true;
-                        }
-                  if (string() != nString) {
-                        _string = nString;
-                        refret = true;
-                        }
-                  if (refret) {
-                        strData->fretChords(chord());
-                        triggerLayout();
+                  if (fret() != nFret || string() != nString) {
+                        for (Note* nn : tiedNotes()) {
+                              nn->setFret(nFret);
+                              nn->setString(nString);
+                              strData->fretChords(nn->chord());
+                              nn->triggerLayout();
+                              }
                         }
                   }
             }
@@ -1590,18 +1585,21 @@ QRectF Note::drag(EditData& ed)
             if (staff()->isNumericStaff(_tick)) {
                   _pitch = ned->line - lrint(ed.delta.y() / 30.0);
                   }
-            else {
-                Key key = staff()->key(_tick);
-                _pitch = line2pitch(ned->line + lineOffset, staff()->clef(_tick), key);
-                if (!concertPitch()) {
-                      Interval interval = staff()->part()->instrument(_tick)->transpose();
-                      _pitch += interval.chromatic;
-                      }
-                _tpc[0] = pitch2tpc(_pitch, key, Prefer::NEAREST);
-                _tpc[1] = pitch2tpc(_pitch - transposition(), key, Prefer::NEAREST);
-           }
-    }
-      triggerLayout();
+            else{
+                  Key key = staff()->key(_tick);
+                  int newPitch = line2pitch(ned->line + lineOffset, staff()->clef(_tick), key);
+                  if (!concertPitch()) {
+                        Interval interval = staff()->part()->instrument(_tick)->transpose();
+                        newPitch += interval.chromatic;
+                        int newTpc1 = pitch2tpc(newPitch, key, Prefer::NEAREST);
+                        int newTpc2 = pitch2tpc(newPitch - transposition(), key, Prefer::NEAREST);
+                        for (Note* nn : tiedNotes()) {
+                        nn->setPitch(newPitch, newTpc1, newTpc2);
+                        nn->triggerLayout();
+                        }
+                  }
+            }
+      }
       return QRectF();
       }
 
@@ -2566,12 +2564,17 @@ int Note::ppitch() const
                         return div.pitch;
                   }
             }
-      return _pitch + staff()->pitchOffset(ch->segment()->tick());;
+      int capoFretId = staff()->capo(ch->segment()->tick());
+      if (capoFretId != 0)
+            capoFretId -= 1;
+
+      return _pitch + staff()->pitchOffset(ch->segment()->tick()) + capoFretId;
       }
 
 //---------------------------------------------------------
 //   epitch
-//    effective pitch
+//    effective pitch, i.e. a pitch which is visible in the
+//    currently used written notation.
 //    honours transposing instruments
 //---------------------------------------------------------
 

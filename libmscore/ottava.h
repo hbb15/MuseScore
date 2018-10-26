@@ -70,6 +70,7 @@ class Ottava;
 
 class OttavaSegment final : public TextLineBaseSegment {
       virtual void undoChangeProperty(Pid id, const QVariant&, PropertyFlags ps) override;
+      virtual Sid getPropertyStyle(Pid) const override;
 
    public:
       OttavaSegment(Score* s) : TextLineBaseSegment(s, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)  { }
@@ -91,6 +92,7 @@ class Ottava final : public TextLineBase {
       bool _numbersOnly;
 
       void updateStyledProperties();
+      virtual Sid getPropertyStyle(Pid) const override;
 
    protected:
       friend class OttavaSegment;
@@ -121,8 +123,6 @@ class Ottava final : public TextLineBase {
       virtual QVariant getProperty(Pid propertyId) const override;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(Pid) const override;
-
-      virtual void setYoff(qreal) override;
 
       virtual QString accessibleInfo() const override;
       };

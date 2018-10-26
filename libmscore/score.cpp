@@ -326,6 +326,34 @@ Score::~Score()
       }
 
 //---------------------------------------------------------
+//   Score::clone
+//         To create excerpt clone to show when changing PageSettings
+//         Use MasterScore::clone() instead
+//---------------------------------------------------------
+
+Score* Score::clone()
+      {
+      QBuffer buffer;
+      buffer.open(QIODevice::WriteOnly);
+      XmlWriter xml(this, &buffer);
+      xml.header();
+
+      xml.stag("museScore version=\"" MSC_VERSION "\"");
+      write(xml, false);
+      xml.etag();
+
+      buffer.close();
+
+      XmlReader r(buffer.buffer());
+      MasterScore* score = new MasterScore(style());
+      score->read1(r, true);
+
+      score->addLayoutFlags(LayoutFlag::FIX_PITCH_VELO);
+      score->doLayout();
+      return score;
+      }
+
+//---------------------------------------------------------
 //   addMeasure
 //---------------------------------------------------------
 
@@ -1453,23 +1481,16 @@ void Score::removeElement(Element* element)
                   Spanner* spanner = toSpanner(element);
                   if (et == ElementType::TEXTLINE && spanner->anchor() == Spanner::Anchor::NOTE)
                         break;
+                  setLayout(spanner->tick2());
                   removeSpanner(spanner);
-//TODO: system is not valid anymore after removing measure
-//                  for (SpannerSegment* ss : spanner->spannerSegments()) {
-//                        if (ss->system())
-//                              ss->system()->remove(ss);
-//                        }
                   }
                   break;
 
             case ElementType::OTTAVA:
                   {
                   Ottava* o = toOttava(element);
+                  setLayout(o->tick2());
                   removeSpanner(o);
-                  foreach(SpannerSegment* ss, o->spannerSegments()) {
-                        if (ss->system())
-                              ss->system()->remove(ss);
-                        }
                   o->staff()->updateOttava();
                   cmdState().layoutFlags |= LayoutFlag::FIX_PITCH_VELO;
                   _playlistDirty = true;
@@ -2811,15 +2832,12 @@ void Score::selectAdd(Element* e)
                   _selection.updateSelectedElements();
                   }
             }
-      else { // None or List
+      else if (!_selection.elements().contains(e)) {
             addRefresh(e->abbox());
-            if (_selection.elements().contains(e))
-                  _selection.remove(e);
-            else {
-                  selState = SelState::LIST;
-                  _selection.add(e);
-                  }
+            selState = SelState::LIST;
+            _selection.add(e);
             }
+
       _selection.setState(selState);
       }
 
@@ -4421,30 +4439,5 @@ Movements::~Movements()
       delete _undo;
       }
 
-//---------------------------------------------------------
-//   styleValue
-//    returns style values in score units usable for
-//    setting property pid
-//---------------------------------------------------------
-
-QVariant Score::styleValue(Pid pid, Sid sid) const
-      {
-      switch (propertyType(pid)) {
-            case P_TYPE::SP_REAL:
-                  return score()->styleP(sid);
-            case P_TYPE::POINT_SP:
-                  return score()->styleV(sid).toPointF() * score()->spatium();
-            case P_TYPE::POINT_SP_MM: {
-                  QPointF val = score()->styleV(sid).toPointF();
-                  if (sizeIsSpatiumDependent())
-                        val *= score()->spatium();
-                  else
-                        val /= DPMM;
-                  return val;
-                  }
-            default:
-                  return score()->styleV(sid);
-            }
-      }
 }
 

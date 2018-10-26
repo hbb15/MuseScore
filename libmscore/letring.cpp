@@ -89,8 +89,10 @@ void LetRing::write(XmlWriter& xml) const
             return;
       xml.stag(name());
 
-      for (const StyledProperty& spp : *styledProperties())
-            writeProperty(xml, spp.pid);
+      for (const StyledProperty& spp : *styledProperties()) {
+            if (!isStyled(spp.pid))
+                  writeProperty(xml, spp.pid);
+            }
 
       Element::writeProperties(xml);
       xml.etag();
@@ -103,15 +105,6 @@ void LetRing::write(XmlWriter& xml) const
 LineSegment* LetRing::createLineSegment()
       {
       return new LetRingSegment(score());
-      }
-
-//---------------------------------------------------------
-//   setYoff
-//---------------------------------------------------------
-
-void LetRing::setYoff(qreal val)
-      {
-      ryoffset() += val * spatium() - score()->styleP(placeAbove() ? Sid::letRingPosAbove : Sid::letRingPosBelow);
       }
 
 //---------------------------------------------------------

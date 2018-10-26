@@ -192,11 +192,11 @@ class Spanner : public Element {
       bool removeSpannerBack();
       virtual void removeUnmanaged();
       virtual void undoInsertTimeUnmanaged(int tick, int len);
-      virtual void setYoff(qreal) {}    // used in musicxml import
 
       QVariant getProperty(Pid propertyId) const;
       bool setProperty(Pid propertyId, const QVariant& v);
       QVariant propertyDefault(Pid propertyId) const;
+      virtual void undoChangeProperty(Pid id, const QVariant&, PropertyFlags ps) override;
 
       void computeStartElement();
       void computeEndElement();
@@ -230,9 +230,8 @@ class Spanner : public Element {
       virtual Element* nextSegmentElement() override;
       virtual Element* prevSegmentElement() override;
 
-//      virtual bool isSpanner() const override { return true; }
-
       friend class SpannerSegment;
+      using ScoreElement::undoChangeProperty;
       };
 
 }     // namespace Ms

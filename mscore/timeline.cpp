@@ -36,6 +36,7 @@
 #include "libmscore/marker.h"
 #include "texttools.h"
 #include "mixer.h"
+#include "tourhandler.h"
 
 namespace Ms {
 
@@ -59,6 +60,8 @@ void MuseScore::showTimeline(bool visible)
       _timeline->setVisible(visible);
 
       getAction("toggle-timeline")->setChecked(visible);
+      if (visible)
+            TourHandler::startTour("timeline-tour");
       }
 
 //---------------------------------------------------------
@@ -1750,7 +1753,8 @@ void Timeline::drawSelection()
                   if (barline &&
                       (barline->barLineType() == BarLineType::END_REPEAT || barline->barLineType() == BarLineType::DOUBLE || barline->barLineType() == BarLineType::END) &&
                       measure != _score->lastMeasure()) {
-                        measure = measure->prevMeasure();
+                        if (measure->prevMeasure())
+                              measure = measure->prevMeasure();
                         }
                   }
 
@@ -2213,7 +2217,6 @@ void Timeline::updateGrid()
             mouseOver(mapToScene(mapFromGlobal(QCursor::pos())));
             row_names->updateLabels(getLabels(), grid_height);
             }
-
       viewport()->update();
       }
 

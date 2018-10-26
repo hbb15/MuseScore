@@ -522,7 +522,7 @@ void Element::writeProperties(XmlWriter& xml) const
                         }
                   }
             }
-      if (propertyFlags(Pid::OFFSET) == PropertyFlags::NOSTYLE && !autoplace())
+      if (propertyFlags(Pid::OFFSET) == PropertyFlags::NOSTYLE)
             writeProperty(xml, Pid::OFFSET);
 
       for (Pid pid : { Pid::COLOR, Pid::VISIBLE, Pid::Z, Pid::PLACEMENT}) {
@@ -640,13 +640,8 @@ bool Element::readProperties(XmlReader& e)
             if (val >= 0)
                   e.initTick(score()->fileDivision(val));
             }
-      else if (tag == "pos") {            // obsolete
-            Pid pid = Pid::OFFSET;
-            QPointF p = Ms::getProperty(pid, e).toPointF() * score()->spatium();
-            setProperty(pid, p);
-            if (propertyFlags(pid) == PropertyFlags::STYLED)
-                  setPropertyFlags(pid, PropertyFlags::UNSTYLED);
-            }
+      else if (tag == "pos")             // obsolete
+            readProperty(e, Pid::OFFSET);
       else if (tag == "voice")
             setTrack((_track/VOICES)*VOICES + e.readInt());
       else if (tag == "tag") {
@@ -662,8 +657,6 @@ bool Element::readProperties(XmlReader& e)
             ;
       else if (tag == "z")
             setZ(e.readInt());
-      else if (ScoreElement::readProperty(tag, e, Pid::OFFSET))
-            ;
       else
             return false;
       return true;
@@ -1062,15 +1055,6 @@ void collectElements(void* data, Element* e)
       {
       QList<Element*>* el = static_cast<QList<Element*>*>(data);
       el->append(e);
-      }
-
-//---------------------------------------------------------
-//   undoSetPlacement
-//---------------------------------------------------------
-
-void Element::undoSetPlacement(Placement v)
-      {
-      undoChangeProperty(Pid::PLACEMENT, int(v));
       }
 
 //---------------------------------------------------------
@@ -1905,6 +1889,7 @@ void Element::endDrag(EditData& ed)
             if (f == PropertyFlags::STYLED)
                   f = PropertyFlags::UNSTYLED;
             score()->undoPropertyChanged(this, pd.id, pd.data, f);
+            setGenerated(false);
             }
       }
 
@@ -2122,9 +2107,6 @@ void Element::autoplaceSegmentElement(qreal minDistance)
             Segment* s        = toSegment(parent());
             Measure* m        = s->measure();
             int si            = staffIdx();
-
-            if (m->system() == nullptr)
-                  printf("=== no system for <%s>\n", name());
 
             SysStaff* ss = m->system()->staff(si);
             QRectF r = bbox().translated(m->pos() + s->pos() + pos());

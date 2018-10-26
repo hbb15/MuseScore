@@ -30,6 +30,7 @@
 #include "textpalette.h"
 #include "texttools.h"
 #include "fotomode.h"
+#include "tourhandler.h"
 
 #include "inspector/inspector.h"
 
@@ -99,6 +100,7 @@ extern QErrorMessage* errorMessage;
 ScoreView::ScoreView(QWidget* parent)
    : QWidget(parent), editData(this)
       {
+      setObjectName("scoreview");
       setStatusTip("scoreview");
       setAcceptDrops(true);
 #ifndef Q_OS_MAC
@@ -347,7 +349,8 @@ void ScoreView::objectPopup(const QPoint& pos, Element* obj)
       else {
             _score->startCmd();
             elementPropertyAction(cmd, obj);
-            _score->endCmd();
+            if (score()->undoStack()->active())
+                  _score->endCmd();
             }
       }
 
@@ -355,11 +358,13 @@ void ScoreView::objectPopup(const QPoint& pos, Element* obj)
 //   measurePopup
 //---------------------------------------------------------
 
-void ScoreView::measurePopup(const QPoint& gpos, Measure* obj)
+void ScoreView::measurePopup(QContextMenuEvent* ev, Measure* obj)
       {
       int staffIdx;
       int pitch;
       Segment* seg;
+
+      QPoint gpos = ev->globalPos();
 
       if (!_score->pos2measure(editData.startMove, &staffIdx, &pitch, &seg, 0))
             return;
@@ -447,7 +452,10 @@ void ScoreView::measurePopup(const QPoint& gpos, Measure* obj)
             }
       else if (cmd == "pianoroll") {
             _score->endCmd();
-            mscore->editInPianoroll(staff);
+            QPointF p = toLogical(ev->pos());
+            Position pp;
+            bool foundPos = _score->getPosition(&pp, p, 0);
+            mscore->editInPianoroll(staff, foundPos ? &pp : 0);
             }
       else if (cmd == "staff-properties") {
             int tick = obj ? obj->tick() : -1;
@@ -3096,7 +3104,7 @@ void ScoreView::addSlur()
                               continue;
                         if (e->isNote())
                               e = toNote(e)->chord();
-                        if (!e->isChordRest())
+                        if (!e->isChord())
                               continue;
                         ChordRest* cr = toChordRest(e);
                         if (!cr1 || cr1->tick() > cr->tick())
@@ -3114,7 +3122,7 @@ void ScoreView::addSlur()
             for (Element* e : el) {
                   if (e->isNote())
                         e = toNote(e)->chord();
-                  if (!e->isChordRest())
+                  if (!e->isChord())
                         continue;
                   ChordRest* cr = toChordRest(e);
                   if (!cr1 || cr->isBefore(cr1))
@@ -4163,6 +4171,8 @@ static bool elementLower(const Element* e1, const Element* e2)
             }
       return e1->z() < e2->z();
       }
+
+
 
 //---------------------------------------------------------
 //   elementNear

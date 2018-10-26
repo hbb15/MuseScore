@@ -498,7 +498,6 @@ void readTextStyle206(MStyle* style, XmlReader& e)
             { "Staff",                   Tid::STAFF },
             { "Chord Symbol",            Tid::HARMONY_A },
             { "Rehearsal Mark",          Tid::REHEARSAL_MARK },
-            { "Repeat Text",             Tid::REPEAT_LEFT },
             { "Repeat Text Left",        Tid::REPEAT_LEFT },
             { "Repeat Text Right",       Tid::REPEAT_RIGHT },
             { "Frame",                   Tid::FRAME },
@@ -1139,15 +1138,15 @@ bool readNoteProperties206(Note* note, XmlReader& e)
       else if (tag == "small")
             note->setSmall(e.readInt());
       else if (tag == "mirror")
-            note->setProperty(Pid::MIRROR_HEAD, Ms::getProperty(Pid::MIRROR_HEAD, e));
+            note->readProperty(e, Pid::MIRROR_HEAD);
       else if (tag == "dotPosition")
-            note->setProperty(Pid::DOT_POSITION, Ms::getProperty(Pid::DOT_POSITION, e));
+            note->readProperty(e, Pid::DOT_POSITION);
       else if (tag == "fixed")
             note->setFixed(e.readBool());
       else if (tag == "fixedLine")
             note->setFixedLine(e.readInt());
       else if (tag == "head")
-            note->setProperty(Pid::HEAD_GROUP, Ms::getProperty(Pid::HEAD_GROUP, e));
+            note->readProperty(e, Pid::HEAD_GROUP);
       else if (tag == "velocity")
             note->setVeloOffset(e.readInt());
       else if (tag == "play")
@@ -1161,9 +1160,9 @@ bool readNoteProperties206(Note* note, XmlReader& e)
       else if (tag == "ghost")
             note->setGhost(e.readInt());
       else if (tag == "headType")
-            note->setProperty(Pid::HEAD_TYPE, Ms::getProperty(Pid::HEAD_TYPE, e));
+            note->readProperty(e, Pid::HEAD_TYPE);
       else if (tag == "veloType")
-            note->setProperty(Pid::VELO_TYPE, Ms::getProperty(Pid::VELO_TYPE, e));
+            note->readProperty(e, Pid::VELO_TYPE);
       else if (tag == "line")
             note->setLine(e.readInt());
       else if (tag == "Fingering") {
@@ -2127,7 +2126,7 @@ void readTrill206(XmlReader& e, Trill* t)
                   t->setAccidental(_accidental);
                   }
             else if ( tag == "ornamentStyle")
-                  t->setProperty(Pid::ORNAMENT_STYLE, Ms::getProperty(Pid::ORNAMENT_STYLE, e));
+                  t->readProperty(e, Pid::ORNAMENT_STYLE);
             else if ( tag == "play")
                   t->setPlayArticulation(e.readBool());
             else if (!t->SLine::readProperties(e))
@@ -2773,9 +2772,9 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                   RehearsalMark* el = new RehearsalMark(score);
                   el->setTrack(e.track());
                   readText206(e, el, el);
-                  el->setOffset(el->offset() - el->score()->styleValue(Pid::OFFSET, Sid::rehearsalMarkPosAbove).toPointF());
-                  if (el->offset().isNull())
-                        el->setAutoplace(true);
+//                  el->setOffset(el->offset() - el->score()->styleValue(Pid::OFFSET, Sid::rehearsalMarkPosAbove).toPointF());
+//                  if (el->offset().isNull())
+//                        el->setAutoplace(true);
                   segment = m->getSegment(SegmentType::ChordRest, e.tick());
                   segment->add(el);
                   }

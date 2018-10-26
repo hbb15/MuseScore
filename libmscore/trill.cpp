@@ -233,9 +233,9 @@ void TrillSegment::scanElements(void* data, void (*func)(void*, Element*), bool 
 Trill::Trill(Score* s)
   : SLine(s)
       {
-      _trillType = Type::TRILL_LINE;
-      _accidental = 0;
-      _ornamentStyle    = MScore::OrnamentStyle::DEFAULT;
+      _trillType     = Type::TRILL_LINE;
+      _accidental    = 0;
+      _ornamentStyle = MScore::OrnamentStyle::DEFAULT;
       setPlayArticulation(true);
       setPlacement(Placement::ABOVE);
       }
@@ -336,7 +336,7 @@ void Trill::read(XmlReader& e)
                   _accidental->setParent(this);
                   }
             else if ( tag == "ornamentStyle")
-                  setProperty(Pid::ORNAMENT_STYLE, Ms::getProperty(Pid::ORNAMENT_STYLE, e));
+                  readProperty(e, Pid::ORNAMENT_STYLE);
             else if ( tag == "play")
                   setPlayArticulation(e.readBool());
             else if (!SLine::readProperties(e))
@@ -474,15 +474,6 @@ QVariant Trill::propertyDefault(Pid propertyId) const
 void Trill::undoSetTrillType(Type val)
       {
       undoChangeProperty(Pid::TRILL_TYPE, int(val));
-      }
-
-//---------------------------------------------------------
-//   setYoff
-//---------------------------------------------------------
-
-void Trill::setYoff(qreal val)
-      {
-      ryoffset() += val * spatium() - score()->styleP(Sid::trillPosAbove);
       }
 
 //---------------------------------------------------------

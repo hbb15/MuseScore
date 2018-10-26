@@ -254,7 +254,7 @@ void PreferenceDialog::hideEvent(QHideEvent* ev)
 
 void PreferenceDialog::recordButtonClicked(int val)
       {
-      foreach(QAbstractButton* b, recordButtons->buttons()) {
+      for (QAbstractButton* b : recordButtons->buttons()) {
             b->setChecked(recordButtons->id(b) == val);
             }
       mscore->setMidiRecordId(val);
@@ -343,6 +343,7 @@ void PreferenceDialog::updateValues(bool useDefaultValues)
       playPanelShow->setChecked(preferences.getBool(PREF_UI_APP_STARTUP_SHOWPLAYPANEL));
       showSplashScreen->setChecked(preferences.getBool(PREF_UI_APP_STARTUP_SHOWSPLASHSCREEN));
       showStartcenter->setChecked(preferences.getBool(PREF_UI_APP_STARTUP_SHOWSTARTCENTER));
+      showTours->setChecked(preferences.getBool(PREF_UI_APP_STARTUP_SHOWTOURS));
 
       alsaDriver->setChecked(preferences.getBool(PREF_IO_ALSA_USEALSAAUDIO));
       jackDriver->setChecked(preferences.getBool(PREF_IO_JACK_USEJACKAUDIO) || preferences.getBool(PREF_IO_JACK_USEJACKMIDI));
@@ -408,7 +409,7 @@ void PreferenceDialog::updateValues(bool useDefaultValues)
       //
       qDeleteAll(localShortcuts);
       localShortcuts.clear();
-      foreach(const Shortcut* s, Shortcut::shortcuts())
+      for(const Shortcut* s : Shortcut::shortcuts())
             localShortcuts[s->key()] = new Shortcut(*s);
       updateSCListView();
 
@@ -498,7 +499,7 @@ void PreferenceDialog::updateValues(bool useDefaultValues)
       int idx = 0;
       importCharsetListOve->clear();
       importCharsetListGP->clear();
-      foreach (QByteArray charset, charsets) {
+      for (QByteArray charset : charsets) {
             importCharsetListOve->addItem(charset);
             importCharsetListGP->addItem(charset);
             if (charset == preferences.getString(PREF_IMPORT_OVERTURE_CHARSET))
@@ -585,7 +586,7 @@ bool ShortcutItem::operator<(const QTreeWidgetItem& item) const
 void PreferenceDialog::updateSCListView()
       {
       shortcutList->clear();
-      foreach (Shortcut* s, localShortcuts) {
+      for (Shortcut* s : localShortcuts) {
             if (!s)
                   continue;
             ShortcutItem* newItem = new ShortcutItem;
@@ -934,6 +935,7 @@ void PreferenceDialog::apply()
       preferences.setPreference(PREF_UI_APP_STARTUP_SHOWPLAYPANEL, playPanelShow->isChecked());
       preferences.setPreference(PREF_UI_APP_STARTUP_SHOWSPLASHSCREEN, showSplashScreen->isChecked());
       preferences.setPreference(PREF_UI_APP_STARTUP_SHOWSTARTCENTER, showStartcenter->isChecked());
+      preferences.setPreference(PREF_UI_APP_STARTUP_SHOWTOURS, showTours->isChecked());
       preferences.setPreference(PREF_UI_CANVAS_BG_USECOLOR, bgColorButton->isChecked());
       preferences.setPreference(PREF_UI_CANVAS_BG_COLOR, bgColorLabel->color());
       preferences.setPreference(PREF_UI_CANVAS_FG_USECOLOR, fgColorButton->isChecked());
@@ -1049,11 +1051,11 @@ void PreferenceDialog::apply()
 
       if (shortcutsChanged) {
             shortcutsChanged = false;
-            foreach(const Shortcut* s, localShortcuts) {
+            for(const Shortcut* s : localShortcuts) {
                   Shortcut* os = Shortcut::getShortcut(s->key());
                   if (os) {
                         if (!os->compareKeys(*s))
-                              os->setKeys(s->keys());
+                              os->setKeys(*s);
                         }
                   }
             Shortcut::dirty = true;
@@ -1129,7 +1131,7 @@ void PreferenceDialog::resetAllValues()
       qDeleteAll(localShortcuts);
       localShortcuts.clear();
       Shortcut::resetToDefault();
-      foreach(const Shortcut* s, Shortcut::shortcuts())
+      for (const Shortcut* s : Shortcut::shortcuts())
             localShortcuts[s->key()] = new Shortcut(*s);
       updateSCListView();
       }

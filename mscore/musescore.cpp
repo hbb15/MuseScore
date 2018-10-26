@@ -85,6 +85,7 @@
 #include "resourceManager.h"
 #include "scoreaccessibility.h"
 #include "startupWizard.h"
+#include "tourhandler.h"
 
 #include "libmscore/mscore.h"
 #include "libmscore/system.h"
@@ -599,6 +600,7 @@ void MuseScore::populateNoteInputMenu()
                            getAction("note-input"),
                            noteEntryMethods,
                            this);
+                        w->setObjectName("note-entry-methods");
                         }
                   else if (strncmp(s, "voice-", 6) == 0) {
                         AccessibleToolButton* tb = new AccessibleToolButton(this, a);
@@ -614,8 +616,10 @@ void MuseScore::populateNoteInputMenu()
                         // tb->setDefaultAction(a);
                         w = tb;
                         }
-                  else
+                  else {
                         w = new AccessibleToolButton(entryTools, a);
+                        w->setObjectName(s);
+                        }
                   entryTools->addWidget(w);
                   }
             }
@@ -923,6 +927,10 @@ bool MuseScore::isInstalledExtension(QString extensionId)
 MuseScore::MuseScore()
    : QMainWindow()
       {
+      _tourHandler = new TourHandler(this);
+      qApp->installEventFilter(_tourHandler);
+      _tourHandler->loadTours();
+
       QScreen* screen = QGuiApplication::primaryScreen();
       if (userDPI == 0.0) {
 #if defined(Q_OS_WIN)
@@ -1194,6 +1202,25 @@ MuseScore::MuseScore()
       fotoTools->setObjectName("foto-tools");
       fotoTools->addWidget(new AccessibleToolButton(fotoTools, getAction("fotomode")));
 
+      //-------------------------------
+      //    Feedback Tool Bar
+      //-------------------------------
+
+      feedbackTools = addToolBar("");
+      feedbackTools->setObjectName("feedback-tools");
+	  // Forbid to move or undock the toolbar...
+      feedbackTools->setMovable(false);
+      feedbackTools->setFloatable(false);
+      // Add a spacer to align the buttons to the right side.
+      QWidget* spacer = new QWidget(feedbackTools);
+      spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+      feedbackTools->addWidget(spacer);
+      // And, finally, add the buttons themselves.
+      feedbackTools->addWidget(new AccessibleToolButton(feedbackTools, getAction("report-bug")));
+      AccessibleToolButton* feedbackButton = new AccessibleToolButton(feedbackTools, getAction("leave-feedback"));
+      feedbackButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+      feedbackTools->addWidget(feedbackButton);
+
       addToolBarBreak();
 
       //-------------------------------
@@ -1204,26 +1231,6 @@ MuseScore::MuseScore()
       entryTools->setObjectName("entry-tools");
 
       populateNoteInputMenu();
-
-      //-------------------------------
-      //    Feedback Tool Bar
-      //-------------------------------
-
-      feedbackTools = new QToolBar("", this);
-      feedbackTools->setObjectName("feedback-tools");
-      // Add the toolbar to the bottom and forbid to move it...
-      feedbackTools->setMovable(false);
-      feedbackTools->setFloatable(false);
-      addToolBar(Qt::BottomToolBarArea, feedbackTools);
-      // Add a spacer to align the buttons to the right side.
-      QWidget* spacer = new QWidget(feedbackTools);
-      spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-      feedbackTools->addWidget(spacer);
-      // And, finally, add the buttons themselves.
-      feedbackTools->addWidget(new AccessibleToolButton(feedbackTools, getAction("report-bug")));
-      AccessibleToolButton* feedbackButton = new AccessibleToolButton(feedbackTools, getAction("leave-feedback"));
-      feedbackButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-      feedbackTools->addWidget(feedbackButton);
 
       //---------------------
       //    Menus
@@ -2493,7 +2500,7 @@ void MuseScore::showPageSettings()
       {
       if (pageSettings == 0)
             pageSettings = new PageSettings();
-      pageSettings->setScore(cs->masterScore());
+      pageSettings->setScore(cs);
       pageSettings->show();
       pageSettings->raise();
       }
@@ -2545,9 +2552,14 @@ void MuseScore::showPlayPanel(bool visible)
             playPanel->setGain(synti->gain());
             playPanel->setScore(cs);
             addDockWidget(Qt::RightDockWidgetArea, playPanel);
+
+            // The play panel must be set visible before being set floating for positioning
+            // and window geometry reasons.
+            playPanel->setVisible(visible);
+            playPanel->setFloating(false);
             }
-      playPanel->setVisible(visible);
-      playPanel->setFloating(false);
+      else
+            playPanel->setVisible(visible);
       playId->setChecked(visible);
       }
 
@@ -3893,6 +3905,8 @@ void MuseScore::writeSettings()
             drumrollEditor->writeSettings();
       if (startcenter)
             startcenter->writeSettings();
+
+      _tourHandler->writeCompletedTours();
       }
 
 //---------------------------------------------------------
@@ -4314,13 +4328,14 @@ void MuseScore::handleMessage(const QString& message)
 //   editInPianoroll
 //---------------------------------------------------------
 
-void MuseScore::editInPianoroll(Staff* staff)
+void MuseScore::editInPianoroll(Staff* staff, Position* p)
       {
       if (pianorollEditor == 0)
             pianorollEditor = new PianorollEditor;
       pianorollEditor->setScore(staff->score());
       pianorollEditor->setStaff(staff);
       pianorollEditor->show();
+      pianorollEditor->focusOnPosition(p);
       }
 
 //---------------------------------------------------------
@@ -5222,6 +5237,7 @@ void MuseScore::cmd(QAction* a)
       if (lastShortcut->isCmd())
             cs->endCmd();
       endCmd();
+      TourHandler::startTour(cmdn);
       }
 
 //---------------------------------------------------------
@@ -6868,6 +6884,7 @@ int main(int argc, char* av[])
                               mscore->getPaletteBox()->updateWorkspaces();
                               }
                         }
+                  preferences.setPreference(PREF_UI_APP_STARTUP_SHOWTOURS, sw->showTours());
                   delete sw;
 
                   // reinitialize preferences so some default values are calculated based on chosen language
@@ -6883,8 +6900,10 @@ int main(int argc, char* av[])
                   preferences.setToDefaultValue(PREF_APP_PATHS_MYEXTENSIONS);
                   updateExternalValuesFromPreferences();
                   }
-            QString keyboardLayout = preferences.getString(PREF_APP_KEYBOARDLAYOUT);
-            StartupWizard::autoSelectShortcuts(keyboardLayout);
+            if (!Shortcut::customSource()) {
+                  QString keyboardLayout = preferences.getString(PREF_APP_KEYBOARDLAYOUT);
+                  StartupWizard::autoSelectShortcuts(keyboardLayout);
+                  }
             }
 
       QApplication::instance()->installEventFilter(mscore);
@@ -6974,6 +6993,10 @@ int main(int argc, char* av[])
             getAction("startcenter")->setChecked(true);
             mscore->showStartcenter(true);
 #endif
+            }
+      else {
+            mscore->tourHandler()->startTour("welcome");
+            //otherwise, welcome tour will appear on closing StartCenter
             }
 
       if (sc) {

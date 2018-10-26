@@ -243,7 +243,7 @@ void Lyrics::layout()
                   // actual lyric
                   //QString actualLyric = punctuationMatch.captured(2);
                   if (!lp.isEmpty() || !tp.isEmpty()) {
-                        qDebug("create leading, trailing <%s> -- <%s><%s>", qPrintable(s), qPrintable(lp), qPrintable(tp));
+//                        qDebug("create leading, trailing <%s> -- <%s><%s>", qPrintable(s), qPrintable(lp), qPrintable(tp));
                         Lyrics leading(*this);
                         leading.setPlainText(lp);
                         leading.layout1();
@@ -333,11 +333,11 @@ void Lyrics::layout2(int nAbove)
       if (placeBelow()) {
             qreal yo = segment()->measure()->system()->staff(staffIdx())->bbox().height();
             rypos()  = lh * (_no - nAbove) + yo;
-            rpos()  += score()->styleValue(Pid::OFFSET, Sid::lyricsPosBelow).toPointF();
+            rpos()  += styleValue(Pid::OFFSET, Sid::lyricsPosBelow).toPointF();
             }
       else {
             rypos() = -lh * (nAbove - _no - 1);
-            rpos() += score()->styleValue(Pid::OFFSET, Sid::lyricsPosAbove).toPointF();
+            rpos() += styleValue(Pid::OFFSET, Sid::lyricsPosAbove).toPointF();
             }
       }
 

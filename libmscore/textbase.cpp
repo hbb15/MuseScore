@@ -1335,8 +1335,8 @@ void TextBase::layout()
       setPos(QPointF());
       if (!parent())
             setOffset(0.0, 0.0);
-      else if (isStyled(Pid::OFFSET))
-            setOffset(propertyDefault(Pid::OFFSET).toPointF());
+//      else if (isStyled(Pid::OFFSET))                                   // TODO: should be set already
+//            setOffset(propertyDefault(Pid::OFFSET).toPointF());
       if (placeBelow())
             rypos() = staff() ? staff()->height() : 0.0;
       layout1();
@@ -2325,7 +2325,7 @@ QVariant TextBase::propertyDefault(Pid id) const
             }
       Sid sid = getPropertyStyle(id);
       if (sid != Sid::NOSTYLE)
-            return score()->styleValue(id, sid);
+            return styleValue(id, sid);
       QVariant v;
       switch (id) {
             case Pid::SUB_STYLE:
@@ -2337,7 +2337,7 @@ QVariant TextBase::propertyDefault(Pid id) const
             default:
                   for (const StyledProperty& p : *textStyle(Tid::DEFAULT)) {
                         if (p.pid == id)
-                              return score()->styleValue(id, p.sid);
+                              return styleValue(id, p.sid);
                         }
                   return Element::propertyDefault(id);
             }
@@ -2394,26 +2394,14 @@ void TextBase::styleChanged()
       int i = 0;
       for (const StyledProperty& spp : *_elementStyle) {
             PropertyFlags f = _propertyFlagsList[i];
-            if (f == PropertyFlags::STYLED) {
-                  if (propertyType(spp.pid) == P_TYPE::SP_REAL) {
-                        qreal val = score()->styleP(spp.sid);
-                        setProperty(spp.pid, val);
-                        }
-                  else
-                        setProperty(spp.pid, score()->styleV(spp.sid));
-                  }
+            if (f == PropertyFlags::STYLED)
+                  setProperty(spp.pid, styleValue(spp.pid, spp.sid));
             ++i;
             }
       for (const StyledProperty& spp : *textStyle(tid())) {
             PropertyFlags f = _propertyFlagsList[i];
-            if (f == PropertyFlags::STYLED) {
-                  if (propertyType(spp.pid) == P_TYPE::SP_REAL) {
-                        qreal val = score()->styleP(spp.sid);
-                        setProperty(spp.pid, val);
-                        }
-                  else
-                        setProperty(spp.pid, score()->styleV(spp.sid));
-                  }
+            if (f == PropertyFlags::STYLED)
+                  setProperty(spp.pid, styleValue(spp.pid, spp.sid));
             ++i;
             }
       }
@@ -2432,9 +2420,9 @@ void TextBase::initElementStyle(const ElementStyle* ss)
       for (size_t i = 0; i < n; ++i)
             _propertyFlagsList[i] = PropertyFlags::STYLED;
       for (const StyledProperty& p : *_elementStyle)
-            setPidFromSid(p.pid, p.sid);
+            setProperty(p.pid, styleValue(p.pid, p.sid));
       for (const StyledProperty& p : *textStyle(tid()))
-            setPidFromSid(p.pid, p.sid);
+            setProperty(p.pid, styleValue(p.pid, p.sid));
       }
 
 //---------------------------------------------------------
@@ -2445,9 +2433,7 @@ void TextBase::initTid(Tid tid)
       {
       setTid(tid);
       for (const StyledProperty& p : *textStyle(tid)) {
-            Pid pid    = p.pid;
-            QVariant v = propertyDefault(pid);
-            setProperty(pid, v);
+            setProperty(p.pid, styleValue(p.pid, p.sid));
             }
       }
 

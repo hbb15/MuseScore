@@ -1027,7 +1027,7 @@ void SLine::writeProperties(XmlWriter& xml) const
       //
       bool modified = false;
       for (const SpannerSegment* seg : spannerSegments()) {
-            if (!seg->autoplace() || !seg->visible()) {
+            if (!seg->autoplace() || !seg->visible() || (!seg->isStyled(Pid::OFFSET) && !seg->offset().isNull())) {
                   modified = true;
                   break;
                   }
@@ -1042,6 +1042,7 @@ void SLine::writeProperties(XmlWriter& xml) const
       for (const SpannerSegment* seg : spannerSegments()) {
             xml.stag("Segment");
             xml.tag("subtype", int(seg->spannerSegmentType()));
+            xml.tag("offset", seg->offset() / _spatium);
             xml.tag("off2", seg->userOff2() / _spatium);
             seg->Element::writeProperties(xml);
             xml.etag();
@@ -1211,22 +1212,28 @@ bool SLine::setProperty(Pid id, const QVariant& v)
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant SLine::propertyDefault(Pid id) const
+QVariant SLine::propertyDefault(Pid pid) const
       {
-      switch (id) {
+      switch (pid) {
             case Pid::DIAGONAL:
                   return false;
             case Pid::LINE_COLOR:
                   return MScore::defaultColor;
             case Pid::LINE_WIDTH:
+                  if (propertyFlags(pid) != PropertyFlags::NOSTYLE)
+                        return Spanner::propertyDefault(pid);
                   return 0.15 * spatium();
             case Pid::LINE_STYLE:
+                  if (propertyFlags(pid) != PropertyFlags::NOSTYLE)
+                        return Spanner::propertyDefault(pid);
                   return int(Qt::SolidLine);
             case Pid::DASH_LINE_LEN:
             case Pid::DASH_GAP_LEN:
+                  if (propertyFlags(pid) != PropertyFlags::NOSTYLE)
+                        return Spanner::propertyDefault(pid);
                   return 5.0;
             default:
-                  return Spanner::propertyDefault(id);
+                  return Spanner::propertyDefault(pid);
             }
       }
 

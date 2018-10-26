@@ -199,7 +199,6 @@ class ScoreElement {
       virtual QVariant propertyDefault(Pid) const;
       virtual void resetProperty(Pid id);
       QVariant propertyDefault(Pid pid, Tid tid) const;
-      void setPidFromSid(Pid pid, Sid sid);
       virtual bool sizeIsSpatiumDependent() const { return true; }
 
       virtual void reset();                     // reset all properties & position to default
@@ -210,11 +209,13 @@ class ScoreElement {
       virtual PropertyFlags* propertyFlagsList() const   { return _propertyFlagsList; }
       virtual PropertyFlags propertyFlags(Pid) const;
       bool isStyled(Pid pid) const;
+      QVariant styleValue(Pid, Sid) const;
 
       virtual void setPropertyFlags(Pid, PropertyFlags);
 
       virtual Sid getPropertyStyle(Pid) const;
       bool readProperty(const QStringRef&, XmlReader&, Pid);
+      void readProperty(XmlReader&, Pid);
       bool readStyledProperty(XmlReader& e, const QStringRef& tag);
 
       virtual void readAddConnector(ConnectorInfoReader* info, bool pasteMode);

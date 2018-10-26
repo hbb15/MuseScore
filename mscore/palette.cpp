@@ -98,6 +98,7 @@ Palette::Palette(QWidget* parent)
       setSystemPalette(false);
       _moreElements = false;
       setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Ignored);
+      setObjectName("palette-cells");
       }
 
 Palette::~Palette()
@@ -404,7 +405,6 @@ void Palette::mouseMoveEvent(QMouseEvent* ev)
 static void applyDrop(Score* score, ScoreView* viewer, Element* target, Element* e, Qt::KeyboardModifiers modifiers, QPointF pt = QPointF())
       {
       EditData dropData = viewer->getEditData();
-//      EditData dropData;
       dropData.pos        = pt.isNull() ? target->pagePos() : pt;
       dropData.dragOffset = QPointF();
       dropData.modifiers  = modifiers;
@@ -414,6 +414,7 @@ static void applyDrop(Score* score, ScoreView* viewer, Element* target, Element*
             // use same code path as drag&drop
 
             QByteArray a = e->mimeData(QPointF());
+printf("<<%s>>\n", a.data());
 
             XmlReader n(a);
             Fraction duration;  // dummy

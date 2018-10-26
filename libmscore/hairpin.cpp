@@ -239,11 +239,12 @@ void HairpinSegment::layout()
       if (!parent())
             return;
 
-      if (spanner()->placeBelow())
-            rpos() = score()->styleValue(Pid::OFFSET, Sid::hairpinPosBelow).toPointF() + QPointF(0.0, (staff() ? staff()->height() : 0.0));
-      else
-            rpos() = score()->styleValue(Pid::OFFSET, Sid::hairpinPosAbove).toPointF();
-
+      if (isStyled(Pid::OFFSET)) {
+            if (spanner()->placeBelow())
+                  roffset() = styleValue(Pid::OFFSET, Sid::hairpinPosBelow).toPointF() + QPointF(0.0, (staff() ? staff()->height() : 0.0));
+            else
+                  roffset() = styleValue(Pid::OFFSET, Sid::hairpinPosAbove).toPointF();
+            }
       if (autoplace()) {
             qreal minDistance = spatium() * .7;
             qreal ymax = pos().y();
@@ -279,7 +280,7 @@ void HairpinSegment::layout()
                   if (ed)
                         moveDynamic(ed, ymax - ed->ipos().y() + edy);
                   }
-            ryoffset() = ymax - pos().y();
+            rypos() += ymax - pos().y();
             }
       }
 
@@ -359,6 +360,7 @@ void HairpinSegment::startEdit(EditData& ed)
 void HairpinSegment::startEditDrag(EditData& ed)
       {
       TextLineBaseSegment::startEditDrag(ed);
+      setAutoplace(false);
       ElementEditData* eed = ed.getData(this);
 
       eed->pushProperty(Pid::HAIRPIN_HEIGHT);
@@ -431,6 +433,7 @@ Hairpin::Hairpin(Score* s)
       resetProperty(Pid::BEGIN_TEXT_PLACE);
       resetProperty(Pid::HAIRPIN_TYPE);
       resetProperty(Pid::LINE_VISIBLE);
+//      resetProperty(Pid::LINE_WITH);
 
       _hairpinCircledTip     = false;
       _veloChange            = 0;
@@ -485,7 +488,8 @@ void Hairpin::layout()
 
 LineSegment* Hairpin::createLineSegment()
       {
-      return new HairpinSegment(score());
+      HairpinSegment* h = new HairpinSegment(score());
+      return h;
       }
 
 //---------------------------------------------------------
@@ -504,9 +508,10 @@ void Hairpin::write(XmlWriter& xml) const
       writeProperty(xml, Pid::BEGIN_TEXT);
       writeProperty(xml, Pid::CONTINUE_TEXT);
 
-      for (const StyledProperty& spp : *styledProperties())
-            writeProperty(xml, spp.pid);
-
+      for (const StyledProperty& spp : *styledProperties()) {
+            if (!isStyled(spp.pid))
+                  writeProperty(xml, spp.pid);
+            }
       Element::writeProperties(xml);
       xml.etag();
       }
@@ -666,15 +671,6 @@ QVariant Hairpin::propertyDefault(Pid id) const
             default:
                   return TextLineBase::propertyDefault(id);
             }
-      }
-
-//---------------------------------------------------------
-//   setYoff
-//---------------------------------------------------------
-
-void Hairpin::setYoff(qreal val)
-      {
-      ryoffset() += val * spatium() - score()->styleP(placeAbove() ? Sid::hairpinPosAbove : Sid::hairpinPosBelow);
       }
 
 //---------------------------------------------------------

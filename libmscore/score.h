@@ -316,10 +316,10 @@ class Movements : public std::vector<MasterScore*> {
 
 //---------------------------------------------------------------------------------------
 //   @@ Score
-//   @P composer        string            composer of the score (read only)
+////   @P composer        string            composer of the score (read only)
 //   @P duration        int               duration of score in seconds (read only)
-//   @P excerpts        array[Excerpt]    the list of the excerpts (linked parts)
-//   @P firstMeasure    Measure           the first measure of the score (read only)
+////   @P excerpts        array[Excerpt]    the list of the excerpts (linked parts)
+////   @P firstMeasure    Measure           the first measure of the score (read only)
 //   @P firstMeasureMM  Measure           the first multi-measure rest measure of the score (read only)
 //   @P harmonyCount    int               number of harmony items (read only)
 //   @P hasHarmonies    bool              score has chord symbols (read only)
@@ -329,13 +329,14 @@ class Movements : public std::vector<MasterScore*> {
 //   @P lastMeasureMM   Measure           the last multi-measure rest measure of the score (read only)
 //   @P lastSegment     Segment           the last score segment (read-only)
 //   @P lyricCount      int               number of lyric items (read only)
-//   @P name            string            name of the score
+////   @P name            string            name of the score
 //   @P nmeasures       int               number of measures (read only)
 //   @P npages          int               number of pages (read only)
 //   @P nstaves         int               number of staves (read only)
 //   @P ntracks         int               number of tracks (staves * 4) (read only)
-// not to be documented?
-//   @P parts           array[Part]       the list of parts (read only)
+////   @P parts           array[Part]       the list of parts (read only)
+//   @P mscoreVersion   QString           MuseScore version the score was last saved with (read only)
+//   @P mscoreRevision  QString           MuseScore revision the score was last saved with (read only)
 //
 //    a Score has always an associated MasterScore
 //---------------------------------------------------------------------------------------
@@ -543,6 +544,7 @@ class Score : public QObject, public ScoreElement {
       Score(MasterScore*);
       Score(MasterScore*, const MStyle&);
       virtual ~Score();
+      Score* clone();
 
       virtual bool isMaster() const  { return false;        }
 
@@ -651,7 +653,8 @@ class Score : public QObject, public ScoreElement {
       ChordRest* addClone(ChordRest* cr, int tick, const TDuration& d);
       Rest* setRest(int tick,  int track, Fraction, bool useDots, Tuplet* tuplet, bool useFullMeasureRest = true);
 
-      void upDown(bool up, UpDownMode);
+      void upDown(bool up, UpDownMode, bool updateSelection = true);
+      void upDownDelta(int pitchDelta, bool updateSelection);
       ChordRest* searchNote(int tick, int track) const;
 
       // undo/redo ops
@@ -817,7 +820,6 @@ class Score : public QObject, public ScoreElement {
       bool saveStyle(const QString&);
 
       QVariant styleV(Sid idx) const  { return style().value(idx);   }
-      QVariant styleValue(Pid, Sid) const;
       Spatium  styleS(Sid idx) const  { Q_ASSERT(!strcmp(MStyle::valueType(idx),"Ms::Spatium")); return style().value(idx).value<Spatium>();  }
       qreal    styleP(Sid idx) const  { Q_ASSERT(!strcmp(MStyle::valueType(idx),"Ms::Spatium")); return style().pvalue(idx); }
       QString  styleSt(Sid idx) const { Q_ASSERT(!strcmp(MStyle::valueType(idx),"QString"));     return style().value(idx).toString(); }
@@ -876,6 +878,8 @@ class Score : public QObject, public ScoreElement {
 
       void updateSwing();
       void createPlayEvents();
+
+      void updateCapo();
 
       void cmdConcertPitchChanged(bool, bool /*useSharpsFlats*/);
 

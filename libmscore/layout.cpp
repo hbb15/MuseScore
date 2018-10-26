@@ -3402,7 +3402,7 @@ System* Score::collectSystem(LayoutContext& lc)
             }
 
       //-------------------------------------------------------------
-      // TempoText, Fermata
+      // TempoText, Fermata, TremoloBar
       //-------------------------------------------------------------
 
       for (const Segment* s : sl) {
@@ -3413,7 +3413,7 @@ System* Score::collectSystem(LayoutContext& lc)
                               setTempo(tt->segment(), tt->tempo());
                         tt->layout();
                         }
-                  else if (e->isFermata())
+                  else if (e->isFermata() || e->isTremoloBar())
                         e->layout();
                   }
             }
@@ -3705,7 +3705,7 @@ void Score::doLayoutRange(int stick, int etick)
       {
       if (stick == -1 && etick == -1)
             abort();
-      if (!last()) {
+      if (!last() || (lineMode() && !firstMeasure())) {
             qDeleteAll(_systems);
             _systems.clear();
             qDeleteAll(pages());
