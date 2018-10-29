@@ -2164,9 +2164,6 @@ void Note::layout()
             _fretStringYShift=((_pitch+grundtonverschibung+clefshift+accidentalshift)/12-5)*_numericHigth*0.5;
             bbox().setRect(0.0, numeric->fretBoxY() * mags, _numericWidth, numeric->fretBoxH() * mags);
             _numericHigth = bbox().height();
-            QRectF stringbox = QRectF(0.0, _numericHigth*-0.5-_fretStringYShift,
-                             _numericWidth,( _numericHigth));
-            setbbox(stringbox);
             }
       else {
             SymId nh = noteHead();
@@ -2226,7 +2223,9 @@ void Note::layout2()
             if (paren)
                   _fretString = QString("(%1)").arg(_fretString);
             qreal w = tabHeadWidth(tab); // !! use _fretString
-            bbox().setRect(0.0, tab->fretBoxY() * mags, w, tab->fretBoxH() * mags);
+            QRectF stringbox = QRectF(0.0, _numericHigth*-0.5-_fretStringYShift,
+                             _numericWidth,( _numericHigth));
+            setbbox(stringbox);
             }
 
 

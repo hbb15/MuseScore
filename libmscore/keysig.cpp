@@ -225,7 +225,7 @@ void KeySig::layout()
                   if(sigMode < 0 || sigMode > 2)
                         sigMode =0;
                   _numericString = NumericString[int(_sig.key())+7][sigMode];
-                  _numericPoint = QPointF(0, numeric->fretBoxH() * magS()*-5);
+                  _numericPoint = QPointF(0, numeric->fretBoxH() * magS()*-4);
                   qreal wd = numericGetWidth(numeric, _numericString);
                   QRectF denRect = QRectF(_numericPoint.x(), _numericPoint.y()-numeric->fretBoxH(), wd, numeric->fretBoxH() * magS());
                   setbbox(denRect);
@@ -234,6 +234,7 @@ void KeySig::layout()
 
                   setbbox(QRectF());
                   }
+            return;
             }
       else{
 
