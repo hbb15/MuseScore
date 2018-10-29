@@ -33,7 +33,8 @@ wget -c --no-check-certificate -nv -O musescore_dependencies_macos.zip  http://u
 unzip musescore_dependencies_macos.zip -d applebuild/mscore.app/Contents/Resources/Frameworks
 
 #install Sparkle
-cp -rf ~/Library/Frameworks/Sparkle.framework applebuild/mscore.app/Contents/Resources/Frameworks
+mkdir -p applebuild/mscore.app/Contents/Frameworks
+cp -Rf ~/Library/Frameworks/Sparkle.framework applebuild/mscore.app/Contents/Frameworks
 
 if [[ "$NIGHTLY_BUILD" = "TRUE" ]]
 then # Build is marked UNSTABLE inside CMakeLists.txt
@@ -44,7 +45,8 @@ build/package_mac
 PACKAGE_NAME=MuseScore
 fi
 
-DMGFILE=applebuild/$PACKAGE_NAME-$DATE-$BRANCH-$REVISION.dmg
+DMGFILENAME=$PACKAGE_NAME-$DATE-$BRANCH-$REVISION.dmg
+DMGFILE=applebuild/$DMGFILENAME
 
 mv applebuild/$PACKAGE_NAME-$BRANCH-$REVISION.dmg $DMGFILE
 
@@ -77,6 +79,9 @@ FILESIZE="$(stat -f%z $DMGFILE)"
 APPCAST_URL=$(defaults read `pwd`/applebuild/mscore.app/Contents/Info.plist SUFeedURL)
 GIT_LOG=$(./build/travis/job_macos/generateGitLog.sh)
 
+#install artifacts
+curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
+
 if [[ "$NIGHTLY_BUILD" = "TRUE" ]]
 then
 
@@ -86,32 +91,9 @@ echo "<update>
 <releaseType>nightly</releaseType>
 <date>${SHORT_DATE}</date>
 <description>MuseScore ${MUSESCORE_VERSION} ${REVISION}</description>
-<downloadUrl>https://ftp.osuosl.org/pub/musescore-nightlies/macosx/$DMGFILE</downloadUrl>
+<downloadUrl>https://ftp.osuosl.org/pub/musescore-nightlies/macosx/$DMGFILENAME</downloadUrl>
 <infoUrl>https://ftp.osuosl.org/pub/musescore-nightlies/macosx/</infoUrl>
 </update>" >> update_mac_nightly.xml
-
-echo "<rss xmlns:sparkle=\"http://www.andymatuschak.org/xml-namespaces/sparkle\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" version=\"2.0\">
-<channel>
-<title>MuseScore development channel</title>
-<link>
-${APPCAST_URL}
-</link>
-<description>Most recent changes with links to updates.</description>
-<language>en</language>
-<item>
-<title>MuseScore ${MUSESCORE_VERSION} ${REVISION}</title>
-<description>
-<![CDATA[
-${GIT_LOG}
-]]>
-</description>
-<pubDate>${RSS_DATE}</pubDate>
-<enclosure url=\"https://ftp.osuosl.org/pub/musescore-nightlies/macosx/${DMGFILE}\" sparkle:version=\"${MUSESCORE_VERSION}\" length=\"${FILESIZE}\" type=\"application/octet-stream\"/>
-</item>
-</channel>
-</rss>" >> appcast.xml
-
-curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
 
 export ARTIFACTS_KEY=$UPDATE_S3_KEY
 export ARTIFACTS_SECRET=$UPDATE_S3_SECRET
@@ -129,3 +111,39 @@ artifacts upload
 
 fi
 
+echo "<rss xmlns:sparkle=\"http://www.andymatuschak.org/xml-namespaces/sparkle\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" version=\"2.0\">
+<channel>
+<title>MuseScore development channel</title>
+<link>
+${APPCAST_URL}
+</link>
+<description>Most recent changes with links to updates.</description>
+<language>en</language>
+<item>
+<title>MuseScore ${MUSESCORE_VERSION} ${REVISION}</title>
+<description>
+<![CDATA[
+${GIT_LOG}
+]]>
+</description>
+<pubDate>${RSS_DATE}</pubDate>
+<enclosure url=\"https://ftp.osuosl.org/pub/musescore-nightlies/macosx/${DMGFILENAME}\" sparkle:version=\"${MUSESCORE_VERSION}\" length=\"${FILESIZE}\" type=\"application/octet-stream\"/>
+</item>
+</channel>
+</rss>" >> appcast.xml
+
+export ARTIFACTS_KEY=$UPDATE_S3_KEY
+export ARTIFACTS_SECRET=$UPDATE_S3_SECRET
+export ARTIFACTS_REGION=us-east-1
+export ARTIFACTS_BUCKET=sparkle.musescore.org
+export ARTIFACTS_CACHE_CONTROL='public, max-age=315360000'
+export ARTIFACTS_PERMISSIONS=public-read
+export ARTIFACTS_TARGET_PATHS="/${MSCORE_RELEASE_CHANNEL}/3/macos/"
+export ARTIFACTS_PATHS=appcast.xml
+artifacts upload
+
+pip install awscli
+export AWS_ACCESS_KEY_ID=$UPDATE_S3_KEY
+export AWS_SECRET_ACCESS_KEY=$UPDATE_S3_SECRET
+aws configure set preview.cloudfront true
+aws cloudfront create-invalidation --distribution-id E15OTT2G07XS8C --paths "${ARTIFACTS_TARGET_PATHS}*"

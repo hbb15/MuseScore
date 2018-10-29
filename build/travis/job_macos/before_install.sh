@@ -35,3 +35,7 @@ then
 export NIGHTLY_BUILD=TRUE
 fi
 fi
+
+export MSCORE_RELEASE_CHANNEL=$(grep '^[[:blank:]]*set *( *MSCORE_RELEASE_CHANNEL' CMakeLists.txt | awk -F \" '{print $2}')
+
+fi
