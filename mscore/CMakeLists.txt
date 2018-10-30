@@ -52,9 +52,11 @@ QT5_WRAP_UI (ui_headers
       note_groups.ui resourceManager.ui stafftypetemplates.ui
       startcenter.ui scorePreview.ui scoreBrowser.ui
       logindialog.ui uploadscoredialog.ui breaksdialog.ui
-      toolbarEditor.ui
+      toolbarEditor.ui workspacedialog.ui
 
       importmidi/importmidi_panel.ui
+
+      scorecmp/scorecmp_tool.ui
 
       debugger/barline.ui
       debugger/harmony.ui
@@ -330,7 +332,7 @@ add_executable ( ${ExecutableName}
       fotomode.cpp drumtools.cpp
       selinstrument.cpp editstafftype.cpp texttools.cpp
       editpitch.cpp editstringdata.cpp editraster.cpp pianotools.cpp mediadialog.cpp
-      workspace.cpp chordview.cpp
+      workspace.cpp workspacedialog.cpp chordview.cpp
       albummanager.cpp
       stafftextproperties.cpp splitstaff.cpp
       tupletdialog.cpp
@@ -412,6 +414,7 @@ add_executable ( ${ExecutableName}
       importmidi/importmidi_voice.cpp importmidi/importmidi_view.cpp importmidi/importmidi_key.cpp
       importmidi/importmidi_tempo.cpp importmidi/importmidi_instrument.cpp
       importmidi/importmidi_chordname.cpp
+      scorecmp/scorecmp.cpp scorecmp/scorediffmodel.cpp scorecmp/scorelistmodel.cpp
       resourceManager.cpp downloadUtils.cpp
       textcursor.cpp continuouspanel.cpp accessibletoolbutton.cpp scoreaccessibility.cpp
       startcenter.cpp scoreBrowser.cpp scorePreview.cpp scoreInfo.cpp

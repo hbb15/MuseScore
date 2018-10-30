@@ -549,7 +549,7 @@ void System::layout2()
                                     s2 = staff(staffIdx);
                                     for (int i = staffIdx + nstaves - 1; i > 0; --i) {
                                           SysStaff* s3 = staff(i);
-                                          if (s->show()) {        // ??
+                                          if (s3->show()) {
                                                 s2 = s3;
                                                 break;
                                                 }
@@ -984,7 +984,7 @@ qreal System::staffCanvasYpage(int staffIdx) const
 
 void System::write(XmlWriter& xml) const
       {
-      xml.stag("System");
+      xml.stag(this);
       if (_systemDividerLeft && _systemDividerLeft->isUserModified())
             _systemDividerLeft->write(xml);
       if (_systemDividerRight && _systemDividerRight->isUserModified())

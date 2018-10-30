@@ -2755,7 +2755,7 @@ void ScoreView::pageEnd()
 
 void ScoreView::adjustCanvasPosition(const Element* el, bool playBack, int staff )
       {
-      if (this != mscore->currentScoreView())
+      if (this != mscore->currentScoreView() && !_moveWhenInactive)
             return;
       // TODO: change icon, or add panning options
       if (!mscore->panDuringPlayback())
@@ -3112,7 +3112,7 @@ void ScoreView::addSlur()
                         if (!cr2 || cr2->tick() < cr->tick())
                               cr2 = cr;
                         }
-                  if (cr1)
+                  if (cr1 && (cr1 != cr2))
                         cmdAddSlur(cr1, cr2);
                   }
             }
@@ -3147,7 +3147,7 @@ void ScoreView::cmdAddSlur(ChordRest* cr1, ChordRest* cr2)
       if (cr2 == 0) {
             cr2 = nextChordRest(cr1);
             if (cr2 == 0)
-                  cr2 = cr1;
+                  return;
             startEditMode = true;      // start slur in edit mode if last chord is not given
             }
 
@@ -4230,7 +4230,7 @@ Element* ScoreView::elementNear(QPointF p)
 
 void ScoreView::posChanged(POS pos, unsigned tick)
       {
-      if (this != mscore->currentScoreView())
+      if (this != mscore->currentScoreView() && !_moveWhenInactive)
             return;
       switch (pos) {
             case POS::CURRENT:

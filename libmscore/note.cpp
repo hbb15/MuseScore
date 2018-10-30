@@ -1202,7 +1202,7 @@ void Note::draw(QPainter* painter) const
 
 void Note::write(XmlWriter& xml) const
       {
-      xml.stag("Note");
+      xml.stag(this);
       Element::writeProperties(xml);
 
       if (_accidental)
@@ -2883,6 +2883,27 @@ QVariant Note::propertyDefault(Pid propertyId) const
                   break;
             }
       return Element::propertyDefault(propertyId);
+      }
+
+//---------------------------------------------------------
+//   propertyUserValue
+//---------------------------------------------------------
+
+QString Note::propertyUserValue(Pid pid) const
+      {
+      switch(pid) {
+            case Pid::PITCH:
+                  return tpcUserName();
+            case Pid::TPC1:
+            case Pid::TPC2:
+                  {
+                  int idx = (pid == Pid::TPC1) ? 0 : 1;
+                  int tpc = _tpc[idx];
+                  return tpc2name(tpc, NoteSpellingType::STANDARD, NoteCaseType::AUTO, false);
+                  }
+            default:
+                  return Element::propertyUserValue(pid);
+            }
       }
 
 //---------------------------------------------------------
