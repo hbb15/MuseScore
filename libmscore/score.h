@@ -523,6 +523,7 @@ class Score : public QObject, public ScoreElement {
       void resetSystems(bool layoutAll, LayoutContext& lc);
       void collectLinearSystem(LayoutContext& lc);
       void resetTempo();
+      void resetTempoRange(int tick1, int tick2);
 
    protected:
       int _fileDivision; ///< division of current loading *.msc file
@@ -585,6 +586,7 @@ class Score : public QObject, public ScoreElement {
       void cmdAddOttava(OttavaType);
       void cmdAddStretch(qreal);
       void cmdResetNoteAndRestGroupings();
+      void cmdResetAllPositions();
       void cmdDoubleDuration()      { cmdIncDecDuration(-1, 0); }
       void cmdHalfDuration()        { cmdIncDecDuration( 1, 0); }
       void cmdIncDurationDotted()   { cmdIncDecDuration(-1, 1); }

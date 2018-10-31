@@ -39,7 +39,7 @@ cp -Rf ~/Library/Frameworks/Sparkle.framework applebuild/mscore.app/Contents/Fra
 if [[ "$NIGHTLY_BUILD" = "TRUE" ]]
 then # Build is marked UNSTABLE inside CMakeLists.txt
 build/package_mac $BRANCH-$REVISION
-PACKAGE_NAME=MuseScoreNightly
+PACKAGE_NAME=MuseScore
 else
 build/package_mac
 PACKAGE_NAME=MuseScore
