@@ -1157,13 +1157,13 @@ void Note::draw(QPainter* painter) const
             f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
             painter->setFont(f);
             painter->setPen(c);
-            painter->drawText(QPointF(bbox().x(), _numericHigth*0.5-_fretStringYShift), _fretString);
+            painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*0.5, QPointF(-20.0*magS(), (5.0 -_fretStringYShift) * magS()));
+                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*0.0125*_numericHigth, _numericaccidentalPos);
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*0.55, QPointF(-20.0*magS(), (8.0 -_fretStringYShift) * magS()));
+                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*0.02*_numericHigth,_numericaccidentalPos);
                         }
                   }
             }
@@ -2038,6 +2038,17 @@ QString Note::getNumericString(int numkro)
       return "0";
       }
 //---------------------------------------------------------
+//   get_numericGroundPitch
+//---------------------------------------------------------
+
+int Note::get_numericGroundPitch(){
+      if(_drawSharp)
+            return _pitch - 1;
+      if(_drawFlat)
+            return _pitch + 1;
+      return _pitch;
+      }
+//---------------------------------------------------------
 //   getAccidentalTypeBack
 //---------------------------------------------------------
 
@@ -2226,6 +2237,18 @@ void Note::layout2()
             QRectF stringbox = QRectF(0.0, _numericHigth*-0.5-_fretStringYShift,
                              _numericWidth,( _numericHigth));
             setbbox(stringbox);
+            _numericTextPos = QPointF(bbox().x(), _numericHigth*0.5-_fretStringYShift);
+            if (_accidental || _drawFlat || _drawSharp){
+                  if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
+                        _numericaccidentalPos = QPointF(_numericHigth*-0.5*magS(), (_numericHigth*0.1 -_fretStringYShift) * magS());
+                        addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
+                        }
+                  if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
+                        _numericaccidentalPos = QPointF(_numericHigth*-0.5*magS(), (_numericHigth*0.17 -_fretStringYShift) * magS());
+                        addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
+                        }
+                  }
+
             }
 
 

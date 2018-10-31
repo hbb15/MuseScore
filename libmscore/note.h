@@ -260,6 +260,8 @@ class Note final : public Element {
       qreal _fretStringYShift;
       qreal _numericWidth;
       qreal _numericHigth;
+      QPointF _numericaccidentalPos;
+      QPointF _numericTextPos;
       bool _fretHidden = false;
       bool _drawFlat = false;
       bool _drawSharp = false;
@@ -332,6 +334,7 @@ class Note final : public Element {
       qreal fretStringYShift() const                { return _fretStringYShift;   }
       qreal get_numericWidth()                      { return _numericWidth;   }
       qreal get_numericHigth()                      { return _numericHigth;   }
+      int get_numericGroundPitch();
 
       int tpc() const;
       int tpc1() const            { return _tpc[0]; }     // non transposed tpc

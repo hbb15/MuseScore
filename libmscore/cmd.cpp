@@ -1649,6 +1649,8 @@ void Score::changeAccidental(Note* note, AccidentalType accidental)
       AccidentalVal acc = (accidental == AccidentalType::NONE) ? acc2 : Accidental::subtype2value(accidental);
 
       int pitch = line2pitch(note->line(), clef, Key::C) + int(acc);
+      if (note->staff()->isNumericStaff(chord->tick()))
+                  pitch = note->get_numericGroundPitch() + int(acc);
       if (!note->concertPitch())
             pitch += note->transposition();
 

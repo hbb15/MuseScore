@@ -391,11 +391,14 @@ QVariant Stem::propertyDefault(Pid id) const
 
 QPointF Stem::hookPos() const
       {
-      QPointF p(pos() + line.p2());
+      if(this){
+            QPointF p(pos() + line.p2());
 
-      qreal xoff = _lineWidth * .5;
-      p.rx() += xoff;
-      return p;
+            qreal xoff = _lineWidth * .5;
+            p.rx() += xoff;
+            return p;
+            }
+      return QPointF();
       }
 
 }
