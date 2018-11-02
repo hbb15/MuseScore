@@ -626,6 +626,7 @@ enum class SymId {
       barlineDotted,
       barlineDouble,
       barlineFinal,
+      barlineStart,
       barlineHeavy,
       barlineHeavyHeavy,
       barlineReverseFinal,

@@ -306,42 +306,42 @@ void TimeSig::layout()
             ns = toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
             ds = toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
 
+            qreal px =-0.0;
             QSizeF mag(magS() * _scale);
             qreal wn = numericGetWidth(numeric, _numeric_ns);
             qreal wd = numericGetWidth(numeric, _numeric_ds);
-            QRectF numRect = QRectF(0.0, numeric->fretBoxY() * magS(), wn, numeric->fretBoxH() * magS());
-            QRectF denRect = QRectF(0.0, numeric->fretBoxY() * magS(), wd, numeric->fretBoxH() * magS());
+            QRectF numRect = QRectF(px, numeric->fretBoxY() * magS(), wn, numeric->fretBoxH() * magS());
+            QRectF denRect = QRectF(px, numeric->fretBoxY() * magS(), wd, numeric->fretBoxH() * magS());
             qreal displ = numRect.height()*0.15;
 
             //align on the wider
             qreal pzY = yoff + displ + numRect.height();
             qreal pnY = yoff - displ;
             qreal numericLineWidht = denRect.width();
-            qreal px =0.0;
             qreal boxwidth = 0.0;
 
 
             if (numRect.width() >= denRect.width()) {
                   // numerator: one space above centre line, unless denomin. is empty (if so, directly centre in the middle)
-                  pz = QPointF(0.0, pzY);
+                  pz = QPointF(px, pzY);
                   // denominator: horiz: centred around centre of numerator | vert: one space below centre line
-                  pn = QPointF((numRect.width() - denRect.width())*.5, pnY);
+                  pn = QPointF((numRect.width() - denRect.width())*.5+px, pnY);
                   numericLineWidht = numRect.width();
-                  px ==(numRect.width() - denRect.width())*.5;
+                  px +=(numRect.width() - denRect.width())*.5;
                   boxwidth = numRect.width();
                   }
             else {
                   // numerator: one space above centre line, unless denomin. is empty (if so, directly centre in the middle)
-                  pz = QPointF((denRect.width() - numRect.width())*.5, pzY);
+                  pz = QPointF((denRect.width() - numRect.width())*.5+px, pzY);
                   // denominator: horiz: centred around centre of numerator | vert: one space below centre line
-                  pn = QPointF(0.0, pnY);
+                  pn = QPointF(px, pnY);
                   numericLineWidht = denRect.width();
-                  px ==(numRect.width() - denRect.width())*.5;
+                  px +=(numRect.width() - denRect.width())*.5;
                   boxwidth = denRect.width();
                   }
 
             QRectF timeSigRect = QRectF(px, pnY-numRect.height(), boxwidth, numRect.height()*2+displ*2);
-            numericLine = QLineF(0, 0, numericLineWidht, 0);
+            numericLine = QLineF(px, 0, numericLineWidht+px, 0);
             _numericlinethick=numRect.height()*0.1;
             setbbox(timeSigRect);
             ns.clear();

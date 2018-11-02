@@ -38,6 +38,7 @@ static void undoChangeBarLineType(BarLine* bl, BarLineType barType)
 
       switch (barType) {
             case BarLineType::END:
+            case BarLineType::BEGIN:
             case BarLineType::NORMAL:
             case BarLineType::DOUBLE:
             case BarLineType::BROKEN:
@@ -105,6 +106,7 @@ const std::vector<BarLineTableItem> BarLine::barLineTable {
       { BarLineType::END_REPEAT,       QT_TRANSLATE_NOOP("Palette", "End repeat"),       "end-repeat" },
       { BarLineType::BROKEN,           QT_TRANSLATE_NOOP("Palette", "Dashed barline"),   "dashed" },
       { BarLineType::END,              QT_TRANSLATE_NOOP("Palette", "Final barline"),    "end" },
+      { BarLineType::BEGIN,            QT_TRANSLATE_NOOP("Palette", "Start barline"),    "begin" },
       { BarLineType::DOTTED,           QT_TRANSLATE_NOOP("Palette", "Dotted barline"),   "dotted" },
       };
 
@@ -409,6 +411,19 @@ void BarLine::draw(QPainter* painter) const
                   qreal lw2 = score()->styleP(Sid::endBarWidth) * mag();
                   painter->setPen(QPen(curColor(), lw2, Qt::SolidLine, Qt::FlatCap));
                   x  += score()->styleP(Sid::endBarDistance) * mag();
+                  painter->drawLine(QLineF(x, y1, x, y2));
+                  }
+                  break;
+
+            case BarLineType::BEGIN: {
+                  qreal lw = score()->styleP(Sid::barWidth) * mag();
+                  painter->setPen(QPen(curColor(), lw, Qt::SolidLine, Qt::FlatCap));
+                  qreal x  = lw * .5;
+                  painter->drawLine(QLineF(x, y1, x, y2));
+
+                  qreal lw2 = score()->styleP(Sid::endBarWidth) * mag();
+                  painter->setPen(QPen(curColor(), lw2, Qt::SolidLine, Qt::FlatCap));
+                  x  -= score()->styleP(Sid::endBarDistance) * mag();
                   painter->drawLine(QLineF(x, y1, x, y2));
                   }
                   break;
@@ -941,6 +956,10 @@ qreal BarLine::layoutWidth(Score* score, BarLineType type)
                      + dotwidth * .5;
                   break;
             case BarLineType::END:
+                  w = (score->styleP(Sid::endBarWidth) + score->styleP(Sid::barWidth)) * .5
+                     + score->styleP(Sid::endBarDistance);
+                  break;
+            case BarLineType::BEGIN:
                   w = (score->styleP(Sid::endBarWidth) + score->styleP(Sid::barWidth)) * .5
                      + score->styleP(Sid::endBarDistance);
                   break;

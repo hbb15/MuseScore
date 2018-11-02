@@ -1584,6 +1584,9 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                                           t = BarLineType::END;
                                           break;
                                     case 6:
+                                          t = BarLineType::BEGIN;
+                                          break;
+                                    case 7:
                                           // TODO t = BarLineType::END_START_REPEAT;
                                           break;
                                     }

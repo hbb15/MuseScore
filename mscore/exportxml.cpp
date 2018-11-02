@@ -1577,6 +1577,10 @@ void ExportMusicXml::barlineRight(Measure* m)
 //                        case BarLineType::END_START_REPEAT:
                               _xml.tag("bar-style", QString("light-heavy"));
                               break;
+                        case BarLineType::BEGIN:
+//                        case BarLineType::END_START_REPEAT:
+                              _xml.tag("bar-style", QString("heavy-light"));
+                              break;
                         default:
                               qDebug("ExportMusicXml::bar(): bar subtype %d not supported", int(bst));
                               break;

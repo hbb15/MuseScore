@@ -2221,11 +2221,11 @@ void Note::layout2()
             }
       else if (staff()->isNumericStaff(chord()->tick())) {
             //adjustReadPos();
-            StaffType* tab = staff()->staffType(tick());
+            StaffType* numeric = staff()->staffType(tick());
             qreal mags = magS();
             bool paren = false;
             _fretHidden = false;
-            if (tieBack() && !tab->showBackTied() && !_fretString.startsWith("(")) {   // skip back-tied notes if not shown but between () if on another system
+            if (tieBack() && !numeric->showBackTied() && !_fretString.startsWith("(")) {   // skip back-tied notes if not shown but between () if on another system
                   if (chord()->measure()->system() != tieBack()->startNote()->chord()->measure()->system() || el().size() > 0)
                         paren = true;
                   else
@@ -2233,9 +2233,9 @@ void Note::layout2()
                   }
             if (paren)
                   _fretString = QString("(%1)").arg(_fretString);
-            qreal w = tabHeadWidth(tab); // !! use _fretString
+            qreal w = tabHeadWidth(numeric); // !! use _fretString
             QRectF stringbox = QRectF(0.0, _numericHigth*-0.5-_fretStringYShift,
-                             _numericWidth,( _numericHigth));
+                             w,( _numericHigth));
             setbbox(stringbox);
             _numericTextPos = QPointF(bbox().x(), _numericHigth*0.5-_fretStringYShift);
             if (_accidental || _drawFlat || _drawSharp){

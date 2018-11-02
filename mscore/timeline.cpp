@@ -829,6 +829,26 @@ Timeline::Timeline(TDockWidget* dock_widget, QWidget* parent)
                   "...#.##"
                   };
 
+      static const char* start_barline[] = {
+                  "7 14 2 1",
+                  "# c #000000",
+                  ". c None",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#",
+                  "...##.#"
+                  };
+
       static const char* double_barline[] = {
                   "7 14 2 1",
                   "# c #000000",
@@ -852,11 +872,13 @@ Timeline::Timeline(TDockWidget* dock_widget, QWidget* parent)
       QPixmap* left_repeat_pixmap = new QPixmap(left_repeat);
       QPixmap* right_repeat_pixmap = new QPixmap(right_repeat);
       QPixmap* final_barline_pixmap = new QPixmap(final_barline);
+      QPixmap* start_barline_pixmap = new QPixmap(start_barline);
       QPixmap* double_barline_pixmap = new QPixmap(double_barline);
 
       barlines["Start repeat"] = left_repeat_pixmap;
       barlines["End repeat"] = right_repeat_pixmap;
       barlines["Final barline"] = final_barline_pixmap;
+      barlines["Start barline"] = start_barline_pixmap;
       barlines["Double barline"] = double_barline_pixmap;
       }
 
@@ -1237,6 +1259,9 @@ void Timeline::barline_meta(Segment* seg, int* stagger, int pos)
                   case BarLineType::END:
                         repeat_text = QString("Final barline");
                         break;
+                  case BarLineType::BEGIN:
+                        repeat_text = QString("Start barline");
+                        break;
                   default:
                         break;
                   }
@@ -1432,7 +1457,7 @@ bool Timeline::addMetaValue(int x, int pos, QString meta_text, int row, ElementT
             text_width = getWidth() - x;
 
       //Adjust x for end repeats
-      if ((meta_text == QString("End repeat") || meta_text == QString("Final barline") || meta_text == QString("Double barline") || std::get<2>(repeat_info)) && !collapsed_meta) {
+      if ((meta_text == QString("End repeat") || meta_text == QString("Final barline") || meta_text == QString("Start barline") || meta_text == QString("Double barline") || std::get<2>(repeat_info)) && !collapsed_meta) {
             if (std::get<0>(repeat_info) > 0)
                   x = pos + grid_width - std::get<1>(repeat_info) + std::get<0>(repeat_info) * spacing;
             else {

@@ -228,6 +228,7 @@ enum class BarLineType {
       END_REPEAT       = 8,
       BROKEN           = 0x10,
       END              = 0x20,
+      BEGIN            = 0x40,
       DOTTED           = 0x80
       };
 
