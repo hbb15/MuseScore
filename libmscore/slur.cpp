@@ -1119,7 +1119,12 @@ SpannerSegment* Slur::layoutSystem(System* system)
                         else
                               _up = !startCR()->up();
 
-                        if (c1 && c2 && isDirectionMixture(c1, c2) && !c1->isGrace()) {
+                        if (staff() && staff()->isNumericStaff( tick())) {
+                              // slurs go above if start and end note have different stem directions,
+                              // but grace notes are exceptions
+                              _up = false;
+                              }
+                        else if (c1 && c2 && isDirectionMixture(c1, c2) && !c1->isGrace()) {
                               // slurs go above if start and end note have different stem directions,
                               // but grace notes are exceptions
                               _up = true;

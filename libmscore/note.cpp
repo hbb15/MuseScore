@@ -1584,6 +1584,7 @@ QRectF Note::drag(EditData& ed)
       else {
             if (staff()->isNumericStaff(_tick)) {
                   _pitch = ned->line - lrint(ed.delta.y() / 30.0);
+                  triggerLayout();
                   }
             else{
                   Key key = staff()->key(_tick);
