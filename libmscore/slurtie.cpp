@@ -280,17 +280,26 @@ void SlurTieSegment::reset()
 
 void SlurTieSegment::writeSlur(XmlWriter& xml, int no) const
       {
-      if (autoplace() && visible() && (color() == Qt::black))
+      if (visible()
+         && (color() == Qt::black)
+         && ups(Grip::START).off.isNull()
+         && ups(Grip::BEZIER1).off.isNull()
+         && ups(Grip::BEZIER2).off.isNull()
+         && ups(Grip::END).off.isNull()
+         )
             return;
 
       xml.stag(this, QString("no=\"%1\"").arg(no));
 
       qreal _spatium = spatium();
-      xml.tag("o1", ups(Grip::START).off   / _spatium);
-      xml.tag("o2", ups(Grip::BEZIER1).off / _spatium);
-      xml.tag("o3", ups(Grip::BEZIER2).off / _spatium);
-      xml.tag("o4", ups(Grip::END).off     / _spatium);
-
+      if (!ups(Grip::START).off.isNull())
+            xml.tag("o1", ups(Grip::START).off / _spatium);
+      if (!ups(Grip::BEZIER1).off.isNull())
+            xml.tag("o2", ups(Grip::BEZIER1).off / _spatium);
+      if (!ups(Grip::BEZIER2).off.isNull())
+            xml.tag("o3", ups(Grip::BEZIER2).off / _spatium);
+      if (!ups(Grip::END).off.isNull())
+            xml.tag("o4", ups(Grip::END).off / _spatium);
       Element::writeProperties(xml);
       xml.etag();
       }
@@ -315,7 +324,6 @@ void SlurTieSegment::read(XmlReader& e)
             else if (!Element::readProperties(e))
                   e.unknown();
             }
-      setAutoplace(false);
       }
 
 //---------------------------------------------------------
