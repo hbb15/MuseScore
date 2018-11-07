@@ -59,15 +59,6 @@ SpannerSegment::SpannerSegment(const SpannerSegment& s)
       }
 
 //---------------------------------------------------------
-//   system
-//---------------------------------------------------------
-
-System* SpannerSegment::system() const
-      {
-      return toSystem(parent());
-      }
-
-//---------------------------------------------------------
 //   setSystem
 //---------------------------------------------------------
 
@@ -89,7 +80,7 @@ void SpannerSegment::setSystem(System* s)
 
 Element* SpannerSegment::propertyDelegate(Pid pid)
       {
-      if (pid == Pid::COLOR || pid == Pid::VISIBLE)
+      if (pid == Pid::COLOR || pid == Pid::VISIBLE || pid == Pid::PLACEMENT)
             return spanner();
       return 0;
       }
@@ -1131,10 +1122,8 @@ SpannerWriter::SpannerWriter(XmlWriter& xml, const Element* current, const Spann
 //   autoplaceSpannerSegment
 //---------------------------------------------------------
 
-void SpannerSegment::autoplaceSpannerSegment(qreal minDistance, Sid posBelow, Sid posAbove)
+void SpannerSegment::autoplaceSpannerSegment(qreal minDistance)
       {
-      Q_UNUSED(posBelow);
-      Q_UNUSED(posAbove);
       if (!parent()) {
             setOffset(QPointF());
             return;

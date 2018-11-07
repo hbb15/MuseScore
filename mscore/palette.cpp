@@ -1,7 +1,6 @@
 //=============================================================================
 //  MuseScore
 //  Music Composition & Notation
-//  $Id: palette.cpp 5576 2012-04-24 19:15:22Z wschweer $
 //
 //  Copyright (C) 2011 Werner Schweer and others
 //
@@ -259,8 +258,11 @@ void Palette::contextMenuEvent(QContextMenuEvent* event)
 
       if (action == clearAction) {
             PaletteCell* cell = cellAt(i);
-            if (cell)
+            if (cell) {
+                  if(cell->tag == "ShowMore")
+                        _moreElements = false;
                   delete cell;
+            }
             cells[i] = 0;
             emit changed();
             }

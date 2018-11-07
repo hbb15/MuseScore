@@ -523,6 +523,8 @@ MasterScore* MuseScore::getNewFile()
                   delete score;
                   return 0;
                   }
+            score->setStyle(tscore->style());
+
             // create instruments from template
             for (Part* tpart : tscore->parts()) {
                   Part* part = new Part(score);
@@ -1919,7 +1921,7 @@ bool MuseScore::saveAs(Score* cs_, bool saveCopy, const QString& path, const QSt
                   else
                         cs_->saveFile(fi);
                   }
-            catch (QString s) {
+            catch (const QString& s) {
                   rv = false;
                   QMessageBox::critical(this, tr("Save As"), s);
                   }
@@ -2434,7 +2436,7 @@ bool MuseScore::saveSelection(Score* cs_)
       try {
             cs_->saveCompressedFile(fi, true);
             }
-      catch (QString s) {
+      catch (const QString& s) {
             rv = false;
             QMessageBox::critical(this, tr("Save Selected"), s);
             }

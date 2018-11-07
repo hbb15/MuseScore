@@ -233,7 +233,6 @@ class TextBase : public Element {
       int  hexState                 { -1    };
 
       void drawSelection(QPainter*, const QRectF&) const;
-
       void insert(TextCursor*, uint code);
       void genText();
       virtual int getPropertyFlagsIdx(Pid id) const override;
@@ -359,6 +358,7 @@ class TextBase : public Element {
       Tid tid() const                            { return _tid; }
       void setTid(Tid id)                        { _tid = id; }
       void initTid(Tid id);
+      void initTid(Tid id, bool preserveDifferent);
       virtual void initElementStyle(const ElementStyle*) override;
 
       friend class TextCursor;

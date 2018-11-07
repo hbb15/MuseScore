@@ -73,7 +73,7 @@ class SpannerSegment : public Element {
       bool isEndType() const                           { return spannerSegmentType() == SpannerSegmentType::END;    }
 
       void setSystem(System* s);
-      System* system() const;
+      System* system() const                { return toSystem(parent()); }
 
       const QPointF& userOff2() const       { return _offset2;       }
       void setUserOff2(const QPointF& o)    { _offset2 = o;          }
@@ -111,7 +111,7 @@ class SpannerSegment : public Element {
       virtual Element* prevSegmentElement() override;
       virtual QString accessibleInfo() const override;
       virtual void triggerLayout() const override;
-      void autoplaceSpannerSegment(qreal minDistance, Sid posBelow, Sid posAbove);
+      void autoplaceSpannerSegment(qreal minDistance);
       };
 
 //----------------------------------------------------------------------------------

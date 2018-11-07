@@ -1212,7 +1212,6 @@ void Score::hideEmptyStaves(System* system, bool isFirstSystem)
 
       for (Staff* staff : _staves) {
             SysStaff* ss  = system->staff(staffIdx);
-//            bool oldShow = ss->show();
 
             Staff::HideMode hideMode = staff->hideWhenEmpty();
 
@@ -2983,6 +2982,7 @@ System* Score::collectSystem(LayoutContext& lc)
             if (lc.curMeasure->isMeasure()) {
                   Measure* m = toMeasure(lc.curMeasure);
                   if (firstMeasure) {
+                        hideEmptyStaves(system, lc.firstSystem);
                         system->layoutSystem(minWidth);
                         minWidth += system->leftMargin();
                         if (m->repeatStart()) {
@@ -3118,8 +3118,6 @@ System* Score::collectSystem(LayoutContext& lc)
             qreal w = toMeasure(lc.prevMeasure)->createEndBarLines(true);
             minWidth += w;
             }
-
-      hideEmptyStaves(system, lc.firstSystem);
 
       //-------------------------------------------------------
       //    add system trailer if needed
@@ -3709,6 +3707,7 @@ void Score::doLayoutRange(int stick, int etick)
       if (stick == -1 && etick == -1)
             abort();
       if (!last() || (lineMode() && !firstMeasure())) {
+            qDebug("empty score");
             qDeleteAll(_systems);
             _systems.clear();
             qDeleteAll(pages());
@@ -3759,6 +3758,12 @@ void Score::doLayoutRange(int stick, int etick)
 //      qDebug("start <%s> tick %d, system %p", m->name(), m->tick(), m->system());
       lc.score        = m->score();
 
+      if (lineMode()) {
+            lc.prevMeasure = 0;
+            lc.nextMeasure = _measures.first();
+            layoutLinear(layoutAll, lc);
+            return;
+            }
       if (!layoutAll && m->system()) {
             System* system  = m->system();
             int systemIndex = _systems.indexOf(system);
@@ -3787,7 +3792,7 @@ void Score::doLayoutRange(int stick, int etick)
                   }
             }
       else {
-//            qDebug("layoutAll, systems %p %d", &_systems, int(_systems.size()));
+//  qDebug("layoutAll, systems %p %d", &_systems, int(_systems.size()));
             //lc.measureNo   = 0;
             //lc.tick        = 0;
             // qDeleteAll(_systems);
@@ -3812,18 +3817,13 @@ void Score::doLayoutRange(int stick, int etick)
                   if (mb->isMeasure() && toMeasure(mb)->mmRest())
                         toMeasure(mb)->mmRest()->setSystem(0);
                   }
-//            qDeleteAll(_systems);
+            qDeleteAll(_systems);
             _systems.clear();
 
             qDeleteAll(pages());
             pages().clear();
 
             lc.nextMeasure = _measures.first();
-            }
-
-      if (lineMode()) {
-            layoutLinear(layoutAll, lc);
-            return;
             }
 
       lc.prevMeasure = 0;

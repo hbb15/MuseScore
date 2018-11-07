@@ -52,6 +52,7 @@ static const ElementStyle hairpinStyle {
       { Sid::hairpinHeight,                      Pid::HAIRPIN_HEIGHT             },
       { Sid::hairpinContHeight,                  Pid::HAIRPIN_CONT_HEIGHT        },
       { Sid::hairpinPlacement,                   Pid::PLACEMENT                  },
+      { Sid::hairpinPosAbove,                    Pid::OFFSET                     },
       };
 
 //---------------------------------------------------------
@@ -236,15 +237,14 @@ void HairpinSegment::layout()
             qreal w  = score()->styleP(Sid::hairpinLineWidth);
             setbbox(r.adjusted(-w*.5, -w*.5, w, w));
             }
-      if (!parent())
+      if (!parent()) {
+            rpos() = QPointF();
+            roffset() = QPointF();
             return;
-
-      if (isStyled(Pid::OFFSET)) {
-            if (spanner()->placeBelow())
-                  roffset() = styleValue(Pid::OFFSET, Sid::hairpinPosBelow).toPointF() + QPointF(0.0, (staff() ? staff()->height() : 0.0));
-            else
-                  roffset() = styleValue(Pid::OFFSET, Sid::hairpinPosAbove).toPointF();
             }
+
+      if (isStyled(Pid::OFFSET))
+            roffset() = hairpin()->propertyDefault(Pid::OFFSET).toPointF();
       if (autoplace()) {
             qreal minDistance = spatium() * .7;
             qreal ymax = pos().y();
@@ -307,7 +307,6 @@ Shape HairpinSegment::shape() const
 
 void HairpinSegment::updateGrips(EditData& ed) const
       {
-      QPointF pp(pagePos());
       qreal _spatium = spatium();
       qreal x = pos2().x();
       if (x < _spatium)             // minimum size of hairpin
@@ -333,12 +332,13 @@ void HairpinSegment::updateGrips(EditData& ed) const
       qreal lineApertureH = ( len - offsetX ) * h1/len; // Vertical position for y grip
       gripLineAperturePoint.setX( lineApertureX );
       gripLineAperturePoint.setY( lineApertureH );
-      gripLineAperturePoint = doRotation.map( gripLineAperturePoint );
+      gripLineAperturePoint = doRotation.map(gripLineAperturePoint);
 
       // End calc position grip aperture
-      ed.grip[int(Grip::START)].translate( pp );
-      ed.grip[int(Grip::END)].translate( p + pp );
-      ed.grip[int(Grip::MIDDLE)].translate( p * .5 + pp );
+      QPointF pp(pagePos());
+      ed.grip[int(Grip::START)].translate(pp);
+      ed.grip[int(Grip::END)].translate(p + pp);
+      ed.grip[int(Grip::MIDDLE)].translate(p * .5 + pp);
       ed.grip[int(Grip::APERTURE)].translate(gripLineAperturePoint + pp);
       }
 
@@ -422,6 +422,24 @@ Element* HairpinSegment::propertyDelegate(Pid pid)
       }
 
 //---------------------------------------------------------
+//   getPropertyStyle
+//---------------------------------------------------------
+
+Sid HairpinSegment::getPropertyStyle(Pid pid) const
+      {
+      if (pid == Pid::OFFSET)
+            return spanner()->placeAbove() ? Sid::hairpinPosAbove : Sid::hairpinPosBelow;
+      return TextLineBaseSegment::getPropertyStyle(pid);
+      }
+
+Sid Hairpin::getPropertyStyle(Pid pid) const
+      {
+      if (pid == Pid::OFFSET)
+            return placeAbove() ? Sid::hairpinPosAbove : Sid::hairpinPosBelow;
+      return TextLineBase::getPropertyStyle(pid);
+      }
+
+//---------------------------------------------------------
 //   Hairpin
 //---------------------------------------------------------
 
@@ -486,9 +504,14 @@ void Hairpin::layout()
 //   createLineSegment
 //---------------------------------------------------------
 
+static const ElementStyle hairpinSegmentStyle {
+      { Sid::hairpinPosBelow, Pid::OFFSET },
+      };
+
 LineSegment* Hairpin::createLineSegment()
       {
       HairpinSegment* h = new HairpinSegment(score());
+      h->initElementStyle(&hairpinSegmentStyle);
       return h;
       }
 

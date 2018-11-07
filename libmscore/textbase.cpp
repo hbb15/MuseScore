@@ -167,7 +167,6 @@ void TextCursor::changeSelectionFormat(FormatId id, QVariant val)
                   qSwap(c1, c2);
             }
       int rows = _text->rows();
-      QList<TextBlock> toDelete;
       for (int row = 0; row < rows; ++row) {
             TextBlock& t = _text->_layout[row];
             if (row < r1)
@@ -194,6 +193,7 @@ void TextCursor::setFormat(FormatId id, QVariant val)
       {
       changeSelectionFormat(id, val);
       format()->setFormat(id, val);
+      text()->setTextInvalid();
       }
 
 //---------------------------------------------------------
@@ -2443,6 +2443,19 @@ void TextBase::initElementStyle(const ElementStyle* ss)
 //---------------------------------------------------------
 //   initTid
 //---------------------------------------------------------
+
+void TextBase::initTid(Tid tid, bool preserveDifferent)
+      {
+      if (! preserveDifferent)
+            initTid(tid);
+      else {
+            setTid(tid);
+            for (const StyledProperty& p : *textStyle(tid)) {
+                  if (getProperty(p.pid) == propertyDefault(p.pid))
+                        setProperty(p.pid, styleValue(p.pid, p.sid));
+                  }
+            }
+      }
 
 void TextBase::initTid(Tid tid)
       {

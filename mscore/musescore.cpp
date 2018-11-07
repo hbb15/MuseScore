@@ -1141,6 +1141,7 @@ MuseScore::MuseScore()
       splitter = new QSplitter;
       tab1 = createScoreTab();
       splitter->addWidget(tab1);
+      ctab = tab1; // make tab1 active by default.
 
       if (splitScreen()) {
             tab2 = createScoreTab();
@@ -2417,9 +2418,10 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
             }
       ScoreAccessibility::instance()->updateAccessibilityInfo();
 
-      if (!scoreWasShown[cs]) {
-            scoreWasShown[cs] = true;
-            askResetOldScorePositions(cs);
+      MasterScore* master = cs->masterScore();
+      if (!scoreWasShown[master]) {
+            scoreWasShown[master] = true;
+            askResetOldScorePositions(master);
             }
       }
 
