@@ -221,10 +221,9 @@ bool ExportMidi::write(const QString& name, bool midiExpandRepeats, bool exportR
       for (int i = 0; i < cs->nstaves(); ++i)
             tracks.append(MidiTrack());
 
-      cs->updateCapo();
-      cs->updateSwing();
-      cs->createPlayEvents();
-      cs->updateRepeatList(midiExpandRepeats);
+      EventMap events;
+      cs->renderMidi(&events, false, midiExpandRepeats);
+
       pauseMap.calculate(cs);
       writeHeader();
 
@@ -236,11 +235,6 @@ bool ExportMidi::write(const QString& name, bool midiExpandRepeats, bool exportR
             track.setOutPort(part->midiPort());
             track.setOutChannel(part->midiChannel());
 
-            // Render each staff only once
-            EventMap events;
-            cs->renderStaff(&events, staff);
-            cs->renderSpanners(&events, staffIdx);
-
             // Pass through the all instruments in the part
             const InstrumentList* il = part->instruments();
             for(auto j = il->begin(); j!= il->end(); j++) {
@@ -248,8 +242,8 @@ bool ExportMidi::write(const QString& name, bool midiExpandRepeats, bool exportR
                   // "normal", "pizzicato", "tremolo" for Strings,
                   // "normal", "mute" for Trumpet
                   foreach(const Channel* ch, j->second->channel()) {
-                        char port    = part->masterScore()->midiPort(ch->channel);
-                        char channel = part->masterScore()->midiChannel(ch->channel);
+                        char port    = part->masterScore()->midiPort(ch->channel());
+                        char channel = part->masterScore()->midiChannel(ch->channel());
 
                         if (staff->isTop()) {
                               track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_RESET_ALL_CTRL, 0));
@@ -272,12 +266,12 @@ bool ExportMidi::write(const QString& name, bool midiExpandRepeats, bool exportR
                                     track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HRPN, 127));
                               }
 
-                              if (ch->program != -1)
-                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_PROGRAM, ch->program));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_VOLUME, ch->volume));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_PANPOT, ch->pan));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_REVERB_SEND, ch->reverb));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_CHORUS_SEND, ch->chorus));
+                              if (ch->program() != -1)
+                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_PROGRAM, ch->program()));
+                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_VOLUME, ch->volume()));
+                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_PANPOT, ch->pan()));
+                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_REVERB_SEND, ch->reverb()));
+                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_CHORUS_SEND, ch->chorus()));
                               }
 
                         // Export port to MIDI META event
@@ -293,7 +287,20 @@ bool ExportMidi::write(const QString& name, bool midiExpandRepeats, bool exportR
                               }
 
                         for (auto i = events.begin(); i != events.end(); ++i) {
-                              NPlayEvent event(i->second);
+                              const NPlayEvent& event = i->second;
+
+                              if (event.discard() == staffIdx + 1 && event.velo() > 0)
+                                    // turn note off so we can restrike it in another track
+                                    track.insert(pauseMap.addPauseTicks(i->first), MidiEvent(ME_NOTEON, channel,
+                                                                     event.pitch(), 0));
+
+                              if (event.getOriginatingStaff() != staffIdx)
+                                    continue;
+
+                              if (event.discard() && event.velo() == 0)
+                                    // ignore noteoff but restrike noteon
+                                    continue;
+
                               char eventPort    = cs->masterScore()->midiPort(event.channel());
                               char eventChannel = cs->masterScore()->midiChannel(event.channel());
                               if (port != eventPort || channel != eventChannel)

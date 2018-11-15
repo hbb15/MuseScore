@@ -59,6 +59,7 @@
 #include "importmidi/importmidi_panel.h"
 #include "importmidi/importmidi_operations.h"
 #include "scorecmp/scorecmp.h"
+#include "script/recorderwidget.h"
 #include "libmscore/scorediff.h"
 #include "libmscore/chord.h"
 #include "libmscore/segment.h"
@@ -156,6 +157,7 @@ QString iconPath;
 bool converterMode = false;
 static bool rawDiffMode = false;
 static bool diffMode = false;
+static bool scriptTestMode = false;
 bool processJob = false;
 bool externalIcons = false;
 bool pluginMode = false;
@@ -452,6 +454,7 @@ void MuseScore::preferencesChanged(bool fromWorkspace)
       _statusBar->setVisible(preferences.getBool(PREF_UI_APP_SHOWSTATUSBAR));
 
       MuseScore::updateUiStyleAndTheme();
+      updateIcons();
 
       QString fgWallpaper = preferences.getString(PREF_UI_CANVAS_FG_WALLPAPER);
       for (int i = 0; i < tab1->count(); ++i) {
@@ -1106,6 +1109,17 @@ MuseScore::MuseScore()
       }
       addDockWidget(Qt::BottomDockWidgetArea, scoreCmpTool);
 
+      if (MuseScore::unstable()) {
+            scriptRecorder = new ScriptRecorderWidget(this, this);
+            scriptRecorder->setVisible(false);
+            QAction* a = getAction("toggle-script-recorder");
+            connect(
+               scriptRecorder, &ScriptRecorderWidget::visibilityChanged,
+               a,              &QAction::setChecked
+               );
+            addDockWidget(Qt::RightDockWidgetArea, scriptRecorder);
+            }
+
       mainWindow->setStretchFactor(0, 1);
       mainWindow->setStretchFactor(1, 0);
       mainWindow->setSizes(QList<int>({500, 50}));
@@ -1636,6 +1650,13 @@ MuseScore::MuseScore()
 
       menuTools->addAction(getAction("del-empty-measures"));
 
+      if (MuseScore::unstable()) {
+            menuTools->addSeparator();
+            a = getAction("toggle-script-recorder");
+            a->setCheckable(true);
+            menuTools->addAction(a);
+            }
+
       //---------------------
       //    Menu Plugins
       //---------------------
@@ -1736,7 +1757,7 @@ MuseScore::MuseScore()
 #if defined(Q_OS_MAC) || defined(Q_OS_WIN)
 #if !defined(FOR_WINSTORE)
       checkForUpdateAction = new QAction("", 0);
-      connect(checkForUpdateAction, SIGNAL(triggered()), this, SLOT(checkForUpdate()));
+      connect(checkForUpdateAction, SIGNAL(triggered()), this, SLOT(checkForUpdateNow()));
       menuHelp->addAction(checkForUpdateAction);
       Workspace::addActionAndString(checkForUpdateAction, "check-update");
 #endif
@@ -2334,7 +2355,7 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
       if (selectionWindow)
             selectionWindow->setScore(cs);
       if (mixer)
-            mixer->updateAll(cs ? cs->masterScore() : nullptr);
+            mixer->setScore(cs ? cs->masterScore() : nullptr);
 #ifdef OMR
       if (omrPanel) {
             if (cv && cv->omrView())
@@ -2552,7 +2573,7 @@ void MuseScore::dragEnterEvent(QDragEnterEvent* event)
       const QMimeData* dta = event->mimeData();
       if (dta->hasUrls()) {
             QList<QUrl>ul = event->mimeData()->urls();
-            foreach(const QUrl& u, ul) {
+            for (const QUrl& u : ul) {
                   if (MScore::debugMode)
                         qDebug("drag Url: %s scheme <%s>", qPrintable(u.toString()), qPrintable(u.scheme()));
                   if (u.scheme() == "file") {
@@ -2914,7 +2935,7 @@ void MuseScore::removeTab(int i)
 
       QString tmpName = score->tmpName();
 
-      if (checkDirty(score))
+      if (!scriptTestMode && checkDirty(score))
             return;
       if (seq && seq->score() == score) {
             seq->stopWait();
@@ -2947,6 +2968,35 @@ void MuseScore::removeTab(int i)
       delete score;
       // Shouldn't be necessary... but fix #21841
       update();
+      }
+
+//---------------------------------------------------------
+//   runTestScripts
+//---------------------------------------------------------
+
+bool MuseScore::runTestScripts(const QStringList& scriptFiles)
+      {
+      ScriptContext ctx(this);
+      bool allPassed = true;
+      int passed = 0;
+      int total = 0;
+      for (const QString& scriptFile : scriptFiles) {
+            // ensure no scores are open not to interfere with
+            // the next script initialization process.
+            while (!scores().empty()) {
+                  closeScore(scores().back());
+                  }
+            std::unique_ptr<Script> script = Script::fromFile(scriptFile);
+            const bool pass = script->execute(ctx);
+            QTextStream(stdout) << "Test " << scriptFile << (pass ? " PASS" : " FAIL") << endl;
+            ++total;
+            if (pass)
+                  ++passed;
+            else
+                  allPassed = false;
+            }
+      QTextStream(stdout) << "Test scripts: total: " << total << ", passed: " << passed << endl;
+      return allPassed;
       }
 
 //---------------------------------------------------------
@@ -3417,6 +3467,9 @@ static bool processNonGui(const QStringList& argv)
             delete s2;
             }
 
+      if (scriptTestMode)
+            return mscore->runTestScripts(argv);
+
       return true;
       }
 
@@ -3578,14 +3631,10 @@ bool MuseScore::eventFilter(QObject *obj, QEvent *event)
 
 bool MuseScore::hasToCheckForUpdate()
       {
-#ifdef MAC_SPARKLE_ENABLED
-      return false; // On Mac, sparkle take cares of the scheduling for now. On windows too probably.
-#else
       if (ucheck)
             return ucheck->hasToCheck();
       else
             return false;
-#endif
       }
 
 //---------------------------------------------------------
@@ -3599,17 +3648,31 @@ bool MuseScore::hasToCheckForExtensionsUpdate()
 
 //---------------------------------------------------------
 //   checkForUpdate
+//         Doesn't show any messages if software is up to date
 //---------------------------------------------------------
 
 void MuseScore::checkForUpdate()
       {
 #ifdef MAC_SPARKLE_ENABLED
-      SparkleAutoUpdater::checkForUpdatesNow();
-#else
+      SparkleAutoUpdater::checkUpdates();
+      return;
+#endif
       if (ucheck)
             ucheck->check(version(), sender() != 0);
+      }
 
+//---------------------------------------------------------
+//   checkForUpdateNow
+//          Show message like "Software is up to date" if software is up to date
+//---------------------------------------------------------
+void MuseScore::checkForUpdateNow()
+      {
+#ifdef MAC_SPARKLE_ENABLED
+      SparkleAutoUpdater::checkForUpdatesNow();
+      return;
 #endif
+      if (ucheck)
+            ucheck->check(version(), sender() != 0);
       }
 
 //---------------------------------------------------------
@@ -4151,7 +4214,7 @@ void MuseScore::play(Element* e) const
             Instrument* instr = part->instrument(tick);
             for (Note* n : c->notes()) {
                   const Channel* channel = instr->channel(n->subchannel());
-                  seq->startNote(channel->channel, n->ppitch(), 80, n->tuning());
+                  seq->startNote(channel->channel(), n->ppitch(), 80, n->tuning());
                   }
             seq->startNoteTimer(MScore::defaultPlayDuration);
             }
@@ -4168,7 +4231,7 @@ void MuseScore::play(Element* e, int pitch) const
                   tick = 0;
             Instrument* instr = note->part()->instrument(tick);
             const Channel* channel = instr->channel(note->subchannel());
-            seq->startNote(channel->channel, pitch, 80, MScore::defaultPlayDuration, note->tuning());
+            seq->startNote(channel->channel(), pitch, 80, MScore::defaultPlayDuration, note->tuning());
             }
       }
 
@@ -4610,7 +4673,7 @@ void MuseScore::autoSaveTimerTimeout()
       {
       bool sessionChanged = false;
 
-      Score::isScoreLoaded() = true;           //disable debug message "no active command"
+      ScoreLoad sl;           //disable debug message "no active command"
 
       for (MasterScore* s : scoreList) {
             if (s->autosaveDirty()) {
@@ -4639,8 +4702,6 @@ void MuseScore::autoSaveTimerTimeout()
                   s->setAutosaveDirty(false);
                   }
             }
-      Score::isScoreLoaded() = false;
-
       if (sessionChanged)
             writeSessionFile(false);
       if (preferences.getBool(PREF_APP_AUTOSAVE_USEAUTOSAVE)) {
@@ -5510,10 +5571,15 @@ ScoreTab* MuseScore::createScoreTab()
 
 void MuseScore::cmd(QAction* a, const QString& cmd)
       {
+#ifdef MSCORE_UNSTABLE
+      if (scriptRecorder)
+            scriptRecorder->recordCommand(cmd);
+#endif
+
       if (cmd == "instruments") {
             editInstrList();
             if (mixer)
-                  mixer->updateAll(cs->masterScore());
+                  mixer->setScore(cs->masterScore());
             }
       else if (cmd == "rewind") {
             if (cs) {
@@ -5683,6 +5749,10 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             showPianoKeyboard(a->isChecked());
       else if (cmd == "toggle-scorecmp-tool")
             scoreCmpTool->setVisible(a->isChecked());
+#ifdef MSCORE_UNSTABLE
+      else if (cmd == "toggle-script-recorder")
+            scriptRecorder->setVisible(a->isChecked());
+#endif
       else if (cmd == "plugin-creator")
             showPluginCreator(a);
       else if (cmd == "plugin-manager")
@@ -5980,7 +6050,7 @@ void MuseScore::noteTooShortForTupletDialog()
 void MuseScore::instrumentChanged()
       {
       if (mixer)
-            mixer->updateAll(cs->masterScore());
+            mixer->setScore(cs->masterScore());
       }
 
 //---------------------------------------------------------
@@ -6393,8 +6463,8 @@ bool MuseScore::saveMp3(Score* score, const QString& name)
                               for (MidiCoreEvent e : a->init) {
                                     if (e.type() == ME_INVALID)
                                           continue;
-                                    e.setChannel(a->channel);
-                                    int syntiIdx= synth->index(score->masterScore()->midiMapping(a->channel)->articulation->synti);
+                                    e.setChannel(a->channel());
+                                    int syntiIdx= synth->index(score->masterScore()->midiMapping(a->channel())->articulation->synti());
 									synth->play(e, syntiIdx);
                                     }
                               }
@@ -6445,8 +6515,8 @@ bool MuseScore::saveMp3(Score* score, const QString& name)
                         if (e.isChannelEvent()) {
                               int channelIdx = e.channel();
                               Channel* c = score->masterScore()->midiMapping(channelIdx)->articulation;
-                              if (!c->mute) {
-                                    synth->play(e, synth->index(c->synti));
+                              if (!c->mute()) {
+                                    synth->play(e, synth->index(c->synti()));
                                     }
                               }
                         }
@@ -6683,6 +6753,7 @@ int main(int argc, char* av[])
       parser.addOption(QCommandLineOption({"e", "experimental"}, "Enable experimental features"));
       parser.addOption(QCommandLineOption({"c", "config-folder"}, "Override configuration and settings folder", "dir"));
       parser.addOption(QCommandLineOption({"t", "test-mode"}, "Set test mode flag for all files")); // this includes --template-mode
+      parser.addOption(QCommandLineOption("run-test-script", "Run script tests listed in the command line arguments"));
       parser.addOption(QCommandLineOption({"M", "midi-operations"}, "Specify MIDI import operations file", "file"));
       parser.addOption(QCommandLineOption({"w", "no-webview"}, "No web view in start center"));
       parser.addOption(QCommandLineOption({"P", "export-score-parts"}, "Used with '-o <file>.pdf', export score and parts"));
@@ -6837,6 +6908,12 @@ int main(int argc, char* av[])
             MScore::noGui = true;
             diffMode = true;
             }
+      if (parser.isSet("run-test-script")) {
+            if (rawDiffMode || diffMode)
+                  qFatal("incompatible options");
+            MScore::noGui = true;
+            scriptTestMode = true;
+            }
 
       QStringList argv = parser.positionalArguments();
 
@@ -6865,6 +6942,8 @@ int main(int argc, char* av[])
             if (argv.size() != 2)
                   qFatal("Only two scores are needed for performing a comparison");
             }
+      if (scriptTestMode && argv.empty())
+            qFatal("Please specify scripts to execute");
 
       if (dataPath.isEmpty())
             dataPath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
@@ -6963,10 +7042,10 @@ int main(int argc, char* av[])
 
       if (!MScore::noGui)
             MuseScore::updateUiStyleAndTheme();
-      else
+      else {
+            genIcons(); // in GUI mode generated in updateUiStyleAndTheme()
             noSeq = true;
-
-      genIcons();
+            }
 
       // Do not create sequencer and audio drivers if run with '-s'
       if (!noSeq) {
@@ -7144,9 +7223,9 @@ int main(int argc, char* av[])
       if (mscore->hasToCheckForUpdate())
             mscore->checkForUpdate();
 #endif
-
       if (mscore->hasToCheckForExtensionsUpdate())
             mscore->checkForExtensionsUpdate();
+
 
       if (!scoresOnCommandline && preferences.getBool(PREF_UI_APP_STARTUP_SHOWSTARTCENTER) && (!restoredSession || mscore->scores().size() == 0)) {
 #ifdef Q_OS_MAC

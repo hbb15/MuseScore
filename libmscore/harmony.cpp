@@ -707,7 +707,6 @@ void Harmony::startEdit(EditData& ed)
       if (!textList.empty())
             setXmlText(harmonyName());
 
-      layoutInvalid = false;
       TextBase::startEdit(ed);
       }
 
@@ -738,8 +737,8 @@ bool Harmony::edit(EditData& ed)
 void Harmony::endEdit(EditData& ed)
       {
       TextBase::endEdit(ed);
-      if (isLayoutInvalid())
-            layout();
+      layout();
+
       if (links()) {
             for (ScoreElement* e : *links()) {
                   if (e == this)
@@ -1056,7 +1055,7 @@ void Harmony::layout()
       if (hasFrame())
             layoutFrame();
 
-//      autoplaceSegmentElement(styleP(Sid::minHarmonyDistance));
+//    autoplaceSegmentElement(styleP(Sid::minHarmonyDistance));
       }
 
 //---------------------------------------------------------
@@ -1072,6 +1071,17 @@ void Harmony::calculateBoundingRect()
             for (const TextSegment* ts : textList)
                   bb |= ts->tightBoundingRect().translated(ts->x, ts->y);
             setbbox(bb);
+            for (int i = 0; i < rows(); ++i) {
+                  TextBlock& t = textBlockList()[i];
+
+                  // when MS switch to editing Harmony MS draws text defined by textBlockList(). 
+                  // When MS switches back to normal state it draws text from textList
+                  // To correct placement of text in editing we need to layout textBlockList() elements
+                  t.layout(this);
+                  for (auto& s : t.fragments()) {
+                        s.pos = { 0, 0 };
+                        }
+                  }
             }
       }
 
@@ -1571,7 +1581,7 @@ QString Harmony::screenReaderInfo() const
 
 bool Harmony::acceptDrop(EditData& data) const
       {
-      return data.element->isFretDiagram();
+      return data.dropElement->isFretDiagram();
       }
 
 //---------------------------------------------------------
@@ -1580,7 +1590,7 @@ bool Harmony::acceptDrop(EditData& data) const
 
 Element* Harmony::drop(EditData& data)
       {
-      Element* e = data.element;
+      Element* e = data.dropElement;
       if (e->isFretDiagram()) {
             FretDiagram* fd = toFretDiagram(e);
             fd->setParent(parent());

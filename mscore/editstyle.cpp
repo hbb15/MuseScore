@@ -296,7 +296,8 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::measureNumberFontBold,      false, measureNumberBold,            resetMeasureNumberBold },
       { Sid::measureNumberFontItalic,    false, measureNumberItalic,          resetMeasureNumberItalic },
       { Sid::measureNumberFontUnderline, false, measureNumberUnderline,       resetMeasureNumberUnderline },
-//      { Sid::measureNumberOffset,           "measureNumberOffset",          QPointF(0.0, -2.0) },
+      { Sid::measureNumberAlign,         false, measureNumberAlign,           resetMeasureNumberAlign },
+      { Sid::measureNumberOffset,        false, measureNumberOffset,          resetMeasureNumberOffset },
 
       { Sid::shortInstrumentFontFace,      false, shortInstrumentFontFace,      resetShortInstrumentFontFace },
       { Sid::shortInstrumentFontSize,      false, shortInstrumentFontSize,      resetShortInstrumentFontSize },
@@ -1241,15 +1242,37 @@ const StyleWidget& EditStyle::styleWidget(Sid idx) const
 
 void EditStyle::valueChanged(int i)
       {
-      Sid idx = (Sid)i;
-      QVariant val = getValue(idx);
+      Sid idx       = (Sid)i;
+      QVariant val  = getValue(idx);
       bool setValue = false;
       if (idx == Sid::MusicalSymbolFont && optimizeStyleCheckbox->isChecked()) {
               ScoreFont* scoreFont = ScoreFont::fontFactory(val.toString());
               if (scoreFont) {
-                    for (auto j : scoreFont->engravingDefaults()) {
+                  for (auto j : scoreFont->engravingDefaults()) {
+#if 0  // debug
+                        if (cs->styleV(j.first) != j.second) {
+                              printf("change style <%s>(%s) %f -> %f (%f %f)\n",
+                                 MStyle::valueName(j.first),
+                                 MStyle::valueType(j.first),
+                                 cs->styleV(j.first).toDouble(),
+                                 j.second.toDouble(),
+                                 SPATIUM20,
+                                 cs->spatium()
+                                 );
+                              }
+#endif
                           cs->undo(new ChangeStyleVal(cs, j.first, j.second));
                           }
+                  // fix values, the distances are defined different in MuseScore
+                  cs->undo(new ChangeStyleVal(cs, Sid::endBarDistance,
+                    cs->styleV(Sid::endBarDistance).toDouble()
+                    + (cs->styleV(Sid::barWidth).toDouble() + cs->styleV(Sid::endBarWidth).toDouble()) * .5));
+
+                  // guess the repeat dot width = spatium * .3
+                  cs->undo(new ChangeStyleVal(cs, Sid::repeatBarlineDotSeparation,
+                    cs->styleV(Sid::repeatBarlineDotSeparation).toDouble()
+                    + (cs->styleV(Sid::barWidth).toDouble() + .3) * .5));
+
                     if (scoreFont->textEnclosureThickness()) {
 //                           TextStyle ts = cs->textStyle(TextStyleType::REHEARSAL_MARK);
 //                           ts.setFrameWidth(Spatium(scoreFont->textEnclosureThickness()));
@@ -1262,7 +1285,6 @@ void EditStyle::valueChanged(int i)
       cs->update();
       if (setValue)
             setValues();
-
       const StyleWidget& sw = styleWidget(idx);
       if (sw.reset)
             sw.reset->setEnabled(!cs->style().isDefault(idx));

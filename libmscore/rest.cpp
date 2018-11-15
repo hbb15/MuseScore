@@ -204,7 +204,7 @@ QRectF Rest::drag(EditData& ed)
 
 bool Rest::acceptDrop(EditData& data) const
       {
-      Element* e = data.element;
+      Element* e = data.dropElement;
       ElementType type = e->type();
       if (
             (type == ElementType::ICON && toIcon(e)->iconType() == IconType::SBEAM)
@@ -246,7 +246,7 @@ bool Rest::acceptDrop(EditData& data) const
 
 Element* Rest::drop(EditData& data)
       {
-      Element* e = data.element;
+      Element* e = data.dropElement;
       switch (e->type()) {
             case ElementType::ARTICULATION:
                   {
@@ -381,7 +381,7 @@ void Rest::layout()
 
       rxpos() = 0.0;
       if (staff() && staff()->isTabStaff(tick())) {
-            StaffType* tab = staff()->staffType(tick());
+            const StaffType* tab = staff()->staffType(tick());
             // if rests are shown and note values are shown as duration symbols
             if (tab->showRests() && tab->genDurations()) {
                   TDuration::DurationType type = durationType().type();
@@ -434,9 +434,9 @@ void Rest::layout()
 
       dotline = Rest::getDotline(durationType().type());
 
-      qreal yOff     = offset().y();
-      Staff* stf     = staff();
-      StaffType*  st = stf->staffType(tick());
+      qreal yOff       = offset().y();
+      const Staff* stf = staff();
+      const StaffType*  st = stf->staffType(tick());
       qreal lineDist = st ? st->lineDistance().val() : 1.0;
       int userLine   = yOff == 0.0 ? 0 : lrint(yOff / (lineDist * _spatium));
       int lines      = st ? st->lines() : 5;

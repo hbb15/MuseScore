@@ -645,7 +645,7 @@ void ScoreView::moveCursor()
       qreal mag               = _spatium / SPATIUM20;
       double w                = _spatium * 2.0 + score()->scoreFont()->width(SymId::noteheadBlack, mag);
       Staff* staff            = score()->staff(staffIdx);
-      StaffType* staffType    = staff->staffType(is.tick());
+      const StaffType* staffType    = staff->staffType(is.tick());
       double lineDist         = staffType->lineDistance().val() * _spatium;
       int lines               = staffType->lines();
       int strg                = is.string();          // strg refers to an instrument physical string
@@ -2561,8 +2561,8 @@ QVariant ScoreView::inputMethodQuery(Qt::InputMethodQuery query) const
       {
 //      qDebug("0x%x  %s", int(query), editData.element ? editData.element->name() : "-no element-");
       // if editing a text object, place the InputMethod popup window just below the text
-      if (editData.element && editData.element->isTextBase()) {
-            TextBase* text = toTextBase(editData.element);
+      if (editData.dropElement && editData.dropElement->isTextBase()) {
+            TextBase* text = toTextBase(editData.dropElement);
             switch (query) {
                   case Qt::ImCursorRectangle: {
                         QRectF r;

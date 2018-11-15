@@ -259,9 +259,18 @@ void Palette::contextMenuEvent(QContextMenuEvent* event)
       if (action == clearAction) {
             PaletteCell* cell = cellAt(i);
             if (cell) {
-                  if(cell->tag == "ShowMore")
-                        _moreElements = false;
-                  delete cell;
+                  int ret = QMessageBox::warning(this, QWidget::tr("Delete palette cell"),
+                                                 QWidget::tr("Are you sure you want to delete palette cell %1 ?")
+                                                 .arg(cell->name), QMessageBox::Yes | QMessageBox::No,
+                                                 QMessageBox::Yes);
+                  if (ret == QMessageBox::Yes) {
+                        if(cell->tag == "ShowMore")
+                            _moreElements = false;
+                        delete cell;
+                        }
+                  else {
+                        return;
+                        }
             }
             cells[i] = 0;
             emit changed();
@@ -325,12 +334,14 @@ void Palette::mousePressEvent(QMouseEvent* ev)
       dragStartPosition = ev->pos();
       dragIdx           = idx(dragStartPosition);
 
+/*
       // Take out of edit mode to prevent crashes when adding
       // elements from palette
+
       ScoreView* cv = mscore->currentScoreView();
       if (cv && cv->editMode())
             cv->changeState(ViewState::NORMAL);
-
+*/
       if (dragIdx == -1)
             return;
       if (_selectable) {
@@ -406,11 +417,11 @@ void Palette::mouseMoveEvent(QMouseEvent* ev)
 
 static void applyDrop(Score* score, ScoreView* viewer, Element* target, Element* e, Qt::KeyboardModifiers modifiers, QPointF pt = QPointF())
       {
-      EditData dropData = viewer->getEditData();
-      dropData.pos        = pt.isNull() ? target->pagePos() : pt;
-      dropData.dragOffset = QPointF();
-      dropData.modifiers  = modifiers;
-      dropData.element    = e;
+      EditData& dropData = viewer->getEditData();
+      dropData.pos         = pt.isNull() ? target->pagePos() : pt;
+      dropData.dragOffset  = QPointF();
+      dropData.modifiers   = modifiers;
+      dropData.dropElement = e;
 
       if (target->acceptDrop(dropData)) {
             // use same code path as drag&drop
@@ -422,15 +433,15 @@ printf("<<%s>>\n", a.data());
             Fraction duration;  // dummy
             QPointF dragOffset;
             ElementType type = Element::readType(n, &dragOffset, &duration);
-            dropData.element = Element::create(type, score);
+            dropData.dropElement = Element::create(type, score);
 
-            dropData.element->read(n);
-            dropData.element->styleChanged();   // update to local style
+            dropData.dropElement->read(n);
+            dropData.dropElement->styleChanged();   // update to local style
 
             Element* el = target->drop(dropData);
             if (el)
                   score->select(el, SelectType::SINGLE, 0);
-            dropData.element = 0;
+            dropData.dropElement = 0;
             }
       }
 

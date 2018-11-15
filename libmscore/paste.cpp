@@ -417,10 +417,6 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff)
             s->connectTies();
 
       if (pasted) {                       //select only if we pasted something
-//TODO?            if (styleB(Sid::createMultiMeasureRests))
-//                  createMMRests();
-            Segment* s1 = tick2segmentMM(dstTick);
-            Segment* s2 = tick2segmentMM(dstTick + tickLen);
             int endStaff = dstStaff + staves;
             if (endStaff > nstaves())
                   endStaff = nstaves();
@@ -432,13 +428,13 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff)
                   for (Measure* m = dstM; m && m != endM->nextMeasureMM(); m = m->nextMeasureMM())
                         m->checkMeasure(i);
                   }
-            _selection.setRange(s1, s2, dstStaff, endStaff);
-            _selection.updateSelectedElements();
+            _selection.setRangeTicks(dstTick, dstTick + tickLen, dstStaff, endStaff);
 
             //finding the first element that has a track
             //the canvas position will be set to this element
             Element* el = 0;
-            Segment* s  = s1;
+            Segment* s = tick2segmentMM(dstTick);
+            Segment* s2 = tick2segmentMM(dstTick + tickLen);
             bool found = false;
             if (s2)
                   s2 = s2->next1MM();
@@ -586,10 +582,10 @@ void Score::pasteChordRest(ChordRest* cr, int tick, const Interval& srcTranspose
                         Fraction len  = rest > mlen ? mlen : rest;
                         std::vector<TDuration> dl = toRhythmicDurationList(len, true, tick - measure->tick(), sigmap()->timesig(tick).nominal(), measure, MAX_DOTS);
                         TDuration d = dl[0];
-                        r2->setDuration(d.fraction());
                         r2->setDurationType(d);
+                        r2->setDuration(d.isMeasure() ? measure->len() : d.fraction());
                         undoAddCR(r2, measure, tick);
-                        rest -= d.fraction();
+                        rest -= r2->duration();
                         tick += r2->actualTicks();
                         firstpart = false;
                         }
@@ -877,11 +873,9 @@ void Score::cmdPaste(const QMimeData* ms, MuseScoreView* view)
             MScore::setError(NO_MIME);
             return;
             }
-printf("cmd paste\n");
       if ((_selection.isSingle() || _selection.isList()) && ms->hasFormat(mimeSymbolFormat)) {
             QByteArray data(ms->data(mimeSymbolFormat));
 
-printf("paste <%s>\n", data.data());
             XmlReader e(data);
             QPointF dragOffset;
             Fraction duration(1, 4);
@@ -919,7 +913,6 @@ printf("paste <%s>\n", data.data());
                   qDebug("cannot read type");
             }
       else if ((_selection.isRange() || _selection.isList()) && ms->hasFormat(mimeStaffListFormat)) {
-printf("cmd paste 2\n");
             ChordRest* cr = 0;
             if (_selection.isRange())
                   cr = _selection.firstChordRest();
@@ -953,7 +946,6 @@ printf("cmd paste 2\n");
                   }
             }
       else if (ms->hasFormat(mimeSymbolListFormat)) {
-printf("cmd paste 3\n");
             ChordRest* cr = 0;
             if (_selection.isRange())
                   cr = _selection.firstChordRest();

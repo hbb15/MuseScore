@@ -76,7 +76,7 @@ void TimeSig::setSig(const Fraction& f, TimeSigType st)
 
 bool TimeSig::acceptDrop(EditData& data) const
       {
-      return data.element->isTimeSig();
+      return data.dropElement->isTimeSig();
       }
 
 //---------------------------------------------------------
@@ -85,7 +85,7 @@ bool TimeSig::acceptDrop(EditData& data) const
 
 Element* TimeSig::drop(EditData& data)
       {
-      Element* e = data.element;
+      Element* e = data.dropElement;
       if (e->isTimeSig()) {
             // change timesig applies to all staves, can't simply set subtype
             // for this one only
@@ -252,7 +252,7 @@ void TimeSig::layout()
       qreal lineDist;
       int   numOfLines;
       TimeSigType sigType = timeSigType();
-      Staff* _staff       = staff();
+      const Staff* _staff       = staff();
 
       if (_staff) {
             // if staff is without time sig, format as if no text at all

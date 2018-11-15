@@ -134,7 +134,7 @@ void Clef::layout()
       // check clef visibility and type compatibility
       if (clefSeg && staff()) {
             int tick             = clefSeg->tick();
-            StaffType* staffType = staff()->staffType(tick);
+            const StaffType* staffType = staff()->constStaffType(tick);
             bool show            = staffType->genClef();        // check staff type allows clef display
 
             // check clef is compatible with staff type group:
@@ -237,8 +237,8 @@ void Clef::draw(QPainter* painter) const
 
 bool Clef::acceptDrop(EditData& data) const
       {
-      return (data.element->type() == ElementType::CLEF
-         || (/*!generated() &&*/ data.element->type() == ElementType::AMBITUS) );
+      return (data.dropElement->type() == ElementType::CLEF
+         || (/*!generated() &&*/ data.dropElement->type() == ElementType::AMBITUS) );
       }
 
 //---------------------------------------------------------
@@ -247,7 +247,7 @@ bool Clef::acceptDrop(EditData& data) const
 
 Element* Clef::drop(EditData& data)
       {
-      Element* e = data.element;
+      Element* e = data.dropElement;
       Clef* c = 0;
       if (e->isClef()) {
             Clef* clef = toClef(e);

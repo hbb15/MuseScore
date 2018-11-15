@@ -308,6 +308,10 @@ void Lyrics::layout()
                   }
             _separator->setParent(this);
             _separator->setTick(cr->tick());
+            // HACK separator should have non-zero length to get its layout
+            // always triggered. A proper ticks length will be set later on the
+            // separator layout.
+            _separator->setTicks(1);
             _separator->setTrack(track());
             _separator->setTrack2(track());
             // bbox().setWidth(bbox().width());  // ??
@@ -428,7 +432,7 @@ int Lyrics::endTick() const
 
 bool Lyrics::acceptDrop(EditData& data) const
       {
-      return data.element->isText() || TextBase::acceptDrop(data);
+      return data.dropElement->isText() || TextBase::acceptDrop(data);
       }
 
 //---------------------------------------------------------
@@ -437,16 +441,17 @@ bool Lyrics::acceptDrop(EditData& data) const
 
 Element* Lyrics::drop(EditData& data)
       {
-      ElementType type = data.element->type();
+      ElementType type = data.dropElement->type();
       if (type == ElementType::SYMBOL || type == ElementType::FSYMBOL) {
             TextBase::drop(data);
             return 0;
             }
       if (!data.element->isText()) {
-            delete data.element;
+            delete data.dropElement;
+            data.dropElement = 0;
             return 0;
             }
-      Text* e = toText(data.element);
+      Text* e = toText(data.dropElement);
       e->setParent(this);
       score()->undoAddElement(e);
       return e;

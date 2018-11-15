@@ -676,7 +676,7 @@ void PianoView::mouseReleaseEvent(QMouseEvent* event)
 
 
                         ChordRest* e = score->findCR(roundedTick, track);
-                        if (!e->tuplet() && _tuplet == 1) {
+                        if (e && !e->tuplet() && _tuplet == 1) {
                               //Ignore tuplets
                               score->startCmd();
                               score->expandVoice(e->segment(), track);
@@ -742,7 +742,7 @@ void PianoView::mouseReleaseEvent(QMouseEvent* event)
                         int roundedTick = (pickTick / subbeatTicks) * subbeatTicks;
 
                         ChordRest* e = score->findCR(roundedTick, track);
-                        if (!e->tuplet() && _tuplet == 1) {
+                        if (e && !e->tuplet() && _tuplet == 1) {
                               score->startCmd();
                               score->expandVoice(e->segment(), track);
                               int startTick = e->tick();
@@ -1104,7 +1104,9 @@ void PianoView::updateNotes()
       scene()->clear();
       clearNoteData();
 
-      int staffIdx   = _staff->idx();
+      int staffIdx = _staff->idx();
+      if (staffIdx == -1)
+            return;
 
       SegmentType st = SegmentType::ChordRest;
       for (Segment* s = _staff->score()->firstSegment(st); s; s = s->next1(st)) {

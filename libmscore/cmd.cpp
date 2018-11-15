@@ -1361,7 +1361,7 @@ void Score::upDown(bool up, UpDownMode mode, bool updateSelection)
                         switch (mode) {
                               case UpDownMode::OCTAVE:          // move same note to next string, if possible
                                     {
-                                    StaffType* stt = staff->staffType(tick);
+                                    const StaffType* stt = staff->staffType(tick);
                                     string = stt->physStringToVisual(string);
                                     string += (up ? -1 : 1);
                                     if (string < 0 || string >= stringData->strings())
@@ -1967,7 +1967,7 @@ bool Score::processMidiInput()
                               ev.pitch += p->instrument(selection().tickStart())->transpose().chromatic;
                               }
                         MScore::seq->startNote(
-                                          p->instrument()->channel(0)->channel,
+                                          p->instrument()->channel(0)->channel(),
                                           ev.pitch,
                                           ev.velocity,
                                           0.0);

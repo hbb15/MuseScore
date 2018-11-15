@@ -255,11 +255,11 @@ void BarLine::getY() const
             y2 = (8-_spanTo) * _spatium * .5;
             return;
             }
-      int staffIdx1   = staffIdx();
-      Staff* staff1   = score()->staff(staffIdx1);
-      int staffIdx2   = staffIdx1;
-      int nstaves     = score()->nstaves();
-      bool spanStaves = false;
+      int staffIdx1       = staffIdx();
+      const Staff* staff1 = score()->staff(staffIdx1);
+      int staffIdx2       = staffIdx1;
+      int nstaves         = score()->nstaves();
+      bool spanStaves     = false;
 
       Measure* measure = segment()->measure();
       if (_spanStaff) {
@@ -276,7 +276,7 @@ void BarLine::getY() const
                   }
             }
 
-      System* system   = measure->system();
+      System* system = measure->system();
       if (!system)
             return;
 
@@ -287,15 +287,15 @@ void BarLine::getY() const
       // after skipping ones with hideSystemBarLine set
       // and accounting for staves that are shown but have invisible measures
 
-      int tick       = segment()->measure()->tick();
-      StaffType* st1 = staff1->staffType(tick);
+      int tick             = segment()->measure()->tick();
+      const StaffType* st1 = staff1->staffType(tick);
 
       int from    = _spanFrom;
       int to      = _spanTo;
       int oneLine = st1->lines() == 1;
       if (oneLine && _spanFrom == 0) {
             from = BARLINE_SPAN_1LINESTAFF_FROM;
-            if (!_spanStaff)
+            if (!_spanStaff || (staffIdx1 == nstaves - 1))
                   to = BARLINE_SPAN_1LINESTAFF_TO;
             }
       SysStaff* sysStaff1  = system->staff(staffIdx1);
@@ -326,10 +326,12 @@ void BarLine::drawDots(QPainter* painter, qreal x) const
             y2l = 3.0 * _spatium;
             }
       else {
-            Staff* staff  = score()->staff(staffIdx());
-            StaffType* st = staff->staffType(tick());
-            y1l           = st->doty1() * _spatium + 0.5 * score()->spatium() * mag();
-            y2l           = st->doty2() * _spatium + 0.5 * score()->spatium() * mag();
+            Staff* staff        = score()->staff(staffIdx());
+            const StaffType* st = staff->staffType(tick());
+
+            qreal offset = 0.5 * score()->spatium() * mag();
+            y1l          = st->doty1() * _spatium + offset;
+            y2l          = st->doty2() * _spatium + offset;
             }
       drawSymbol(SymId::repeatDot, painter, QPointF(x, y1l));
       drawSymbol(SymId::repeatDot, painter, QPointF(x, y2l));
@@ -569,7 +571,7 @@ void BarLine::read(XmlReader& e)
 
 bool BarLine::acceptDrop(EditData& data) const
       {
-      ElementType type = data.element->type();
+      ElementType type = data.dropElement->type();
       if (type == ElementType::BAR_LINE) {
             return true;
             }
@@ -588,7 +590,7 @@ bool BarLine::acceptDrop(EditData& data) const
 
 Element* BarLine::drop(EditData& data)
       {
-      Element* e = data.element;
+      Element* e = data.dropElement;
 
       if (e->isBarLine()) {
             BarLine* bl    = toBarLine(e);

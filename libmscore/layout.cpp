@@ -91,7 +91,7 @@ void Score::rebuildBspTree()
 
 void Score::layoutChords1(Segment* segment, int staffIdx)
       {
-      Staff* staff = Score::staff(staffIdx);
+      const Staff* staff = Score::staff(staffIdx);
 
       if (staff->isTabStaff(segment->tick()))
             return;
@@ -755,7 +755,7 @@ static qreal layoutAccidental(AcEl* me, AcEl* above, AcEl* below, qreal colOffse
 //    - calculate positions of notes, accidentals, dots
 //---------------------------------------------------------
 
-void Score::layoutChords3(std::vector<Note*>& notes, Staff* staff, Segment* segment)
+void Score::layoutChords3(std::vector<Note*>& notes, const Staff* staff, Segment* segment)
       {
       //---------------------------------------------------
       //    layout accidentals
@@ -842,7 +842,12 @@ void Score::layoutChords3(std::vector<Note*>& notes, Staff* staff, Segment* segm
             else if (_up)
                   x = chord->stemPosX() - note->headBodyWidth();
 
-            note->rypos()  = (note->line() + stepOffset) * stepDistance;
+            qreal ny = (note->line() + stepOffset) * stepDistance;
+            if (note->rypos() != ny) {
+                  note->rypos() = ny;
+                  if (chord->stem())
+                        chord->stem()->layout();
+                  }
             note->rxpos()  = x;
 
             // find leftmost non-mirrored note to set as X origin for accidental layout
@@ -1625,35 +1630,44 @@ void Score::respace(std::vector<ChordRest*>* elements)
       }
 
 //---------------------------------------------------------
-//   getEmptyPage
+//   getNextPage
 //---------------------------------------------------------
 
-void LayoutContext::getEmptyPage()
+void LayoutContext::getNextPage()
       {
-      if (curPage >= score->npages()) {
-            Page* newPage = new Page(score);
-            newPage->setNo(score->pages().size());
-            score->pages().push_back(newPage);
+      if (!page || curPage >= score->npages()) {
+            page = new Page(score);
+            score->pages().push_back(page);
+            prevSystem = nullptr;
             }
       else {
             page = score->pages()[curPage];
+            QList<System*>& systems = page->systems();
+            const int i = systems.indexOf(curSystem);
+            if (i <= -1) // system is not on the current page
+                  systems.clear();
+            else {
+                  // system is on the current page,
+                  // erase only the current and the following systems
+                  systems.erase(systems.begin() + i, systems.end());
+                  }
+            prevSystem = systems.empty() ? nullptr : systems.back();
             }
+      page->bbox().setRect(0.0, 0.0, score->loWidth(), score->loHeight());
       page->setNo(curPage);
-      page->layout();
-      qreal x, y;
-      if (MScore::verticalOrientation()) {
-            x = 0.0;
-            y = (curPage == 0) ? 0.0 : score->pages()[curPage - 1]->pos().y() + page->height() + MScore::verticalPageGap;
-            }
-      else {
-            y = 0.0;
-            x = (curPage == 0) ? 0.0 : score->pages()[curPage - 1]->pos().x()
-               + page->width()
-               + (((curPage+score->pageNumberOffset()) & 1) ? MScore::horizontalPageGapOdd : MScore::horizontalPageGapEven);
+      qreal x = 0.0;
+      qreal y = 0.0;
+      if (curPage) {
+            Page* prevPage = score->pages()[curPage - 1];
+            if (MScore::verticalOrientation())
+                  y = prevPage->pos().y() + page->height() + MScore::verticalPageGap;
+            else {
+                  qreal gap = (curPage + score->pageNumberOffset()) & 1 ? MScore::horizontalPageGapOdd : MScore::horizontalPageGapEven;
+                  x = prevPage->pos().x() + page->width() + gap;
+                  }
             }
       ++curPage;
       page->setPos(x, y);
-      page->systems().clear();
       }
 
 //---------------------------------------------------------
@@ -2266,7 +2280,7 @@ void Score::createBeams(Measure* measure)
 //   layoutDrumsetChord
 //---------------------------------------------------------
 
-void layoutDrumsetChord(Chord* c, const Drumset* drumset, StaffType* st, qreal spatium)
+void layoutDrumsetChord(Chord* c, const Drumset* drumset, const StaffType* st, qreal spatium)
       {
       for (Note* note : c->notes()) {
             int pitch = note->pitch();
@@ -2364,7 +2378,7 @@ void Score::getNextMeasure(LayoutContext& lc)
       // create stem and set stem direction
       //
       for (int staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx) {
-            Staff* staff           = Score::staff(staffIdx);
+            const Staff* staff     = Score::staff(staffIdx);
             const Drumset* drumset = staff->part()->instrument()->useDrumset() ? staff->part()->instrument()->drumset() : 0;
             AccidentalState as;      // list of already set accidentals for this measure
             as.init(staff->keySigEvent(measure->tick()), staff->clef(measure->tick()));
@@ -2379,7 +2393,7 @@ void Score::getNextMeasure(LayoutContext& lc)
                         ks->layout();
                         }
                   else if (segment.isChordRestType()) {
-                        StaffType* st = staff->staffType(segment.tick());
+                        const StaffType* st = staff->staffType(segment.tick());
                         int track     = staffIdx * VOICES;
                         int endTrack  = track + VOICES;
 
@@ -3290,6 +3304,8 @@ System* Score::collectSystem(LayoutContext& lc)
       std::vector<Spanner*> spanner;
       for (auto interval : spanners) {
             Spanner* sp = interval.value;
+            sp->computeStartElement();
+            sp->computeEndElement();
             if (sp->tick() < etick && sp->tick2() >= stick) {
                   if (sp->isSlur())
                         spanner.push_back(sp);
@@ -3316,27 +3332,8 @@ System* Score::collectSystem(LayoutContext& lc)
                         d->layout();
 
                         if (e->visible() && d->autoplace()) {
-                              // If dynamic is at start or end of a hairpin
-                              // don't autoplace. This is done later on layout of hairpin
-                              // and allows horizontal alignment of dynamic and hairpin.
-
-                              int tick = d->tick();
-                              auto si = score()->spannerMap().findOverlapping(tick, tick);
-                              bool doAutoplace = true;
-                              for (auto is : si) {
-                                    Spanner* sp = is.value;
-                                    sp->computeStartElement();
-                                    sp->computeEndElement();
-
-                                    if (sp->isHairpin()
-                                       && (lookupDynamic(sp->startElement()) == d
-                                       || lookupDynamic(sp->endElement()) == d))
-                                          doAutoplace = false;
-                                    }
-                              if (doAutoplace) {
-                                    d->doAutoplace();
-                                    dynamics.push_back(d);
-                                    }
+                              d->doAutoplace();
+                              dynamics.push_back(d);
                               }
                         }
                   else if (e->isFiguredBass())
@@ -3388,9 +3385,9 @@ System* Score::collectSystem(LayoutContext& lc)
             if (voltaSegments.size() > 1) {
                   qreal y = 0;
                   for (SpannerSegment* ss : voltaSegments)
-                        y = qMin(y, ss->offset().y());
+                        y = qMin(y, ss->rypos());
                   for (SpannerSegment* ss : voltaSegments)
-                        ss->ryoffset() = y;
+                        ss->rypos() = y;
                   }
             }
 
@@ -3836,38 +3833,6 @@ void Score::doLayoutRange(int stick, int etick)
       getNextMeasure(lc);
       lc.curSystem = collectSystem(lc);
 
-      if (!lc.page) {
-            lc.page = new Page(this);
-            pages().push_back(lc.page);
-            lc.prevSystem  = 0;
-            }
-      else {
-            QList<System*>& systems = lc.page->systems();
-            int i = systems.indexOf(lc.curSystem);
-//            qDebug("clear page systems from %d", i);
-            if (i <= -1)
-                  systems.clear();
-            else {
-                  systems.erase(systems.begin() + i, systems.end());
-                  lc.prevSystem  = systems.empty() ? 0 : systems.back();
-                  }
-            }
-      lc.page->bbox().setRect(0.0, 0.0, loWidth(), loHeight());
-      lc.page->setNo(lc.curPage);
-      qreal x = 0.0;
-      qreal y = 0.0;
-      if (lc.curPage) {
-            Page* prevPage = pages()[lc.curPage-1];
-            if (MScore::verticalOrientation())
-                  y = prevPage->pos().y() + lc.page->height() + MScore::verticalPageGap;
-            else {
-                  qreal gap = (lc.curPage + pageNumberOffset()) & 1 ? MScore::horizontalPageGapOdd : MScore::horizontalPageGapEven;
-                  x = prevPage->pos().x() + lc.page->width() + gap;
-                  }
-            }
-      ++lc.curPage;
-      lc.page->setPos(x, y);
-
       lc.layout();
 
       for (MuseScoreView* v : viewer)
@@ -3880,40 +3845,17 @@ void Score::doLayoutRange(int stick, int etick)
 
 void LayoutContext::layout()
       {
-      for (;;) {
+      do {
+            getNextPage();
             collectPage();
-            System* s      = page->system(0);
-            MeasureBase* m = s->measures().back();
-            if (!curSystem || (rangeDone && m->tick() > endTick))
-                  break;
-            Page* prevPage = page;
-            if (curPage >= score->npages()) {
-                  page = new Page(score);
-                  score->pages().push_back(page);
-                  }
-            else {
-                  page = score->pages()[curPage];
-                  page->systems().clear();
-                  }
-            page->bbox().setRect(0.0, 0.0, score->loWidth(), score->loHeight());
-            page->setNo(curPage);
-            qreal x = 0.0;
-            qreal y = 0.0;
-            if (curPage) {
-                  if (MScore::verticalOrientation())
-                        y = prevPage->pos().y() + page->height() + MScore::verticalPageGap;
-                  else {
-                        qreal gap = (curPage + score->pageNumberOffset()) & 1 ? MScore::horizontalPageGapOdd : MScore::horizontalPageGapEven;
-                        x = prevPage->pos().x() + page->width() + gap;
-                        }
-                  }
-            ++curPage;
-            page->setPos(x, y);
-            prevSystem  = 0;
-            }
+            } while (curSystem && !(rangeDone && page->system(0)->measures().back()->tick() > endTick)); // FIXME: perhaps the first measure was meant? Or last system?
       if (!curSystem) {
-            while (score->npages() > curPage)        // Remove not needed pages. TODO: make undoable:
-                  score->pages().takeLast();
+            // The end of the score. The remaining systems are not needed...
+            qDeleteAll(systemList);
+            systemList.clear();
+            // ...and the remaining pages too
+            while (score->npages() > curPage)
+                  delete score->pages().takeLast();
             }
       else {
             Page* p = curSystem->page();

@@ -82,7 +82,7 @@ class UndoCommand;
 class UndoStack;
 class Volta;
 class XmlWriter;
-struct Channel;
+class Channel;
 struct Interval;
 struct TEvent;
 struct LayoutContext;
@@ -443,10 +443,6 @@ class Score : public QObject, public ScoreElement {
 
       int _pos[3];                    ///< 0 - current, 1 - left loop, 2 - right loop
 
-      bool _foundPlayPosAfterRepeats; ///< Temporary used during playback rendering
-                                      ///< indicating if playPos after expanded repeats
-                                      ///< has been calculated.
-
       int _mscVersion { MSCVERSION };   ///< version of current loading *.msc file
 
       QMap<QString, QString> _metaTags;
@@ -503,7 +499,6 @@ class Score : public QObject, public ScoreElement {
 
       bool rewriteMeasures(Measure* fm, Measure* lm, const Fraction&, int staffIdx);
       bool rewriteMeasures(Measure* fm, const Fraction& ns, int staffIdx);
-      void updateVelo();
       void swingAdjustParams(Chord*, int&, int&, int, int);
       bool isSubdivided(ChordRest*, int);
       void addAudioTrack();
@@ -524,6 +519,11 @@ class Score : public QObject, public ScoreElement {
       void collectLinearSystem(LayoutContext& lc);
       void resetTempo();
       void resetTempoRange(int tick1, int tick2);
+
+      void renderStaff(EventMap* events, Staff*);
+      void renderSpanners(EventMap* events);
+      void renderMetronome(EventMap* events, Measure* m, int tickOffset);
+      void updateVelo();
 
    protected:
       int _fileDivision; ///< division of current loading *.msc file
@@ -600,7 +600,6 @@ class Score : public QObject, public ScoreElement {
       bool transpose(TransposeMode mode, TransposeDirection, Key transposeKey, int transposeInterval,
       bool trKeys, bool transposeChordNames, bool useDoubleSharpsFlats);
 
-      static bool& isScoreLoaded();
       bool appendScore(Score*, bool addPageBreak = false, bool addSectionBreak = true);
 
       void write(XmlWriter&, bool onlySelection);
@@ -877,9 +876,7 @@ class Score : public QObject, public ScoreElement {
       void readAddConnector(ConnectorInfoReader* info, bool pasteMode) override;
       void pasteSymbols(XmlReader& e, ChordRest* dst);
       void renderMidi(EventMap* events);
-      void renderStaff(EventMap* events, Staff*);
-      void renderSpanners(EventMap* events, int staffIdx);
-      void renderMetronome(EventMap* events, Measure* m, int tickOffset);
+      void renderMidi(EventMap* events, bool metronome, bool expandRepeats);
 
       BeatType tick2beatType(int tick);
 
@@ -999,7 +996,7 @@ class Score : public QObject, public ScoreElement {
 
       void layoutChords1(Segment* segment, int staffIdx);
       qreal layoutChords2(std::vector<Note*>& notes, bool up);
-      void layoutChords3(std::vector<Note*>&, Staff*, Segment*);
+      void layoutChords3(std::vector<Note*>&, const Staff*, Segment*);
 
       SynthesizerState& synthesizerState()     { return _synthesizerState; }
       void setSynthesizerState(const SynthesizerState& s);
@@ -1303,7 +1300,7 @@ class MasterScore : public Score {
       void enqueueMidiEvent(MidiInputEvent ev) { _midiInputQueue.enqueue(ev); }
       void updateChannel();
       void setSoloMute();
-
+      
       void addExcerpt(Excerpt*);
       void removeExcerpt(Excerpt*);
       void deleteExcerpt(Excerpt*);
@@ -1323,6 +1320,19 @@ class MasterScore : public Score {
 
       virtual MStyle& style() override                   { return movements()->style();       }
       virtual const MStyle& style() const override       { return movements()->style();       }
+      };
+
+//---------------------------------------------------------
+//   ScoreLoad
+//---------------------------------------------------------
+
+class ScoreLoad {
+      static bool _loading;
+
+   public:
+      ScoreLoad()  { _loading = true;  }
+      ~ScoreLoad() { _loading = false; }
+      static bool loading() { return _loading; }
       };
 
 inline UndoStack* Score::undoStack() const             { return _masterScore->undoStack();      }

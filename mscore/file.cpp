@@ -83,7 +83,6 @@
 #include "omr/importpdf.h"
 #endif
 
-#include "diff/diff_match_patch.h"
 #include "libmscore/chordlist.h"
 #include "libmscore/mscore.h"
 #include "thirdparty/qzip/qzipreader_p.h"
@@ -760,9 +759,8 @@ MasterScore* MuseScore::getNewFile()
       score->rebuildMidiMapping();
 
       {
-            Score::isScoreLoaded() = true;
+            ScoreLoad sl;
             score->doLayout();
-            Score::isScoreLoaded() = false;
             }
 
       for (Excerpt* x : excerpts) {
@@ -1921,7 +1919,7 @@ bool MuseScore::saveAs(Score* cs_, bool saveCopy, const QString& path, const QSt
                   else
                         cs_->saveFile(fi);
                   }
-            catch (const QString& s) {
+            catch (QString s) {
                   rv = false;
                   QMessageBox::critical(this, tr("Save As"), s);
                   }
@@ -2296,7 +2294,7 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
             }
 
       {
-      Score::isScoreLoaded() = true;
+      ScoreLoad sl;
       score->rebuildMidiMapping();
       score->setSoloMute();
       for (Score* s : score->scoreList()) {
@@ -2307,7 +2305,6 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
       score->updateChannel();
       score->setSaved(false);
       score->update();
-      Score::isScoreLoaded() = false;
       }
 
       if (!ignoreVersionError && !MScore::noGui)
@@ -2436,7 +2433,7 @@ bool MuseScore::saveSelection(Score* cs_)
       try {
             cs_->saveCompressedFile(fi, true);
             }
-      catch (const QString& s) {
+      catch (QString s) {
             rv = false;
             QMessageBox::critical(this, tr("Save Selected"), s);
             }
