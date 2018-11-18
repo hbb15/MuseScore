@@ -126,7 +126,7 @@ option(BUILD_PULSEAUDIO "Build with support for PulseAudio audio backend." ON)
 option(BUILD_ALSA "Build with support for ALSA audio backend." ON)
 option(BUILD_PORTAUDIO "Build with support for PortAudio audio backend." ON)
 option(BUILD_PORTMIDI "Build with support for PortAudio's MIDI features." ${BUILD_PORTAUDIO}) # PortAudio required
-option(BUILD_WEBEBENGINE "Built in webengine support" ON)
+option(BUILD_WEBENGINE "Built in webengine support" ON)
 option(BUILD_PCH "Build using precompiled headers." ON)
 option(BUILD_FOR_WINSTORE "Build for the Windows Store." OFF)
 option(COVERAGE "Build with instrumentation to record code coverage." OFF)
@@ -238,15 +238,15 @@ SET(MUSESCORE_NAME_VERSION "${MUSESCORE_NAME} ${MUSESCORE_VERSION_MAJOR}")
 #
 SET(MUSESCORE_VERSION_FULL  "${MUSESCORE_VERSION}.${MUSESCORE_VERSION_PATCH}")
 
-if (BUILD_WEBEBENGINE)
+if (BUILD_WEBENGINE)
    if (MINGW)
       SET (USE_WEBENGINE 0)
    else (MINGW)
       SET (USE_WEBENGINE 1)
    endif(MINGW)
-else (BUILD_WEBEBENGINE)
+else (BUILD_WEBENGINE)
    SET (USE_WEBENGINE 0)
-endif (BUILD_WEBEBENGINE)
+endif (BUILD_WEBENGINE)
 
 if (MUSESCORE_LABEL)
   SET (MUSESCORE_NAME_VERSION "${MUSESCORE_NAME_VERSION} ${MUSESCORE_LABEL}")
@@ -810,9 +810,9 @@ include(Packaging)
 
 add_custom_target(lupdate
    COMMAND ${PROJECT_SOURCE_DIR}/build/gen-qt-projectfile ${PROJECT_SOURCE_DIR} > mscore.pro
-   COMMAND Qt5::lupdate ${PROJECT_BINARY_DIR}/mscore.pro
+   COMMAND Qt5::lupdate -no-obsolete ${PROJECT_BINARY_DIR}/mscore.pro
    COMMAND ${PROJECT_SOURCE_DIR}/build/gen-instruments-projectfile ${PROJECT_SOURCE_DIR}/share/instruments > instruments.pro
-   COMMAND Qt5::lupdate ${PROJECT_BINARY_DIR}/instruments.pro
+   COMMAND Qt5::lupdate -no-obsolete ${PROJECT_BINARY_DIR}/instruments.pro
    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
    )
 

@@ -101,7 +101,7 @@ Mixer::Mixer(QWidget* parent)
       masterSlider->setHilightColor(QColor(51, 153, 255));
       float decibels = qBound(minDecibels, log10(synti->gain()), 0.0f);
       masterSlider->setValue(decibels);
-      masterSlider->setToolTip(QString("Decibels: %1").arg(decibels));
+      masterSlider->setToolTip(tr("Decibels: %1").arg(decibels));
 
       masterSpin->setMaximum(0);
       masterSpin->setMinimum(minDecibels);
@@ -133,7 +133,7 @@ void Mixer::synthGainChanged(float)
 
       masterSlider->blockSignals(true);
       masterSlider->setValue(decibels);
-      masterSlider->setToolTip(QString("Decibels: %1").arg(decibels));
+      masterSlider->setToolTip(tr("Decibels: %1").arg(decibels));
       masterSlider->blockSignals(false);
 
       masterSpin->blockSignals(true);
@@ -153,7 +153,7 @@ void Mixer::masterVolumeChanged(double decibels)
 
       masterSlider->blockSignals(true);
       masterSlider->setValue(decibels);
-      masterSlider->setToolTip(QString("Decibels: %1").arg(decibels));
+      masterSlider->setToolTip(tr("Decibels: %1").arg(decibels));
       masterSlider->blockSignals(false);
 
       masterSpin->blockSignals(true);
@@ -325,24 +325,24 @@ void Mixer::updateTracks()
 
             if (expanded) {
                   //Add per channel tracks
-                  const InstrumentList* il = part->instruments();
-                  for (auto it = il->begin(); it != il->end(); ++it) {
+                  const InstrumentList* il1 = part->instruments();
+                  for (auto it = il1->begin(); it != il1->end(); ++it) {
                         Instrument* instr = it->second;
                         for (int i = 0; i < instr->channel().size(); ++i) {
                               Channel *chan = instr->channel()[i];
-                              MixerTrackItemPtr mti = std::make_shared<MixerTrackItem>(
+                              MixerTrackItemPtr mti1 = std::make_shared<MixerTrackItem>(
                                                 MixerTrackItem::TrackType::CHANNEL, part, instr, chan);
 //                              MixerTrackItemPtr mti = new MixerTrackItem(
 //                                                MixerTrackItem::TrackType::CHANNEL, part, instr, chan);
-                              MixerTrackChannel* track = new MixerTrackChannel(this, mti);
-                              track->setGroup(this);
-                              trackList.append(track);
-                              holderLayout->addWidget(track);
+                              MixerTrackChannel* track1 = new MixerTrackChannel(this, mti1);
+                              track1->setGroup(this);
+                              trackList.append(track1);
+                              holderLayout->addWidget(track1);
 
                               if (selPart == part &&
                                   selChan == chan) {
-                                    track->setSelected(true);
-                                    mixerDetails->setTrack(mti);
+                                    track1->setSelected(true);
+                                    mixerDetails->setTrack(mti1);
                                     }
                               }
                         }
