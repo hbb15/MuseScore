@@ -4068,6 +4068,7 @@ void Score::undoAddElement(Element* element)
                   tr.append(strack);
 
             // Some elements in voice 1 of a staff should be copied to every track which has a linked voice in this staff
+
             if (tr.isEmpty() && (element->isSymbol()
                 || element->isImage()
                 || element->isTremoloBar()
@@ -4078,9 +4079,11 @@ void Score::undoAddElement(Element* element)
                 || element->isHairpin()
                 || element->isOttava()
                 || element->isTrill()
+                || element->isSlur()
                 || element->isVibrato()
                 || element->isTextLine()
-                || element->isPedal())) {
+                || element->isPedal()
+                || element->isLyrics())) {
                   tr.append(staffIdx * VOICES);
                   }
 
@@ -4224,6 +4227,7 @@ void Score::undoAddElement(Element* element)
                         nsp->setTrack2((staffIdx + diff) * VOICES + (sp->track2() % VOICES));
                         nsp->setTrack(ntrack);
 
+#if 0 //whatdoesitdo?
                         QList<int> tl2;
                         if (staff->score()->excerpt() && element->isSlur()) {
                               nsp->setTrack(ntrack);
@@ -4236,6 +4240,7 @@ void Score::undoAddElement(Element* element)
                               }
                         else if (!element->isSlur())
                               nsp->setTrack(ntrack & ~3);
+#endif
 
                         // determine start/end element for slurs
                         // this is only necessary if start/end element is
