@@ -2901,18 +2901,6 @@ void Score::layoutLyrics(System* system)
                         }
                   break;
             }
-      // align lyrics line segments
-      for (SpannerSegment* ss : system->spannerSegments()) {
-            if (ss->isLyricsLineSegment()) {
-                  LyricsLineSegment* lls = toLyricsLineSegment(ss);
-                  lls->layout();
-                  if (ss->isSingleBeginType())
-                        lls->ryoffset() = lls->lyrics()->ryoffset();
-                  else {
-                        ;// how to align?
-                        }
-                  }
-            }
       }
 
 //---------------------------------------------------------
@@ -3391,12 +3379,6 @@ System* Score::collectSystem(LayoutContext& lc)
                   }
             }
 
-      for (Spanner* sp : _unmanagedSpanner) {
-            if (sp->tick() >= etick || sp->tick2() <= stick)
-                  continue;
-            sp->layoutSystem(system);
-            }
-
       //-------------------------------------------------------------
       // TempoText, Fermata, TremoloBar
       //-------------------------------------------------------------
@@ -3415,6 +3397,13 @@ System* Score::collectSystem(LayoutContext& lc)
             }
 
       layoutLyrics(system);
+
+      // here are lyrics dashes and melisma
+      for (Spanner* sp : _unmanagedSpanner) {
+            if (sp->tick() >= etick || sp->tick2() <= stick)
+                  continue;
+            sp->layoutSystem(system);
+            }
 
       //-------------------------------------------------------------
       // Jump, Marker
@@ -3449,8 +3438,15 @@ System* Score::collectSystem(LayoutContext& lc)
             for (Element* e : s->annotations()) {
                   if (e->isStaffText() || e->isSystemText() || e->isInstrumentChange())
                         e->layout();
-                  if (e->isHarmony())
+                  if (e->isHarmony()) {
+                        Harmony* h = toHarmony(e);
+                        // Layout of harmony seems to be bound currently
+                        // to ChordRest (see ChordRest::shape). But harmony
+                        // can exist without chord or rest too.
+                        if (h->isLayoutInvalid())
+                              h->layout();
                         toHarmony(e)->autoplaceSegmentElement(styleP(Sid::minHarmonyDistance));
+                        }
                   }
             }
 
@@ -3757,7 +3753,7 @@ void Score::doLayoutRange(int stick, int etick)
 
       if (lineMode()) {
             lc.prevMeasure = 0;
-            lc.nextMeasure = _measures.first();
+            lc.nextMeasure = _showVBox ? first() : firstMeasure();
             layoutLinear(layoutAll, lc);
             return;
             }
@@ -3772,7 +3768,7 @@ void Score::doLayoutRange(int stick, int etick)
             lc.systemList  = _systems.mid(systemIndex);
 
             if (systemIndex == 0)
-                  lc.nextMeasure = _measures.first();
+                  lc.nextMeasure = _showVBox ? first() : firstMeasure();
             else {
                   System* prevSystem = _systems[systemIndex-1];
                   lc.nextMeasure = prevSystem->measures().back()->next();
@@ -3820,7 +3816,7 @@ void Score::doLayoutRange(int stick, int etick)
             qDeleteAll(pages());
             pages().clear();
 
-            lc.nextMeasure = _measures.first();
+            lc.nextMeasure = _showVBox ? first() : firstMeasure();
             }
 
       lc.prevMeasure = 0;
