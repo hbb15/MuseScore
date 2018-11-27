@@ -32,21 +32,15 @@ namespace Ms {
 static const ElementStyle hairpinStyle {
       { Sid::hairpinFontFace,                    Pid::BEGIN_FONT_FACE            },
       { Sid::hairpinFontSize,                    Pid::BEGIN_FONT_SIZE            },
-      { Sid::hairpinFontBold,                    Pid::BEGIN_FONT_BOLD            },
-      { Sid::hairpinFontItalic,                  Pid::BEGIN_FONT_ITALIC          },
-      { Sid::hairpinFontUnderline,               Pid::BEGIN_FONT_UNDERLINE       },
+      { Sid::hairpinFontStyle,                   Pid::BEGIN_FONT_STYLE           },
       { Sid::hairpinTextAlign,                   Pid::BEGIN_TEXT_ALIGN           },
       { Sid::hairpinFontFace,                    Pid::CONTINUE_FONT_FACE         },
       { Sid::hairpinFontSize,                    Pid::CONTINUE_FONT_SIZE         },
-      { Sid::hairpinFontBold,                    Pid::CONTINUE_FONT_BOLD         },
-      { Sid::hairpinFontItalic,                  Pid::CONTINUE_FONT_ITALIC       },
-      { Sid::hairpinFontUnderline,               Pid::CONTINUE_FONT_UNDERLINE    },
+      { Sid::hairpinFontStyle,                   Pid::CONTINUE_FONT_STYLE        },
       { Sid::hairpinTextAlign,                   Pid::CONTINUE_TEXT_ALIGN        },
       { Sid::hairpinFontFace,                    Pid::END_FONT_FACE              },
       { Sid::hairpinFontSize,                    Pid::END_FONT_SIZE              },
-      { Sid::hairpinFontBold,                    Pid::END_FONT_BOLD              },
-      { Sid::hairpinFontItalic,                  Pid::END_FONT_ITALIC            },
-      { Sid::hairpinFontUnderline,               Pid::END_FONT_UNDERLINE         },
+      { Sid::hairpinFontStyle,                   Pid::END_FONT_STYLE             },
       { Sid::hairpinTextAlign,                   Pid::END_TEXT_ALIGN             },
       { Sid::hairpinLineWidth,                   Pid::LINE_WIDTH                 },
       { Sid::hairpinHeight,                      Pid::HAIRPIN_HEIGHT             },
@@ -88,7 +82,33 @@ Element* HairpinSegment::drop(EditData& data)
 
 void HairpinSegment::layout()
       {
-      qreal _spatium   = spatium();
+      const qreal _spatium = spatium();
+      const int _track = track();
+      if (autoplace() && !score()->isPalette()) {
+            // Try to fit between adjacent dynamics
+            if (isSingleType() || isBeginType()) {
+                  Segment* start = hairpin()->startSegment();
+                  Dynamic* sd = start ? toDynamic(start->findAnnotation(ElementType::DYNAMIC, _track, _track)) : nullptr;
+                  if (sd) {
+                        const qreal sdRight = sd->bbox().right() + sd->pos().x()
+                                              + sd->segment()->pos().x() + sd->measure()->pos().x();
+                        const qreal dist    = sdRight - pos().x() + score()->styleP(Sid::autoplaceHairpinDynamicsDistance);
+                        rxpos()  += dist;
+                        rxpos2() -= dist;
+                        }
+                  }
+            if (isSingleType() || isEndType()) {
+                  Segment* end = hairpin()->endSegment();
+                  Dynamic* ed = end ? toDynamic(end->findAnnotation(ElementType::DYNAMIC, _track, _track)) : nullptr;
+                  if (ed) {
+                        const qreal edLeft  = ed->bbox().left() + ed->pos().x()
+                                              + ed->segment()->pos().x() + ed->measure()->pos().x();
+                        const qreal dist    = edLeft - pos2().x() - pos().x() - score()->styleP(Sid::autoplaceHairpinDynamicsDistance);
+                        rxpos2() += dist;
+                        }
+                  }
+            }
+
       HairpinType type = hairpin()->hairpinType();
       if (type == HairpinType::DECRESC_LINE || type == HairpinType::CRESC_LINE) {
             twoLines = false;
@@ -482,9 +502,7 @@ void Hairpin::write(XmlWriter& xml) const
 
 void Hairpin::read(XmlReader& e)
       {
-      foreach(SpannerSegment* seg, spannerSegments())
-            delete seg;
-      spannerSegments().clear();
+      eraseSpannerSegments();
 
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());

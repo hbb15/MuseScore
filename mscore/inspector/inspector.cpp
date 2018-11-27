@@ -320,6 +320,7 @@ void Inspector::update(Score* s)
                         case ElementType::STAFF_TEXT:
                         case ElementType::SYSTEM_TEXT:
                         case ElementType::REHEARSAL_MARK:
+                        case ElementType::INSTRUMENT_CHANGE:
                               ie = new InspectorStaffText(this);
                               break;
                         case ElementType::MEASURE_NUMBER:
@@ -348,9 +349,6 @@ void Inspector::update(Score* s)
                               break;
                         case ElementType::NOTEDOT:
                               ie = new InspectorNoteDot(this);
-                              break;
-                        case ElementType::INSTRUMENT_CHANGE:
-                              ie = new InspectorInstrumentChange(this);
                               break;
                         default:
                               if (element()->isText())
@@ -818,18 +816,13 @@ InspectorTuplet::InspectorTuplet(QWidget* parent)
       const std::vector<InspectorItem> iiList = {
             { Pid::FONT_FACE,      0, t.tupletFontFace,  t.resetTupletFontFace    },
             { Pid::FONT_SIZE,      0, t.tupletFontSize,  t.resetTupletFontSize    },
-            { Pid::FONT_BOLD,      0, t.tupletBold,      t.resetTupletBold        },
-            { Pid::FONT_ITALIC,    0, t.tupletItalic,    t.resetTupletItalic      },
-            { Pid::FONT_UNDERLINE, 0, t.tupletUnderline, t.resetTupletUnderline   },
+            { Pid::FONT_STYLE,     0, t.tupletFontStyle, t.resetTupletFontStyle   },
             { Pid::DIRECTION,      0, t.direction,       t.resetDirection         },
             { Pid::NUMBER_TYPE,    0, t.numberType,      t.resetNumberType        },
             { Pid::BRACKET_TYPE,   0, t.bracketType,     t.resetBracketType       },
             { Pid::LINE_WIDTH,     0, t.lineWidth,       t.resetLineWidth         }
             };
       const std::vector<InspectorPanel> ppList = { {t.title, t.panel} };
-      t.tupletBold->setIcon(*icons[int(Icons::textBold_ICON)]);
-      t.tupletUnderline->setIcon(*icons[int(Icons::textUnderline_ICON)]);
-      t.tupletItalic->setIcon(*icons[int(Icons::textItalic_ICON)]);
       mapSignals(iiList, ppList);
       }
 
@@ -869,14 +862,9 @@ InspectorBend::InspectorBend(QWidget* parent)
             { Pid::PLAY,           0, g.playBend,    g.resetPlayBend    },
             { Pid::FONT_FACE,      0, g.fontFace,    g.resetFontFace    },
             { Pid::FONT_SIZE,      0, g.fontSize,    g.resetFontSize    },
-            { Pid::FONT_BOLD,      0, g.bold,        g.resetBold        },
-            { Pid::FONT_ITALIC,    0, g.italic,      g.resetItalic      },
-            { Pid::FONT_UNDERLINE, 0, g.underline,   g.resetUnderline   },
+            { Pid::FONT_STYLE,     0, g.fontStyle,   g.resetFontStyle   },
             };
       const std::vector<InspectorPanel> ppList = { {g.title, g.panel} };
-      g.bold->setIcon(*icons[int(Icons::textBold_ICON)]);
-      g.underline->setIcon(*icons[int(Icons::textUnderline_ICON)]);
-      g.italic->setIcon(*icons[int(Icons::textItalic_ICON)]);
       mapSignals(iiList, ppList);
       connect(g.properties, SIGNAL(clicked()), SLOT(propertiesClicked()));
       }
@@ -1007,12 +995,18 @@ InspectorTempoText::InspectorTempoText(QWidget* parent)
       const std::vector<InspectorItem> il = {
             { Pid::TEMPO,             0, tt.tempo,       tt.resetTempo       },
             { Pid::TEMPO_FOLLOW_TEXT, 0, tt.followText,  tt.resetFollowText  },
+            { Pid::SUB_STYLE,         0, tt.style,       tt.resetStyle       },
             { Pid::PLACEMENT,         0, tt.placement,   tt.resetPlacement   }
             };
       const std::vector<InspectorPanel> ppList = {
             { tt.title, tt.panel }
             };
       populatePlacement(tt.placement);
+
+      tt.style->clear();
+      for (auto ss : primaryTextStyles())
+            tt.style->addItem(textStyleUserName(ss), int(ss));
+
       mapSignals(il, ppList);
       connect(tt.followText, SIGNAL(toggled(bool)), tt.tempo, SLOT(setDisabled(bool)));
       }
@@ -1039,13 +1033,19 @@ InspectorLyric::InspectorLyric(QWidget* parent)
       l.setupUi(addWidget());
 
       const std::vector<InspectorItem> il = {
-            { Pid::PLACEMENT,          0, l.placement,    l.resetPlacement    },
-            { Pid::VERSE,              0, l.verse,        l.resetVerse        }
+            { Pid::VERSE,              0, l.verse,        l.resetVerse        },
+            { Pid::SUB_STYLE,          0, l.style,        l.resetStyle        },
+            { Pid::PLACEMENT,          0, l.placement,    l.resetPlacement    }
             };
       const std::vector<InspectorPanel> ppList = {
             { l.title, l.panel }
             };
       populatePlacement(l.placement);
+
+      l.style->clear();
+      for (auto ss : primaryTextStyles())
+            l.style->addItem(textStyleUserName(ss), int(ss));
+
       mapSignals(il, ppList);
       connect(t.resetToStyle, SIGNAL(clicked()), SLOT(resetToStyle()));
       }
@@ -1063,17 +1063,17 @@ InspectorStaffText::InspectorStaffText(QWidget* parent)
       bool sameTypes = true;
 
       for (const auto& ee : *inspector->el()) {
-            if (el->isSystemText() != ee->isSystemText()) {
+            if (el->type() != ee->type() || el->isSystemText() != ee->isSystemText()) {
                   sameTypes = false;
                   break;
                   }
             }
       if (sameTypes)
-            s.title->setText(el->isSystemText() ? tr("System Text") : tr("Staff Text"));
+            s.title->setText(el->userName());
 
       const std::vector<InspectorItem> il = {
-            { Pid::PLACEMENT,  0, s.placement, s.resetPlacement },
-            { Pid::SUB_STYLE,  0, s.style,     s.resetStyle     }
+            { Pid::SUB_STYLE,  0, s.style,     s.resetStyle     },
+            { Pid::PLACEMENT,  0, s.placement, s.resetPlacement }
             };
       const std::vector<InspectorPanel> ppList = {
             { s.title, s.panel }
@@ -1081,34 +1081,8 @@ InspectorStaffText::InspectorStaffText(QWidget* parent)
       populatePlacement(s.placement);
 
       s.style->clear();
-      for (auto ss : {
-         Tid::SYSTEM,
-         Tid::STAFF,
-         Tid::TEMPO,
-         Tid::METRONOME,
-         Tid::REHEARSAL_MARK,
-         Tid::EXPRESSION,
-         Tid::REPEAT_LEFT,
-         Tid::REPEAT_RIGHT,
-         Tid::FRAME,
-         Tid::TITLE,
-         Tid::SUBTITLE,
-         Tid::COMPOSER,
-         Tid::POET,
-         Tid::INSTRUMENT_EXCERPT,
-         Tid::TRANSLATOR,
-         Tid::HEADER,
-         Tid::FOOTER,
-         Tid::USER1,
-         Tid::USER2,
-         Tid::USER3,
-         Tid::USER4,
-         Tid::USER5,
-         Tid::USER6
-         } )
-            {
+      for (auto ss : primaryTextStyles())
             s.style->addItem(textStyleUserName(ss), int(ss));
-            }
 
       mapSignals(il, ppList);
       }

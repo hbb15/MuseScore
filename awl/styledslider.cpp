@@ -44,7 +44,10 @@ StyledSlider::StyledSlider(QWidget *parent) : QWidget(parent)
 void StyledSlider::wheelEvent(QWheelEvent* e)
       {
       QPoint ad = e->angleDelta();
-      setValue(_value + (_maxValue - _minValue) * ad.y() / 10000.0);
+      //120 degrees is one tick
+      auto value = _value + ad.y() / 120;
+      value = qBound(_minValue, value, _maxValue);
+      setValue(value);
       repaint();
       }
 
@@ -99,7 +102,7 @@ void StyledSlider::mouseMoveEvent(QMouseEvent* e)
             double barLength = height() - (_margin * 2);
             double dy = dPixY * (_maxValue - _minValue) / barLength;
 
-            double val = qBound(_minValue, _value - dy, _maxValue);
+            double val = qBound(_minValue, _value - dy + 0.5, _maxValue);
 
             lastMousePos = p;
             setValue(val);

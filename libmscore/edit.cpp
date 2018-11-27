@@ -1415,7 +1415,7 @@ void Score::cmdFlip()
                   auto tuplet = toTuplet(e);
                   flipOnce(tuplet, [tuplet](){
                         Direction dir = tuplet->isUp() ? Direction::DOWN : Direction::UP;
-                        tuplet->undoChangeProperty(Pid::DIRECTION, QVariant::fromValue<Direction>(dir));
+                        tuplet->undoChangeProperty(Pid::DIRECTION, QVariant::fromValue<Direction>(dir), PropertyFlags::UNSTYLED);
                         });
                   }
             else if (e->isNoteDot() && e->parent()->isNote()) {
@@ -1437,7 +1437,7 @@ void Score::cmdFlip()
                   Placement p = Placement(e->getProperty(Pid::PLACEMENT).toInt());
                   p = (p == Placement::ABOVE) ? Placement::BELOW : Placement::ABOVE;
                   e->undoChangeProperty(Pid::AUTOPLACE, true);
-                  e->undoChangeProperty(Pid::PLACEMENT, int(p));
+                  e->undoChangeProperty(Pid::PLACEMENT, int(p), PropertyFlags::UNSTYLED);
                   }
             }
       }
@@ -4332,10 +4332,7 @@ void Score::undoAddElement(Element* element)
 
                         // create tie
                         Tie* ntie = toTie(ne);
-                        QList<SpannerSegment*>& segments = ntie->spannerSegments();
-                        for (SpannerSegment* segment : segments)
-                              delete segment;
-                        segments.clear();
+                        ntie->eraseSpannerSegments();
                         ntie->setTrack(c1->track());
                         ntie->setStartNote(nn1);
                         ntie->setEndNote(nn2);

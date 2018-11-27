@@ -1173,6 +1173,7 @@ void Score::beamGraceNotes(Chord* mainNote, bool after)
             a1->removeDeleteBeam(false);
       }
 
+#if 0 // unused
 //---------------------------------------------------------
 //   layoutSpanner
 //    called after dragging a staff
@@ -1204,6 +1205,7 @@ void Score::layoutSpanner()
             }
       rebuildBspTree();
       }
+#endif
 
 //---------------------------------------------------------
 //   hideEmptyStaves
@@ -2010,6 +2012,8 @@ static bool breakMultiMeasureRest(Measure* m)
 
       if (m->repeatStart()
          || (m->prevMeasure() && m->prevMeasure()->repeatEnd())
+         || (m->isIrregular())
+         || (m->prevMeasure() && m->prevMeasure()->isIrregular())
          || (m->prevMeasure() && (m->prevMeasure()->sectionBreak())))
             return true;
 
@@ -3294,6 +3298,7 @@ System* Score::collectSystem(LayoutContext& lc)
             Spanner* sp = interval.value;
             sp->computeStartElement();
             sp->computeEndElement();
+            lc.processedSpanners.insert(sp);
             if (sp->tick() < etick && sp->tick2() >= stick) {
                   if (sp->isSlur())
                         spanner.push_back(sp);
@@ -3370,12 +3375,25 @@ System* Score::collectSystem(LayoutContext& lc)
                   if (ss->isVoltaSegment() && ss->staffIdx() == staffIdx)
                         voltaSegments.push_back(ss);
                   }
-            if (voltaSegments.size() > 1) {
+            while (!voltaSegments.empty()) {
+                  // we assume voltas are sorted left to right (by tick values)
                   qreal y = 0;
-                  for (SpannerSegment* ss : voltaSegments)
+                  int idx = 0;
+                  Volta* prevVolta = 0;
+                  for (SpannerSegment* ss : voltaSegments) {
+                        Volta* volta = toVolta(ss->spanner());
+                        if (prevVolta && prevVolta != volta) {
+                              // check if volta is adjacent to prevVolta
+                              if (prevVolta->tick2() != volta->tick())
+                                    break;
+                              }
                         y = qMin(y, ss->rypos());
-                  for (SpannerSegment* ss : voltaSegments)
-                        ss->rypos() = y;
+                        ++idx;
+                        prevVolta = volta;
+                        }
+                  for (int i = 0; i < idx; ++i)
+                        voltaSegments[i]->rypos() = y;
+                  voltaSegments.erase(voltaSegments.begin(), voltaSegments.begin() + idx);
                   }
             }
 
@@ -3861,4 +3879,13 @@ void LayoutContext::layout()
       score->systems().append(systemList);     // TODO
       }
 
+//---------------------------------------------------------
+//   LayoutContext::~LayoutContext
+//---------------------------------------------------------
+
+LayoutContext::~LayoutContext()
+      {
+      for (Spanner* s : processedSpanners)
+            s->layoutSystemsDone();
+      }
 }

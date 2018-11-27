@@ -440,6 +440,7 @@ class Score : public QObject, public ScoreElement {
                                                 ///< save a backup file will be created, subsequent
                                                 ///< saves will not overwrite the backup file.
       bool _defaultsRead        { false };      ///< defaults were read at MusicXML import, allow export of defaults in convertermode
+      bool _isPalette           { false };
 
       int _pos[3];                    ///< 0 - current, 1 - left loop, 2 - right loop
 
@@ -905,6 +906,9 @@ class Score : public QObject, public ScoreElement {
       void setDefaultsRead(bool b)                   { _defaultsRead = b;       }
       Text* getText(Tid subtype);
 
+      bool isPalette() const { return _isPalette; }
+      void setPaletteMode(bool palette) { _isPalette = palette; }
+
       void lassoSelect(const QRectF&);
       void lassoSelectEnd();
 
@@ -1093,7 +1097,7 @@ class Score : public QObject, public ScoreElement {
 
       ChordRest* findCR(int tick, int track) const;
       ChordRest* findCRinStaff(int tick, int staffIdx) const;
-      void layoutSpanner();
+//       void layoutSpanner(); // unused
       void insertTime(int tickPos, int tickLen);
 
       ScoreFont* scoreFont() const            { return _scoreFont;     }

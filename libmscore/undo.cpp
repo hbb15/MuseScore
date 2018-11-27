@@ -408,20 +408,38 @@ SaveState::SaveState(Score* s)
 //      redoSelection  = score->selection();
       }
 
+Element* SaveState::selectedElement(const Selection& sel)
+      {
+      if (sel.isSingle()) {
+            Element* e = sel.element();
+            Q_ASSERT(e); // otherwise it shouldn't be "single" selection
+            if (e->isNote() || e->isChordRest())
+                  return e;
+            }
+      return nullptr;
+      }
+
 void SaveState::undo(EditData*)
       {
       redoInputState = score->inputState();
 //      redoSelection  = score->selection();
+      redoSelectedElement = selectedElement(score->selection());
       score->setInputState(undoInputState);
 //      score->setSelection(undoSelection);
+      score->select(undoSelectedElement);
       }
 
 void SaveState::redo(EditData*)
       {
       undoInputState = score->inputState();
 //      undoSelection  = score->selection();
+      undoSelectedElement = selectedElement(score->selection());
       score->setInputState(redoInputState);
 //      score->setSelection(redoSelection);
+      if (first)
+            first = false;
+      else
+            score->select(redoSelectedElement);
       }
 
 //---------------------------------------------------------
@@ -1913,26 +1931,11 @@ void ChangeProperty::flip(EditData*)
       {
       qCDebug(undoRedo) << element->name() << int(id) << "(" << propertyName(id) << ")" << element->getProperty(id) << "->" << property;
 
-//      if (id == Pid::SPANNER_TICK)
-//            static_cast<Element*>(element)->score()->removeSpanner(static_cast<Spanner*>(element));
-
       QVariant v       = element->getProperty(id);
       PropertyFlags ps = element->propertyFlags(id);
 
       element->setProperty(id, property);
       element->setPropertyFlags(id, flags);
-
-#if 0
-      if (id == Pid::SPANNER_TICK) {
-            static_cast<Element*>(element)->score()->addSpanner(static_cast<Spanner*>(element));
-            // while updating ticks for an Ottava, the parent staff calls updateOttava()
-            // and expects to find the Ottava spanner(s) in the score lists;
-            // thus, the above (re)setProperty() left the staff pitchOffset map in a wrong state
-            // as the spanner has been removed from the score lists; redo the map here
-            if (static_cast<Element*>(element)->type() == ElementType::OTTAVA)
-                  static_cast<Element*>(element)->staff()->updateOttava();
-            }
-#endif
       property = v;
       flags = ps;
       }

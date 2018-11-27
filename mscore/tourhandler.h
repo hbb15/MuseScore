@@ -81,12 +81,15 @@ class TourHandler : public QObject
       static QMap<QString, QMap<QString, QString>*> eventNameLookup;
       static QList<QWidget*> getWidgetsByNames(Tour* tour, QList<QString> names);
 
+      bool delayedWelcomeTour = false;
+
 public slots:
       void showWelcomeTour();
 
 public:
       TourHandler(QObject* parent) : QObject(parent) {}
       void loadTours();
+      void resetCompletedTours();
       void readCompletedTours();
       void writeCompletedTours();
 
@@ -98,6 +101,9 @@ public:
       static void clearWidgetsFromTour(QString tourName);
 
       static QList<QString> allTourShortcuts() { return shortcutToTour.keys(); }
+
+      void delayWelcomeTour() { delayedWelcomeTour = true; }
+      void showDelayedWelcomeTour();
       };
 
 }

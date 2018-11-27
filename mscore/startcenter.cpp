@@ -31,7 +31,6 @@ void MuseScore::showStartcenter(bool val)
             startcenter->addAction(a);
             startcenter->readSettings();
             connect(startcenter, SIGNAL(closed(bool)), a, SLOT(setChecked(bool)));
-            connect(startcenter, SIGNAL(rejected()), a, SLOT(toggle()));
             connect(startcenter, SIGNAL(closed(bool)), tourHandler(), SLOT(showWelcomeTour()), Qt::QueuedConnection);
             }
       startcenter->setVisible(val);
@@ -110,6 +109,7 @@ void Startcenter::loadScore(QString s)
 
 void Startcenter::newScore()
       {
+      mscore->tourHandler()->delayWelcomeTour();
       close();
       getAction("file-new")->trigger();
       }
@@ -120,8 +120,8 @@ void Startcenter::newScore()
 
 void Startcenter::closeEvent(QCloseEvent* event)
       {
-      emit closed(false);
       AbstractDialog::closeEvent(event);
+      emit closed(false);
       }
 
 //---------------------------------------------------------
@@ -143,6 +143,7 @@ void Startcenter::updateRecentScores()
 
 void Startcenter::openScoreClicked()
       {
+      mscore->tourHandler()->delayWelcomeTour();
       close();
       getAction("file-open")->trigger();
       }

@@ -174,11 +174,11 @@ void SlurSegment::changeAnchor(EditData& ed, Element* element)
             spanner()->undoChangeProperty(Pid::SPANNER_TICKS,  element->tick() - spanner()->startElement()->tick());
             spanner()->undoChangeProperty(Pid::SPANNER_TRACK2, element->track());
             }
-      int segments  = spanner()->spannerSegments().size();
+      const size_t segments  = spanner()->spannerSegments().size();
       ups(ed.curGrip).off = QPointF();
       spanner()->layout();
       if (spanner()->spannerSegments().size() != segments) {
-            QList<SpannerSegment*>& ss = spanner()->spannerSegments();
+            const std::vector<SpannerSegment*>& ss = spanner()->spannerSegments();
             SlurSegment* newSegment = toSlurSegment(ed.curGrip == Grip::END ? ss.back() : ss.front());
             ed.view->startEdit(newSegment, ed.curGrip);
             triggerLayout();
@@ -525,6 +525,7 @@ void SlurSegment::layoutSegment(const QPointF& p1, const QPointF& p2)
             Segment* fs = system()->firstMeasure()->first();
             QPointF pp1 = ups(Grip::START).p;
             QPointF pp2 = ups(Grip::END).p;
+            bool intersection = false;
             for (Segment* s = fs; s && s != ls; s = s->next1()) {
                   if (!s->enabled())
                         continue;
@@ -534,20 +535,23 @@ void SlurSegment::layoutSegment(const QPointF& p1, const QPointF& p2)
                         continue;
                   if (pp2.x() < x1)
                         break;
+                  const Shape& segShape = s->staffShape(staffIdx()).translated(s->pos() + s->measure()->pos());
+                  if (!intersection)
+                        intersection = segShape.intersects(_shape);
                   if (up) {
                         //QPointF pt = QPointF(s->x() + s->measure()->x(), s->staffShape(staffIdx()).top() + s->y() + s->measure()->y());
-                        qreal dist = _shape.minVerticalDistance(s->staffShape(staffIdx()).translated(s->pos() + s->measure()->pos()));
+                        qreal dist = _shape.minVerticalDistance(segShape);
                         if (dist > 0.0)
                               gdist = qMax(gdist, dist);
                         }
                   else {
                         //QPointF pt = QPointF(s->x() + s->measure()->x(), s->staffShape(staffIdx()).bottom() + s->y() + s->measure()->y());
-                        qreal dist = s->staffShape(staffIdx()).translated(s->pos() + s->measure()->pos()).minVerticalDistance(_shape);
+                        qreal dist = segShape.minVerticalDistance(_shape);
                         if (dist > 0.0)
                               gdist = qMax(gdist, dist);
                         }
                   }
-            if (gdist > 0.0) {
+            if (intersection && gdist > 0.0) {
                   if (up) {
                         ryoffset() -= (gdist + spatium() * .5);
                         }
@@ -1059,20 +1063,7 @@ SpannerSegment* Slur::layoutSystem(System* system)
       int stick = system->firstMeasure()->tick();
       int etick = system->lastMeasure()->endTick();
 
-      SlurSegment* slurSegment = 0;
-      for (SpannerSegment* ss : segments) {
-            if (!ss->system()) {
-                  slurSegment = toSlurSegment(ss);
-                  break;
-                  }
-            }
-      if (!slurSegment) {
-//            printf("   create slur segment\n");
-            slurSegment = new SlurSegment(score());
-            add(slurSegment);
-            }
-      slurSegment->setSystem(system);
-      slurSegment->setSpanner(this);
+      SlurSegment* slurSegment = toSlurSegment(getNextLayoutSystemSegment(system, [this]() { return new SlurSegment(score()); }));
 
       SpannerSegmentType sst;
       if (tick() >= stick) {
@@ -1170,16 +1161,6 @@ SpannerSegment* Slur::layoutSystem(System* system)
                   break;
             }
 
-      QList<SpannerSegment*> sl;
-      for (SpannerSegment* ss : segments) {
-            if (ss->system())
-                  sl.push_back(ss);
-            else {
-                  qDebug("delete spanner segment %s", ss->name());
-                  delete ss;
-                  }
-            }
-      segments.swap(sl);
       return slurSegment;
       }
 
@@ -1354,28 +1335,5 @@ void Slur::setTrack(int n)
       for (SpannerSegment* ss : spannerSegments())
             ss->setTrack(n);
       }
-
-//---------------------------------------------------------
-//   readProperties
-//---------------------------------------------------------
-
-bool Slur::readProperties(XmlReader& e)
-      {
-      const QStringRef& tag(e.name());
-
-      if (tag == "SlurSegment") {
-            int idx = e.intAttribute("no", 0);
-            int n = spannerSegments().size();
-            for (int i = n; i < idx; ++i)
-                  add(new SlurSegment(score()));
-            SlurSegment* segment = new SlurSegment(score());
-            segment->read(e);
-            add(segment);
-            }
-      else if (!SlurTie::readProperties(e))
-            return false;
-      return true;
-      }
-
 }
 

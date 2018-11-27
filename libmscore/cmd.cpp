@@ -149,7 +149,6 @@ void Score::undoRedo(bool undo, EditData* ed)
       {
       if (readOnly())
             return;
-      deselectAll();
       cmdState().reset();
       if (undo)
             undoStack()->undo(ed);
@@ -314,8 +313,7 @@ void Score::cmdAddSpanner(Spanner* spanner, const QPointF& pos)
             spanner->setTick(m->tick());
             spanner->setTick2(m->endTick());
             }
-      qDeleteAll(spanner->spannerSegments());
-      spanner->spannerSegments().clear();
+      spanner->eraseSpannerSegments();
 
       undoAddElement(spanner);
       select(spanner, SelectType::SINGLE, 0);

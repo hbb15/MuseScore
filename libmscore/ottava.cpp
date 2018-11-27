@@ -41,15 +41,9 @@ static const ElementStyle ottavaElementStyle {
       { Sid::ottavaFontSize,                     Pid::BEGIN_FONT_SIZE         },
       { Sid::ottavaFontSize,                     Pid::CONTINUE_FONT_SIZE      },
       { Sid::ottavaFontSize,                     Pid::END_FONT_SIZE           },
-      { Sid::ottavaFontBold,                     Pid::BEGIN_FONT_BOLD         },
-      { Sid::ottavaFontBold,                     Pid::CONTINUE_FONT_BOLD      },
-      { Sid::ottavaFontBold,                     Pid::END_FONT_BOLD           },
-      { Sid::ottavaFontItalic,                   Pid::BEGIN_FONT_ITALIC       },
-      { Sid::ottavaFontItalic,                   Pid::CONTINUE_FONT_ITALIC    },
-      { Sid::ottavaFontItalic,                   Pid::END_FONT_ITALIC         },
-      { Sid::ottavaFontUnderline,                Pid::BEGIN_FONT_UNDERLINE    },
-      { Sid::ottavaFontUnderline,                Pid::CONTINUE_FONT_UNDERLINE },
-      { Sid::ottavaFontUnderline,                Pid::END_FONT_UNDERLINE      },
+      { Sid::ottavaFontStyle,                    Pid::BEGIN_FONT_STYLE        },
+      { Sid::ottavaFontStyle,                    Pid::CONTINUE_FONT_STYLE     },
+      { Sid::ottavaFontStyle,                    Pid::END_FONT_STYLE          },
       { Sid::ottavaTextAlign,                    Pid::BEGIN_TEXT_ALIGN        },
       { Sid::ottavaTextAlign,                    Pid::CONTINUE_TEXT_ALIGN     },
       { Sid::ottavaTextAlign,                    Pid::END_TEXT_ALIGN          },
@@ -268,8 +262,7 @@ void Ottava::write(XmlWriter& xml) const
 
 void Ottava::read(XmlReader& e)
       {
-      qDeleteAll(spannerSegments());
-      spannerSegments().clear();
+      eraseSpannerSegments();
       if (score()->mscVersion() < 301)
             e.addSpanner(e.intAttribute("id", -1), this);
       while (e.readNextStartElement())

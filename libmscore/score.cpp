@@ -2115,6 +2115,7 @@ void Score::splitStaff(int staffIdx, int splitPoint)
       Staff* st = staff(staffIdx);
       Part*  p  = st->part();
       Staff* ns = new Staff(this);
+      ns->init(st);
       ns->setPart(p);
       // convert staffIdx from score-relative to part-relative
       int staffIdxPart = staffIdx - p->staff(0)->idx();
@@ -3952,7 +3953,10 @@ int Score::keysig()
 int Score::duration()
       {
       updateRepeatList(true);
-      RepeatSegment* rs = repeatList()->last();
+      RepeatList* rl = repeatList();
+      if (rl->isEmpty())
+            return 0;
+      RepeatSegment* rs = rl->last();
       return lrint(utick2utime(rs->utick + rs->len()));
       }
 
