@@ -3046,8 +3046,9 @@ ScoreState ScoreView::mscoreState() const
                   case StaffGroup::STANDARD:
                         return STATE_NOTE_ENTRY_STAFF_PITCHED;
                   case StaffGroup::TAB:
+					  return STATE_NOTE_ENTRY_STAFF_TAB;
                   case StaffGroup::NUMERIC:
-                        return STATE_NOTE_ENTRY_STAFF_TAB;
+                        return STATE_NOTE_ENTRY_STAFF_NUMERIC;
                   case StaffGroup::PERCUSSION:
                         return STATE_NOTE_ENTRY_STAFF_DRUM;
                   }
