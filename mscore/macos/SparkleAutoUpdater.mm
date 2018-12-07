@@ -10,19 +10,19 @@
 //  the file LICENCE.GPL
 //=============================================================================
 
-#include "SparkleAutoUpdater.h"
+#include "sparkle/sparkleAutoUpdater.h"
 
 #include "Sparkle/Sparkle.h"
 #include <Sparkle/SUUpdater.h>
 
 static SUUpdater*  updater = [[SUUpdater sharedUpdater] retain];
 
-void SparkleAutoUpdater::checkUpdates()
+void Ms::SparkleAutoUpdater::checkUpdates()
       {
       [updater checkForUpdatesInBackground];
       }
 
-void SparkleAutoUpdater::checkForUpdatesNow()
+void Ms::SparkleAutoUpdater::checkForUpdatesNow()
       {
       [updater checkForUpdates:NULL];
       }

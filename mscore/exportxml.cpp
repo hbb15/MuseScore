@@ -357,9 +357,9 @@ static QString addPositioningAttributes(Element const* const el, bool isSpanStar
       if (el->isSLine())
             span = static_cast<const SLine*>(el);
 
-      if (span && !span->spannerSegments().isEmpty()) {
+      if (span && !span->segmentsEmpty()) {
             if (isSpanStart) {
-                  const auto seg = span->spannerSegments().first();
+                  const auto seg = span->frontSegment();
                   const auto offset = seg->offset();
                   const auto p = seg->pos();
                   relativeX = offset.x();
@@ -370,7 +370,7 @@ static QString addPositioningAttributes(Element const* const el, bool isSpanStar
 
                   }
             else {
-                  const auto seg = span->spannerSegments().last();
+                  const auto seg = span->backSegment();
                   const auto userOff = seg->offset(); // This is the offset accessible from the inspector
                   const auto userOff2 = seg->userOff2(); // Offset of the actual dragged anchor, which doesn't affect the inspector offset
                   //auto pos = seg->pos();
@@ -1075,7 +1075,7 @@ void ExportMusicXml::calcDivisions()
                   for (int st = strack; st < etrack; ++st) {
                         // sstaff - xml staff number, counting from 1 for this
                         // instrument
-                        // special number 0 -> dont show staff number in
+                        // special number 0 -> don’t show staff number in
                         // xml output (because there is only one staff)
 
                         int sstaff = (staves > 1) ? st - strack + VOICES : 0;
@@ -3018,8 +3018,8 @@ static void directionTag(XmlWriter& xml, Attributes& attr, Element const* const 
                   // handle elements derived from SLine
                   // find the system containing the first linesegment
                   const SLine* sl = static_cast<const SLine*>(el);
-                  if (sl->spannerSegments().size() > 0) {
-                        seg = (LineSegment*)sl->spannerSegments().at(0);
+                  if (!sl->segmentsEmpty()) {
+                        seg = toLineSegment(sl->frontSegment());
                         /*
                          qDebug("directionTag()  seg=%p x=%g y=%g w=%g h=%g cpx=%g cpy=%g userOff.y=%g",
                                 seg, seg->x(), seg->y(),
@@ -3644,16 +3644,16 @@ void ExportMusicXml::textLine(TextLine const* const tl, int staff, int tick)
                   }
             hook       = tl->beginHookType() != HookType::NONE;
             hookHeight = tl->beginHookHeight().val();
-            if (!tl->spannerSegments().empty())
-                  p = tl->spannerSegments().first()->offset();
+            if (!tl->segmentsEmpty())
+                  p = tl->frontSegment()->offset();
             // offs = tl->mxmlOff();
             type = "start";
             }
       else {
             hook = tl->endHookType() != HookType::NONE;
             hookHeight = tl->endHookHeight().val();
-            if (!tl->spannerSegments().empty())
-                  p = ((LineSegment*)tl->spannerSegments().last())->userOff2();
+            if (!tl->segmentsEmpty())
+                  p = (toLineSegment(tl->backSegment()))->userOff2();
             // offs = tl->mxmlOff2();
             type = "stop";
             }
@@ -4785,7 +4785,7 @@ void ExportMusicXml::findAndExportClef(Measure* m, const int staves, const int s
             for (int st = strack; st < etrack; st += VOICES) {
                   // sstaff - xml staff number, counting from 1 for this
                   // instrument
-                  // special number 0 -> dont show staff number in
+                  // special number 0 -> don’t show staff number in
                   // xml output (because there is only one staff)
 
                   int sstaff = (staves > 1) ? st - strack + VOICES : 0;
@@ -5284,7 +5284,7 @@ void ExportMusicXml::write(QIODevice* dev)
                   for (int st = strack; st < etrack; ++st) {
                         // sstaff - xml staff number, counting from 1 for this
                         // instrument
-                        // special number 0 -> dont show staff number in
+                        // special number 0 -> don’t show staff number in
                         // xml output (because there is only one staff)
 
                         int sstaff = (staves > 1) ? st - strack + VOICES : 0;
@@ -5438,6 +5438,13 @@ bool saveMxl(Score* score, const QString& name)
       dbuf.seek(0);
       uz.addFile(fn, dbuf.data());
       uz.close();
+      return true;
+      }
+
+bool saveMxl(Score* score, QIODevice* device)
+      {
+      ExportMusicXml em(score);
+      em.write(device);
       return true;
       }
 

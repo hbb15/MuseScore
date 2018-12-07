@@ -22,6 +22,7 @@
 #include "offsetSelect.h"
 #include "scaleSelect.h"
 #include "sizeSelect.h"
+#include "fontStyleSelect.h"
 #include "scoreview.h"
 #include "resetButton.h"
 
@@ -34,6 +35,7 @@ namespace Ms {
 InspectorBase::InspectorBase(QWidget* parent)
    : QWidget(parent)
       {
+      setObjectName("inspector");
       setAccessibleName(tr("Inspector"));
       inspector = static_cast<Inspector*>(parent);
       _layout    = new QVBoxLayout(this);
@@ -71,6 +73,8 @@ QVariant InspectorBase::getValue(const InspectorItem& ii) const
             v = static_cast<Awl::ColorLabel*>(w)->color();
       else if (qobject_cast<Ms::AlignSelect*>(w))
             v = int(static_cast<Ms::AlignSelect*>(w)->align());
+      else if (qobject_cast<Ms::FontStyleSelect*>(w))
+            v = int(static_cast<Ms::FontStyleSelect*>(w)->fontStyle());
       else if (qobject_cast<Ms::OffsetSelect*>(w))
             v = static_cast<Ms::OffsetSelect*>(w)->offset();
       else if (qobject_cast<Ms::ScaleSelect*>(w))
@@ -221,6 +225,8 @@ void InspectorBase::setValue(const InspectorItem& ii, QVariant val)
             static_cast<Awl::ColorLabel*>(w)->setColor(val.value<QColor>());
       else if (qobject_cast<Ms::AlignSelect*>(w))
             static_cast<Ms::AlignSelect*>(w)->setAlign(Align(val.toInt()));
+      else if (qobject_cast<Ms::FontStyleSelect*>(w))
+            static_cast<Ms::FontStyleSelect*>(w)->setFontStyle(FontStyle(val.toInt()));
       else if (qobject_cast<Ms::OffsetSelect*>(w))
             static_cast<Ms::OffsetSelect*>(w)->setOffset(val.toPointF());
       else if (qobject_cast<Ms::ScaleSelect*>(w))
@@ -434,30 +440,38 @@ void InspectorBase::resetClicked(int i)
 
 void InspectorBase::setStyleClicked(int i)
       {
-      Element* e   = inspector->element();
       const InspectorItem& ii = iList[i];
+      const Pid id = ii.t;
+      Element* e   = inspector->element();
+      if (Element* delegate = e->propertyDelegate(id))
+            e = delegate;
+      Score* score = e->score();
 
       Sid sidx = e->getPropertyStyle(ii.t);
       if (sidx == Sid::NOSTYLE)
             return;
-      e->score()->startCmd();
       QVariant val = getValue(ii);
-      e->undoChangeProperty(ii.t, val, PropertyFlags::STYLED);
-      Pid id   = ii.t;
       P_TYPE t = propertyType(id);
       if (t == P_TYPE::SP_REAL)
-            val = val.toDouble() / e->score()->spatium();
+            val = val.toDouble() / score->spatium();
       else if (t == P_TYPE::POINT_SP)
-            val = val.toPointF() / e->score()->spatium();
+            val = val.toPointF() / score->spatium();
       else if (t == P_TYPE::POINT_SP_MM) {
             if (e->sizeIsSpatiumDependent())
-                  val = val.toPointF() / e->score()->spatium();
+                  val = val.toPointF() / score->spatium();
             else
                   val = val.toPointF() / DPMM;
             }
-      e->score()->undo(new ChangeStyleVal(e->score(), sidx, val));
+
+      score->startCmd();
+      for (Element* ee : *inspector->el()) {
+            if (Element* delegate = ee->propertyDelegate(ii.t))
+                  ee = delegate;
+            ee->undoChangeProperty(ii.t, val, PropertyFlags::STYLED);
+            }
+      score->undo(new ChangeStyleVal(score, sidx, val));
       checkDifferentValues(ii);
-      e->score()->endCmd();
+      score->endCmd();
       }
 
 //---------------------------------------------------------
@@ -487,6 +501,7 @@ void InspectorBase::mapSignals(const std::vector<InspectorItem>& il, const std::
                               }});
                   title->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
                   title->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+                  title->setStyleSheet("font: bold;");
                   QSettings s;
                   QString key = title->parent()->objectName();
                   bool visible = s.value(QString("inspector/%1_visible").arg(key), true).toBool();
@@ -548,6 +563,8 @@ void InspectorBase::mapSignals(const std::vector<InspectorItem>& il, const std::
                   connect(qobject_cast<Awl::ColorLabel*>(w), QOverload<QColor>::of(&Awl::ColorLabel::colorChanged), [=] { valueChanged(i); });
             else if (qobject_cast<Ms::AlignSelect*>(w))
                   connect(qobject_cast<Ms::AlignSelect*>(w), QOverload<Align>::of(&Ms::AlignSelect::alignChanged), [=] { valueChanged(i); });
+            else if (qobject_cast<Ms::FontStyleSelect*>(w))
+                  connect(qobject_cast<Ms::FontStyleSelect*>(w), QOverload<FontStyle>::of(&Ms::FontStyleSelect::fontStyleChanged), [=] { valueChanged(i); });
             else if (qobject_cast<Ms::OffsetSelect*>(w))
                   connect(qobject_cast<Ms::OffsetSelect*>(w), QOverload<const QPointF&>::of(&Ms::OffsetSelect::offsetChanged), [=] { valueChanged(i); });
             else if (qobject_cast<Ms::ScaleSelect*>(w))

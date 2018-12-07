@@ -1,7 +1,6 @@
 //=============================================================================
 //  MuseScore
 //  Linux Music Score Editor
-//  $Id: mixer.h 4388 2011-06-18 13:17:58Z wschweer $
 //
 //  Copyright (C) 2002-2016 Werner Schweer and others
 //
@@ -113,6 +112,7 @@ MixerTrackPart::MixerTrackPart(QWidget *parent, MixerTrackItemPtr mti, bool expa
       volumeSlider->setValue(chan->volume());
       volumeSlider->setToolTip(tr("Volume: %1").arg(QString::number(chan->volume())));
       volumeSlider->setMaxValue(127);
+      volumeSlider->setMinValue(0);
       volumeSlider->setNumMajorTicks(10);
       volumeSlider->setNumMinorTicks(4);
 
@@ -130,20 +130,6 @@ MixerTrackPart::MixerTrackPart(QWidget *parent, MixerTrackItemPtr mti, bool expa
 
       connect(volumeSlider, SIGNAL(sliderPressed()),    SLOT(controlSelected()));
       connect(panSlider,    SIGNAL(sliderPressed(int)), SLOT(controlSelected()));
-
-      applyStyle();
-      }
-
-//---------------------------------------------------------
-//   ~MixerTrack
-//---------------------------------------------------------
-
-MixerTrackPart::~MixerTrackPart()
-      {
-      if (_mti) {
-            Channel* chan = _mti->focusedChan();
-            chan->removeListener(this);
-            }
       }
 
 //---------------------------------------------------------
@@ -225,20 +211,11 @@ void MixerTrackPart::updateNameLabel()
 //   paintEvent
 //---------------------------------------------------------
 
-void MixerTrackPart::paintEvent(QPaintEvent*)
+void MixerTrackPart::showEvent(QShowEvent* event)
       {
-      applyStyle();
-      }
-
-
-//---------------------------------------------------------
-//   disconnectChannelListener
-//---------------------------------------------------------
-
-void MixerTrackPart::disconnectChannelListener()
-      {
-      //Channel has been destroyed.  Don't remove listener when invoking destructor.
-      _mti = nullptr;
+      if (!event->spontaneous())
+            applyStyle();
+      QWidget::showEvent(event);
       }
 
 //---------------------------------------------------------
@@ -351,7 +328,6 @@ void MixerTrackPart::setSelected(bool sel)
             return;
 
       _selected = sel;
-      applyStyle();
 
       emit(selectedChanged(sel));
 

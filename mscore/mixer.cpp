@@ -72,8 +72,8 @@ char userRangeToReverb(double v) { return (char)qBound(0, (int)(v / 100.0 * 128.
 
 Mixer::Mixer(QWidget* parent)
    : QWidget(parent, Qt::Dialog),
-      showExpanded(false),
-      trackHolder(0)
+      showDetails(true),
+      trackHolder(nullptr)
       {
       setupUi(this);
 
@@ -87,7 +87,7 @@ Mixer::Mixer(QWidget* parent)
       trackArea->setLayout(trackAreaLayout);
 
       mixerDetails = new MixerDetails(this);
-      QGridLayout* detailsLayout = new QGridLayout(this);
+      detailsLayout = new QGridLayout(this);
 
       detailsLayout->addWidget(mixerDetails);
       detailsLayout->setContentsMargins(0, 0, 0, 0);
@@ -113,14 +113,29 @@ Mixer::Mixer(QWidget* parent)
       iconSliderHead.addFile(QStringLiteral(":/data/icons/mixer-slider-handle-vertical.svg"), QSize(), QIcon::Normal, QIcon::Off);
       masterSlider->setSliderHeadIcon(iconSliderHead);
 
+      connect(toggleDetailsButton, &QPushButton::toggled, this, &Mixer::showDetailsToggled);
       connect(masterSlider, SIGNAL(valueChanged(double)), SLOT(masterVolumeChanged(double)));
       connect(masterSpin, SIGNAL(valueChanged(double)), SLOT(masterVolumeChanged(double)));
       connect(synti, SIGNAL(gainChanged(float)), SLOT(synthGainChanged(float)));
-
+      connect(tracks_scrollArea->horizontalScrollBar(), SIGNAL(rangeChanged(int, int)), SLOT(adjustScrollPosition(int, int)));
+      connect(tracks_scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)), SLOT(checkKeptScrollValue(int)));
 
       enablePlay = new EnablePlayForWidget(this);
       readSettings();
       retranslate(true);
+      }
+
+//---------------------------------------------------------
+//   showDetailsToggled
+//---------------------------------------------------------
+
+void Mixer::showDetailsToggled(bool shown)
+      {
+      showDetails = shown;
+      if (showDetails)
+            detailsLayout->addWidget(mixerDetails);
+      else
+            detailsLayout->removeWidget(mixerDetails);
       }
 
 //---------------------------------------------------------
@@ -139,6 +154,27 @@ void Mixer::synthGainChanged(float)
       masterSpin->blockSignals(true);
       masterSpin->setValue(decibels);
       masterSpin->blockSignals(false);
+      }
+
+void Mixer::adjustScrollPosition(int, int)
+      {
+      if (_needToKeepScrollPosition)
+            tracks_scrollArea->horizontalScrollBar()->setValue(_scrollPosition);
+      }
+
+void Mixer::checkKeptScrollValue(int scrollPos)
+      {
+      if (_needToKeepScrollPosition) {
+            tracks_scrollArea->horizontalScrollBar()->setValue(_scrollPosition);
+            if (_scrollPosition == scrollPos)
+                  _needToKeepScrollPosition = false;
+            }
+      }
+
+void Mixer::keepScrollPosition()
+      {
+      _scrollPosition = tracks_scrollArea->horizontalScrollBar()->sliderPosition();
+      _needToKeepScrollPosition = true;
       }
 
 
@@ -350,9 +386,7 @@ void Mixer::updateTracks()
             }
 
       holderLayout->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed));
-
-
-      update();
+      keepScrollPosition();
       }
 
 //---------------------------------------------------------

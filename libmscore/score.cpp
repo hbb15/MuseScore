@@ -74,6 +74,7 @@
 namespace Ms {
 
 MasterScore* gscore;                 ///< system score, used for palettes etc.
+std::set<Score*> Score::validScores;
 
 bool scriptDebug     = false;
 bool noSeq           = false;
@@ -244,6 +245,7 @@ void MeasureBaseList::change(MeasureBase* ob, MeasureBase* nb)
 Score::Score()
    : ScoreElement(this), _is(this), _selection(this), _selectionFilter(this)
       {
+      Score::validScores.insert(this);
       _masterScore = 0;
       Layer l;
       l.name          = "default";
@@ -265,6 +267,7 @@ Score::Score()
 Score::Score(MasterScore* parent)
    : Score{}
       {
+      Score::validScores.insert(this);
       _masterScore = parent;
       if (MScore::defaultStyleForParts())
             _style = *MScore::defaultStyleForParts();
@@ -301,6 +304,7 @@ Score::Score(MasterScore* parent)
 Score::Score(MasterScore* parent, const MStyle& s)
    : Score{parent}
       {
+      Score::validScores.erase(this);
       _style  = s;
       }
 
@@ -313,6 +317,8 @@ Score::~Score()
       foreach(MuseScoreView* v, viewer)
             v->removeScore();
       // deselectAll();
+      qDeleteAll(_systems); // systems are layout-only objects so we delete
+                            // them prior to measures.
       for (MeasureBase* m = _measures.first(); m;) {
             MeasureBase* nm = m->next();
             delete m;
@@ -320,7 +326,6 @@ Score::~Score()
             }
       qDeleteAll(_parts);
       qDeleteAll(_staves);
-      qDeleteAll(_systems);
 //      qDeleteAll(_pages);         // TODO: check
       _masterScore = 0;
       }
@@ -351,6 +356,22 @@ Score* Score::clone()
       score->addLayoutFlags(LayoutFlag::FIX_PITCH_VELO);
       score->doLayout();
       return score;
+      }
+
+//---------------------------------------------------------
+//   Score::onElementDestruction
+//    Ensure correct state of the score after destruction
+//    of the element (e.g. remove invalid pointers etc.).
+//---------------------------------------------------------
+
+void Score::onElementDestruction(Element* e)
+      {
+      Score* score = e->score();
+      if (!score || Score::validScores.find(score) == Score::validScores.end()) {
+            // No score or the score is already deleted
+            return;
+            }
+      score->selection().remove(e);
       }
 
 //---------------------------------------------------------
@@ -2115,6 +2136,7 @@ void Score::splitStaff(int staffIdx, int splitPoint)
       Staff* st = staff(staffIdx);
       Part*  p  = st->part();
       Staff* ns = new Staff(this);
+      ns->init(st);
       ns->setPart(p);
       // convert staffIdx from score-relative to part-relative
       int staffIdxPart = staffIdx - p->staff(0)->idx();
@@ -3043,7 +3065,7 @@ void Score::collectMatch(void* data, Element* e)
                   } while (ee);
             }
 
-      if (e->isRest()) {
+      if (e->isRest() && p->durationTicks != -1) {
             const Rest* r = toRest(e);
             if (p->durationTicks != r->actualTicks())
                   return;
@@ -3108,6 +3130,7 @@ void Score::selectSimilar(Element* e, bool sameStaff)
       pattern.staffEnd = sameStaff ? e->staffIdx() + 1 : -1;
       pattern.voice   = -1;
       pattern.system  = 0;
+      pattern.durationTicks = -1;
 
       score->scanElements(&pattern, collectMatch);
 
@@ -3140,6 +3163,7 @@ void Score::selectSimilarInRange(Element* e)
       pattern.staffEnd = selection().staffEnd();
       pattern.voice   = -1;
       pattern.system  = 0;
+      pattern.durationTicks = -1;
 
       score->scanElementsInRange(&pattern, collectMatch);
 
@@ -3950,7 +3974,10 @@ int Score::keysig()
 int Score::duration()
       {
       updateRepeatList(true);
-      RepeatSegment* rs = repeatList()->last();
+      RepeatList* rl = repeatList();
+      if (rl->isEmpty())
+            return 0;
+      RepeatSegment* rs = rl->last();
       return lrint(utick2utime(rs->utick + rs->len()));
       }
 
@@ -4481,14 +4508,14 @@ Movements::~Movements()
 
 //---------------------------------------------------------
 //   ScoreLoad::_loading
-//    If the _loading flag is set pushes and pops to
+//    If the _loading > 0 then pushes and pops to
 //    the undo stack do not emit a warning.
 //    Usually pushes and pops to the undo stack are only
 //    valid inside a startCmd() - endCmd(). Exceptions
 //    occure during score loading.
 //---------------------------------------------------------
 
-bool ScoreLoad::_loading = false;
+int ScoreLoad::_loading = 0;
 
 }
 

@@ -19,6 +19,7 @@
 
 // For menus in the menu bar, like File, Edit, and View, see mscore/musescore.cpp
 
+#include "menus.h"
 #include <tuple>
 #include "libmscore/score.h"
 #include "palette.h"
@@ -475,17 +476,17 @@ Palette* MuseScore::newFingeringPalette()
             f->setXmlText(QString(finger[i]));
             sp->append(f, tr("RH Guitar Fingering %1").arg(finger[i]));
             }
-      for (char c : "012345") {
+      finger = "012345T";
+      for (unsigned i = 0; i < strlen(finger); ++i) {
             Fingering* f = new Fingering(gscore, Tid::LH_GUITAR_FINGERING);
-            f->setXmlText(QString(c));
-            sp->append(f, tr("LH Guitar Fingering %1").arg(c));
+            f->setXmlText(QString(finger[i]));
+            sp->append(f, tr("LH Guitar Fingering %1").arg(finger[i]));
             }
-
-      const char* stringnumber = "0123456";
-      for (unsigned i = 0; i < strlen(stringnumber); ++i) {
+      finger = "0123456";
+      for (unsigned i = 0; i < strlen(finger); ++i) {
             Fingering* f = new Fingering(gscore, Tid::STRING_NUMBER);
-            f->setXmlText(QString(stringnumber[i]));
-            sp->append(f, tr("String number %1").arg(stringnumber[i]));
+            f->setXmlText(QString(finger[i]));
+            sp->append(f, tr("String number %1").arg(finger[i]));
             }
 
       static const std::vector<SymId> lute {
@@ -1506,6 +1507,7 @@ void MuseScore::addTempo()
 QMap<QString, QStringList>* smuflRanges()
       {
       static QMap<QString, QStringList> ranges;
+      QStringList allSymbols;
 
       if (ranges.empty()) {
             QFile fi(":fonts/smufl/ranges.json");
@@ -1526,8 +1528,10 @@ QMap<QString, QStringList>* smuflRanges()
                         for (QJsonValue g : glyphs)
                               glyphNames.append(g.toString());
                         ranges.insert(desc, glyphNames);
+                        allSymbols << glyphNames;
                         }
                   }
+            ranges.insert(SMUFL_ALL_SYMBOLS, allSymbols); // TODO: make translatable as well as ranges.json
             }
       return &ranges;
       }

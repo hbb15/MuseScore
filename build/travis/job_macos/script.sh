@@ -39,16 +39,14 @@ cp -Rf ~/Library/Frameworks/Sparkle.framework applebuild/mscore.app/Contents/Fra
 if [[ "$NIGHTLY_BUILD" = "TRUE" ]]
 then # Build is marked UNSTABLE inside CMakeLists.txt
 build/package_mac $BRANCH-$REVISION
-PACKAGE_NAME=MuseScore
+PACKAGE_NAME=MuseScoreNightly
+DMGFILE=applebuild/$PACKAGE_NAME-$DATE-$BRANCH-$REVISION.dmg
+mv applebuild/$PACKAGE_NAME-$BRANCH-$REVISION.dmg $DMGFILE
 else
 build/package_mac
 PACKAGE_NAME=MuseScore
+DMGFILE=applebuild/$PACKAGE_NAME-*.dmg
 fi
-
-DMGFILENAME=$PACKAGE_NAME-$DATE-$BRANCH-$REVISION.dmg
-DMGFILE=applebuild/$DMGFILENAME
-
-mv applebuild/$PACKAGE_NAME-$BRANCH-$REVISION.dmg $DMGFILE
 
 SSH_INDENTITY=$HOME/.ssh/osuosl_nighlies_rsa
 
@@ -75,7 +73,7 @@ MUSESCORE_VERSION=${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${BUILD_NUM
 SHORT_DATE="$(date -u +%Y-%m-%d)"
 #date -R is not supporte !?
 RSS_DATE="$(LANG=C date +'%a, %d %b %Y %H:%M:%S %z')"
-FILESIZE="$(stat -f%z $DMGFILE)"
+FILESIZE="$(wc -c $DMGFILE | awk '{print $1}')"
 APPCAST_URL=$(defaults read `pwd`/applebuild/mscore.app/Contents/Info.plist SUFeedURL)
 GIT_LOG=$(./build/travis/job_macos/generateGitLog.sh)
 
@@ -132,38 +130,20 @@ ${GIT_LOG}
 </channel>
 </rss>" >> appcast.xml
 
+#invalidate both Win and Mac appcast.xml files
 export ARTIFACTS_KEY=$UPDATE_S3_KEY
 export ARTIFACTS_SECRET=$UPDATE_S3_SECRET
 export ARTIFACTS_REGION=us-east-1
 export ARTIFACTS_BUCKET=sparkle.musescore.org
 export ARTIFACTS_CACHE_CONTROL='public, max-age=315360000'
 export ARTIFACTS_PERMISSIONS=public-read
-export ARTIFACTS_TARGET_PATHS="/${MSCORE_RELEASE_CHANNEL}/3/macos/"
+export ARTIFACTS_TARGET_PATHS="/${MSCORE_RELEASE_CHANNEL}/3/macos"
 export ARTIFACTS_PATHS=appcast.xml
 artifacts upload
 
 pip install awscli
 export AWS_ACCESS_KEY_ID=$UPDATE_S3_KEY
 export AWS_SECRET_ACCESS_KEY=$UPDATE_S3_SECRET
+export ARTIFACTS_TARGET_PATHS="/${MSCORE_RELEASE_CHANNEL}/3"
 aws configure set preview.cloudfront true
-aws cloudfront create-invalidation --distribution-id E3VZY4YYZZG82P --paths "${ARTIFACTS_TARGET_PATHS}*"
-
-
-
-# Translation routins
-# update translation on transifex
-#rm share/locale/mscore_en_US.ts share/locale/instruments_en_US.ts 
-make -f Makefile.osx lupdate
-
-sudo pip install transifex-client
-
-cat > ~/.transifexrc <<EOL
-[https://www.transifex.com]
-hostname = https://www.transifex.com
-password = $TRANSIFEX_PASSWORD
-token =
-username = $TRANSIFEX_USER
-EOL
-
-cp share/locale/mscore_en_US.ts share/locale/mscore_en.ts
-tx push -s
+aws cloudfront create-invalidation --distribution-id E3VZY4YYZZG82P --paths "${ARTIFACTS_TARGET_PATHS}/*"

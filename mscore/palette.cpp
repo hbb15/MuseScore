@@ -234,6 +234,8 @@ void Palette::contextMenuEvent(QContextMenuEvent* event)
       int i = idx(event->pos());
       if (i == -1) {
             // palette context menu
+            if (!_moreElements)
+                  return;
             QMenu menu;
             QAction* moreAction = menu.addAction(tr("More Elements..."));
             moreAction->setEnabled(_moreElements);
@@ -251,8 +253,11 @@ void Palette::contextMenuEvent(QContextMenuEvent* event)
       QAction* moreAction    = menu.addAction(tr("More Elements..."));
       moreAction->setEnabled(_moreElements);
 
-      if (cellAt(i) && cellAt(i)->readOnly)
+      if (filterActive || (cellAt(i) && cellAt(i)->readOnly))
             clearAction->setEnabled(false);
+
+      if (!clearAction->isEnabled() && !contextAction->isEnabled() && !moreAction->isEnabled())
+            return;
 
       QAction* action = menu.exec(mapToGlobal(event->pos()));
 
@@ -260,18 +265,15 @@ void Palette::contextMenuEvent(QContextMenuEvent* event)
             PaletteCell* cell = cellAt(i);
             if (cell) {
                   int ret = QMessageBox::warning(this, QWidget::tr("Delete palette cell"),
-                                                 QWidget::tr("Are you sure you want to delete palette cell %1 ?")
+                                                 QWidget::tr("Are you sure you want to delete palette cell \"%1\"?")
                                                  .arg(cell->name), QMessageBox::Yes | QMessageBox::No,
                                                  QMessageBox::Yes);
-                  if (ret == QMessageBox::Yes) {
-                        if(cell->tag == "ShowMore")
-                            _moreElements = false;
-                        delete cell;
-                        }
-                  else {
+                  if (ret != QMessageBox::Yes)
                         return;
-                        }
-            }
+                  if(cell->tag == "ShowMore")
+                        _moreElements = false;
+                  delete cell;
+                  }
             cells[i] = 0;
             emit changed();
             }
@@ -454,7 +456,7 @@ void Palette::applyPaletteElement(PaletteCell* cell, Qt::KeyboardModifiers modif
       Score* score = mscore->currentScore();
       if (score == 0)
             return;
-      Selection sel = score->selection();       // make a copy of the list
+      const Selection& sel = score->selection();       // make a copy of the list
       if (sel.isNone())
             return;
 
@@ -756,8 +758,7 @@ void Palette::mouseDoubleClickEvent(QMouseEvent* ev)
       Score* score = mscore->currentScore();
       if (score == 0)
             return;
-      Selection sel = score->selection();       // make a copy of the list
-      if (sel.isNone())
+      if (score->selection().isNone())
             return;
 
       applyPaletteElement(cellAt(i), ev->modifiers());

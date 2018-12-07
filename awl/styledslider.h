@@ -1,7 +1,6 @@
 //=============================================================================
 //  Awl
 //  Audio Widget Library
-//  $Id:$
 //
 //  Copyright (C) 2002-2006 by Werner Schweer and others
 //
@@ -33,8 +32,8 @@ class StyledSlider : public QWidget
 
       QList<double> marks;
 
-      double _minValue;
-      double _maxValue = 100;
+      double _minValue = 0;
+      double _maxValue = 127;
       double _value;
       double _barThickness = 4;
       double _margin = 20;
@@ -49,7 +48,7 @@ class StyledSlider : public QWidget
 
       bool draggingMouse;
       QPoint mouseDownPos;
-      QPoint lastMousePos;
+      double mouseDownVal;
 
       QIcon _sliderHeadIcon;
 

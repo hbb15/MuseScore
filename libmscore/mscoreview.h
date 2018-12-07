@@ -22,7 +22,7 @@ class Page;
 class ChordRest;
 
 enum class Grip : int;
-enum class HairpinType : char;
+enum class HairpinType : signed char;
 
 //---------------------------------------------------------
 //   MuseScoreView
@@ -47,7 +47,7 @@ class MuseScoreView {
       virtual void moveCursor()          {}
       virtual void showLoopCursors(bool) {}
 
-      virtual void adjustCanvasPosition(const Element*, bool /*playBack*/, int /*staffIdx*/ = 0) {};
+      virtual void adjustCanvasPosition(const Element*, bool /*playBack*/, int /*staffIdx*/ = -1) {};
       virtual void setScore(Score* s) { _score = s; }
       Score* score() const            { return _score; }
       virtual void removeScore() {};

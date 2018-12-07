@@ -39,9 +39,7 @@ namespace Ms {
 static const ElementStyle glissandoElementStyle {
       { Sid::glissandoFontFace,                  Pid::FONT_FACE               },
       { Sid::glissandoFontSize,                  Pid::FONT_SIZE               },
-      { Sid::glissandoFontBold,                  Pid::FONT_BOLD               },
-      { Sid::glissandoFontItalic,                Pid::FONT_ITALIC             },
-      { Sid::glissandoFontUnderline,             Pid::FONT_UNDERLINE          },
+      { Sid::glissandoFontStyle,                 Pid::FONT_STYLE              },
       { Sid::glissandoLineWidth,                 Pid::LINE_WIDTH              },
       { Sid::glissandoText,                      Pid::GLISS_TEXT              },
       };
@@ -109,9 +107,9 @@ void GlissandoSegment::draw(QPainter* painter) const
       if (glissando()->showText()) {
             QFont f(glissando()->fontFace());
             f.setPointSizeF(glissando()->fontSize() * MScore::pixelRatio * _spatium / SPATIUM20);
-            f.setBold(glissando()->fontBold());
-            f.setItalic(glissando()->fontItalic());
-            f.setUnderline(glissando()->fontUnderline());
+            f.setBold(glissando()->fontStyle() & FontStyle::Bold);
+            f.setItalic(glissando()->fontStyle() & FontStyle::Italic);
+            f.setUnderline(glissando()->fontStyle() & FontStyle::Underline);
             QFontMetricsF fm(f);
             QRectF r = fm.boundingRect(glissando()->text());
 
@@ -142,9 +140,7 @@ Element* GlissandoSegment::propertyDelegate(Pid pid)
             case Pid::PLAY:
             case Pid::FONT_FACE:
             case Pid::FONT_SIZE:
-            case Pid::FONT_BOLD:
-            case Pid::FONT_ITALIC:
-            case Pid::FONT_UNDERLINE:
+            case Pid::FONT_STYLE:
             case Pid::LINE_WIDTH:
                   return glissando();
             default:
@@ -181,9 +177,7 @@ Glissando::Glissando(const Glissando& g)
       _glissandoStyle = g._glissandoStyle;
       _showText       = g._showText;
       _playGlissando  = g._playGlissando;
-      _fontBold       = g._fontBold;
-      _fontItalic     = g._fontItalic;
-      _fontUnderline  = g._fontUnderline;
+      _fontStyle      = g._fontStyle;
       }
 
 //---------------------------------------------------------
@@ -192,8 +186,7 @@ Glissando::Glissando(const Glissando& g)
 
 LineSegment* Glissando::createLineSegment()
       {
-      GlissandoSegment* seg = new GlissandoSegment(score());
-//      seg->setFlag(ElementFlag::ON_STAFF, false);
+      GlissandoSegment* seg = new GlissandoSegment(this, score());
       seg->setTrack(track());
       seg->setColor(color());
       return seg;
@@ -207,7 +200,7 @@ void Glissando::scanElements(void* data, void (*func)(void*, Element*), bool all
       {
       func(data, this);
       // don't scan segments belonging to systems; the systems themselves will scan them
-      for (SpannerSegment* seg : segments) {
+      for (SpannerSegment* seg : spannerSegments()) {
             if (!seg->parent() || !seg->parent()->isSystem())
                   seg->scanElements(data, func, all);
             }
@@ -307,7 +300,7 @@ void Glissando::layout()
       // interpolate y-coord of intermediate points across total width and height
       qreal xCurr = 0.0;
       qreal yCurr;
-      for (int i = 0; i < spannerSegments().count()-1; i++) {
+      for (int i = 0; i < int(spannerSegments().size()-1); i++) {
             SpannerSegment* segm = segmentAt(i);
             xCurr += segm->ipos2().x();
             yCurr = y0 + ratio * xCurr;
@@ -387,8 +380,7 @@ void Glissando::write(XmlWriter& xml) const
 
 void Glissando::read(XmlReader& e)
       {
-      qDeleteAll(spannerSegments());
-      spannerSegments().clear();
+      eraseSpannerSegments();
 
       if (score()->mscVersion() < 301)
             e.addSpanner(e.intAttribute("id", -1), this);
@@ -620,12 +612,8 @@ QVariant Glissando::getProperty(Pid propertyId) const
                   return _fontFace;
             case Pid::FONT_SIZE:
                   return _fontSize;
-            case Pid::FONT_BOLD:
-                  return _fontBold;
-            case Pid::FONT_ITALIC:
-                  return _fontItalic;
-            case Pid::FONT_UNDERLINE:
-                  return _fontUnderline;
+            case Pid::FONT_STYLE:
+                  return int(_fontStyle);
             default:
                   break;
             }
@@ -660,14 +648,8 @@ bool Glissando::setProperty(Pid propertyId, const QVariant& v)
             case Pid::FONT_SIZE:
                   setFontSize(v.toReal());
                   break;
-            case Pid::FONT_BOLD:
-                  setFontBold(v.toBool());
-                  break;
-            case Pid::FONT_ITALIC:
-                  setFontItalic(v.toBool());
-                  break;
-            case Pid::FONT_UNDERLINE:
-                  setFontUnderline(v.toBool());
+            case Pid::FONT_STYLE:
+                  setFontStyle(FontStyle(v.toBool()));
                   break;
             default:
                   if (!SLine::setProperty(propertyId, v))

@@ -296,7 +296,10 @@ void Bracket::updateGrips(EditData& ed) const
 
 void Bracket::endEdit(EditData& ed)
       {
-      endEditDrag(ed);
+//      endEditDrag(ed);
+      score()->setLayoutAll();
+      score()->update();
+      ed.element = 0;         // score layout invalidates element
       }
 
 //---------------------------------------------------------
@@ -342,6 +345,9 @@ void Bracket::endEditDrag(EditData&)
       qreal ey = system()->staff(staffIdx2)->y() + score()->staff(staffIdx2)->height();
       h2 = (ey - sy) * .5;
       bracketItem()->undoChangeProperty(Pid::BRACKET_SPAN, staffIdx2 - staffIdx1 + 1);
+      // brackets do not survive layout
+      // make sure layout is not called:
+      score()->cmdState()._setUpdateMode(UpdateMode::Update);
       }
 
 //---------------------------------------------------------
@@ -428,12 +434,24 @@ QVariant Bracket::propertyDefault(Pid id) const
       }
 
 //---------------------------------------------------------
+//   undoChangeProperty
+//---------------------------------------------------------
+
+void Bracket::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps)
+      {
+      // brackets do not survive layout() and therefore cannot be on
+      // the undo stack; delegate to BracketItem:
+      BracketItem* bi = bracketItem();
+      bi->undoChangeProperty(id, v, ps);
+      }
+
+//---------------------------------------------------------
 //   setSelected
 //---------------------------------------------------------
 
 void Bracket::setSelected(bool f)
       {
-      _bi->setSelected(f);
+//      _bi->setSelected(f);
       Element::setSelected(f);
       }
 

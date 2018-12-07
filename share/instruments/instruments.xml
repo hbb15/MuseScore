@@ -813,7 +813,7 @@
                   <clef>G8va</clef>
                   <barlineSpan>1</barlineSpan>
                   <aPitchRange>72-93</aPitchRange>
-                  <pPitchRange>72-98</pPitchRange>
+                  <pPitchRange>72-103</pPitchRange>
                   <Channel>
                         <program value="74"/>
                   </Channel>
@@ -827,7 +827,7 @@
                   <clef>G</clef>
                   <barlineSpan>1</barlineSpan>
                   <aPitchRange>65-88</aPitchRange>
-                  <pPitchRange>65-91</pPitchRange>
+                  <pPitchRange>64-96</pPitchRange>
                   <Channel>
                         <program value="74"/>
                   </Channel>
@@ -841,7 +841,7 @@
                   <clef>G</clef>
                   <barlineSpan>1</barlineSpan>
                   <aPitchRange>60-81</aPitchRange>
-                  <pPitchRange>60-86</pPitchRange>
+                  <pPitchRange>60-91</pPitchRange>
                   <Channel>
                         <program value="74"/>
                   </Channel>
@@ -7536,6 +7536,81 @@
                   <genre>jazz</genre>
                   <genre>orchestra</genre>
                   <genre>choral</genre>
+            </Instrument>
+            <Instrument id="soprano-c-clef">
+                  <trackName>Soprano (C Clef)</trackName>
+                  <longName>Soprano</longName>
+                  <shortName>S.</shortName>
+                  <description>Soprano (C Clef)</description>
+                  <musicXMLid>voice.soprano</musicXMLid>
+                  <clef>C1</clef>
+                  <barlineSpan>1</barlineSpan>
+                  <aPitchRange>60-79</aPitchRange>
+                  <pPitchRange>60-84</pPitchRange>
+                  <Channel>
+                        <program value="52"/>
+                  </Channel>
+                  <genre>earlymusic</genre>
+            </Instrument>
+            <Instrument id="mezzo-soprano-c-clef">
+                  <trackName>Soprano (C Clef)</trackName>
+                  <longName>Mezzo-soprano</longName>
+                  <shortName>Mzs.</shortName>
+                  <description>Mezzo-soprano (C Clef)</description>
+                  <musicXMLid>voice.mezzo-soprano</musicXMLid>
+                  <clef>C2</clef>
+                  <barlineSpan>1</barlineSpan>
+                  <aPitchRange>57-77</aPitchRange>
+                  <pPitchRange>57-81</pPitchRange>
+                  <Channel>
+                        <program value="52"/>
+                  </Channel>
+                  <genre>earlymusic</genre>
+            </Instrument>
+            <Instrument id="alto-c-clef">
+                  <trackName>Alto (C Clef)</trackName>
+                  <longName>Alto</longName>
+                  <shortName>A.</shortName>
+                  <description>Alto (C Clef)</description>
+                  <musicXMLid>voice.alto</musicXMLid>
+                  <clef>C3</clef>
+                  <barlineSpan>1</barlineSpan>
+                  <aPitchRange>55-74</aPitchRange>
+                  <pPitchRange>52-77</pPitchRange>
+                  <Channel>
+                        <program value="52"/>
+                  </Channel>
+                  <genre>earlymusic</genre>
+            </Instrument>
+            <Instrument id="tenor-c-clef">
+                  <trackName>Tenor (C Clef)</trackName>
+                  <longName>Tenor</longName>
+                  <shortName>T.</shortName>
+                  <description>Tenor (C Clef)</description>
+                  <musicXMLid>voice.tenor</musicXMLid>
+                  <clef>C4</clef>
+                  <barlineSpan>1</barlineSpan>
+                  <aPitchRange>48-69</aPitchRange>
+                  <pPitchRange>48-72</pPitchRange>
+                  <Channel>
+                        <program value="52"/>
+                  </Channel>
+                  <genre>earlymusic</genre>
+            </Instrument>
+            <Instrument id="baritone-c-clef">
+                  <trackName>Baritone (C Clef)</trackName>
+                  <longName>Baritone</longName>
+                  <shortName>Bar.</shortName>
+                  <description>Baritone (C Clef)</description>
+                  <musicXMLid>voice.baritone</musicXMLid>
+                  <clef>C5</clef>
+                  <barlineSpan>1</barlineSpan>
+                  <aPitchRange>43-64</aPitchRange>
+                  <pPitchRange>41-65</pPitchRange>
+                  <Channel>
+                        <program value="52"/>
+                  </Channel>
+                  <genre>earlymusic</genre>
             </Instrument>
             <Instrument id="kazoo">
                   <longName>Kazoo</longName>

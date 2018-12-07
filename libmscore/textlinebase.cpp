@@ -28,8 +28,8 @@ namespace Ms {
 //   TextLineBaseSegment
 //---------------------------------------------------------
 
-TextLineBaseSegment::TextLineBaseSegment(Score* score, ElementFlags f)
-   : LineSegment(score, f)
+TextLineBaseSegment::TextLineBaseSegment(Spanner* sp, Score* score, ElementFlags f)
+   : LineSegment(sp, score, f)
       {
       _text    = new Text(score);
       _endText = new Text(score);
@@ -88,7 +88,7 @@ void TextLineBaseSegment::draw(QPainter* painter) const
             painter->translate(-_endText->pos());
             }
 
-      if (npoints == 0)
+      if ((npoints == 0) || (score() && score()->printing() && !tl->lineVisible()))
             return;
 
       // color for line (text color comes from the text properties)
@@ -99,7 +99,7 @@ void TextLineBaseSegment::draw(QPainter* painter) const
       else
             color = tl->lineColor();
 #endif
-      QColor color = curColor(tl->visible(), tl->lineColor());
+      QColor color = curColor(tl->visible() && tl->lineVisible(), tl->lineColor());
 
       qreal textlineLineWidth = tl->lineWidth();
       QPen pen(color, textlineLineWidth, tl->lineStyle());
@@ -171,9 +171,9 @@ void TextLineBaseSegment::layout()
                   _text->setSize(tl->beginFontSize());
                   _text->setOffset(tl->beginTextOffset());
                   _text->setAlign(tl->beginTextAlign());
-                  _text->setBold(tl->beginFontBold());
-                  _text->setItalic(tl->beginFontItalic());
-                  _text->setUnderline(tl->beginFontUnderline());
+                  _text->setBold(tl->beginFontStyle() & FontStyle::Bold);
+                  _text->setItalic(tl->beginFontStyle() & FontStyle::Italic);
+                  _text->setUnderline(tl->beginFontStyle() & FontStyle::Underline);
                   break;
             case SpannerSegmentType::MIDDLE:
             case SpannerSegmentType::END:
@@ -182,9 +182,10 @@ void TextLineBaseSegment::layout()
                   _text->setSize(tl->continueFontSize());
                   _text->setOffset(tl->continueTextOffset());
                   _text->setAlign(tl->continueTextAlign());
-                  _text->setBold(tl->continueFontBold());
-                  _text->setItalic(tl->continueFontItalic());
-                  _text->setUnderline(tl->continueFontUnderline());
+                  _text->setBold(tl->continueFontStyle() & FontStyle::Bold);
+                  _text->setItalic(tl->continueFontStyle() & FontStyle::Italic);
+                  _text->setUnderline(tl->continueFontStyle() & FontStyle::Underline);
+
                   break;
             }
       _text->setPlacement(Placement::ABOVE);
@@ -197,9 +198,9 @@ void TextLineBaseSegment::layout()
             _endText->setSize(tl->endFontSize());
             _endText->setOffset(tl->endTextOffset());
             _endText->setAlign(tl->endTextAlign());
-            _endText->setBold(tl->endFontBold());
-            _endText->setItalic(tl->endFontItalic());
-            _endText->setUnderline(tl->endFontUnderline());
+            _endText->setBold(tl->endFontStyle() & FontStyle::Bold);
+            _endText->setItalic(tl->endFontStyle() & FontStyle::Italic);
+            _endText->setUnderline(tl->endFontStyle() & FontStyle::Underline);
             _endText->setPlacement(Placement::ABOVE);
             _endText->setTrack(track());
             _endText->layout();
@@ -231,7 +232,7 @@ void TextLineBaseSegment::layout()
       qreal l = 0.0;
       if (!_text->empty()) {
             qreal textlineTextDistance = _spatium * .5;
-            if (((isSingleType() || isBeginType()) && (tl->beginTextPlace() == PlaceText::LEFT)) || ((isMiddleType() || isEndType()) && (tl->continueTextPlace() == PlaceText::LEFT)))
+            if (((isSingleType() || isBeginType()) && (tl->beginTextPlace() == PlaceText::LEFT || tl->beginTextPlace() == PlaceText::AUTO)) || ((isMiddleType() || isEndType()) && (tl->continueTextPlace() == PlaceText::LEFT)))
                   l = _text->pos().x() + _text->bbox().width() + textlineTextDistance;
             qreal h = _text->height();
             if (textLineBase()->beginTextPlace() == PlaceText::ABOVE)
@@ -330,7 +331,7 @@ void TextLineBaseSegment::spatiumChanged(qreal ov, qreal nv)
       _endText->spatiumChanged(ov, nv);
       }
 
-static constexpr std::array<Pid, 32> pids = { {
+static constexpr std::array<Pid, 26> pids = { {
       Pid::LINE_VISIBLE,
       Pid::BEGIN_HOOK_TYPE,
       Pid::BEGIN_HOOK_HEIGHT,
@@ -341,29 +342,22 @@ static constexpr std::array<Pid, 32> pids = { {
       Pid::BEGIN_TEXT_PLACE,
       Pid::BEGIN_FONT_FACE,
       Pid::BEGIN_FONT_SIZE,
-      Pid::BEGIN_FONT_BOLD,
-      Pid::BEGIN_FONT_ITALIC,
-      Pid::BEGIN_FONT_UNDERLINE,
+      Pid::BEGIN_FONT_STYLE,
       Pid::BEGIN_TEXT_OFFSET,
       Pid::CONTINUE_TEXT,
       Pid::CONTINUE_TEXT_ALIGN,
       Pid::CONTINUE_TEXT_PLACE,
       Pid::CONTINUE_FONT_FACE,
       Pid::CONTINUE_FONT_SIZE,
-      Pid::CONTINUE_FONT_BOLD,
-      Pid::CONTINUE_FONT_ITALIC,
-      Pid::CONTINUE_FONT_UNDERLINE,
+      Pid::CONTINUE_FONT_STYLE,
       Pid::CONTINUE_TEXT_OFFSET,
       Pid::END_TEXT,
       Pid::END_TEXT_ALIGN,
       Pid::END_TEXT_PLACE,
       Pid::END_FONT_FACE,
       Pid::END_FONT_SIZE,
-      Pid::END_FONT_BOLD,
-      Pid::END_FONT_ITALIC,
-      Pid::END_FONT_UNDERLINE,
+      Pid::END_FONT_STYLE,
       Pid::END_TEXT_OFFSET,
-//      Pid::PLACEMENT
       } };
 
 //---------------------------------------------------------
@@ -409,8 +403,7 @@ void TextLineBase::write(XmlWriter& xml) const
 
 void TextLineBase::read(XmlReader& e)
       {
-      qDeleteAll(spannerSegments());
-      spannerSegments().clear();
+      eraseSpannerSegments();
 
       if (score()->mscVersion() < 301)
             e.addSpanner(e.intAttribute("id", -1), this);
@@ -495,12 +488,8 @@ QVariant TextLineBase::getProperty(Pid id) const
                   return _beginFontFamily;
             case Pid::BEGIN_FONT_SIZE:
                   return _beginFontSize;
-            case Pid::BEGIN_FONT_BOLD:
-                  return _beginFontBold;
-            case Pid::BEGIN_FONT_ITALIC:
-                  return _beginFontItalic;
-            case Pid::BEGIN_FONT_UNDERLINE:
-                  return _beginFontUnderline;
+            case Pid::BEGIN_FONT_STYLE:
+                  return int(_beginFontStyle);
             case Pid::BEGIN_TEXT_OFFSET:
                   return _beginTextOffset;
             case Pid::CONTINUE_TEXT:
@@ -511,12 +500,8 @@ QVariant TextLineBase::getProperty(Pid id) const
                   return _continueFontFamily;
             case Pid::CONTINUE_FONT_SIZE:
                   return _continueFontSize;
-            case Pid::CONTINUE_FONT_BOLD:
-                  return _continueFontBold;
-            case Pid::CONTINUE_FONT_ITALIC:
-                  return _continueFontItalic;
-            case Pid::CONTINUE_FONT_UNDERLINE:
-                  return _continueFontUnderline;
+            case Pid::CONTINUE_FONT_STYLE:
+                  return int(_continueFontStyle);
             case Pid::CONTINUE_TEXT_OFFSET:
                   return _continueTextOffset;
             case Pid::END_TEXT:
@@ -531,12 +516,8 @@ QVariant TextLineBase::getProperty(Pid id) const
                   return _endFontFamily;
             case Pid::END_FONT_SIZE:
                   return _endFontSize;
-            case Pid::END_FONT_BOLD:
-                  return _endFontBold;
-            case Pid::END_FONT_ITALIC:
-                  return _endFontItalic;
-            case Pid::END_FONT_UNDERLINE:
-                  return _endFontUnderline;
+            case Pid::END_FONT_STYLE:
+                  return int(_endFontStyle);
             case Pid::END_TEXT_OFFSET:
                   return _endTextOffset;
             case Pid::LINE_VISIBLE:
@@ -612,14 +593,8 @@ bool TextLineBase::setProperty(Pid id, const QVariant& v)
                         qFatal("font size is %f", v.toReal());
                   setBeginFontSize(v.toReal());
                   break;
-            case Pid::BEGIN_FONT_BOLD:
-                  setBeginFontBold(v.toBool());
-                  break;
-            case Pid::BEGIN_FONT_ITALIC:
-                  setBeginFontItalic(v.toBool());
-                  break;
-            case Pid::BEGIN_FONT_UNDERLINE:
-                  setBeginFontUnderline(v.toBool());
+            case Pid::BEGIN_FONT_STYLE:
+                  setBeginFontStyle(FontStyle(v.toInt()));
                   break;
             case Pid::CONTINUE_FONT_FACE:
                   setContinueFontFamily(v.toString());
@@ -627,14 +602,8 @@ bool TextLineBase::setProperty(Pid id, const QVariant& v)
             case Pid::CONTINUE_FONT_SIZE:
                   setContinueFontSize(v.toReal());
                   break;
-            case Pid::CONTINUE_FONT_BOLD:
-                  setContinueFontBold(v.toBool());
-                  break;
-            case Pid::CONTINUE_FONT_ITALIC:
-                  setContinueFontItalic(v.toBool());
-                  break;
-            case Pid::CONTINUE_FONT_UNDERLINE:
-                  setContinueFontUnderline(v.toBool());
+            case Pid::CONTINUE_FONT_STYLE:
+                  setContinueFontStyle(FontStyle(v.toInt()));
                   break;
             case Pid::END_FONT_FACE:
                   setEndFontFamily(v.toString());
@@ -642,16 +611,9 @@ bool TextLineBase::setProperty(Pid id, const QVariant& v)
             case Pid::END_FONT_SIZE:
                   setEndFontSize(v.toReal());
                   break;
-            case Pid::END_FONT_BOLD:
-                  setEndFontBold(v.toBool());
+            case Pid::END_FONT_STYLE:
+                  setEndFontStyle(FontStyle(v.toInt()));
                   break;
-            case Pid::END_FONT_ITALIC:
-                  setEndFontItalic(v.toBool());
-                  break;
-            case Pid::END_FONT_UNDERLINE:
-                  setEndFontUnderline(v.toBool());
-                  break;
-
             default:
                   return SLine::setProperty(id, v);
             }

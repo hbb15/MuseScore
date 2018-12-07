@@ -28,15 +28,9 @@ static const ElementStyle textLineStyle {
       { Sid::textLineFontSize,                   Pid::BEGIN_FONT_SIZE         },
       { Sid::textLineFontSize,                   Pid::CONTINUE_FONT_SIZE      },
       { Sid::textLineFontSize,                   Pid::END_FONT_SIZE           },
-      { Sid::textLineFontBold,                   Pid::BEGIN_FONT_BOLD         },
-      { Sid::textLineFontBold,                   Pid::CONTINUE_FONT_BOLD      },
-      { Sid::textLineFontBold,                   Pid::END_FONT_BOLD           },
-      { Sid::textLineFontItalic,                 Pid::BEGIN_FONT_ITALIC       },
-      { Sid::textLineFontItalic,                 Pid::CONTINUE_FONT_ITALIC    },
-      { Sid::textLineFontItalic,                 Pid::END_FONT_ITALIC         },
-      { Sid::textLineFontUnderline,              Pid::BEGIN_FONT_UNDERLINE    },
-      { Sid::textLineFontUnderline,              Pid::CONTINUE_FONT_UNDERLINE },
-      { Sid::textLineFontUnderline,              Pid::END_FONT_UNDERLINE      },
+      { Sid::textLineFontStyle,                  Pid::BEGIN_FONT_STYLE        },
+      { Sid::textLineFontStyle,                  Pid::CONTINUE_FONT_STYLE     },
+      { Sid::textLineFontStyle,                  Pid::END_FONT_STYLE          },
       { Sid::textLineTextAlign,                  Pid::BEGIN_TEXT_ALIGN        },
       { Sid::textLineTextAlign,                  Pid::CONTINUE_TEXT_ALIGN     },
       { Sid::textLineTextAlign,                  Pid::END_TEXT_ALIGN          },
@@ -46,8 +40,8 @@ static const ElementStyle textLineStyle {
 //   TextLineSegment
 //---------------------------------------------------------
 
-TextLineSegment::TextLineSegment(Score* s)
-   : TextLineBaseSegment(s, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
+TextLineSegment::TextLineSegment(Spanner* sp, Score* s)
+   : TextLineBaseSegment(sp, s, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
       {
       setPlacement(Placement::ABOVE);
       }
@@ -101,7 +95,7 @@ TextLine::TextLine(const TextLine& tl)
 
 LineSegment* TextLine::createLineSegment()
       {
-      TextLineSegment* seg = new TextLineSegment(score());
+      TextLineSegment* seg = new TextLineSegment(this, score());
       // note-anchored line segments are relative to system not to staff
       if (anchor() == Spanner::Anchor::NOTE)
             seg->setFlag(ElementFlag::ON_STAFF, false);

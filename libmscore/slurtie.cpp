@@ -46,7 +46,7 @@ SlurTieSegment::SlurTieSegment(const SlurTieSegment& b)
 
 QPointF SlurTieSegment::gripAnchor(Grip grip) const
       {
-      if (grip != Grip::START && grip != Grip::END)
+      if (!system() || (grip != Grip::START && grip != Grip::END))
             return QPointF();
 
       QPointF sp(system()->pagePos());
@@ -270,8 +270,25 @@ void SlurTieSegment::reset()
       undoResetProperty(Pid::SLUR_UOFF2);
       undoResetProperty(Pid::SLUR_UOFF3);
       undoResetProperty(Pid::SLUR_UOFF4);
-      undoResetProperty(Pid::AUTOPLACE);
       slurTie()->reset();
+      }
+
+//---------------------------------------------------------
+//   undoChangeProperty
+//---------------------------------------------------------
+
+void SlurTieSegment::undoChangeProperty(Pid pid, const QVariant& val, PropertyFlags ps)
+      {
+      if (pid == Pid::AUTOPLACE && (val.toBool() == true && !autoplace())) {
+            // Switching autoplacement on. Save user-defined
+            // placement properties to undo stack.
+            undoPushProperty(Pid::SLUR_UOFF1);
+            undoPushProperty(Pid::SLUR_UOFF2);
+            undoPushProperty(Pid::SLUR_UOFF3);
+            undoPushProperty(Pid::SLUR_UOFF4);
+            // other will be saved in base classes.
+            }
+      SpannerSegment::undoChangeProperty(pid, val, ps);
       }
 
 //---------------------------------------------------------
@@ -280,8 +297,9 @@ void SlurTieSegment::reset()
 
 void SlurTieSegment::writeSlur(XmlWriter& xml, int no) const
       {
-      if (visible()
+      if (visible() && autoplace()
          && (color() == Qt::black)
+         && offset().isNull()
          && ups(Grip::START).off.isNull()
          && ups(Grip::BEZIER1).off.isNull()
          && ups(Grip::BEZIER2).off.isNull()
@@ -416,6 +434,10 @@ bool SlurTie::readProperties(XmlReader& e)
       else if (tag == "lineType")
             _lineType = e.readInt();
       else if (tag == "SlurSegment" || tag == "TieSegment") {
+            const int idx = e.intAttribute("no", 0);
+            const int n = int(spannerSegments().size());
+            for (int i = n; i < idx; ++i)
+                  add(newSlurTieSegment());
             SlurTieSegment* s = newSlurTieSegment();
             s->read(e);
             add(s);
@@ -551,27 +573,7 @@ qreal SlurTie::firstNoteRestSegmentX(System* system)
 
 void SlurTie::fixupSegments(unsigned nsegs)
       {
-      unsigned onsegs = spannerSegments().size();
-      if (nsegs > onsegs) {
-            for (unsigned i = onsegs; i < nsegs; ++i) {
-                  SpannerSegment* s;
-                  if (!delSegments.empty()) {
-                        s = delSegments.dequeue();
-                        }
-                  else {
-                        s = newSlurTieSegment();
-                        }
-                  s->setTrack(track());
-                  add(s);
-                  }
-            }
-      else if (nsegs < onsegs) {
-            for (unsigned i = nsegs; i < onsegs; ++i) {
-                  SpannerSegment* s = spannerSegments().takeLast();
-                  s->setSystem(0);
-                  delSegments.enqueue(s);  // cannot delete: used in SlurSegment->edit()
-                  }
-            }
+      Spanner::fixupSegments(nsegs, [this]() { return newSlurTieSegment(); });
       }
 
 //---------------------------------------------------------

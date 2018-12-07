@@ -407,6 +407,9 @@ void ScoreView::measurePopup(QContextMenuEvent* ev, Measure* obj)
       menuAdd->addAction(getAction("insert-vbox"));
       menuAdd->addAction(getAction("insert-textframe"));
 
+      a = popup->addAction(tr("Delete Selected Measures"));
+      a->setData("delete-selected-measures");
+      
       popup->addSeparator();
 
       a = popup->addAction(tr("Measure Properties..."));
@@ -471,6 +474,9 @@ void ScoreView::measurePopup(QContextMenuEvent* ev, Measure* obj)
       else if (cmd == "props") {
             MeasureProperties im(obj);
             im.exec();
+            }
+      else if (cmd == "delete-selected-measures") {
+            _score->cmdTimeDelete();
             }
       if (_score->undoStack()->active())
             _score->endCmd();
@@ -1067,6 +1073,7 @@ void ScoreView::paint(const QRect& r, QPainter& p)
       QRectF fr = imatrix.mapRect(QRectF(r));
 
       Element* editElement = 0;
+      Element* lassoToDraw = 0;
       if (editData.element) {
             switch (state) {
                   case ViewState::NORMAL:
@@ -1084,7 +1091,11 @@ void ScoreView::paint(const QRect& r, QPainter& p)
                   case ViewState::FOTO_DRAG_EDIT:
                   case ViewState::FOTO_DRAG_OBJECT:
                   case ViewState::FOTO_LASSO:
-                        editData.element->drawEditMode(&p, editData);
+                        if (editData.element->_name() == "Lasso") // There is no isLasso() method
+                              lassoToDraw = editData.element;
+                        else
+                              editData.element->drawEditMode(&p, editData);
+
                         if (editData.element->isHarmony())
                               editElement = editData.element;     // do not call paint() method
                         break;
@@ -1298,6 +1309,11 @@ void ScoreView::paint(const QRect& r, QPainter& p)
             //
             p.drawLine(QLineF(x2, y1, x2, y2).translated(system2->page()->pos()));
             }
+
+      // Draw foto lasso to ensure that it is above everything else
+      if (lassoToDraw)
+            lassoToDraw->drawEditMode(&p, editData);
+
       p.setMatrixEnabled(false);
       if (_score->layoutMode() != LayoutMode::LINE && _score->layoutMode() != LayoutMode::SYSTEM && !r1.isEmpty()) {
             p.setClipRegion(r1);  // only background
@@ -1561,8 +1577,10 @@ void ScoreView::editCopy()
 
 void ScoreView::editCut()
       {
+      _score->startCmd();
       if (editData.element)
             editData.element->editCut(editData);
+      _score->endCmd();
       }
 
 //---------------------------------------------------------
@@ -1638,8 +1656,8 @@ void ScoreView::editPaste()
       if (editData.element) {
             if (editData.element->isLyrics())
                   toLyrics(editData.element)->paste(editData);
-            else if (editData.element->isText())
-                  toText(editData.element)->paste(editData);
+            else if (editData.element->isTextBase())
+                  toTextBase(editData.element)->paste(editData);
             }
       }
 
@@ -2066,6 +2084,10 @@ void ScoreView::cmd(const char* s)
             _score->cmdAddTie();
             moveCursor();
             }
+      else if (cmd == "chord-tie") {
+            _score->cmdAddTie(true);
+            moveCursor();
+            }
       else if (cmd == "duplet")
             cmdTuplet(2);
       else if (cmd == "triplet")
@@ -2468,8 +2490,8 @@ void ScoreView::endNoteEntry()
       InputState& is = _score->inputState();
       is.setNoteEntryMode(false);
       if (is.slur()) {
-            const QList<SpannerSegment*>& el = is.slur()->spannerSegments();
-            if (!el.isEmpty())
+            const std::vector<SpannerSegment*>& el = is.slur()->spannerSegments();
+            if (!el.empty())
                   el.front()->setSelected(false);
             is.setSlur(0);
             }
@@ -3092,8 +3114,8 @@ void ScoreView::addSlur()
       {
       InputState& is = _score->inputState();
       if (noteEntryMode() && is.slur()) {
-            const QList<SpannerSegment*>& el = is.slur()->spannerSegments();
-            if (!el.isEmpty())
+            const std::vector<SpannerSegment*>& el = is.slur()->spannerSegments();
+            if (!el.empty())
                   el.front()->setSelected(false);
             is.setSlur(nullptr);
             return;
@@ -3179,7 +3201,6 @@ void ScoreView::cmdAddSlur(ChordRest* cr1, ChordRest* cr2)
       ss->setSpannerSegmentType(SpannerSegmentType::SINGLE);
       if (cr1 == cr2)
             ss->setSlurOffset(Grip::END, QPointF(3.0 * cr1->score()->spatium(), 0.0));
-//      ss->setAutoplace(false);
       slur->add(ss);
 
       _score->endCmd();
@@ -3241,9 +3262,9 @@ void ScoreView::cmdAddHairpin(HairpinType type)
 //          pin->layout();
             _score->endCmd();
 
-            const QList<SpannerSegment*>& el = pin->spannerSegments();
+            const std::vector<SpannerSegment*>& el = pin->spannerSegments();
             if (!noteEntryMode()) {
-                  if (!el.isEmpty()) {
+                  if (!el.empty()) {
                         editData.element = el.front();
                         changeState(ViewState::EDIT);
                         }
@@ -3311,7 +3332,7 @@ void ScoreView::cmdAddNoteLine()
 void ScoreView::cmdChangeEnharmonic(bool both)
       {
       _score->startCmd();
-      Selection selection = _score->selection();
+      Selection& selection = _score->selection();
       QList<Note*> notes = selection.uniqueNotes();
       for (Note* n : notes) {
             Staff* staff = n->staff();
@@ -3389,8 +3410,8 @@ void ScoreView::cloneElement(Element* e)
             return;
       QDrag* drag = new QDrag(this);
       QMimeData* mimeData = new QMimeData;
-      if (e->isSegment())
-            e = static_cast<SpannerSegment*>(e)->spanner();
+      if (e->isSpannerSegment())
+            e = toSpannerSegment(e)->spanner();
       mimeData->setData(mimeSymbolFormat, e->mimeData(QPointF()));
       drag->setMimeData(mimeData);
       drag->setPixmap(QPixmap());
@@ -3629,7 +3650,7 @@ void ScoreView::triggerCmdRealtimeAdvance()
             allowRealtimeRests = true;
             return;
             }
-      // give audible feedback immediately to indicate a beat, but dont advance just yet.
+      // give audible feedback immediately to indicate a beat, but don’t advance just yet.
       seq->playMetronomeBeat(_score->tick2beatType(is.tick()));
       // The user will want to press notes "on the beat" and not before the beat, so wait a
       // little in case midi input event is received just after realtime-advance was called.

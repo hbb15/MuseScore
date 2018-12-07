@@ -92,7 +92,7 @@ enum class ClefType : signed char;
 enum class BeatType : char;
 enum class SymId;
 enum class Key;
-enum class HairpinType : char;
+enum class HairpinType : signed char;
 enum class SegmentType;
 enum class OttavaType : char;
 
@@ -387,6 +387,7 @@ class Score : public QObject, public ScoreElement {
             };
 
    private:
+      static std::set<Score*> validScores;
       int _linkId { 0 };
       MasterScore* _masterScore { 0 };
       QList<MuseScoreView*> viewer;
@@ -440,6 +441,7 @@ class Score : public QObject, public ScoreElement {
                                                 ///< save a backup file will be created, subsequent
                                                 ///< saves will not overwrite the backup file.
       bool _defaultsRead        { false };      ///< defaults were read at MusicXML import, allow export of defaults in convertermode
+      bool _isPalette           { false };
 
       int _pos[3];                    ///< 0 - current, 1 - left loop, 2 - right loop
 
@@ -559,6 +561,8 @@ class Score : public QObject, public ScoreElement {
       virtual bool isMaster() const  { return false;        }
       virtual bool readOnly() const;
 
+      static void onElementDestruction(Element* se);
+
       virtual inline QList<Excerpt*>& excerpts();
       virtual inline const QList<Excerpt*>& excerpts() const;
 
@@ -582,7 +586,7 @@ class Score : public QObject, public ScoreElement {
       void getNextMeasure(LayoutContext&);      // get next measure for layout
 
       void cmdRemovePart(Part*);
-      void cmdAddTie();
+      void cmdAddTie(bool addToChord = false);
       void cmdAddOttava(OttavaType);
       void cmdAddStretch(qreal);
       void cmdResetNoteAndRestGroupings();
@@ -757,7 +761,7 @@ class Score : public QObject, public ScoreElement {
       bool saveFile(QFileInfo& info);
       bool saveFile(QIODevice* f, bool msczFormat, bool onlySelection = false);
       bool saveCompressedFile(QFileInfo&, bool onlySelection);
-      bool saveCompressedFile(QIODevice*, QFileInfo&, bool onlySelection, bool createThumbnail = true);
+      bool saveCompressedFile(QFileDevice*, QFileInfo&, bool onlySelection, bool createThumbnail = true);
       bool exportFile();
 
       void print(QPainter* printer, int page);
@@ -904,6 +908,9 @@ class Score : public QObject, public ScoreElement {
       bool defaultsRead() const                      { return _defaultsRead;    }
       void setDefaultsRead(bool b)                   { _defaultsRead = b;       }
       Text* getText(Tid subtype);
+
+      bool isPalette() const { return _isPalette; }
+      void setPaletteMode(bool palette) { _isPalette = palette; }
 
       void lassoSelect(const QRectF&);
       void lassoSelectEnd();
@@ -1093,7 +1100,7 @@ class Score : public QObject, public ScoreElement {
 
       ChordRest* findCR(int tick, int track) const;
       ChordRest* findCRinStaff(int tick, int staffIdx) const;
-      void layoutSpanner();
+//       void layoutSpanner(); // unused
       void insertTime(int tickPos, int tickLen);
 
       ScoreFont* scoreFont() const            { return _scoreFont;     }
@@ -1300,7 +1307,7 @@ class MasterScore : public Score {
       void enqueueMidiEvent(MidiInputEvent ev) { _midiInputQueue.enqueue(ev); }
       void updateChannel();
       void setSoloMute();
-      
+
       void addExcerpt(Excerpt*);
       void removeExcerpt(Excerpt*);
       void deleteExcerpt(Excerpt*);
@@ -1327,12 +1334,12 @@ class MasterScore : public Score {
 //---------------------------------------------------------
 
 class ScoreLoad {
-      static bool _loading;
+      static int _loading;
 
    public:
-      ScoreLoad()  { _loading = true;  }
-      ~ScoreLoad() { _loading = false; }
-      static bool loading() { return _loading; }
+      ScoreLoad()  { ++_loading;  }
+      ~ScoreLoad() { --_loading; }
+      static bool loading() { return _loading > 0; }
       };
 
 inline UndoStack* Score::undoStack() const             { return _masterScore->undoStack();      }

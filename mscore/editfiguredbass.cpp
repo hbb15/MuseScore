@@ -85,7 +85,7 @@ void ScoreView::figuredBassTab(bool bMeas, bool bBack)
             int maxTrack = minTrack + (VOICES-1);
 
             while (nextSegm) {                   // look for a ChordRest in the compatible track range
-                  if(nextSegm->findAnnotationOrElement(ElementType::FIGURED_BASS, minTrack, maxTrack))
+                  if(nextSegm->hasAnnotationOrElement(ElementType::FIGURED_BASS, minTrack, maxTrack))
                         break;
                   nextSegm = bBack ? nextSegm->prev1(SegmentType::ChordRest) : nextSegm->next1(SegmentType::ChordRest);
                   }
@@ -101,12 +101,14 @@ void ScoreView::figuredBassTab(bool bMeas, bool bBack)
       bool bNew;
       // add a (new) FB element, using chord duration as default duration
       FiguredBass * fbNew = FiguredBass::addFiguredBassToSegment(nextSegm, track, 0, &bNew);
-      if (bNew)
+      if (bNew) {
+            _score->startCmd();
             _score->undoAddElement(fbNew);
+            _score->endCmd();
+            }
       _score->select(fbNew, SelectType::SINGLE, 0);
       startEdit(fbNew, Grip::NO_GRIP);
 
-      _score->startCmd();
       mscore->changeState(mscoreState());
       adjustCanvasPosition(fbNew, false);
       fbNew->cursor(editData)->moveCursorToEnd();
@@ -150,16 +152,20 @@ void ScoreView::figuredBassTicksTab(int ticks)
                   qDebug("figuredBassTicksTab: no next segment");
                   return;
                   }
+            _score->startCmd();
             _score->undoAddElement(nextSegm);
+            _score->endCmd();
             }
 
       changeState(ViewState::NORMAL);
 
-      _score->startCmd();
       bool bNew;
       FiguredBass * fbNew = FiguredBass::addFiguredBassToSegment(nextSegm, track, ticks, &bNew);
-      if (bNew)
+      if (bNew) {
+            _score->startCmd();
             _score->undoAddElement(fbNew);
+            _score->endCmd();
+            }
       _score->select(fbNew, SelectType::SINGLE, 0);
       startEdit(fbNew, Grip::NO_GRIP);
       mscore->changeState(mscoreState());

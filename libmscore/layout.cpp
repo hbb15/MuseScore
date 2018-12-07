@@ -84,6 +84,18 @@ void Score::rebuildBspTree()
       }
 
 //---------------------------------------------------------
+//   layoutSegmentElements
+//---------------------------------------------------------
+
+static void layoutSegmentElements(Segment* segment, int startTrack, int endTrack)
+      {
+      for (int track = startTrack; track < endTrack; ++track) {
+            if (Element* e = segment->element(track))
+                  e->layout();
+            }
+      }
+
+//---------------------------------------------------------
 //   layoutChords1
 //    - layout upstem and downstem chords
 //    - offset as necessary to avoid conflict
@@ -92,17 +104,19 @@ void Score::rebuildBspTree()
 void Score::layoutChords1(Segment* segment, int staffIdx)
       {
       const Staff* staff = Score::staff(staffIdx);
+      const int startTrack = staffIdx * VOICES;
+      const int endTrack   = startTrack + VOICES;
 
-      if (staff->isTabStaff(segment->tick()))
+      if (staff->isTabStaff(segment->tick())) {
+            layoutSegmentElements(segment, startTrack, endTrack);
             return;
+            }
 
 
       std::vector<Note*> upStemNotes;
       std::vector<Note*> downStemNotes;
       int upVoices       = 0;
       int downVoices     = 0;
-      int startTrack     = staffIdx * VOICES;
-      int endTrack       = startTrack + VOICES;
       qreal nominalWidth = noteHeadWidth() * staff->mag(segment->tick());
       qreal maxUpWidth   = 0.0;
       qreal maxDownWidth = 0.0;
@@ -511,11 +525,7 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
             layoutChords3(notes, staff, segment);
             }
 
-      for (int track = startTrack; track < endTrack; ++track) {
-            Element* e = segment->element(track);
-            if (e)
-                  e->layout();
-            }
+      layoutSegmentElements(segment, startTrack, endTrack);
       }
 
 //---------------------------------------------------------
@@ -1173,6 +1183,7 @@ void Score::beamGraceNotes(Chord* mainNote, bool after)
             a1->removeDeleteBeam(false);
       }
 
+#if 0 // unused
 //---------------------------------------------------------
 //   layoutSpanner
 //    called after dragging a staff
@@ -1204,6 +1215,7 @@ void Score::layoutSpanner()
             }
       rebuildBspTree();
       }
+#endif
 
 //---------------------------------------------------------
 //   hideEmptyStaves
@@ -1286,7 +1298,7 @@ void Score::hideEmptyStaves(System* system, bool isFirstSystem)
                         }
                   }
             }
-      // dont allow a complete empty system
+      // don’t allow a complete empty system
       if (systemIsEmpty) {
             Staff* staff = _staves.front();
             SysStaff* ss = system->staff(staff->idx());
@@ -1433,7 +1445,10 @@ static void checkDivider(bool left, System* s, qreal yOffset)
 
 static void layoutPage(Page* page, qreal restHeight)
       {
-//      Q_ASSERT(restHeight >= 0);
+      if (restHeight < 0.0) {
+            qDebug("restHeight < 0.0: %f\n", restHeight);
+            restHeight = 0;
+            }
 
       Score* score = page->score();
       int gaps     = page->systems().size() - 1;
@@ -1644,13 +1659,14 @@ void LayoutContext::getNextPage()
             page = score->pages()[curPage];
             QList<System*>& systems = page->systems();
             const int i = systems.indexOf(curSystem);
-            if (i <= -1) // system is not on the current page
-                  systems.clear();
-            else {
-                  // system is on the current page,
-                  // erase only the current and the following systems
+            if (i > 0 && systems[i-1]->page() == page) {
+                  // Current and previous systems are on the current page.
+                  // Erase only the current and the following systems
+                  // as the previous one will not participate in layout.
                   systems.erase(systems.begin() + i, systems.end());
                   }
+            else // system is not on the current page (or will be the first one)
+                  systems.clear();
             prevSystem = systems.empty() ? nullptr : systems.back();
             }
       page->bbox().setRect(0.0, 0.0, score->loWidth(), score->loHeight());
@@ -1783,8 +1799,11 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                         break;
                         }
                   }
-            if (!found)
-                  mmr->add(e->clone());
+            if (!found) {
+                  Element* e1 = e->clone();
+                  e1->setParent(mmr);
+                  undo(new AddElement(e1));
+                  }
             }
       for (Element* e : oldList)
             delete e;
@@ -2010,6 +2029,8 @@ static bool breakMultiMeasureRest(Measure* m)
 
       if (m->repeatStart()
          || (m->prevMeasure() && m->prevMeasure()->repeatEnd())
+         || (m->isIrregular())
+         || (m->prevMeasure() && m->prevMeasure()->isIrregular())
          || (m->prevMeasure() && (m->prevMeasure()->sectionBreak())))
             return true;
 
@@ -2053,6 +2074,8 @@ static bool breakMultiMeasureRest(Measure* m)
 
       for (Segment* s = m->first(); s; s = s->next()) {
             for (Element* e : s->annotations()) {
+                  if (!e->visible())
+                        continue;
                   if (e->isRehearsalMark() ||
                       e->isTempoText() ||
                       ((e->isHarmony() || e->isStaffText() || e->isSystemText()) && (e->systemFlag() || m->score()->staff(e->staffIdx())->show())))
@@ -2102,7 +2125,7 @@ int LayoutContext::adjustMeasureNo(MeasureBase* m)
       {
       measureNo += m->noOffset();
       m->setNo(measureNo);
-      if (!m->irregular())          // dont count measure
+      if (!m->irregular())          // don’t count measure
             ++measureNo;
       if (m->sectionBreak())
             measureNo = 0;
@@ -2121,7 +2144,7 @@ void Score::createBeams(Measure* measure)
       for (int track = 0; track < ntracks(); ++track) {
             Staff* stf = staff(track2staff(track));
 
-            // dont compute beams for invisible staffs and tablature without stems
+            // don’t compute beams for invisible staffs and tablature without stems
             if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->slashStyle()))
                   continue;
 
@@ -2488,7 +2511,13 @@ void Score::getNextMeasure(LayoutContext& lc)
                               staff(staffIdx)->addTimeSig(ts);
                         }
                   }
-            else if (isMaster() && segment.isChordRestType()) {
+            else if (segment.isChordRestType()) {
+                  for (Element* e : segment.annotations()) {
+                        if (e->isSymbol())
+                              e->layout();
+                        }
+                  if (!isMaster())
+                        continue;
 #if 0 // ws
                   for (Element* e : segment.annotations()) {
                         if (!(e->isTempoText()
@@ -2521,15 +2550,6 @@ void Score::getNextMeasure(LayoutContext& lc)
                               setTempo(etick, otempo);
                         }
                   }
-#if 0 // ws
-            else if (segment.isChordRestType()) {
-                  // chord symbols need to be layouted in parts too
-                  for (Element* e : segment.annotations()) {
-                        if (e->isHarmony())
-                              e->layout();
-                        }
-                  }
-#endif
             }
 
       // update time signature map
@@ -2901,18 +2921,6 @@ void Score::layoutLyrics(System* system)
                         }
                   break;
             }
-      // align lyrics line segments
-      for (SpannerSegment* ss : system->spannerSegments()) {
-            if (ss->isLyricsLineSegment()) {
-                  LyricsLineSegment* lls = toLyricsLineSegment(ss);
-                  lls->layout();
-                  if (ss->isSingleBeginType())
-                        lls->ryoffset() = lls->lyrics()->ryoffset();
-                  else {
-                        ;// how to align?
-                        }
-                  }
-            }
       }
 
 //---------------------------------------------------------
@@ -2979,9 +2987,11 @@ System* Score::collectSystem(LayoutContext& lc)
             lc.startWithLongNames = lc.firstSystem && measure->sectionBreakElement()->startWithLongNames();
             }
       System* system = getNextSystem(lc);
-      system->setInstrumentNames(lc.startWithLongNames);
+      int lcmTick = lc.curMeasure ? lc.curMeasure->tick() : 0;
+      system->setInstrumentNames(lc.startWithLongNames, lcmTick);
 
       qreal minWidth    = 0;
+      qreal layoutSystemMinWidth = 0;
       bool firstMeasure = true;
       bool createHeader = false;
       qreal systemWidth = styleD(Sid::pagePrintableWidth) * DPI;
@@ -2996,7 +3006,7 @@ System* Score::collectSystem(LayoutContext& lc)
             if (lc.curMeasure->isMeasure()) {
                   Measure* m = toMeasure(lc.curMeasure);
                   if (firstMeasure) {
-                        hideEmptyStaves(system, lc.firstSystem);
+                        layoutSystemMinWidth = minWidth;
                         system->layoutSystem(minWidth);
                         minWidth += system->leftMargin();
                         if (m->repeatStart()) {
@@ -3133,6 +3143,22 @@ System* Score::collectSystem(LayoutContext& lc)
             minWidth += w;
             }
 
+      hideEmptyStaves(system, lc.firstSystem);
+      bool allShown = true;
+      for (const SysStaff* ss : *system->staves()) {
+            if (!ss->show()) {
+                  allShown = false;
+                  break;
+                  }
+            }
+      if (!allShown) {
+            // Relayout system decorations to reuse space properly for
+            // hidden staves' instrument names or other hidden elements.
+            minWidth -= system->leftMargin();
+            system->layoutSystem(layoutSystemMinWidth);
+            minWidth += system->leftMargin();
+            }
+
       //-------------------------------------------------------
       //    add system trailer if needed
       //    (cautionary time/key signatures etc)
@@ -3177,7 +3203,7 @@ System* Score::collectSystem(LayoutContext& lc)
 #endif
             rest = systemWidth - minWidth;
             //
-            // dont stretch last system row, if accumulated minWidth is <= lastSystemFillLimit
+            // don’t stretch last system row, if accumulated minWidth is <= lastSystemFillLimit
             //
             if (lc.curMeasure == 0 && ((minWidth / systemWidth) <= styleD(Sid::lastSystemFillLimit))) {
                   if (minWidth > rest)
@@ -3240,7 +3266,8 @@ System* Score::collectSystem(LayoutContext& lc)
 
       for (int staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
             SysStaff* ss = system->staff(staffIdx);
-            ss->skyline().clear();
+            Skyline& skyline = ss->skyline();
+            skyline.clear();
             for (MeasureBase* mb : system->measures()) {
                   if (!mb->isMeasure())
                         continue;
@@ -3248,15 +3275,32 @@ System* Score::collectSystem(LayoutContext& lc)
                   for (Segment& s : m->segments()) {
                         if (!s.enabled() || s.isTimeSigType())       // hack: ignore time signatures
                               continue;
-                        ss->skyline().add(s.staffShape(staffIdx).translated(s.pos() + m->pos()));
+                        QPointF pos(s.pos() + m->pos());
+                        if (s.segmentType() & (SegmentType::BarLine | SegmentType::EndBarLine | SegmentType::StartRepeatBarLine | SegmentType::BeginBarLine)) {
+                              BarLine* bl = toBarLine(s.element(0));
+                              if (bl) {
+                                    qreal w = BarLine::layoutWidth(score(), bl->barLineType());
+                                    skyline.add(QRectF(0.0, 0.0, w, spatium() * 4.0).translated(bl->pos() + pos));
+                                    }
+                              }
+                        else {
+                              int strack = staffIdx * VOICES;
+                              int etrack = strack + VOICES;
+                              for (Element* e : s.elist()) {
+                                    if (!e || !e->visible())
+                                          continue;
+                                    int effectiveTrack = e->vStaffIdx() * VOICES + e->voice();
+                                    if (effectiveTrack >= strack && effectiveTrack < etrack)
+                                          skyline.add(e->shape().translated(e->pos() + pos));
+                                    }
+                              }
                         }
                   ss->skyline().add(m->staffLines(staffIdx)->bbox().translated(m->pos()));
                   }
             }
 
-
       //-------------------------------------------------------------
-      // layout beams
+      // layout beams + fingering
       //-------------------------------------------------------------
 
       for (Segment* s : sl) {
@@ -3268,6 +3312,18 @@ System* Score::collectSystem(LayoutContext& lc)
                         if (isTopBeam(cr)) {
                               cr->beam()->layout();
                               cr->beam()->addSkyline(system->staff(cr->beam()->staffIdx())->skyline());
+
+                             // layout fingering a second time (first layout called in note->layout2())
+                             // to finally place fingerings above or below a beam
+
+                             if (e->isChord()) {
+                                   for (Note* note : toChord(e)->notes()) {
+                                         for (Element* e : note->el()) {
+                                               if (e->isFingering())
+                                                     e->layout();
+                                               }
+                                         }
+                                   }
                               }
                         }
                   }
@@ -3287,7 +3343,7 @@ System* Score::collectSystem(LayoutContext& lc)
                   while (de->tuplet() && de->tuplet()->elements().front() == de) {
                         Tuplet* t = de->tuplet();
                         t->layout();
-                        system->staff(t->staffIdx())->skyline().add(t->shape().translated(t->measure()->pos()));
+                        system->staff(t->staffIdx())->skyline().add(t->shape().translated(t->pos() + t->measure()->pos()));
                         de = de->tuplet();
                         }
                   }
@@ -3306,6 +3362,7 @@ System* Score::collectSystem(LayoutContext& lc)
             Spanner* sp = interval.value;
             sp->computeStartElement();
             sp->computeEndElement();
+            lc.processedSpanners.insert(sp);
             if (sp->tick() < etick && sp->tick2() >= stick) {
                   if (sp->isSlur())
                         spanner.push_back(sp);
@@ -3382,19 +3439,26 @@ System* Score::collectSystem(LayoutContext& lc)
                   if (ss->isVoltaSegment() && ss->staffIdx() == staffIdx)
                         voltaSegments.push_back(ss);
                   }
-            if (voltaSegments.size() > 1) {
+            while (!voltaSegments.empty()) {
+                  // we assume voltas are sorted left to right (by tick values)
                   qreal y = 0;
-                  for (SpannerSegment* ss : voltaSegments)
+                  int idx = 0;
+                  Volta* prevVolta = 0;
+                  for (SpannerSegment* ss : voltaSegments) {
+                        Volta* volta = toVolta(ss->spanner());
+                        if (prevVolta && prevVolta != volta) {
+                              // check if volta is adjacent to prevVolta
+                              if (prevVolta->tick2() != volta->tick())
+                                    break;
+                              }
                         y = qMin(y, ss->rypos());
-                  for (SpannerSegment* ss : voltaSegments)
-                        ss->rypos() = y;
+                        ++idx;
+                        prevVolta = volta;
+                        }
+                  for (int i = 0; i < idx; ++i)
+                        voltaSegments[i]->rypos() = y;
+                  voltaSegments.erase(voltaSegments.begin(), voltaSegments.begin() + idx);
                   }
-            }
-
-      for (Spanner* sp : _unmanagedSpanner) {
-            if (sp->tick() >= etick || sp->tick2() <= stick)
-                  continue;
-            sp->layoutSystem(system);
             }
 
       //-------------------------------------------------------------
@@ -3415,6 +3479,13 @@ System* Score::collectSystem(LayoutContext& lc)
             }
 
       layoutLyrics(system);
+
+      // here are lyrics dashes and melisma
+      for (Spanner* sp : _unmanagedSpanner) {
+            if (sp->tick() >= etick || sp->tick2() <= stick)
+                  continue;
+            sp->layoutSystem(system);
+            }
 
       //-------------------------------------------------------------
       // Jump, Marker
@@ -3449,8 +3520,15 @@ System* Score::collectSystem(LayoutContext& lc)
             for (Element* e : s->annotations()) {
                   if (e->isStaffText() || e->isSystemText() || e->isInstrumentChange())
                         e->layout();
-                  if (e->isHarmony())
+                  if (e->isHarmony()) {
+                        Harmony* h = toHarmony(e);
+                        // Layout of harmony seems to be bound currently
+                        // to ChordRest (see ChordRest::shape). But harmony
+                        // can exist without chord or rest too.
+                        if (h->isLayoutInvalid())
+                              h->layout();
                         toHarmony(e)->autoplaceSegmentElement(styleP(Sid::minHarmonyDistance));
+                        }
                   }
             }
 
@@ -3748,7 +3826,7 @@ void Score::doLayoutRange(int stick, int etick)
       // rest which replaces the measure range
 
       if (!m->system() && m->isMeasure() && toMeasure(m)->hasMMRest()) {
-            qDebug("  dont start with mmrest");
+            qDebug("  don’t start with mmrest");
             m = toMeasure(m)->mmRest();
             }
 
@@ -3757,7 +3835,7 @@ void Score::doLayoutRange(int stick, int etick)
 
       if (lineMode()) {
             lc.prevMeasure = 0;
-            lc.nextMeasure = _measures.first();
+            lc.nextMeasure = _showVBox ? first() : firstMeasure();
             layoutLinear(layoutAll, lc);
             return;
             }
@@ -3772,7 +3850,7 @@ void Score::doLayoutRange(int stick, int etick)
             lc.systemList  = _systems.mid(systemIndex);
 
             if (systemIndex == 0)
-                  lc.nextMeasure = _measures.first();
+                  lc.nextMeasure = _showVBox ? first() : firstMeasure();
             else {
                   System* prevSystem = _systems[systemIndex-1];
                   lc.nextMeasure = prevSystem->measures().back()->next();
@@ -3800,8 +3878,7 @@ void Score::doLayoutRange(int stick, int etick)
             for (System* s : _systems) {
                   for (Bracket* b : s->brackets()) {
                         if (b->selected()) {
-                              _selection.elements().removeOne(b);
-                              _selection.updateState();
+                              _selection.remove(b);
                               setSelectionChanged(true);
                               }
                         }
@@ -3820,7 +3897,7 @@ void Score::doLayoutRange(int stick, int etick)
             qDeleteAll(pages());
             pages().clear();
 
-            lc.nextMeasure = _measures.first();
+            lc.nextMeasure = _showVBox ? first() : firstMeasure();
             }
 
       lc.prevMeasure = 0;
@@ -3865,4 +3942,13 @@ void LayoutContext::layout()
       score->systems().append(systemList);     // TODO
       }
 
+//---------------------------------------------------------
+//   LayoutContext::~LayoutContext
+//---------------------------------------------------------
+
+LayoutContext::~LayoutContext()
+      {
+      for (Spanner* s : processedSpanners)
+            s->layoutSystemsDone();
+      }
 }

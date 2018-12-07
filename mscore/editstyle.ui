@@ -6,9 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1340</width>
-    <height>908</height>
+    <width>912</width>
+    <height>660</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>910</width>
+    <height>660</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>16777215</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Edit General Style</string>
@@ -32,6 +50,22 @@
       <number>0</number>
      </property>
      <item>
+      <widget class="QPushButton" name="buttonTogglePagelist">
+       <property name="maximumSize">
+        <size>
+         <width>20</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="standardButtons">
         <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
@@ -46,6 +80,12 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <widget class="QListWidget" name="pageList">
+      <property name="minimumSize">
+       <size>
+        <width>180</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="alternatingRowColors">
        <bool>true</bool>
       </property>
@@ -224,8 +264,26 @@
       </item>
      </widget>
      <widget class="QStackedWidget" name="pageStack">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>710</width>
+        <height>565</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>710</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>25</number>
       </property>
       <widget class="QWidget" name="PageScore">
        <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -307,17 +365,22 @@
               <widget class="QComboBox" name="musicalTextFont">
                <item>
                 <property name="text">
-                 <string>Bravura Text</string>
+                 <string notr="true">Bravura Text</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Emmentaler Text</string>
+                 <string notr="true">Emmentaler Text</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Gonville Text</string>
+                 <string notr="true">Gonville Text</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">MuseJazz Text</string>
                 </property>
                </item>
                <item>
@@ -671,6 +734,342 @@
            <property name="verticalSpacing">
             <number>2</number>
            </property>
+           <item row="0" column="1">
+            <widget class="QDoubleSpinBox" name="staffUpperBorder">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="minimum">
+              <double>-1000.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.500000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_77">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Last system fill threshold:</string>
+             </property>
+             <property name="buddy">
+              <cstring>lastSystemFillThreshold</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <spacer>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>137</width>
+               <height>21</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="6" column="0">
+            <spacer name="verticalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="2" column="6">
+            <widget class="QDoubleSpinBox" name="maxSystemDistance">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="minimum">
+              <double>0.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.500000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="5">
+            <widget class="QLabel" name="label_191">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Max. system distance:</string>
+             </property>
+             <property name="buddy">
+              <cstring>maxSystemDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QSpinBox" name="lastSystemFillThreshold">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string notr="true">%</string>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+             <property name="value">
+              <number>70</number>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="5">
+            <widget class="QCheckBox" name="genCourtesyTimesig">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Create courtesy time signatures</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QCheckBox" name="genKeysig">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Create key signature for all systems</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="5">
+            <widget class="QCheckBox" name="genCourtesyKeysig">
+             <property name="text">
+              <string>Create courtesy key signatures</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QCheckBox" name="genCourtesyClef">
+             <property name="text">
+              <string>Create courtesy clefs</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="7">
+            <widget class="QToolButton" name="resetMaxSystemDistance">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Max. system distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="3">
+            <widget class="QToolButton" name="resetLastSystemFillThreshold">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Last system fill threshold' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QToolButton" name="resetMinSystemDistance">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Min. system distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="7">
+            <widget class="QToolButton" name="resetFrameSystemDistance">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Vertical frame bottom margin' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="7">
+            <widget class="QToolButton" name="resetAkkoladeDistance">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Grand staff distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="7">
+            <widget class="QToolButton" name="resetStaffLowerBorder">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Music bottom margin' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QToolButton" name="resetStaffDistance">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Staff distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <spacer name="horizontalSpacer_43">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="3">
+            <widget class="QToolButton" name="resetStaffUpperBorder">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Music top margin' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3">
+            <widget class="QToolButton" name="resetSystemFrameDistance">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Vertical frame top margin' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QLabel" name="label_76">
              <property name="sizePolicy">
@@ -687,8 +1086,8 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QDoubleSpinBox" name="staffUpperBorder">
+           <item row="0" column="6">
+            <widget class="QDoubleSpinBox" name="staffLowerBorder">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -725,7 +1124,7 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="4">
+           <item row="0" column="5">
             <widget class="QLabel" name="label_78">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -741,28 +1140,19 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="5">
-            <widget class="QDoubleSpinBox" name="staffLowerBorder">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_73">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="suffix">
-              <string>sp</string>
+             <property name="text">
+              <string>Min. system distance:</string>
              </property>
-             <property name="decimals">
-              <number>1</number>
-             </property>
-             <property name="minimum">
-              <double>-1000.000000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>1000.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.500000000000000</double>
+             <property name="buddy">
+              <cstring>minSystemDistance</cstring>
              </property>
             </widget>
            </item>
@@ -782,48 +1172,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QDoubleSpinBox" name="staffDistance">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="decimals">
-              <number>1</number>
-             </property>
-             <property name="minimum">
-              <double>-1000.000000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>1000.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.500000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="4">
-            <widget class="QLabel" name="label_70">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Grand staff distance:</string>
-             </property>
-             <property name="buddy">
-              <cstring>akkoladeDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="5">
+           <item row="1" column="6">
             <widget class="QDoubleSpinBox" name="akkoladeDistance">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -848,8 +1197,8 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_73">
+           <item row="1" column="5">
+            <widget class="QLabel" name="label_70">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -857,35 +1206,10 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Min. system distance:</string>
+              <string>Grand staff distance:</string>
              </property>
              <property name="buddy">
-              <cstring>minSystemDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QDoubleSpinBox" name="minSystemDistance">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="decimals">
-              <number>1</number>
-             </property>
-             <property name="minimum">
-              <double>-1000.000000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>1000.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.500000000000000</double>
+              <cstring>akkoladeDistance</cstring>
              </property>
             </widget>
            </item>
@@ -930,7 +1254,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="4">
+           <item row="4" column="5">
             <widget class="QLabel" name="label_75">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -949,7 +1273,32 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="5">
+           <item row="2" column="1">
+            <widget class="QDoubleSpinBox" name="minSystemDistance">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="minimum">
+              <double>-1000.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.500000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="6">
             <widget class="QDoubleSpinBox" name="frameSystemDistance">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -971,36 +1320,7 @@
              </property>
             </widget>
            </item>
-           <item row="10" column="0">
-            <spacer>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>137</width>
-               <height>21</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="6" column="0">
-            <spacer name="verticalSpacer_9">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Fixed</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="3" column="0" colspan="6">
+           <item row="3" column="0" colspan="7">
             <widget class="QFrame" name="frame_3">
              <property name="frameShape">
               <enum>QFrame::HLine</enum>
@@ -1010,8 +1330,8 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="5">
-            <widget class="QDoubleSpinBox" name="maxSystemDistance">
+           <item row="1" column="1">
+            <widget class="QDoubleSpinBox" name="staffDistance">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -1025,7 +1345,7 @@
               <number>1</number>
              </property>
              <property name="minimum">
-              <double>0.000000000000000</double>
+              <double>-1000.000000000000000</double>
              </property>
              <property name="maximum">
               <double>1000.000000000000000</double>
@@ -1034,263 +1354,6 @@
               <double>0.500000000000000</double>
              </property>
             </widget>
-           </item>
-           <item row="2" column="4">
-            <widget class="QLabel" name="label_191">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Max. system distance:</string>
-             </property>
-             <property name="buddy">
-              <cstring>maxSystemDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_77">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Last system fill threshold:</string>
-             </property>
-             <property name="buddy">
-              <cstring>lastSystemFillThreshold</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QCheckBox" name="genKeysig">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Create key signature for all systems</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QCheckBox" name="genCourtesyClef">
-             <property name="text">
-              <string>Create courtesy clefs</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="4">
-            <widget class="QCheckBox" name="genCourtesyTimesig">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Create courtesy time signatures</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="4">
-            <widget class="QCheckBox" name="genCourtesyKeysig">
-             <property name="text">
-              <string>Create courtesy key signatures</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QSpinBox" name="lastSystemFillThreshold">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string notr="true">%</string>
-             </property>
-             <property name="maximum">
-              <number>100</number>
-             </property>
-             <property name="value">
-              <number>70</number>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="2">
-            <widget class="QToolButton" name="resetLastSystemFillThreshold">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Last system fill threshold' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="6">
-            <widget class="QToolButton" name="resetMaxSystemDistance">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Max. system distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="6">
-            <widget class="QToolButton" name="resetFrameSystemDistance">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Vertical frame bottom margin' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QToolButton" name="resetMinSystemDistance">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Min. system distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="6">
-            <widget class="QToolButton" name="resetAkkoladeDistance">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Grand staff distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QToolButton" name="resetStaffDistance">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Staff distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="6">
-            <widget class="QToolButton" name="resetStaffLowerBorder">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Music bottom margin' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QToolButton" name="resetStaffUpperBorder">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Music top margin' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="2">
-            <widget class="QToolButton" name="resetSystemFrameDistance">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Vertical frame top margin' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <spacer name="horizontalSpacer_43">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </widget>
@@ -1502,120 +1565,27 @@
               <item row="0" column="4">
                <widget class="QDoubleSpinBox" name="footerFontSize">
                 <property name="suffix">
-                 <string>sp</string>
+                 <string>pt</string>
                 </property>
                 <property name="minimum">
                  <double>1.000000000000000</double>
                 </property>
                </widget>
               </item>
-              <item row="0" column="7">
-               <layout class="QHBoxLayout" name="horizontalLayout_21">
-                <item>
-                 <widget class="QPushButton" name="footerFontBold">
-                  <property name="accessibleName">
-                   <string>Bold</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetFooterFontBold">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Bold' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="footerFontItalic">
-                  <property name="accessibleName">
-                   <string>Italic</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetFooterFontItalic">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Italic' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="footerFontUnderline">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Underline</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetFooterFontUnderline">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Underline' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_165">
                 <property name="text">
                  <string>Font face:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_164">
+                <property name="text">
+                 <string>Size:</string>
+                </property>
+                <property name="indent">
+                 <number>10</number>
                 </property>
                </widget>
               </item>
@@ -1629,16 +1599,6 @@
                 </property>
                 <property name="editable">
                  <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="QLabel" name="label_164">
-                <property name="text">
-                 <string>size:</string>
-                </property>
-                <property name="indent">
-                 <number>10</number>
                 </property>
                </widget>
               </item>
@@ -1662,7 +1622,7 @@
               <item row="0" column="6">
                <widget class="QLabel" name="label_166">
                 <property name="text">
-                 <string>style:</string>
+                 <string>Style:</string>
                 </property>
                 <property name="indent">
                  <number>11</number>
@@ -1671,6 +1631,26 @@
               </item>
               <item row="0" column="5">
                <widget class="QToolButton" name="resetFooterFontSize">
+                <property name="toolTip">
+                 <string>Reset to default</string>
+                </property>
+                <property name="accessibleName">
+                 <string>Reset 'Font size' value</string>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="icon">
+                 <iconset resource="musescore.qrc">
+                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="7">
+               <widget class="Ms::FontStyleSelect" name="footerFontStyle"/>
+              </item>
+              <item row="0" column="8">
+               <widget class="QToolButton" name="resetFooterFontStyle">
                 <property name="toolTip">
                  <string>Reset to default</string>
                 </property>
@@ -1925,6 +1905,16 @@
               <property name="spacing">
                <number>0</number>
               </property>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_161">
+                <property name="text">
+                 <string>Size:</string>
+                </property>
+                <property name="indent">
+                 <number>10</number>
+                </property>
+               </widget>
+              </item>
               <item row="0" column="1">
                <widget class="QFontComboBox" name="headerFontFace">
                 <property name="sizePolicy">
@@ -1962,16 +1952,6 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="3">
-               <widget class="QLabel" name="label_161">
-                <property name="text">
-                 <string>size:</string>
-                </property>
-                <property name="indent">
-                 <number>10</number>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="5">
                <widget class="QToolButton" name="resetHeaderFontSize">
                 <property name="toolTip">
@@ -1992,7 +1972,7 @@
               <item row="0" column="4">
                <widget class="QDoubleSpinBox" name="headerFontSize">
                 <property name="suffix">
-                 <string>sp</string>
+                 <string>pt</string>
                 </property>
                 <property name="minimum">
                  <double>1.000000000000000</double>
@@ -2002,7 +1982,7 @@
               <item row="0" column="6">
                <widget class="QLabel" name="label_163">
                 <property name="text">
-                 <string>style:</string>
+                 <string>Style:</string>
                 </property>
                 <property name="indent">
                  <number>10</number>
@@ -2010,107 +1990,24 @@
                </widget>
               </item>
               <item row="0" column="7">
-               <layout class="QHBoxLayout" name="horizontalLayout_20">
-                <item>
-                 <widget class="QPushButton" name="headerFontBold">
-                  <property name="accessibleName">
-                   <string>Bold</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetHeaderFontBold">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Bold' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="headerFontItalic">
-                  <property name="accessibleName">
-                   <string>Italic</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetHeaderFontItalic">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Italic' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="headerFontUnderline">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Underline</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetHeaderFontUnderline">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Underline' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="Ms::FontStyleSelect" name="headerFontStyle"/>
+              </item>
+              <item row="0" column="8">
+               <widget class="QToolButton" name="resetHeaderFontStyle">
+                <property name="toolTip">
+                 <string>Reset to default</string>
+                </property>
+                <property name="accessibleName">
+                 <string>Reset 'Font size' value</string>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="icon">
+                 <iconset resource="musescore.qrc">
+                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -2121,6 +2018,12 @@
        </layout>
       </widget>
       <widget class="QWidget" name="PageSystem">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>620</height>
+        </size>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <property name="spacing">
          <number>0</number>
@@ -2209,61 +2112,72 @@
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_92">
+               </layout>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_49">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="formLayout_2">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="braceThicknessLabel">
                   <property name="text">
                    <string>Brace thickness:</string>
                   </property>
-                  <property name="buddy">
-                   <cstring>akkoladeWidth</cstring>
-                  </property>
                  </widget>
                 </item>
-                <item row="2" column="1">
+                <item row="0" column="1">
                  <widget class="QDoubleSpinBox" name="akkoladeWidth">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>80</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="suffix">
-                   <string extracomment="spatium unit">sp</string>
-                  </property>
-                  <property name="decimals">
-                   <number>2</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-1000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>1000.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.100000000000000</double>
+                   <string>sp</string>
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="label_90">
+                <item row="1" column="0">
+                 <widget class="QLabel" name="braceDistanceLabel">
                   <property name="text">
                    <string>Brace distance:</string>
                   </property>
-                  <property name="buddy">
-                   <cstring>akkoladeBarDistance</cstring>
-                  </property>
                  </widget>
                 </item>
-                <item row="3" column="1">
+                <item row="1" column="1">
                  <widget class="QDoubleSpinBox" name="akkoladeBarDistance">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>80</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="suffix">
-                   <string extracomment="spatium unit">sp</string>
-                  </property>
-                  <property name="decimals">
-                   <number>2</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-1000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>1000.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.100000000000000</double>
+                   <string>sp</string>
                   </property>
                  </widget>
                 </item>
@@ -2319,23 +2233,6 @@
                     <widget class="QComboBox" name="dividerLeftSym"/>
                    </item>
                    <item>
-                    <spacer name="horizontalSpacer_18">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_13">
-                   <item>
                     <widget class="QLabel" name="label_29">
                      <property name="text">
                       <string>Horizontal offset:</string>
@@ -2347,6 +2244,12 @@
                    </item>
                    <item>
                     <widget class="QDoubleSpinBox" name="dividerLeftX">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                      <property name="suffix">
                       <string>sp</string>
                      </property>
@@ -2367,6 +2270,12 @@
                    </item>
                    <item>
                     <widget class="QDoubleSpinBox" name="dividerLeftY">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                      <property name="suffix">
                       <string>sp</string>
                      </property>
@@ -2421,23 +2330,6 @@
                     <widget class="QComboBox" name="dividerRightSym"/>
                    </item>
                    <item>
-                    <spacer name="horizontalSpacer_20">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_14">
-                   <item>
                     <widget class="QLabel" name="label_67">
                      <property name="text">
                       <string>Horizontal offset:</string>
@@ -2449,6 +2341,12 @@
                    </item>
                    <item>
                     <widget class="QDoubleSpinBox" name="dividerRightX">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                      <property name="suffix">
                       <string>sp</string>
                      </property>
@@ -2469,6 +2367,12 @@
                    </item>
                    <item>
                     <widget class="QDoubleSpinBox" name="dividerRightY">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                      <property name="suffix">
                       <string>sp</string>
                      </property>
@@ -2514,6 +2418,13 @@
                 </property>
                </widget>
               </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_154">
+                <property name="text">
+                 <string>Font style:</string>
+                </property>
+               </widget>
+              </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_153">
                 <property name="text">
@@ -2524,172 +2435,13 @@
               <item row="0" column="1">
                <widget class="QFontComboBox" name="longInstrumentFontFace">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="editable">
                  <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_154">
-                <property name="text">
-                 <string>Font style:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <layout class="QHBoxLayout" name="horizontalLayout_17">
-                <item>
-                 <widget class="QPushButton" name="longInstrumentFontBold">
-                  <property name="accessibleName">
-                   <string>Bold</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetLongInstrumentFontBold">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Bold' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_37">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="longInstrumentFontItalic">
-                  <property name="accessibleName">
-                   <string>Italic</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetLongInstrumentFontItalic">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Italic' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_38">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="longInstrumentFontUnderline">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Underline</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetLongInstrumentFontUnderline">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Underline' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_39">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-              <item row="1" column="1">
-               <widget class="QDoubleSpinBox" name="longInstrumentFontSize">
-                <property name="suffix">
-                 <string>sp</string>
-                </property>
-                <property name="minimum">
-                 <double>1.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -2727,6 +2479,33 @@
                 </property>
                </widget>
               </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="longInstrumentFontSize">
+                <property name="suffix">
+                 <string>pt</string>
+                </property>
+                <property name="minimum">
+                 <double>1.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="2">
+               <widget class="QToolButton" name="resetLongInstrumentAlign">
+                <property name="toolTip">
+                 <string>Reset to default</string>
+                </property>
+                <property name="accessibleName">
+                 <string>Reset 'Align' values</string>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="icon">
+                 <iconset resource="musescore.qrc">
+                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                </property>
+               </widget>
+              </item>
               <item row="4" column="0">
                <widget class="QLabel" name="label_190">
                 <property name="text">
@@ -2737,13 +2516,29 @@
               <item row="4" column="1">
                <widget class="Ms::AlignSelect" name="longInstrumentAlign" native="true"/>
               </item>
-              <item row="4" column="2">
-               <widget class="QToolButton" name="resetLongInstrumentAlign">
+              <item row="2" column="1">
+               <widget class="Ms::FontStyleSelect" name="longInstrumentFontStyle"/>
+              </item>
+              <item row="1" column="3">
+               <spacer name="horizontalSpacer_18">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="2">
+               <widget class="QToolButton" name="resetLongInstrumentFontStyle">
                 <property name="toolTip">
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Align' value</string>
+                 <string>Reset 'Font style' values</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -2769,7 +2564,7 @@
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="shortInstrumentFontSize">
                 <property name="suffix">
-                 <string>sp</string>
+                 <string>pt</string>
                 </property>
                 <property name="minimum">
                  <double>1.000000000000000</double>
@@ -2783,160 +2578,12 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QFontComboBox" name="shortInstrumentFontFace">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="editable">
-                 <bool>false</bool>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_156">
+                <property name="text">
+                 <string>Font face:</string>
                 </property>
                </widget>
-              </item>
-              <item row="2" column="1">
-               <layout class="QHBoxLayout" name="horizontalLayout_19">
-                <item>
-                 <widget class="QPushButton" name="shortInstrumentFontBold">
-                  <property name="accessibleName">
-                   <string>Bold</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetShortInstrumentFontBold">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Bold' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_40">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="shortInstrumentFontItalic">
-                  <property name="accessibleName">
-                   <string>Italic</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetShortInstrumentFontItalic">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Italic' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_41">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="shortInstrumentFontUnderline">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Underline</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetShortInstrumentFontUnderline">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Underline' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_42">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
               </item>
               <item row="1" column="2">
                <widget class="QToolButton" name="resetShortInstrumentFontSize">
@@ -2972,13 +2619,6 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_156">
-                <property name="text">
-                 <string>Font face:</string>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_155">
                 <property name="text">
@@ -2993,16 +2633,62 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="Ms::AlignSelect" name="shortInstrumentAlign" native="true"/>
-              </item>
               <item row="3" column="2">
                <widget class="QToolButton" name="resetShortInstrumentAlign">
                 <property name="toolTip">
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Align' value</string>
+                 <string>Reset 'Align' values</string>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="icon">
+                 <iconset resource="musescore.qrc">
+                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="Ms::AlignSelect" name="shortInstrumentAlign" native="true"/>
+              </item>
+              <item row="0" column="1">
+               <widget class="QFontComboBox" name="shortInstrumentFontFace">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="editable">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <spacer name="horizontalSpacer_20">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="1">
+               <widget class="Ms::FontStyleSelect" name="shortInstrumentFontStyle"/>
+              </item>
+              <item row="2" column="2">
+               <widget class="QToolButton" name="resetShortInstrumentFontStyle">
+                <property name="toolTip">
+                 <string>Reset to default</string>
+                </property>
+                <property name="accessibleName">
+                 <string>Reset 'Font style' values</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -3024,7 +2710,7 @@
              <property name="sizeHint" stdset="0">
               <size>
                <width>20</width>
-               <height>177</height>
+               <height>40</height>
               </size>
              </property>
             </spacer>
@@ -4076,6 +3762,13 @@
              </property>
             </widget>
            </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_146">
+             <property name="text">
+              <string>Font size:</string>
+             </property>
+            </widget>
+           </item>
            <item row="2" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_8">
              <item>
@@ -4099,13 +3792,6 @@
               </widget>
              </item>
             </layout>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_146">
-             <property name="text">
-              <string>Font size:</string>
-             </property>
-            </widget>
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="label_145">
@@ -4137,147 +3823,22 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <item>
-              <widget class="QPushButton" name="measureNumberBold">
-               <property name="accessibleName">
-                <string>Bold</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetMeasureNumberBold">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Bold' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_31">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="measureNumberItalic">
-               <property name="accessibleName">
-                <string>Italic</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetMeasureNumberItalic">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Italic' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_32">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QToolButton" name="measureNumberUnderline">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="accessibleName">
-                <string>Underline</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetMeasureNumberUnderline">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Underline' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_35">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
+           <item row="4" column="1">
+            <widget class="QDoubleSpinBox" name="measureNumberFontSize">
+             <property name="suffix">
+              <string>pt</string>
+             </property>
+             <property name="minimum">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_201">
+             <property name="text">
+              <string>Align:</string>
+             </property>
+            </widget>
            </item>
            <item row="3" column="2">
             <widget class="QToolButton" name="resetMeasureNumberFontFace">
@@ -4313,43 +3874,13 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
-            <widget class="QDoubleSpinBox" name="measureNumberFontSize">
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="minimum">
-              <double>1.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_201">
-             <property name="text">
-              <string>Align:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="label_211">
-             <property name="text">
-              <string>Offset:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
-            <widget class="Ms::AlignSelect" name="measureNumberAlign" native="true"/>
-           </item>
-           <item row="7" column="1">
-            <widget class="Ms::OffsetSelect" name="measureNumberOffset" native="true"/>
-           </item>
-           <item row="6" column="2">
-            <widget class="QToolButton" name="resetMeasureNumberAlign">
+           <item row="7" column="2">
+            <widget class="QToolButton" name="resetMeasureNumberOffset">
              <property name="toolTip">
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font size' value</string>
+              <string>Reset 'Offset' values</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -4360,13 +3891,59 @@
              </property>
             </widget>
            </item>
-           <item row="7" column="2">
-            <widget class="QToolButton" name="resetMeasureNumberOffset">
+           <item row="7" column="0">
+            <widget class="QLabel" name="label_211">
+             <property name="text">
+              <string>Offset:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="2">
+            <widget class="QToolButton" name="resetMeasureNumberAlign">
              <property name="toolTip">
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font size' value</string>
+              <string>Reset 'Align' values</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="Ms::OffsetSelect" name="measureNumberOffset" native="true"/>
+           </item>
+           <item row="6" column="1">
+            <widget class="Ms::AlignSelect" name="measureNumberAlign" native="true"/>
+           </item>
+           <item row="4" column="3">
+            <spacer name="horizontalSpacer_50">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="5" column="1">
+            <widget class="Ms::FontStyleSelect" name="measureNumberFontStyle"/>
+           </item>
+           <item row="5" column="2">
+            <widget class="QToolButton" name="resetMeasureNumberFontStyle">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Font style' values</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -4442,7 +4019,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Repeat barline to dots distance' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4479,7 +4056,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Double barline distance' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4496,7 +4073,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Double barline thickness' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4513,7 +4090,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Thick barline distance' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4613,7 +4190,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Thick barline thickness' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4647,7 +4224,7 @@
               <item row="5" column="0">
                <widget class="QLabel" name="repeatBarlineDotSeparationLbl">
                 <property name="text">
-                 <string>Repeat barline dots distance:</string>
+                 <string>Repeat barline to dots distance:</string>
                 </property>
                </widget>
               </item>
@@ -4687,7 +4264,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Thin barline thickness' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4704,7 +4281,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Scale barlines to staff size' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4721,7 +4298,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Barline at start of multiple staves' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4738,7 +4315,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Barline at start of single staff' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4755,7 +4332,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Always force dash' setting</string>
+                 <string>Reset 'Show repeat barline tips (&quot;winged&quot; repeats)' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -4962,7 +4539,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="label_22">
                <property name="text">
-                <string>Note dot distance:</string>
+                <string>Note to dot distance:</string>
                </property>
                <property name="buddy">
                 <cstring>noteDotDistance</cstring>
@@ -4988,7 +4565,7 @@
              <item row="4" column="0">
               <widget class="QLabel" name="label_23">
                <property name="text">
-                <string>Dot dot distance:</string>
+                <string>Dot to dot distance:</string>
                </property>
                <property name="buddy">
                 <cstring>dotDotDistance</cstring>
@@ -6369,7 +5946,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Default vertical position' value</string>
+              <string>Reset 'Default position' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -6438,7 +6015,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Line style' setting</string>
+              <string>Reset 'Line style' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -6517,7 +6094,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_87">
              <property name="text">
-              <string>Hook height Above:</string>
+              <string>Hook height above:</string>
              </property>
              <property name="buddy">
               <cstring>ottavaHookAbove</cstring>
@@ -6563,7 +6140,7 @@
            <item row="0" column="0">
             <widget class="QLabel" name="label_81">
              <property name="text">
-              <string>Position Above:</string>
+              <string>Position above:</string>
              </property>
             </widget>
            </item>
@@ -6648,7 +6225,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Line style' setting</string>
+              <string>Reset 'Line style' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -6691,7 +6268,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Numbers only' setting</string>
+              <string>Reset 'Numbers only' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -6705,7 +6282,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="label_130">
              <property name="text">
-              <string>Position Below:</string>
+              <string>Position below:</string>
              </property>
             </widget>
            </item>
@@ -6735,7 +6312,7 @@
            <item row="3" column="0">
             <widget class="QLabel" name="label_185">
              <property name="text">
-              <string>Hook height Below:</string>
+              <string>Hook height below:</string>
              </property>
              <property name="buddy">
               <cstring>ottavaHookAbove</cstring>
@@ -6879,7 +6456,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Line style' setting</string>
+              <string>Reset 'Line style' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -7419,14 +6996,14 @@
            <item row="1" column="0">
             <widget class="QLabel" name="label_138">
              <property name="text">
-              <string>Position Above:</string>
+              <string>Position above:</string>
              </property>
             </widget>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_141">
              <property name="text">
-              <string>Position Below:</string>
+              <string>Position below:</string>
              </property>
             </widget>
            </item>
@@ -7490,7 +7067,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="label_168">
                <property name="text">
-                <string>Position Above:</string>
+                <string>Position above:</string>
                </property>
               </widget>
              </item>
@@ -7514,7 +7091,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label_167">
                <property name="text">
-                <string>Position Below:</string>
+                <string>Position below:</string>
                </property>
               </widget>
              </item>
@@ -7891,7 +7468,7 @@
            <item row="3" column="0">
             <widget class="QLabel" name="label_180">
              <property name="text">
-              <string>Autoplace min. Distance:</string>
+              <string>Autoplace min. distance:</string>
              </property>
             </widget>
            </item>
@@ -7956,7 +7533,7 @@
            <item row="3" column="0">
             <widget class="QLabel" name="label_144">
              <property name="text">
-              <string>Autoplace min. Distance:</string>
+              <string>Autoplace min. distance:</string>
              </property>
             </widget>
            </item>
@@ -8161,7 +7738,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Position Below:</string>
+              <string>Position below:</string>
              </property>
             </widget>
            </item>
@@ -8235,7 +7812,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Position Above:</string>
+              <string>Position above:</string>
              </property>
             </widget>
            </item>
@@ -8582,13 +8159,6 @@
                <number>3</number>
               </property>
               <item row="0" column="0">
-               <widget class="QLabel" name="label_17">
-                <property name="text">
-                 <string>Default vertical position:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
                <widget class="QLabel" name="label_79">
                 <property name="text">
                  <string>Distance to fretboard diagram:</string>
@@ -8598,7 +8168,7 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="1">
+              <item row="0" column="1">
                <widget class="QDoubleSpinBox" name="harmonyFretDist">
                 <property name="enabled">
                  <bool>true</bool>
@@ -8620,7 +8190,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="1" column="0">
                <widget class="QLabel" name="label_1001">
                 <property name="text">
                  <string>Minimum chord spacing:</string>
@@ -8630,7 +8200,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
+              <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="minHarmonyDistance">
                 <property name="suffix">
                  <string>sp</string>
@@ -8649,7 +8219,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="3">
+              <item row="1" column="2">
                <widget class="QLabel" name="label_1002">
                 <property name="text">
                  <string>Maximum barline distance:</string>
@@ -8659,7 +8229,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="4">
+              <item row="1" column="3">
                <widget class="QDoubleSpinBox" name="maxHarmonyBarDistance">
                 <property name="suffix">
                  <string>sp</string>
@@ -8678,7 +8248,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="5">
+              <item row="1" column="4">
                <spacer name="horizontalSpacer_11">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -8691,39 +8261,19 @@
                 </property>
                </spacer>
               </item>
-              <item row="0" column="2">
-               <widget class="QToolButton" name="resetChordSymbolPosAbove">
-                <property name="toolTip">
-                 <string>Reset to default</string>
-                </property>
-                <property name="accessibleName">
-                 <string>Reset 'Autoplace min. distance' value</string>
-                </property>
-                <property name="text">
-                 <string notr="true"/>
-                </property>
-                <property name="icon">
-                 <iconset resource="musescore.qrc">
-                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="Ms::OffsetSelect" name="chordSymbolPosAbove" native="true"/>
-              </item>
              </layout>
             </widget>
            </item>
            <item>
             <widget class="QGroupBox" name="groupBox_27">
              <property name="title">
-              <string>Capo</string>
+              <string extracomment="Capodastro">Capo</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_13">
               <item row="0" column="0">
                <widget class="QLabel" name="label_60">
                 <property name="text">
-                 <string>Capo fret position:</string>
+                 <string extracomment="Capodastro">Capo fret position:</string>
                 </property>
                 <property name="buddy">
                  <cstring>capoPosition</cstring>
@@ -8952,7 +8502,7 @@
            <item row="2" column="4">
             <widget class="QLabel" name="label_181">
              <property name="text">
-              <string>size:</string>
+              <string>Size:</string>
              </property>
              <property name="indent">
               <number>10</number>
@@ -8975,7 +8525,7 @@
            <item row="2" column="5">
             <widget class="QDoubleSpinBox" name="bendFontSize">
              <property name="suffix">
-              <string>sp</string>
+              <string>pt</string>
              </property>
              <property name="minimum">
               <double>1.000000000000000</double>
@@ -9009,7 +8559,7 @@
            <item row="2" column="7">
             <widget class="QLabel" name="label_183">
              <property name="text">
-              <string>style:</string>
+              <string>Style:</string>
              </property>
              <property name="indent">
               <number>11</number>
@@ -9034,109 +8584,6 @@
             </widget>
            </item>
            <item row="2" column="8">
-            <layout class="QHBoxLayout" name="horizontalLayout_22">
-             <item>
-              <widget class="QPushButton" name="bendFontBold">
-               <property name="accessibleName">
-                <string>Bold</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetBendFontBold">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Bold' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="bendFontItalic">
-               <property name="accessibleName">
-                <string>Italic</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetBendFontItalic">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Italic' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="bendFontUnderline">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="accessibleName">
-                <string>Underline</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetBendFontUnderline">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Underline' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="2" column="9">
             <spacer name="horizontalSpacer_46">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -9197,7 +8644,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Arrow width' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -9243,7 +8690,27 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Line thickness' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="9">
+            <widget class="Ms::FontStyleSelect" name="bendFontStyle"/>
+           </item>
+           <item row="2" column="10">
+            <widget class="QToolButton" name="resetBendFontStyle">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Font style' values</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -10197,7 +9664,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Tuplet bracket thickness' value</string>
+                 <string>Reset 'Bracket hook height' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -10265,7 +9732,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Tuplet bracket thickness' value</string>
+                 <string>Reset 'Bracket thickness' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -10275,208 +9742,6 @@
                   <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
                 </property>
                </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_40">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>Number</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_38">
-              <item row="2" column="7">
-               <widget class="QLabel" name="label_194">
-                <property name="text">
-                 <string>size:</string>
-                </property>
-                <property name="indent">
-                 <number>10</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="10">
-               <widget class="QDoubleSpinBox" name="tupletFontSize">
-                <property name="suffix">
-                 <string>sp</string>
-                </property>
-                <property name="minimum">
-                 <double>1.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="12" rowspan="2">
-               <widget class="QLabel" name="label_192">
-                <property name="text">
-                 <string>style:</string>
-                </property>
-                <property name="indent">
-                 <number>11</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
-               <widget class="QLabel" name="label_193">
-                <property name="text">
-                 <string>Font face:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="11">
-               <widget class="QToolButton" name="resetTupletFontSize">
-                <property name="toolTip">
-                 <string>Reset to default</string>
-                </property>
-                <property name="accessibleName">
-                 <string>Reset 'Font size' value</string>
-                </property>
-                <property name="text">
-                 <string notr="true"/>
-                </property>
-                <property name="icon">
-                 <iconset resource="musescore.qrc">
-                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="6">
-               <widget class="QToolButton" name="resetTupletFontFace">
-                <property name="toolTip">
-                 <string>Reset to default</string>
-                </property>
-                <property name="accessibleName">
-                 <string>Reset 'Font face' value</string>
-                </property>
-                <property name="text">
-                 <string notr="true"/>
-                </property>
-                <property name="icon">
-                 <iconset resource="musescore.qrc">
-                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="5">
-               <widget class="QFontComboBox" name="tupletFontFace">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="editable">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="13">
-               <layout class="QHBoxLayout" name="horizontalLayout_26">
-                <item>
-                 <widget class="QPushButton" name="tupletFontBold">
-                  <property name="accessibleName">
-                   <string>Bold</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetTupletFontBold">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Bold' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="tupletFontItalic">
-                  <property name="accessibleName">
-                   <string>Italic</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetTupletFontItalic">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Italic' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="tupletFontUnderline">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Underline</string>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="resetTupletFontUnderline">
-                  <property name="toolTip">
-                   <string>Reset to default</string>
-                  </property>
-                  <property name="accessibleName">
-                   <string>Reset 'Underline' value</string>
-                  </property>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="musescore.qrc">
-                    <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
               </item>
              </layout>
             </widget>
@@ -10506,43 +9771,11 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="3">
-               <spacer name="horizontalSpacer_26">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_115">
-                <property name="text">
-                 <string>Number Type:</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-                <property name="margin">
-                 <number>0</number>
-                </property>
-                <property name="indent">
-                 <number>10</number>
-                </property>
-                <property name="buddy">
-                 <cstring>tupletNumberType</cstring>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="1">
                <widget class="QComboBox" name="tupletDirection">
                 <item>
                  <property name="text">
-                  <string>Automatic</string>
+                  <string>Auto</string>
                  </property>
                 </item>
                 <item>
@@ -10557,26 +9790,30 @@
                 </item>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_116">
+              <item row="0" column="2">
+               <widget class="QToolButton" name="resetTupletDirection">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Reset to default</string>
+                </property>
+                <property name="accessibleName">
+                 <string>Reset 'Direction' value</string>
+                </property>
                 <property name="text">
-                 <string>Bracket Type:</string>
+                 <string notr="true"/>
                 </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-                <property name="margin">
-                 <number>0</number>
-                </property>
-                <property name="indent">
-                 <number>10</number>
-                </property>
-                <property name="buddy">
-                 <cstring>tupletBracketType</cstring>
+                <property name="icon">
+                 <iconset resource="musescore.qrc">
+                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
                 </property>
                </widget>
               </item>
-              <item row="1" column="1">
+              <item row="0" column="4">
                <widget class="QComboBox" name="tupletNumberType">
                 <item>
                  <property name="text">
@@ -10595,11 +9832,53 @@
                 </item>
                </widget>
               </item>
-              <item row="2" column="1">
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_115">
+                <property name="text">
+                 <string>Number type:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <property name="indent">
+                 <number>10</number>
+                </property>
+                <property name="buddy">
+                 <cstring>tupletNumberType</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="8">
+               <widget class="QToolButton" name="resetTupletBracketType">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Reset to default</string>
+                </property>
+                <property name="accessibleName">
+                 <string>Reset 'Bracket type' value</string>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="icon">
+                 <iconset resource="musescore.qrc">
+                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="7">
                <widget class="QComboBox" name="tupletBracketType">
                 <item>
                  <property name="text">
-                  <string>Automatic</string>
+                  <string>Auto</string>
                  </property>
                 </item>
                 <item>
@@ -10614,30 +9893,26 @@
                 </item>
                </widget>
               </item>
-              <item row="0" column="2">
-               <widget class="QToolButton" name="resetTupletDirection">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="toolTip">
-                 <string>Reset to default</string>
-                </property>
-                <property name="accessibleName">
-                 <string>Reset 'Direction' setting</string>
-                </property>
+              <item row="0" column="6">
+               <widget class="QLabel" name="label_116">
                 <property name="text">
-                 <string notr="true"/>
+                 <string>Bracket type:</string>
                 </property>
-                <property name="icon">
-                 <iconset resource="musescore.qrc">
-                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <property name="indent">
+                 <number>10</number>
+                </property>
+                <property name="buddy">
+                 <cstring>tupletBracketType</cstring>
                 </property>
                </widget>
               </item>
-              <item row="1" column="2">
+              <item row="0" column="5">
                <widget class="QToolButton" name="resetTupletNumberType">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -10649,7 +9924,7 @@
                  <string>Reset to default</string>
                 </property>
                 <property name="accessibleName">
-                 <string>Reset 'Number Type' setting</string>
+                 <string>Reset 'Number type' value</string>
                 </property>
                 <property name="text">
                  <string notr="true"/>
@@ -10660,28 +9935,18 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="2">
-               <widget class="QToolButton" name="resetTupletBracketType">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
+              <item row="0" column="9">
+               <spacer name="horizontalSpacer_26">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
-                <property name="toolTip">
-                 <string>Reset to default</string>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
                 </property>
-                <property name="accessibleName">
-                 <string>Reset 'Bracket Type' setting</string>
-                </property>
-                <property name="text">
-                 <string notr="true"/>
-                </property>
-                <property name="icon">
-                 <iconset resource="musescore.qrc">
-                  <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                </property>
-               </widget>
+               </spacer>
               </item>
              </layout>
             </widget>
@@ -10870,7 +10135,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Always force dash' setting</string>
+              <string>Reset 'Always force dash' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -10990,12 +10255,8 @@
            <string>Lyrics Melisma</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_25">
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_188">
-             <property name="text">
-              <string>Pad:</string>
-             </property>
-            </widget>
+           <item row="2" column="1">
+            <widget class="Ms::AlignSelect" name="lyricsMelismaAlign" native="true"/>
            </item>
            <item row="1" column="2">
             <widget class="QToolButton" name="resetLyricsMelismaPad">
@@ -11014,10 +10275,17 @@
              </property>
             </widget>
            </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="label_119">
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_188">
              <property name="text">
-              <string/>
+              <string>Melisma pad:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_80">
+             <property name="text">
+              <string>Melisma thickness:</string>
              </property>
             </widget>
            </item>
@@ -11038,13 +10306,6 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_93">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="1">
             <widget class="QDoubleSpinBox" name="lyricsLineThickness">
              <property name="suffix">
@@ -11061,17 +10322,20 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_80">
-             <property name="text">
-              <string>Thickness:</string>
+           <item row="2" column="2">
+            <widget class="QToolButton" name="resetLyricsMelismaAlign">
+             <property name="toolTip">
+              <string>Reset to default</string>
              </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_123">
+             <property name="accessibleName">
+              <string>Reset 'Align' value</string>
+             </property>
              <property name="text">
-              <string/>
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
              </property>
             </widget>
            </item>
@@ -11098,23 +10362,10 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="Ms::AlignSelect" name="lyricsMelismaAlign" native="true"/>
-           </item>
-           <item row="2" column="2">
-            <widget class="QToolButton" name="resetLyricsMelismaAlign">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Melisma pad' value</string>
-             </property>
+           <item row="6" column="0" colspan="2">
+            <widget class="QCheckBox" name="textStyleSpatiumDependent">
              <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+              <string>Size changes with staff space setting</string>
              </property>
             </widget>
            </item>
@@ -11273,7 +10524,7 @@
            <item row="7" column="0" colspan="2">
             <widget class="QCheckBox" name="lyricsAlignVerseNumber">
              <property name="text">
-              <string>Align Verse Number</string>
+              <string>Align verse number</string>
              </property>
             </widget>
            </item>
@@ -11283,7 +10534,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Align Verse Number' value</string>
+              <string>Reset 'Align verse number' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -11412,482 +10663,22 @@
           </layout>
          </widget>
         </item>
-        <item row="3" column="0" colspan="2">
-         <widget class="QWidget" name="showMeasureNumber_6" native="true">
-          <layout class="QGridLayout" name="_9">
-           <property name="spacing">
-            <number>0</number>
-           </property>
-           <item row="1" column="3">
-            <widget class="QLabel" name="label_171">
-             <property name="text">
-              <string>Size:</string>
-             </property>
-             <property name="indent">
-              <number>10</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="7">
-            <layout class="QHBoxLayout" name="horizontalLayout_23">
-             <item>
-              <widget class="QPushButton" name="lyricsEvenFontBold">
-               <property name="accessibleName">
-                <string>Bold</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetLyricsEvenFontBold">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Bold' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="lyricsEvenFontItalic">
-               <property name="accessibleName">
-                <string>Italic</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetLyricsEvenFontItalic">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Italic' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="lyricsEvenFontUnderline">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="accessibleName">
-                <string>Underline</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetLyricsEvenFontUnderline">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Underline' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_170">
-             <property name="text">
-              <string>Font face:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="4">
-            <widget class="QDoubleSpinBox" name="lyricsEvenFontSize">
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="minimum">
-              <double>1.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QFontComboBox" name="lyricsEvenFontFace">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="editable">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="6">
-            <widget class="QLabel" name="label_172">
-             <property name="text">
-              <string>Style:</string>
-             </property>
-             <property name="indent">
-              <number>11</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QToolButton" name="resetLyricsEvenFontFace">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="5">
-            <widget class="QToolButton" name="resetLyricsEvenFontSize">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Font size' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_199">
-             <property name="text">
-              <string>Align:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="Ms::AlignSelect" name="lyricsEvenAlign" native="true"/>
-           </item>
-           <item row="2" column="2">
-            <widget class="QToolButton" name="resetLyricsEvenAlign">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="5" column="0" colspan="2">
-         <widget class="QWidget" name="showMeasureNumber_7" native="true">
-          <layout class="QGridLayout" name="_10">
-           <property name="spacing">
-            <number>0</number>
-           </property>
-           <item row="0" column="4">
-            <widget class="QDoubleSpinBox" name="lyricsOddFontSize">
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="minimum">
-              <double>1.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="7">
-            <layout class="QHBoxLayout" name="horizontalLayout_24">
-             <item>
-              <widget class="QPushButton" name="lyricsOddFontBold">
-               <property name="accessibleName">
-                <string>Bold</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetLyricsOddFontBold">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Bold' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="lyricsOddFontItalic">
-               <property name="accessibleName">
-                <string>Italic</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetLyricsOddFontItalic">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Italic' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="lyricsOddFontUnderline">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="accessibleName">
-                <string>Underline</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetLyricsOddFontUnderline">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Underline' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_173">
-             <property name="text">
-              <string>Font face:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QFontComboBox" name="lyricsOddFontFace">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="editable">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="6">
-            <widget class="QLabel" name="label_175">
-             <property name="text">
-              <string>Style:</string>
-             </property>
-             <property name="indent">
-              <number>11</number>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QToolButton" name="resetLyricsOddFontFace">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="5">
-            <widget class="QToolButton" name="resetLyricsOddFontSize">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Font size' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QLabel" name="label_174">
-             <property name="text">
-              <string>Size:</string>
-             </property>
-             <property name="indent">
-              <number>10</number>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <spacer name="verticalSpacer_17">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_200">
-             <property name="text">
-              <string>Align:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="Ms::AlignSelect" name="lyricsOddAlign" native="true"/>
-           </item>
-           <item row="1" column="2">
-            <widget class="QToolButton" name="resetLyricsOddAlign">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_160">
-          <property name="text">
-           <string>Odd Lyrics Lines:</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_159">
-          <property name="text">
-           <string>Even Lyrics Lines:</string>
+         <spacer name="verticalSpacer_17">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-         </widget>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="pageTextStyles">
+      <widget class="QWidget" name="PageTextStyles">
        <layout class="QGridLayout" name="gridLayout_41">
         <item row="0" column="0">
          <widget class="QListWidget" name="textStyles"/>
@@ -11929,109 +10720,6 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <layout class="QHBoxLayout" name="horizontalLayout_27">
-             <item>
-              <widget class="QPushButton" name="textStyleFontBold">
-               <property name="accessibleName">
-                <string>Bold</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-bold.svg</normaloff>:/data/icons/format-text-bold.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetTextStyleFontBold">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Bold' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="textStyleFontItalic">
-               <property name="accessibleName">
-                <string>Italic</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-italic.svg</normaloff>:/data/icons/format-text-italic.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetTextStyleFontItalic">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Italic' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="textStyleFontUnderline">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="accessibleName">
-                <string>Underline</string>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/format-text-underline.svg</normaloff>:/data/icons/format-text-underline.svg</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="resetTextStyleFontUnderline">
-               <property name="toolTip">
-                <string>Reset to default</string>
-               </property>
-               <property name="accessibleName">
-                <string>Reset 'Underline' value</string>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset resource="musescore.qrc">
-                 <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
            <item row="2" column="2">
             <widget class="QToolButton" name="resetTextStyleFontSize">
              <property name="toolTip">
@@ -12052,10 +10740,7 @@
            <item row="3" column="0">
             <widget class="QLabel" name="label_209">
              <property name="text">
-              <string>Style:</string>
-             </property>
-             <property name="indent">
-              <number>11</number>
+              <string>Font style:</string>
              </property>
             </widget>
            </item>
@@ -12089,7 +10774,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Align' values</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12106,10 +10791,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_207">
              <property name="text">
-              <string>Size:</string>
-             </property>
-             <property name="indent">
-              <number>10</number>
+              <string>Font size:</string>
              </property>
             </widget>
            </item>
@@ -12136,7 +10818,7 @@
            <item row="2" column="1">
             <widget class="QDoubleSpinBox" name="textStyleFontSize">
              <property name="suffix">
-              <string>sp</string>
+              <string>pt</string>
              </property>
              <property name="minimum">
               <double>1.000000000000000</double>
@@ -12191,7 +10873,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Foreground' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12208,7 +10890,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Background' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12225,7 +10907,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Border' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12242,7 +10924,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Text margin' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12259,7 +10941,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Border radius' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12276,7 +10958,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Frame' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12303,7 +10985,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Offset' values</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12311,13 +10993,6 @@
              <property name="icon">
               <iconset resource="musescore.qrc">
                <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
-            <widget class="QCheckBox" name="textStyleSpatiumDependent">
-             <property name="text">
-              <string>Size changes with spatium</string>
              </property>
             </widget>
            </item>
@@ -12327,7 +11002,7 @@
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Font face' value</string>
+              <string>Reset 'Size changes with staff space setting' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12337,6 +11012,26 @@
                <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
              </property>
             </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QToolButton" name="resetTextStyleFontStyle">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Font style' values</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="Ms::FontStyleSelect" name="textStyleFontStyle"/>
            </item>
           </layout>
          </widget>
@@ -12350,6 +11045,18 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>Awl::ColorLabel</class>
+   <extends>QFrame</extends>
+   <header>awl/colorlabel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Ms::FontStyleSelect</class>
+   <extends>QWidget</extends>
+   <header>inspector/fontStyleSelect.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>Ms::AlignSelect</class>
    <extends>QWidget</extends>
    <header>inspector/alignSelect.h</header>
@@ -12359,12 +11066,6 @@
    <class>Ms::OffsetSelect</class>
    <extends>QWidget</extends>
    <header>inspector/offsetSelect.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>Awl::ColorLabel</class>
-   <extends>QFrame</extends>
-   <header>awl/colorlabel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -12387,7 +11088,6 @@
   <tabstop>swingBox</tabstop>
   <tabstop>autoplaceVerticalAlignRange</tabstop>
   <tabstop>resetAutoplaceVerticalAlignRange</tabstop>
-  <tabstop>staffUpperBorder</tabstop>
   <tabstop>staffLowerBorder</tabstop>
   <tabstop>staffDistance</tabstop>
   <tabstop>akkoladeDistance</tabstop>
@@ -12421,16 +11121,10 @@
   <tabstop>evenFooterR</tabstop>
   <tabstop>bracketWidth</tabstop>
   <tabstop>bracketDistance</tabstop>
-  <tabstop>akkoladeWidth</tabstop>
-  <tabstop>akkoladeBarDistance</tabstop>
   <tabstop>dividerLeft</tabstop>
   <tabstop>dividerLeftSym</tabstop>
-  <tabstop>dividerLeftX</tabstop>
-  <tabstop>dividerLeftY</tabstop>
   <tabstop>dividerRight</tabstop>
   <tabstop>dividerRightSym</tabstop>
-  <tabstop>dividerRightX</tabstop>
-  <tabstop>dividerRightY</tabstop>
   <tabstop>minMeasureWidth_2</tabstop>
   <tabstop>resetMinMeasureWidth</tabstop>
   <tabstop>measureSpacing</tabstop>
@@ -12588,10 +11282,6 @@
   <tabstop>resetTupletBracketWidth</tabstop>
   <tabstop>tupletDirection</tabstop>
   <tabstop>resetTupletDirection</tabstop>
-  <tabstop>tupletNumberType</tabstop>
-  <tabstop>resetTupletNumberType</tabstop>
-  <tabstop>tupletBracketType</tabstop>
-  <tabstop>resetTupletBracketType</tabstop>
   <tabstop>lyricsPlacement</tabstop>
   <tabstop>resetLyricsPlacement</tabstop>
   <tabstop>resetLyricsPosAbove</tabstop>

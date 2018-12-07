@@ -27,7 +27,7 @@ ElementStyle const ScoreElement::emptyStyle;
 // list has to be synchronized with ElementType enum
 //
 static const ElementName elementNames[] = {
-      { ElementType::INVALID,              "invalid",              QT_TRANSLATE_NOOP("elementName", "invalid") },
+      { ElementType::INVALID,              "invalid",              QT_TRANSLATE_NOOP("elementName", "Invalid") },
       { ElementType::BRACKET_ITEM,         "BracketItem",          QT_TRANSLATE_NOOP("elementName", "Bracket") },
       { ElementType::PART,                 "Part",                 QT_TRANSLATE_NOOP("elementName", "Part") },
       { ElementType::STAFF,                "Staff",                QT_TRANSLATE_NOOP("elementName", "Staff") },
@@ -206,7 +206,8 @@ void ScoreElement::initElementStyle(const ElementStyle* ss)
       for (size_t i = 0; i < n; ++i)
             _propertyFlagsList[i] = PropertyFlags::STYLED;
       for (const StyledProperty& spp : *_elementStyle)
-            setProperty(spp.pid, styleValue(spp.pid, spp.sid));
+//            setProperty(spp.pid, styleValue(spp.pid, spp.sid));
+            setProperty(spp.pid, styleValue(spp.pid, getPropertyStyle(spp.pid)));
       }
 
 //---------------------------------------------------------
@@ -219,7 +220,7 @@ void ScoreElement::resetProperty(Pid pid)
       if (v.isValid()) {
             setProperty(pid, v);
             PropertyFlags p = propertyFlags(pid);
-            if (p != PropertyFlags::NOSTYLE)
+            if (p == PropertyFlags::UNSTYLED)
                   setPropertyFlags(pid, PropertyFlags::STYLED);
             }
       }
@@ -232,9 +233,8 @@ void ScoreElement::undoResetProperty(Pid id)
       {
       PropertyFlags f = propertyFlags(id);
       if (f == PropertyFlags::UNSTYLED)
-            undoChangeProperty(id, propertyDefault(id), PropertyFlags::STYLED);
-      else
-            undoChangeProperty(id, propertyDefault(id), f);
+            f = PropertyFlags::STYLED;
+      undoChangeProperty(id, propertyDefault(id), f);
       }
 
 //---------------------------------------------------------
@@ -289,14 +289,6 @@ void ScoreElement::undoChangeProperty(Pid id, const QVariant& v)
 void ScoreElement::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps)
       {
       bool doUpdateInspector = false;
-      if (isBracket()) {
-            // brackets do not survive layout() and therefore cannot be on
-            // the undo stack; delegate to BracketItem:
-
-            BracketItem* bi = toBracket(this)->bracketItem();
-            bi->undoChangeProperty(id, v, ps);
-            return;
-            }
       if (id == Pid::PLACEMENT) {
             // first set placment, then set offset for above/below if styled
             changeProperties(this, id, v, ps);
@@ -304,7 +296,7 @@ void ScoreElement::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags p
                   ScoreElement::undoChangeProperty(Pid::OFFSET, score()->styleV(getPropertyStyle(Pid::OFFSET)).toPointF() * score()->spatium());
             doUpdateInspector = true;
             }
-      if (id == Pid::SUB_STYLE) {
+      else if (id == Pid::SUB_STYLE) {
             //
             // change a list of properties
             //
@@ -384,12 +376,23 @@ void ScoreElement::writeProperty(XmlWriter& xml, Pid pid) const
             return;
       QVariant p = getProperty(pid);
       if (!p.isValid()) {
-            qDebug("%s invalid property <%s><%s>", name(), propertyName(pid), propertyQmlName(pid));
+            qDebug("%s invalid property %d <%s><%s>", name(), int(pid), propertyName(pid), propertyQmlName(pid));
             return;
             }
       PropertyFlags f = propertyFlags(pid);
+      QVariant d = (f != PropertyFlags::STYLED) ? propertyDefault(pid) : QVariant();
 
-      QVariant d = (f == PropertyFlags::NOSTYLE) ? propertyDefault(pid) : QVariant();
+      if (pid == Pid::FONT_STYLE) {
+            FontStyle ds = FontStyle(d.isValid() ? d.toInt() : 0);
+            FontStyle fs = FontStyle(p.toInt());
+            if ((fs & FontStyle::Bold) != (ds & FontStyle::Bold))
+                  xml.tag("bold", fs & FontStyle::Bold);
+            if ((fs & FontStyle::Italic) != (ds & FontStyle::Italic))
+                  xml.tag("italic", fs & FontStyle::Italic);
+            if ((fs & FontStyle::Underline) != (ds & FontStyle::Underline))
+                  xml.tag("underline", fs & FontStyle::Underline);
+            return;
+            }
 
       if (propertyType(pid) == P_TYPE::SP_REAL) {
             qreal f1 = p.toReal();
@@ -509,7 +512,7 @@ void ScoreElement::linkTo(ScoreElement* element)
             }
       else {
             if (isStaff())
-                  _links = new LinkedElements(score(), -1); // dont use lid
+                  _links = new LinkedElements(score(), -1); // don’t use lid
             else
                   _links = new LinkedElements(score());
             _links->append(element);
@@ -687,7 +690,7 @@ void ScoreElement::styleChanged()
       for (const StyledProperty& spp : *_elementStyle) {
             PropertyFlags f = propertyFlags(spp.pid);
             if (f == PropertyFlags::STYLED)
-                  setProperty(spp.pid, styleValue(spp.pid, spp.sid));
+                  setProperty(spp.pid, styleValue(spp.pid, getPropertyStyle(spp.pid)));
             }
       }
 

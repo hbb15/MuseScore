@@ -12,7 +12,7 @@
       <lyricsMinBottomDistance>6</lyricsMinBottomDistance>
       <frameSystemDistance>13</frameSystemDistance>
       <measureSpacing>1.14</measureSpacing>
-      <voltaPosAbove>0</voltaPosAbove>
+      <voltaPosAbove x="0" y="0"/>
       <Spatium>1.564</Spatium>
       </Style>
     <showInvisible>1</showInvisible>
@@ -505,6 +505,11 @@
               <subtype>0</subtype>
               </Arpeggio>
             </Chord>
+          <Symbol>
+            <name>accdnRH3RanksAccordion</name>
+            <font>Bravura</font>
+            <offset x="0" y="-2"/>
+            </Symbol>
           <Chord>
             <durationType>quarter</durationType>
             <Note>
@@ -526,7 +531,14 @@
             </Chord>
           <FiguredBass>
             <ticks>480</ticks>
-            <text>Figured_bass</text>
+            <FiguredBassItem>
+              <brackets b0="0" b1="0" b2="0" b3="0" b4="0"/>
+              <digit>5</digit>
+              </FiguredBassItem>
+            <FiguredBassItem>
+              <brackets b0="0" b1="0" b2="0" b3="0" b4="0"/>
+              <digit>3</digit>
+              </FiguredBassItem>
             </FiguredBass>
           <Chord>
             <durationType>quarter</durationType>
@@ -827,7 +839,6 @@
         <voice>
           <Harmony>
             <root>14</root>
-            <name>hord</name>
             </Harmony>
           <Chord>
             <durationType>whole</durationType>
@@ -844,6 +855,15 @@
               <tpc>18</tpc>
               </Note>
             </Chord>
+          <location>
+            <fractions>-5/8</fractions>
+            </location>
+          <Harmony>
+            <root>16</root>
+            </Harmony>
+          <location>
+            <fractions>5/8</fractions>
+            </location>
           <Rest>
             <durationType>half</durationType>
             </Rest>

@@ -1142,9 +1142,9 @@ void Measure::cmdAddStaves(int sStaff, int eStaff, bool createRest)
                               }
                         }
                   if (!ots) {
-                        // no time signature found; use measure length to construct one
+                        // no time signature found; use measure timesig to construct one
                         ots = new TimeSig(score());
-                        ots->setSig(len());
+                        ots->setSig(timesig());
                         constructed = true;
                         }
                   // do no replicate local time signatures
@@ -2558,7 +2558,7 @@ bool Measure::isMeasureRest(int staffIdx) const
                         return false;
                   }
             for (Element* a : s->annotations()) {
-                  if (!a || a->systemFlag())
+                  if (!a || a->systemFlag() || !a->visible())
                         continue;
                   int atrack = a->track();
                   if (atrack >= strack && atrack < etrack)
@@ -3493,7 +3493,7 @@ void Measure::addSystemHeader(bool isFirstSystem)
             bool needKeysig = isFirstSystem || score()->styleB(Sid::genKeysig);
 
             // If we need a Key::C KeySig (which would be invisible) and there is
-            // a courtesy key sig, dont create it and switch generated flags.
+            // a courtesy key sig, don’t create it and switch generated flags.
             // This avoids creating an invisible KeySig which can distort layout.
 
             KeySigEvent keyIdx = staff->keySigEvent(tick());
@@ -3555,9 +3555,16 @@ void Measure::addSystemHeader(bool isFirstSystem)
                               Key key = score()->staff(i)->key(tick());
                               if ((e && !e->generated()) || (key != keyIdx.key())) {
                                     disable = false;
-                                    break;
+                                    }
+                              else if (e && e->generated() && key == keyIdx.key() && keyIdx.key() == Key::C){
+                                    // If a key sig segment is disabled, it may be re-enabled if there is
+                                    // a transposing instrument using a different key sig.
+                                    // To prevent this from making the wrong key sig display, remove any key
+                                    // sigs on staves where the key in this measure is C.
+                                    score()->undo(new RemoveElement(e));
                                     }
                               }
+
                         if (disable)
                               kSegment->setEnabled(false);
                         else {
@@ -3880,6 +3887,16 @@ void Measure::computeMinWidth(Segment* s, qreal x, bool isSystemHeader)
       Segment* fs = s;
       bool first  = system()->firstMeasure() == this;
       const Shape ls(first ? QRectF(0.0, -1000000.0, 0.0, 2000000.0) : QRectF(0.0, 0.0, 0.0, spatium() * 4));
+
+      if (isMMRest()) {
+            // Reset MM rest to initial size and position
+            Rest* mmRest = toRest(findChordRest(tick(), 0));
+            if (mmRest) {
+                  mmRest->rxpos() = 0;
+                  mmRest->layoutMMRest(score()->styleP(Sid::minMMRestWidth) * mag());
+                  mmRest->segment()->createShapes();
+                  }
+            }
 
       while (s) {
             s->rxpos() = x;

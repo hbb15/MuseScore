@@ -1198,6 +1198,58 @@ void Chord::setScore(Score* s)
       }
 
 //-----------------------------------------------------------------------------
+//   hookAdjustment
+//    Adjustment to the length of the stem in order to accomodate hooks
+//    This function replaces this bit of code:
+//      switch (hookIdx) {
+//            case 3: normalStemLen += small() ? .5  : 0.75; break; //32nd notes
+//            case 4: normalStemLen += small() ? 1.0 : 1.5;  break; //64th notes
+//            case 5: normalStemLen += small() ? 1.5 : 2.25; break; //128th notes
+//            }
+//    which was not sufficient for two reasons:
+//      1. It only lengthened the stem for 3, 4, or 5 hooks.
+//      2. It was too general to produce good results for all combinations of factors.
+//    This provides a way to take a number of factors into account. Further tweaking may be in order.
+//-----------------------------------------------------------------------------
+
+qreal hookAdjustment(QString font, int hooks, bool up, bool small)
+      {
+      bool fallback = MScore::useFallbackFont && (hooks > 5);
+
+      if (font == "Emmentaler" && !fallback) {
+            if (up) {
+                  if (hooks > 2)
+                        return (hooks - 2) * (small ? .75 : 1);
+                  }
+            else {
+                  if (hooks == 3)
+                        return (small ? .75 : 1);
+                  else if (hooks > 3)
+                        return (hooks - 2) * (small ? .5 : .75);
+                  }
+            }
+      else if (font == "Gonville" && !fallback) {
+            if (up) {
+                  if (hooks > 2)
+                        return (hooks - 2) * (small ? .5 : .75);
+                  }
+            else {
+                  if (hooks > 1)
+                        return (hooks - 1) * (small ? .5 : .75);
+                  }
+            }
+      else if (font == "MuseJazz") {
+            if (hooks > 2)
+                  return (hooks - 2) * (small ? .75 : 1);
+            }
+      else {
+            if (hooks > 2)
+                  return (hooks - 2) * (small ? .5 : .75);
+            }
+      return 0;
+      }
+
+//-----------------------------------------------------------------------------
 //   defaultStemLength
 ///   Get the default stem length for this chord
 //-----------------------------------------------------------------------------
@@ -1214,8 +1266,8 @@ qreal Chord::defaultStemLength()
       const Staff* st    = staff();
       qreal lineDistance = st ? st->lineDistance(tick()) : 1.0;
 
-      const StaffType* tab = st ? st->staffType(tick()) : 0;
-      if (tab && tab->isTabStaff()) {
+      const StaffType* tab = (st && st->isTabStaff(tick())) ? st->staffType(tick()) : nullptr;
+      if (tab) {
             // require stems only if TAB is not stemless and this chord has a stem
             if (!tab->slashStyle() && _stem) {
                   // if stems are beside staff, apply special formatting
@@ -1241,14 +1293,20 @@ qreal Chord::defaultStemLength()
 
       Spatium progression = score()->styleS(Sid::shortStemProgression);
       qreal shortest      = score()->styleS(Sid::shortestStem).val();
+      if (hookIdx) {
+            if (up()) {
+                  if (shortest < 3.0)
+                        shortest = 3.0;
+                  }
+            else {
+                  if (shortest < 3.5)
+                        shortest = 3.5;
+                  }
+            }
 
       qreal normalStemLen = small() ? 2.5 : 3.5;
-      switch (hookIdx) {
-            case 3: normalStemLen += small() ? .5  : 0.75; break; //32nd notes
-            case 4: normalStemLen += small() ? 1.0 : 1.5;  break; //64th notes
-            case 5: normalStemLen += small() ? 1.5 : 2.25; break; //128th notes
-            }
-      if (_hook && tab == 0) {
+      normalStemLen += hookAdjustment(score()->styleSt(Sid::MusicalSymbolFont), hookIdx, up(), small());
+      if (hookIdx && tab == 0) {
             if (up() && durationType().dots()) {
                   //
                   // avoid collision of dot with hook
@@ -1321,7 +1379,7 @@ qreal Chord::defaultStemLength()
                     }
                   };
             int odd = (up() ? upLine() : downLine()) & 1;
-            int n = tab1[_hook ? 1 : 0][up() ? 1 : 0][odd][_tremolo->lines()-1];
+            int n = tab1[hookIdx ? 1 : 0][up() ? 1 : 0][odd][_tremolo->lines()-1];
             stemLen += n * .5;
             }
       return stemLen * _spatium * lineDistance;
@@ -1517,57 +1575,6 @@ void Chord::layout2()
 
       qreal mag = staff()->mag(tick());
 
-#if 0
-      //
-      // Experimental:
-      //    look for colliding ledger lines
-      //
-
-      qreal _spatium = spatium();
-      const qreal minDist = _spatium * .17;
-      Segment* ps = segment()->prev(SegmentType::ChordRest);
-      if (ps) {
-            int strack = staff2track(staffIdx());
-            int etrack = strack + VOICES;
-
-            for (LedgerLine* h = _ledgerLines; h; h = h->next()) {
-                  qreal len = h->len();
-                  qreal y   = h->y();
-                  qreal x   = h->x();
-                  bool found = false;
-                  qreal cx  = h->measureXPos();
-
-                  for (int track = strack; track < etrack; ++track) {
-                        Element* el = ps->element(track);
-                        if (!el || !el->isChord())
-                              continue;
-                        Chord* e = toChord(el);
-                        for (LedgerLine* ll = e->ledgerLines(); ll; ll = ll->next()) {
-                              if (ll->y() != y)
-                                    continue;
-
-                              qreal d = cx - ll->measureXPos() - ll->len();
-                              if (d < minDist) {
-                                    //
-                                    // the ledger lines overlap
-                                    //
-                                    qreal shorten = (minDist - d) * .5;
-                                    x   += shorten;
-                                    len -= shorten;
-                                    ll->setLen(ll->len() - shorten);
-                                    h->setLen(len);
-                                    h->setPos(x, y);
-                                    }
-                              found = true;
-                              break;
-                              }
-                        if (found)
-                              break;
-                        }
-                  }
-            }
-#endif
-
       //
       // position after-chord grace notes
       // room for them has been reserved in Chord::layout()
@@ -1600,7 +1607,6 @@ void Chord::layout2()
                   xOff -= minNoteDist + g->_spaceLw;    // move to left by grace note right space and inter-grace distance
                   }
             }
-
       }
 
 //---------------------------------------------------------
@@ -1887,6 +1893,7 @@ void Chord::layoutPitched()
       if (_arpeggio) {
             qreal arpeggioDistance = score()->styleP(Sid::ArpeggioNoteDistance) * mag_;
             _arpeggio->layout();    // only for width() !
+            _arpeggio->setHeight(0.0);
             lll        += _arpeggio->width() + arpeggioDistance + chordX;
             qreal y1   = upnote->pos().y() - upnote->headHeight() * .5;
             _arpeggio->setPos(-lll, y1);
@@ -1925,134 +1932,10 @@ void Chord::layoutPitched()
                   }
             }
 
-#if 0
-      if (_ledgerLines) {
-            // we may need to increase distance to previous chord
-            Chord* pc = 0;
-            qreal ledgerLineLength = score()->styleP(Sid::ledgerLineLength) * mag_;
-
-            if (_noteType == NoteType::NORMAL) {
-                  // normal note
-                  if (gnb) {
-                        // if there are grace notes before, get last
-                        pc = graceNotesBefore.last();
-                        }
-                  else if (rtick()) {
-                        // if this is not first chord of measure, get previous chord
-                        Segment* s = segment()->prev(SegmentType::ChordRest);
-                        if (s) {
-                              // prefer chord in same voice
-                              // but if nothing there, look at other voices
-                              // note this still leaves the possibility
-                              // that this voice does not have conflict but another voice does
-                              Element* e = s->element(track());
-                              if (e && e->isChord())
-                                    pc = toChord(e);
-                              else {
-                                    int startTrack = staffIdx() * VOICES;
-                                    int endTrack = startTrack + VOICES;
-                                    for (int t = startTrack; t < endTrack; ++t) {
-                                          if (t == track())  // already checked current voice
-                                                continue;
-                                          e = s->element(t);
-                                          if (e && e->isChord()) {
-                                                pc = toChord(e);
-                                                // prefer chord with ledger lines
-                                                if (pc->ledgerLines())
-                                                      break;
-                                                }
-                                          }
-                                    }
-                              }
-                        }
-                  if (pc && !pc->graceNotes().empty()) {
-                        // if previous chord has grace notes after, find last one
-                        // which, conveniently, is stored first
-                        for (Chord* c : pc->graceNotes()) {
-                              if (c->isGraceAfter()) {
-                                    pc = c;
-                                    break;
-                                    }
-                              }
-                        }
-                  }
-
-            else {
-                  // grace note
-                  Chord* mainChord = toChord(parent());
-                  bool before = isGraceBefore();
-                  int incIdx = before ? -1 : 1;
-                  int endIdx = before ? -1 : mainChord->graceNotes().size();
-                  // find previous grace note of same type
-                  for (int i = _graceIndex + incIdx; i != endIdx; i += incIdx) {
-                        Chord* pgc = mainChord->graceNotes().at(i);
-                        if (pgc->isGraceBefore() == before) {
-                              pc = pgc;
-                              break;
-                              }
-                        }
-                  if (!pc) {
-                        // no previous grace note found
-                        if (!before){
-                              // grace note after - we would use main note
-                              // but it hasn't been laid out yet, so we can't be sure about its ledger lines
-                              // err on the side of safety
-                              lll = qMax(lll, ledgerLineLength + lhead + 0.2 * _spatium * mag());
-                              }
-                        else if (mainChord->rtick()) {
-                              // grace note before - use previous normal note of measure
-                              Segment* s = mainChord->segment()->prev(SegmentType::ChordRest);
-                              if (s && s->element(track()) && s->element(track())->isChord())
-                                    pc = toChord(s->element(track()));
-                              }
-                        }
-                  }
-
-            if (pc) {
-                  // previous chord found
-                  qreal llsp        = 0.0;
-                  int pUpLine       = pc->upNote()->line();
-                  int pDownLine     = pc->downNote()->line();
-                  int upLine        = upNote()->line();
-                  int downLine      = downNote()->line();
-                  int ledgerBelow   = staff()->lines(tick()) * 2;
-                  if (pc->_ledgerLines && ((pUpLine < 0 && upLine < 0) || (pDownLine >= ledgerBelow && downLine >= ledgerBelow))) {
-                        // both chords have ledger lines above or below staff
-                        llsp = ledgerLineLength;
-                        // add space between ledger lines
-                        llsp += 0.2 * _spatium * pc->mag();
-                        // if any portion of note extended to left of origin
-                        // we need to include that here so it is not subsumed by ledger line
-                        llsp += lhead;
-                        }
-                  else if (pc->up() && upLine < 0) {
-                        // even if no ledger lines in previous chord,
-                        // we may need a little space to avoid crossing stem
-                        llsp = ledgerLineLength * 0.5;
-                        llsp += 0.2 * _spatium * pc->mag();
-                        llsp += lhead;
-                        }
-                  if (_noteType == NoteType::NORMAL && pc->isGraceAfter()) {
-                        // add appropriate space to right of previous (grace note after) chord
-                        // this will be used in calculating its position relative to this chord
-                        // it is too late to actually allocate space for this in segment of previous chord
-                        // so we will allocate room in left space of this chord
-                        qreal oldR  = pc->_spaceRw;
-                        qreal stemX = pc->stemPosX();
-                        qreal available = oldR - stemX;
-                        qreal newR = stemX + qMax(available, llsp);
-                        if (newR > oldR)
-                              pc->_spaceRw = newR;
-                        }
-                  lll = qMax(llsp, lll);
-                  }
-            }
-#endif
-
       _spaceLw = lll;
       _spaceRw = rrr;
 
-      if (gnb){
+      if (gnb) {
               qreal xl = -(_spaceLw + minNoteDistance) - chordX;
               for (int i = gnb-1; i >= 0; --i) {
                     Chord* g = graceNotesBefore.value(i);
@@ -3556,6 +3439,8 @@ Shape Chord::shape() const
       shape.add(ChordRest::shape());      // add lyrics
       for (LedgerLine* l = _ledgerLines; l; l = l->next())
             shape.add(l->shape().translated(l->pos()));
+      if (_spaceLw || _spaceRw)
+            shape.addHorizontalSpacing(Shape::SPACING_GENERAL, -_spaceLw, _spaceRw);
       return shape;
       }
 
@@ -3581,28 +3466,21 @@ void Chord::layoutArticulations()
       //
 
       for (Articulation* a : _articulations) {
-            if (a->direction() != Direction::AUTO)
-                  a->setUp(a->direction() == Direction::UP);
-            else {
-                  if (a->anchor() == ArticulationAnchor::CHORD)
-                        a->setUp(!up());
-                  else
-                        a->setUp(a->anchor() == ArticulationAnchor::TOP_STAFF || a->anchor() == ArticulationAnchor::TOP_CHORD);
+            if (a->anchor() == ArticulationAnchor::CHORD) {
+			if (measure()->hasVoices(a->staffIdx()))
+				a->setUp(up()); // if there are voices place articulation at stem
+			else if (a->symId() >= SymId::articMarcatoAbove && a->symId() <= SymId::articMarcatoTenutoBelow)
+				a->setUp(true); // Gould, p. 117: strong accents above staff
+			else
+                        a->setUp(!up()); // place articulation at note head
                   }
+            else
+                  a->setUp(a->anchor() == ArticulationAnchor::TOP_STAFF || a->anchor() == ArticulationAnchor::TOP_CHORD);
+
             if (!a->layoutCloseToNote())
                   continue;
 
-            ArticulationAnchor aa = a->anchor();
-            if (aa != ArticulationAnchor::CHORD && aa != ArticulationAnchor::TOP_CHORD && aa != ArticulationAnchor::BOTTOM_CHORD)
-                  continue;
-            bool bottom;                // true: articulation is below chord;  false: articulation is above chord
-            // if there area voices, articulation is on stem side
-            // otherwise, look at specific anchor type (and at chord up/down if necessary)
-            if ((aa == ArticulationAnchor::CHORD) && measure()->hasVoices(a->staffIdx()))
-                  bottom = !up();
-            else
-                  bottom = (aa == ArticulationAnchor::BOTTOM_CHORD) || (aa == ArticulationAnchor::CHORD && up());
-            a->setUp(!bottom);
+            bool bottom = !a->up();  // true: articulation is below chord;  false: articulation is above chord
             a->layout();
 
             bool headSide = bottom == up();

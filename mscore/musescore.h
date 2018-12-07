@@ -102,6 +102,7 @@ class Startcenter;
 class HelpBrowser;
 class ToolbarEditor;
 class TourHandler;
+class GeneralAutoUpdater;
 
 struct PluginDescription;
 enum class SelState : char;
@@ -247,9 +248,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       QSplitter* mainWindow;
 
       ScoreComparisonTool* scoreCmpTool    { 0 };
-#ifdef MSCORE_UNSTABLE
       ScriptRecorderWidget* scriptRecorder { nullptr };
-#endif
 
       MagBox* mag;
       QComboBox* viewModeCombo;
@@ -306,9 +305,11 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       QMenu* menuFormat;
       QMenu* menuTools;
       QMenu* menuVoices;
+      QMenu* menuMeasure;
 
       QMenu* menuPlugins;
       QMenu* menuHelp;
+      QMenu* menuTours;
       AlbumManager* albumManager           { 0 };
 
       QWidget* _searchDialog               { 0 };
@@ -423,12 +424,15 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       QMessageBox* infoMsgBox;
       TourHandler* _tourHandler { 0 };
 
+      std::unique_ptr<GeneralAutoUpdater> autoUpdater;
+
       //---------------------
 
       virtual void closeEvent(QCloseEvent*);
       virtual void dragEnterEvent(QDragEnterEvent*);
       virtual void dropEvent(QDropEvent*);
       virtual void changeEvent(QEvent *e);
+      virtual void showEvent(QShowEvent *event);
 
       void retranslate();
 
@@ -480,8 +484,11 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
 
       QString getUtmParameters(QString medium) const;
 
+      void checkForUpdatesNoUI();
+
    signals:
       void windowSplit(bool);
+      void musescoreWindowWasShown();
 
    private slots:
       void cmd(QAction* a, const QString& cmd);
@@ -550,8 +557,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void setNormalState()    { changeState(STATE_NORMAL); }
       void setPlayState()      { changeState(STATE_PLAY); }
       void setNoteEntryState() { changeState(STATE_NOTE_ENTRY); }
-      void checkForUpdate();
-      void checkForUpdateNow();
+      void checkForUpdatesUI();
       void checkForExtensionsUpdate();
       void midiNoteReceived(int channel, int pitch, int velo);
       void midiNoteReceived(int pitch, bool ctrl, int velo);
@@ -562,6 +568,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void editWorkspace();
       void changeWorkspace(Workspace* p, bool first=false);
       void mixerPreferencesChanged(bool showMidiControls);
+      void checkForUpdates();
 
    public:
       MuseScore();
@@ -684,6 +691,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       bool savePdf(const QString& saveName);
       bool savePdf(Score* cs, const QString& saveName);
       bool savePdf(QList<Score*> cs, const QString& saveName);
+      bool savePdf(Score* cs, QPdfWriter& printer);
 
 
       MasterScore* readScore(const QString& name);
@@ -692,14 +700,23 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       bool saveSelection(Score*);
       void addImage(Score*, Element*);
 
-      bool savePng(Score*, const QString& name, bool screenshot, bool transparent, double convDpi, int trimMargin, QImage::Format format);
-      bool saveAudio(Score*, QIODevice *device, std::function<bool(float)> updateProgress = nullptr);
+      bool saveAudio(Score*, QIODevice*, std::function<bool(float)> updateProgress = nullptr);
       bool saveAudio(Score*, const QString& name);
       bool canSaveMp3();
       bool saveMp3(Score*, const QString& name);
+      bool saveMp3(Score*, QIODevice*, bool& wasCanceled);
       bool saveSvg(Score*, const QString& name);
+      bool saveSvg(Score*, QIODevice*, int pageNum = 0);
+      bool savePng(Score*, QIODevice*, int pageNum = 0);
       bool savePng(Score*, const QString& name);
-      bool saveMidi(Score* score, const QString& name);
+      bool saveMidi(Score*, const QString& name);
+      bool saveMidi(Score*, QIODevice*);
+      bool savePositions(Score*, const QString& name, bool segments);
+      bool savePositions(Score*, QIODevice*, bool segments);
+      bool saveMetadataJSON(Score*, const QString& name);
+      QJsonObject saveMetadataJSON(Score*);
+
+      bool exportAllMediaFiles(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
 
       virtual void closeScore(Score* score);
 
@@ -837,6 +854,7 @@ extern Shortcut* midiActionMap[128];
 extern void loadTranslation(QString fileName, QString localeName);
 extern void setMscoreLocale(QString localeName);
 extern bool saveMxl(Score*, const QString& name);
+extern bool saveMxl(Score*, QIODevice*);
 extern bool saveXml(Score*, const QString& name);
 
 struct PluginDescription;

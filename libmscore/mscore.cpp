@@ -204,9 +204,9 @@ const char* toString(Direction val)
 void fillComboBoxDirection(QComboBox* cb)
       {
       cb->clear();
-      cb->addItem(qApp->translate("Direction", "auto"), QVariant::fromValue<Direction>(Direction::AUTO));
-      cb->addItem(qApp->translate("Direction", "up"),   QVariant::fromValue<Direction>(Direction::UP));
-      cb->addItem(qApp->translate("Direction", "down"), QVariant::fromValue<Direction>(Direction::DOWN));
+      cb->addItem(qApp->translate("Direction", "Auto"), QVariant::fromValue<Direction>(Direction::AUTO));
+      cb->addItem(qApp->translate("Direction", "Up"),   QVariant::fromValue<Direction>(Direction::UP));
+      cb->addItem(qApp->translate("Direction", "Down"), QVariant::fromValue<Direction>(Direction::DOWN));
       }
 
 //---------------------------------------------------------
@@ -506,6 +506,7 @@ QQmlEngine* MScore::qml()
             }
       return _qml;
       }
+#endif
 
 //---------------------------------------------------------
 //   paintDevice
@@ -543,6 +544,5 @@ QPaintEngine* MPaintDevice::paintEngine() const
       return 0;
       }
 
-#endif
 }
 

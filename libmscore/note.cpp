@@ -2313,7 +2313,6 @@ void Note::layout2()
             if (e->isSymbol()) {
                   qreal w = headWidth();
                   Symbol* sym = toSymbol(e);
-//                  QPointF rp = e->readPos();
                   e->layout();
                   if (sym->sym() == SymId::noteheadParenthesisRight) {
                         if (staff()->isTabStaff(chord()->tick())) {
@@ -2330,11 +2329,6 @@ void Note::layout2()
                   else if (sym->sym() == SymId::noteheadParenthesisLeft) {
                         e->rxpos() -= symWidth(SymId::noteheadParenthesisLeft);
                         }
-/*                  if (sym->sym() == SymId::noteheadParenthesisLeft || sym->sym() == SymId::noteheadParenthesisRight) {
-                        if (!rp.isNull())
-                              e->setOffset(QPointF());
-                        }
- */
                   }
             else
                   e->layout();
@@ -3107,7 +3101,7 @@ QString Note::accessibleInfo() const
       QString pitchName;
       const Drumset* drumset = part()->instrument()->drumset();
       if (fixed() && headGroup() == NoteHead::Group::HEAD_SLASH)
-            pitchName = chord()->noStem() ? QObject::tr("Beat Slash") : QObject::tr("Rhythm Slash");
+            pitchName = chord()->noStem() ? QObject::tr("Beat slash") : QObject::tr("Rhythm slash");
       else if (staff()->isDrumStaff(tick()) && drumset)
             pitchName = qApp->translate("drumset", drumset->name(pitch()).toUtf8().constData());
       else
@@ -3510,18 +3504,29 @@ void Note::setAccidentalType(AccidentalType type)
 
 Shape Note::shape() const
       {
+      QRectF r(bbox());
+      qreal extraTieDistance = score()->styleP(Sid::MinTieLength) * .5;       // make room for ties
+      if (_tieFor)
+            r.adjust(0.0, 0.0, extraTieDistance, 0.0);
+      if (_tieBack)
+            r.adjust(-extraTieDistance, 0.0, 0.0, 0.0);
+
 #ifndef NDEBUG
-      Shape shape(bbox(), name());
+      Shape shape(r, name());
       for (NoteDot* dot : _dots)
             shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()), dot->name());
       if (_accidental)
             shape.add(_accidental->bbox().translated(_accidental->pos()), _accidental->name());
+      for (auto e : _el)
+            shape.add(e->bbox().translated(e->pos()), e->name());
 #else
-      Shape shape(bbox());
+      Shape shape(r);
       for (NoteDot* dot : _dots)
             shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()));
       if (_accidental)
             shape.add(_accidental->bbox().translated(_accidental->pos()));
+      for (auto e : _el)
+            shape.add(e->bbox().translated(e->pos()));
 #endif
       return shape;
       }

@@ -373,7 +373,11 @@ bool BarLine::isTop() const
 
 bool BarLine::isBottom() const
       {
-      return !_spanStaff;      // TODO
+      int nstaves = score()->nstaves();
+      if (!_spanStaff || staffIdx() == nstaves - 1)
+            return true;
+      // TODO: check if spanned-to staves are visible on this system
+      return false;
       }
 
 //---------------------------------------------------------
@@ -483,9 +487,9 @@ void BarLine::draw(QPainter* painter) const
                   break;
             }
       Segment* s = segment();
-      if (s && !score()->printing()) {
+      if (s && s->isEndBarLineType() && !score()->printing()) {
             Measure* m = s->measure();
-            if (s && s->isEndBarLineType() && m->isIrregular() && score()->markIrregularMeasures() && !m->isMMRest()) {
+            if (m->isIrregular() && score()->markIrregularMeasures() && !m->isMMRest()) {
                   painter->setPen(MScore::layoutBreakColor);
                   QFont f("FreeSerif");
                   f.setPointSizeF(12 * spatium() * MScore::pixelRatio / SPATIUM20);
@@ -798,6 +802,9 @@ void BarLine::editDrag(EditData& ed)
       qreal lineDist = staff()->lineDistance(tick()) * spatium();
       getY();
       if (ed.curGrip == Grip::START) {
+            // Start grip moving is useless currently, so disable it
+            return;
+#if 0
             // min offset for top grip is line -1 (-2 for 1-line staves)
             // max offset is 1 line above bottom grip or 1 below last staff line, whichever comes first
             int lines = staff()->lines(tick());
@@ -812,15 +819,21 @@ void BarLine::editDrag(EditData& ed)
                   bed->yoff1 = min;
             if (bed->yoff1 > max)
                   bed->yoff1 = max;
+#endif
             }
       else {
             // min for bottom grip is 1 line below top grip
-            // no max
-            qreal min = y1 - y2 + lineDist;
+            const qreal min = y1 - y2 + lineDist;
+            // max is the bottom of the system
+            const System* system = segment() ? segment()->system() : nullptr;
+            const int st = staffIdx();
+            const qreal max = (system && st != -1) ? (system->height() - y2 - system->staff(st)->y()) : std::numeric_limits<qreal>::max();
             // update yoff2 and bring it within limit
             bed->yoff2 += ed.delta.y();
             if (bed->yoff2 < min)
                   bed->yoff2 = min;
+            if (bed->yoff2 > max)
+                  bed->yoff2 = max;
             }
       }
 

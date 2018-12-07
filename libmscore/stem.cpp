@@ -87,6 +87,7 @@ void Stem::layout()
       qreal y1 = 0.0;                           // vertical displacement to match note attach point
       const Staff* stf = staff();
       if (chord()) {
+            setMag(chord()->mag());
             int tick = chord()->tick();
             const StaffType* st = stf ? stf->staffType(tick) : nullptr;
             if (st && st->isTabStaff() ) {            // TAB staves
@@ -114,7 +115,7 @@ void Stem::layout()
                   }
             }
 
-      qreal lw5 = _lineWidth * .5;
+      qreal lw5 = _lineWidth * .5 * mag();
 
       line.setLine(0.0, y1, 0.0, l);
 
@@ -157,7 +158,7 @@ void Stem::draw(QPainter* painter) const
       const StaffType* stt = st ? st->staffType(chord()->tick()) : 0;
       bool useTab          = stt && stt->isTabStaff();
 
-      painter->setPen(QPen(curColor(), _lineWidth, Qt::SolidLine, Qt::RoundCap));
+      painter->setPen(QPen(curColor(), _lineWidth * mag(), Qt::SolidLine, Qt::RoundCap));
       painter->drawLine(line);
 
       if (!(useTab && chord()))
@@ -271,7 +272,8 @@ void Stem::startEdit(EditData& ed)
       Element::startEdit(ed);
       ed.grips   = 1;
       ed.curGrip = Grip::START;
-      undoPushProperty(Pid::USER_LEN);
+      ElementEditData* eed = ed.getData(this);
+      eed->pushProperty(Pid::USER_LEN);
       }
 
 //---------------------------------------------------------
@@ -391,14 +393,10 @@ QVariant Stem::propertyDefault(Pid id) const
 
 QPointF Stem::hookPos() const
       {
-      if(this){
-            QPointF p(pos() + line.p2());
-
-            qreal xoff = _lineWidth * .5;
-            p.rx() += xoff;
-            return p;
-            }
-      return QPointF();
+      QPointF p(pos() + line.p2());
+      qreal xoff = _lineWidth * .5 * mag();
+      p.rx() += xoff;
+      return p;
       }
 
 }

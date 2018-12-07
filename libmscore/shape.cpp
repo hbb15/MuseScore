@@ -16,6 +16,20 @@
 namespace Ms {
 
 //---------------------------------------------------------
+//   addHorizontalSpacing
+//    Currently implemented by adding rectangles of zero
+//    height to the Y position corresponding to the type.
+//    This is a simple solution but has its drawbacks too.
+//---------------------------------------------------------
+
+void Shape::addHorizontalSpacing(HorizontalSpacingType type, qreal leftEdge, qreal rightEdge)
+      {
+      constexpr qreal eps = 100 * std::numeric_limits<qreal>::epsilon();
+      const qreal y = eps * int(type);
+      add(QRectF(leftEdge, y, rightEdge - leftEdge, 0));
+      }
+
+//---------------------------------------------------------
 //   translate
 //---------------------------------------------------------
 
@@ -60,7 +74,7 @@ Shape Shape::translated(const QPointF& pt) const
 //   minHorizontalDistance
 //    a is located right of this shape.
 //    Calculates the minimum horizontal distance between the two shapes
-//    so they dont touch.
+//    so they don’t touch.
 //-------------------------------------------------------------------
 
 qreal Shape::minHorizontalDistance(const Shape& a) const
@@ -237,6 +251,19 @@ bool Shape::intersects(const QRectF& rr) const
       {
       for (const QRectF& r : *this) {
             if (r.intersects(rr))
+                  return true;
+            }
+      return false;
+      }
+
+//---------------------------------------------------------
+//   intersects
+//---------------------------------------------------------
+
+bool Shape::intersects(const Shape& other) const
+      {
+      for (const QRectF& r : other) {
+            if (intersects(r))
                   return true;
             }
       return false;

@@ -28,7 +28,8 @@ InspectorHarmony::InspectorHarmony(QWidget* parent)
       h.setupUi(addWidget());
 
       const std::vector<InspectorItem> iiList = {
-            { Pid::SUB_STYLE, 0, h.style, h.resetStyle       },
+            { Pid::SUB_STYLE, 0, h.style,       h.resetStyle      },
+            { Pid::PLACEMENT, 0, h.placement,   h.resetPlacement  }
             };
 
       const std::vector<InspectorPanel> ppList = {
@@ -36,9 +37,8 @@ InspectorHarmony::InspectorHarmony(QWidget* parent)
             };
 
       h.style->clear();
-      for (auto ss : { Tid::HARMONY_A, Tid::HARMONY_B } ) {
+      for (auto ss : primaryTextStyles())
             h.style->addItem(textStyleUserName(ss), int(ss));
-            }
 
       t.resetToStyle->setVisible(false);
 

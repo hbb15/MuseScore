@@ -197,7 +197,7 @@ bool Score::sanityCheck(const QString& name)
                               }
                         }
                   if (voices[0] != mLen) {
-                        QString msg = QObject::tr("Measure %1 Staff %2 incomplete. Expected: %3; Found: %4").arg(mNumber).arg( staffIdx+1).arg(mLen.print()).arg(voices[0].print());
+                        QString msg = QObject::tr("Measure %1, staff %2 incomplete. Expected: %3; Found: %4").arg(mNumber).arg( staffIdx+1).arg(mLen.print()).arg(voices[0].print());
                         qDebug() << msg;
                         error += QString("%1\n").arg(msg);
 #ifndef NDEBUG
@@ -321,7 +321,9 @@ bool Score::checkClefs()
 
 void Measure::fillGap(const Fraction& pos, const Fraction& len, int track, const Fraction& stretch)
       {
-//      qDebug("measure %6d pos %d, len %d, track %d", tick(), pos.ticks(), len.ticks(), track);
+      qDebug("measure %6d pos %d, len %d/%d, stretch %d/%d track %d",
+         tick(), pos.ticks(), len.numerator(), len.denominator(), stretch.numerator(), stretch.denominator(),
+         track);
       TDuration d;
       d.setVal(len.ticks());
       if (d.isValid()) {

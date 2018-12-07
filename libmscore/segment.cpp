@@ -207,7 +207,7 @@ void Segment::init()
 
 //---------------------------------------------------------
 //   next1
-///   return next \a Segment, dont stop searching at end
+///   return next \a Segment, don’t stop searching at end
 ///   of \a Measure
 //---------------------------------------------------------
 
@@ -291,7 +291,7 @@ Segment* Segment::prev(SegmentType types) const
 
 //---------------------------------------------------------
 //   prev1
-///   return previous \a Segment, dont stop searching at
+///   return previous \a Segment, don’t stop searching at
 ///   \a Measure begin
 //---------------------------------------------------------
 
@@ -940,11 +940,26 @@ bool Segment::operator>(const Segment& s) const
       }
 
 //---------------------------------------------------------
-//   findAnnotationOrElement
+//   hasElements
+///  Returns true if the segment has at least one element.
+///  Annotations are not considered.
+//---------------------------------------------------------
+
+bool Segment::hasElements() const
+      {
+      for (const Element* e : _elist) {
+            if (e)
+                  return true;
+            }
+      return false;
+      }
+
+//---------------------------------------------------------
+//   hasAnnotationOrElement
 ///  return true if an annotation of type type or and element is found in the track range
 //---------------------------------------------------------
 
-bool Segment::findAnnotationOrElement(ElementType type, int minTrack, int maxTrack)
+bool Segment::hasAnnotationOrElement(ElementType type, int minTrack, int maxTrack) const
       {
       for (const Element* e : _annotations)
             if (e->type() == type && e->track() >= minTrack && e->track() <= maxTrack)
@@ -957,15 +972,31 @@ bool Segment::findAnnotationOrElement(ElementType type, int minTrack, int maxTra
 
 //---------------------------------------------------------
 //   findAnnotation
-///  return true if an annotation of type type
+///  Returns the first found annotation of type type
+///  or nullptr if nothing was found.
 //---------------------------------------------------------
 
-bool Segment::findAnnotation(ElementType type, int minTrack, int maxTrack)
+Element* Segment::findAnnotation(ElementType type, int minTrack, int maxTrack)
       {
-      for (const Element* e : _annotations)
+      for (Element* e : _annotations)
             if (e->type() == type && e->track() >= minTrack && e->track() <= maxTrack)
-                  return true;
-      return false;
+                  return e;
+      return nullptr;
+      }
+
+//---------------------------------------------------------
+//   findAnnotations
+///  Returns the list of found annotations
+///  or nullptr if nothing was found.
+//---------------------------------------------------------
+
+std::vector<Element*> Segment::findAnnotations(ElementType type, int minTrack, int maxTrack)
+      {
+      std::vector<Element*> found;
+      for (Element* e : _annotations)
+            if (e->type() == type && e->track() >= minTrack && e->track() <= maxTrack)
+                  found.push_back(e);
+      return found;
       }
 
 //---------------------------------------------------------
@@ -1856,6 +1887,7 @@ void Segment::createShape(int staffIdx)
                && !e->isHarmony()
                && !e->isTempoText()
                && !e->isDynamic()
+               && !e->isFiguredBass()
                && !e->isSymbol()
                && !e->isFSymbol()
                && !e->isSystemText()

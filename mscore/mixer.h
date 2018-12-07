@@ -63,29 +63,34 @@ class Mixer : public QWidget, public Ui::Mixer, public MixerTrackGroup
       Q_OBJECT
 
       MasterScore* _score;
-      QScrollArea* sa;
       QHBoxLayout* trackAreaLayout;
       EnablePlayForWidget* enablePlay;
 
       MixerDetails* mixerDetails;
+      QGridLayout* detailsLayout;
 
-      bool showExpanded;
+      bool showDetails;
       QSet<Part*> expandedParts;
       QWidget* trackHolder;
       QList<MixerTrack*> trackList;
+
+      int _scrollPosition = 0;
+      bool _needToKeepScrollPosition = false;
 
       virtual void closeEvent(QCloseEvent*) override;
       virtual void showEvent(QShowEvent*) override;
       virtual bool eventFilter(QObject*, QEvent*) override;
       virtual void keyPressEvent(QKeyEvent*) override;
       void readSettings();
+      void keepScrollPosition();
 
    public slots:
       void updateTracks();
       void midiPrefsChanged(bool showMidiControls);
       void masterVolumeChanged(double val);
       void synthGainChanged(float val);
-
+      void adjustScrollPosition(int, int);
+      void checkKeptScrollValue(int);
 
    signals:
       void closed(bool);
@@ -101,6 +106,7 @@ class Mixer : public QWidget, public Ui::Mixer, public MixerTrackGroup
       void writeSettings();
       void expandToggled(Part* part, bool expanded) override;
       void notifyTrackSelected(MixerTrack* track) override;
+      void showDetailsToggled(bool shown);
       };
 
 

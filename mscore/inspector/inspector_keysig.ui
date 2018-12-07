@@ -108,14 +108,13 @@
         <property name="focusPolicy">
          <enum>Qt::TabFocus</enum>
         </property>
-        <property name="accessibleName">
-         <string>Show courtesy</string>
-        </property>
         <property name="text">
          <string>Show courtesy</string>
         </property>
        </widget>
       </item>
+      <item row="0" column="1">
+       <widget class="Ms::ResetButton" name="resetShowCourtesy"/>
       <item row="1" column="2">
        <widget class="QToolButton" name="resetSetKey">
         <property name="toolTip">
@@ -155,6 +154,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Ms::ResetButton</class>
+   <extends>QWidget</extends>
+   <header>inspector/resetButton.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>title</tabstop>
   <tabstop>showCourtesy</tabstop>

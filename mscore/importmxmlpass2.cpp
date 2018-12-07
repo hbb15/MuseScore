@@ -1040,6 +1040,53 @@ static bool isTupletFilled(Tuplet* t, TDuration normalType)
       }
 
 //---------------------------------------------------------
+//   handleTupletStart
+//---------------------------------------------------------
+
+static void handleTupletStart(const ChordRest* const cr, Tuplet*& tuplet,
+                              const int actualNotes, const int normalNotes,
+                              const MusicXmlTupletDesc& tupletDesc)
+      {
+      tuplet = new Tuplet(cr->score());
+      tuplet->setTrack(cr->track());
+      tuplet->setRatio(Fraction(actualNotes, normalNotes));
+      tuplet->setTick(cr->tick());
+      tuplet->setBracketType(tupletDesc.bracket);
+      tuplet->setNumberType(tupletDesc.shownumber);
+      // TODO type, placement, bracket
+      tuplet->setParent(cr->measure());
+      }
+
+//---------------------------------------------------------
+//   handleTupletStop
+//---------------------------------------------------------
+
+static void handleTupletStop(Tuplet*& tuplet, const int normalNotes)
+      {
+      // allow handleTupletStop to be called w/o error of no tuplet active
+      if (!tuplet) return;
+
+      // set baselen
+      TDuration td = determineTupletBaseLen(tuplet);
+      //qDebug("stop tuplet %p basetype %d", tuplet, td.ticks());
+      tuplet->setBaseLen(td);
+      Fraction f(normalNotes, td.fraction().denominator());
+      f.reduce();
+      tuplet->setDuration(f);
+      // TODO determine usefulness of following check
+      int totalDuration = 0;
+      foreach (DurationElement* de, tuplet->elements()) {
+            if (de->type() == ElementType::CHORD || de->type() == ElementType::REST) {
+                  totalDuration+=de->globalDuration().ticks();
+                  }
+            }
+      if (!(totalDuration && normalNotes)) {
+            qDebug("MusicXML::import: tuplet stop but bad duration"); // TODO
+            }
+      tuplet = 0;
+      }
+
+//---------------------------------------------------------
 //   addTupletToChord
 //---------------------------------------------------------
 
@@ -1062,12 +1109,13 @@ void addTupletToChord(ChordRest* cr, Tuplet*& tuplet, bool& tuplImpl,
 
       // check for obvious errors
       if (tupletDesc.type == MxmlStartStop::START && tuplet) {
-            qDebug("tuplet already started"); // TODO
-            // TODO: how to recover ?
+            qDebug("tuplet already started");
+            // recover by simply stopping the current tuplet first
+            handleTupletStop(tuplet, normalNotes);
             }
       if (tupletDesc.type == MxmlStartStop::STOP && !tuplet) {
             qDebug("tuplet stop but no tuplet started"); // TODO
-            // TODO: how to recover ?
+            // recovery handled later (automatically, no special case needed)
             }
 
       // Tuplet are either started by the tuplet start
@@ -1083,14 +1131,7 @@ void addTupletToChord(ChordRest* cr, Tuplet*& tuplet, bool& tuplImpl,
                   else
                         tuplImpl = false;
                   // create a new tuplet
-                  tuplet = new Tuplet(cr->score());
-                  tuplet->setTrack(cr->track());
-                  tuplet->setRatio(Fraction(actualNotes, normalNotes));
-                  tuplet->setTick(cr->tick());
-                  tuplet->setBracketType(tupletDesc.bracket);
-                  tuplet->setNumberType(tupletDesc.shownumber);
-                  // TODO type, placement, bracket
-                  tuplet->setParent(cr->measure());
+                  handleTupletStart(cr, tuplet, actualNotes, normalNotes, tupletDesc);
                   }
             }
 
@@ -1112,24 +1153,7 @@ void addTupletToChord(ChordRest* cr, Tuplet*& tuplet, bool& tuplImpl,
             if (tupletDesc.type == MxmlStartStop::STOP
                 || (tuplImpl && isTupletFilled(tuplet, normalType))
                 || (actualNotes == 1 && normalNotes == 1)) {
-                  // set baselen
-                  TDuration td = determineTupletBaseLen(tuplet);
-                  // qDebug("stop tuplet %p basetype %d", tuplet, tupletType);
-                  tuplet->setBaseLen(td);
-                  Fraction f(normalNotes, td.fraction().denominator());
-                  f.reduce();
-                  tuplet->setDuration(f);
-                  // TODO determine usefulness of following check
-                  int totalDuration = 0;
-                  foreach (DurationElement* de, tuplet->elements()) {
-                        if (de->type() == ElementType::CHORD || de->type() == ElementType::REST) {
-                              totalDuration+=de->globalDuration().ticks();
-                              }
-                        }
-                  if (!(totalDuration && normalNotes)) {
-                        qDebug("MusicXML::import: tuplet stop but bad duration"); // TODO
-                        }
-                  tuplet = 0;
+                  handleTupletStop(tuplet, normalNotes);
                   }
             }
       }
@@ -1161,7 +1185,10 @@ static void addFermataToChord(ChordRest* cr, SymId articSym, bool up)
       Fermata* na = new Fermata(articSym, cr->score());
       na->setTrack(cr->track());
       na->setPlacement(up ? Placement::ABOVE : Placement::BELOW);
-      cr->segment()->add(na);
+      if (cr->segment() == nullptr && cr->isGrace())
+            cr->el().push_back(na);       // store for later move to segment
+      else
+            cr->segment()->add(na);
       }
 
 //---------------------------------------------------------
@@ -1413,6 +1440,22 @@ MusicXMLParserPass2::MusicXMLParserPass2(Score* score, MusicXMLParserPass1& pass
       : _divs(0), _score(score), _pass1(pass1), _logger(logger)
       {
       // nothing
+      }
+
+//---------------------------------------------------------
+//   resetTuplets
+//---------------------------------------------------------
+
+static void resetTuplets(QVector<Tuplet*>& tuplets, QVector<bool>& tuplImpls)
+      {
+      for (auto& tuplet : tuplets) {
+            if (tuplet) {
+                  qDebug("tuplet not stopped at end of measure");
+                  handleTupletStop(tuplet, 2);
+                  }
+            tuplet = nullptr;
+            }
+      for (auto& tuplImpl : tuplImpls) tuplImpl = false;
       }
 
 //---------------------------------------------------------
@@ -1962,8 +2005,17 @@ static void addGraceChordsAfter(Chord* c, GraceChordList& gcl, int& gac)
 
 static void addGraceChordsBefore(Chord* c, GraceChordList& gcl)
       {
-      for (int i = gcl.size() - 1; i >= 0; i--)
-            c->add(gcl.at(i));        // TODO check if same voice ?
+      for (int i = gcl.size() - 1; i >= 0; i--) {
+            Chord* gc = gcl.at(i);
+            for (Element* e : gc->el()) {
+                  if (e->isFermata()) {
+                        c->segment()->add(e);
+                        gc->el().remove(e);
+                        break;                  // out of the door, line on the left, one cross each
+                        }
+                  }
+            c->add(gc);        // TODO check if same voice ?
+            }
       gcl.clear();
       }
 
@@ -2126,6 +2178,9 @@ void MusicXMLParserPass2::measure(const QString& partId,
             // measure is first measure after a multi-measure rest
             measure->setBreakMultiMeasureRest(true);
             }
+
+      // prevent tuplets from crossing measure boundaries
+      resetTuplets(_tuplets, _tuplImpls);
 
       Q_ASSERT(_e.isEndElement() && _e.name() == "measure");
       }
@@ -3621,7 +3676,9 @@ void MusicXMLParserPass2::clef(const QString& partId, Measure* measure, const in
             }
       else if (c == "percussion") {
             clef = ClefType::PERC;
-            st = StaffTypes::PERC_DEFAULT;
+            if (_hasDrumset) {
+                  st = StaffTypes::PERC_DEFAULT;
+                  }
             }
       else if (c == "TAB") {
             clef = ClefType::TAB;
@@ -3638,13 +3695,12 @@ void MusicXMLParserPass2::clef(const QString& partId, Measure* measure, const in
       s->add(clefs);
 
       // set the correct staff type
-      // note that this overwrites the staff lines value set in pass 1
-      // also note that clef handling should probably done in pass1
+      // note that clef handling should probably done in pass1
       int staffIdx = _score->staffIdx(part) + clefno;
       int lines = _score->staff(staffIdx)->lines(0);
-      if (st == StaffTypes::TAB_DEFAULT || (_hasDrumset && st == StaffTypes::PERC_DEFAULT)) {
-            _score->staff(staffIdx)->setStaffType(0, *StaffType::preset(st));
-            _score->staff(staffIdx)->setLines(0, lines); // preserve previously set staff lines
+      if (tick == 0) { // changing staff type not supported (yet ?)
+            _score->staff(staffIdx)->setStaffType(tick, *StaffType::preset(st));
+            _score->staff(staffIdx)->setLines(tick, lines); // preserve previously set staff lines
             _score->staff(staffIdx)->setBarLineTo(0);    // default
             }
       }
@@ -4508,13 +4564,17 @@ Note* MusicXMLParserPass2::note(const QString& partId,
             if (!chord && !grace) {
                   // do tuplet if valid time-modification is not 1/1 and is not 1/2 (tremolo)
                   auto timeMod = mnd.timeMod();
+                  // find part-relative track
+                  auto part = _pass1.getPart(partId);
+                  Q_ASSERT(part);
+                  auto scoreRelStaff = _score->staffIdx(part); // zero-based number of parts first staff in the score
+                  auto partRelTrack = msTrack + msVoice - scoreRelStaff * VOICES;
                   if (timeMod.isValid() && timeMod != Fraction(1, 1) && timeMod != Fraction(1, 2)) {
-                        // find part-relative track
-                        Part* part = _pass1.getPart(partId);
-                        Q_ASSERT(part);
-                        int scoreRelStaff = _score->staffIdx(part); // zero-based number of parts first staff in the score
-                        int partRelTrack = msTrack + msVoice - scoreRelStaff * VOICES;
                         addTupletToChord(cr, _tuplets[partRelTrack], _tuplImpls[partRelTrack], timeMod, tupletDesc, mnd.normalType());
+                        }
+                  else if (_tuplets[partRelTrack]) {
+                        // stop any still incomplete tuplet
+                        handleTupletStop(_tuplets[partRelTrack], 2);
                         }
                   }
             }

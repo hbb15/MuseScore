@@ -126,7 +126,7 @@ class Segment final : public Element {
       Segment* prevEnabled() const;
       void setPrev(Segment* e)            { _prev = e;      }
 
-      // dont stop at measure boundary:
+      // don’t stop at measure boundary:
       Segment* next1() const;
       Segment* next1enabled() const;
       Segment* next1MM() const;
@@ -198,8 +198,10 @@ class Segment final : public Element {
       const std::vector<Element*>& annotations() const { return _annotations;        }
       void clearAnnotations();
       void removeAnnotation(Element* e);
-      bool findAnnotationOrElement(ElementType type, int minTrack, int maxTrack);
-      bool findAnnotation(ElementType type, int minTrack, int maxTrack);
+      bool hasAnnotationOrElement(ElementType type, int minTrack, int maxTrack) const;
+      Element* findAnnotation(ElementType type, int minTrack, int maxTrack);
+      std::vector<Element*> findAnnotations(ElementType type, int minTrack, int maxTrack);
+      bool hasElements() const;
 
 
       qreal dotPosX(int staffIdx) const          { return _dotPosX[staffIdx];  }

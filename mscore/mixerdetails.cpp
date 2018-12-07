@@ -1,7 +1,6 @@
 //=============================================================================
 //  MuseScore
 //  Linux Music Score Editor
-//  $Id: mixer.h 4388 2011-06-18 13:17:58Z wschweer $
 //
 //  Copyright (C) 2002-2016 Werner Schweer and others
 //
@@ -63,36 +62,13 @@ MixerDetails::MixerDetails(QWidget *parent) :
       }
 
 //---------------------------------------------------------
-//   ~MixerDetails
-//---------------------------------------------------------
-
-MixerDetails::~MixerDetails()
-      {
-      if (_mti) {
-            //Remove old attachment
-            _mti->midiMap()->articulation->removeListener(this);
-            }
-      }
-
-//---------------------------------------------------------
 //   setTrack
 //---------------------------------------------------------
 
 void MixerDetails::setTrack(MixerTrackItemPtr track)
       {
-      if (_mti) {
-            //Remove old attachment
-            Channel* chan = _mti->focusedChan();
-            chan->removeListener(this);
-            }
-
       _mti = track;
-
-      if (_mti) {
-            //Listen to new track
-            Channel* chan = _mti->focusedChan();
-            chan->addListener(this);
-            }
+      setNotifier(_mti ? _mti->focusedChan() : nullptr);
       updateFromTrack();
       }
 
@@ -283,16 +259,6 @@ void MixerDetails::trackColorChanged(QColor col)
             }
 
       _mti->setColor(col.rgb());
-      }
-
-//---------------------------------------------------------
-//   disconnectChannelListener
-//---------------------------------------------------------
-
-void MixerDetails::disconnectChannelListener()
-      {
-      //Channel has been destroyed.  Don't remove listener when invoking destructor.
-      _mti = nullptr;
       }
 
 //---------------------------------------------------------

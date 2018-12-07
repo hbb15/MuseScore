@@ -1,7 +1,6 @@
 //=============================================================================
 //  MuseScore
 //  Linux Music Score Editor
-//  $Id: mixer.h 4388 2011-06-18 13:17:58Z wschweer $
 //
 //  Copyright (C) 2002-2016 Werner Schweer and others
 //
@@ -119,18 +118,6 @@ MixerTrackChannel::MixerTrackChannel(QWidget *parent, MixerTrackItemPtr mti) :
       }
 
 //---------------------------------------------------------
-//   ~MixerTrack
-//---------------------------------------------------------
-
-MixerTrackChannel::~MixerTrackChannel()
-      {
-      if (_mti) {
-            Channel* chan = _mti->chan();
-            chan->removeListener(this);
-            }
-      }
-
-//---------------------------------------------------------
 //   expandToggled
 //---------------------------------------------------------
 
@@ -231,17 +218,6 @@ void MixerTrackChannel::updateNameLabel()
 void MixerTrackChannel::paintEvent(QPaintEvent*)
       {
       applyStyle();
-      }
-
-
-//---------------------------------------------------------
-//   disconnectChannelListener
-//---------------------------------------------------------
-
-void MixerTrackChannel::disconnectChannelListener()
-      {
-      //Channel has been destroyed.  Don't remove listener when invoking destructor.
-      _mti = nullptr;
       }
 
 //---------------------------------------------------------

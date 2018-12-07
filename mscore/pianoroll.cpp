@@ -50,7 +50,7 @@ PianorollEditor::PianorollEditor(QWidget* parent)
       staff    = 0;
 
       QWidget* mainWidget = new QWidget;
-      QToolBar* tb = addToolBar(tr("Toolbar 1"));
+      QToolBar* tb = addToolBar("Toolbar 1");
       if (qApp->layoutDirection() == Qt::LayoutDirection::LeftToRight) {
             tb->addAction(getAction("undo"));
             tb->addAction(getAction("redo"));
@@ -104,7 +104,7 @@ PianorollEditor::PianorollEditor(QWidget* parent)
 
 
       //-------------
-      tb = addToolBar(tr("Toolbar 2"));
+      tb = addToolBar("Toolbar 2");
 
       tb->addWidget(new QLabel(tr("Cursor:")));
       pos = new Awl::PosLabel;
@@ -117,7 +117,7 @@ PianorollEditor::PianorollEditor(QWidget* parent)
 
       tb->addSeparator();
 
-      tb->addWidget(new QLabel(tr("Subdiv:")));
+      tb->addWidget(new QLabel(tr("Subdiv.:")));
       subdiv = new QSpinBox;
       subdiv->setToolTip(tr("Subdivide the beat this many times"));
       subdiv->setMinimum(0);
@@ -133,7 +133,7 @@ PianorollEditor::PianorollEditor(QWidget* parent)
 
       tb->addWidget(new QLabel(tr("Stripe Pattern:")));
       barPattern = new QComboBox;
-      barPattern->setToolTip(tr("White key lines show the tones of this chord."));
+      barPattern->setToolTip(tr("White stripes show the tones of this chord."));
       for (int i = 0; !PianoView::barPatterns[i].name.isEmpty(); ++i) {
             barPattern->addItem(PianoView::barPatterns[i].name, i);
             }
@@ -333,7 +333,8 @@ void PianorollEditor::setStaff(Staff* st)
       if (staff == st)
             return;
 
-      partLabel->setText("Part: " + st->partName());
+      if (st)
+            partLabel->setText("Part: " + st->partName());
 
       if ((st && st->score() != _score) || (!st && _score)) {
             if (_score) {
@@ -361,6 +362,8 @@ void PianorollEditor::setStaff(Staff* st)
             pos->setContext(tl, sl);
             showWave->setEnabled(_score->audio() != 0);
             }
+      else
+            setWindowTitle(tr("Piano roll editor"));
       ruler->setScore(_score, locator);
       pianoView->setStaff(staff, locator);
       pianoLevels->setScore(_score, locator);
@@ -636,20 +639,13 @@ void PianorollEditor::dataChanged(const QRectF&)
       }
 
 //---------------------------------------------------------
-//   adjustCanvasPosition
-//---------------------------------------------------------
-
-void PianorollEditor::adjustCanvasPosition(const Element*, bool)
-      {
-      }
-
-//---------------------------------------------------------
 //   removeScore
 //---------------------------------------------------------
 
 void PianorollEditor::removeScore()
       {
-      setStaff(0);
+      _score = nullptr;
+      setStaff(nullptr);
       }
 
 //---------------------------------------------------------
@@ -697,22 +693,6 @@ const QTransform& PianorollEditor::matrix() const
       }
 
 //---------------------------------------------------------
-//   setDropRectangle
-//---------------------------------------------------------
-
-void PianorollEditor::setDropRectangle(const QRectF&)
-      {
-      }
-
-//---------------------------------------------------------
-//   cmdAddSlur
-//---------------------------------------------------------
-
-void PianorollEditor::cmdAddSlur(Note*, Note*)
-      {
-      }
-
-//---------------------------------------------------------
 //   startEdit
 //---------------------------------------------------------
 
@@ -744,6 +724,10 @@ Element* PianorollEditor::elementNear(QPointF)
 void PianorollEditor::updateAll()
       {
       startTimer(0);    // delayed update
+      if (staff && staff->idx() == -1) { // staff removed
+            removeScore();
+            return;
+            }
       pianoView->updateNotes();
       pianoLevels->updateNotes();
       }

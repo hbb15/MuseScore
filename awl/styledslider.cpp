@@ -1,7 +1,6 @@
 //=============================================================================
 //  Awl
 //  Audio Widget Library
-//  $Id:$
 //
 //  Copyright (C) 2002-2006 by Werner Schweer and others
 //
@@ -44,8 +43,11 @@ StyledSlider::StyledSlider(QWidget *parent) : QWidget(parent)
 void StyledSlider::wheelEvent(QWheelEvent* e)
       {
       QPoint ad = e->angleDelta();
-      setValue(_value + (_maxValue - _minValue) * ad.y() / 10000.0);
-      repaint();
+      //120 degrees is one tick
+      auto value = _value + ad.y() / 120;
+      value = qBound(_minValue, value, _maxValue);
+      setValue(value);
+      update();
       }
 
 //---------------------------------------------------------
@@ -73,7 +75,7 @@ void StyledSlider::mousePressEvent(QMouseEvent* e)
       {
       draggingMouse = true;
       mouseDownPos = e->pos();
-      lastMousePos = mouseDownPos;
+      mouseDownVal = _value;
       emit(sliderPressed());
       }
 
@@ -95,15 +97,14 @@ void StyledSlider::mouseMoveEvent(QMouseEvent* e)
       {
       if (draggingMouse) {
             QPoint p = e->pos();
-            double dPixY = p.y() - lastMousePos.y();
+            double dPixY = p.y() - mouseDownPos.y();
             double barLength = height() - (_margin * 2);
             double dy = dPixY * (_maxValue - _minValue) / barLength;
 
-            double val = qBound(_minValue, _value - dy, _maxValue);
+            double val = qBound(_minValue, mouseDownVal - dy, _maxValue);
 
-            lastMousePos = p;
             setValue(val);
-            repaint();
+            update();
             }
       }
 
@@ -208,7 +209,7 @@ void StyledSlider::setValue(double v)
             return;
 
       _value = v;
-      repaint();
+      update();
       emit(valueChanged(v));
       }
 
@@ -221,7 +222,7 @@ void StyledSlider::setMinValue(double v)
       if (v == _minValue)
             return;
       _minValue = v;
-      repaint();
+      update();
       emit(minValueChanged(v));
       }
 
@@ -234,7 +235,7 @@ void StyledSlider::setMaxValue(double v)
       if (v == _maxValue)
             return;
       _maxValue = v;
-      repaint();
+      update();
       emit(maxValueChanged(v));
       }
 
@@ -245,7 +246,7 @@ void StyledSlider::setMaxValue(double v)
 void StyledSlider::setBackgroundColor(QColor v)
       {
       _backgroundColor = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -255,7 +256,7 @@ void StyledSlider::setBackgroundColor(QColor v)
 void StyledSlider::setHilightColor(QColor v)
       {
       _hilightColor = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -265,7 +266,7 @@ void StyledSlider::setHilightColor(QColor v)
 void StyledSlider::setTickColor(QColor v)
       {
       _tickColor = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -275,7 +276,7 @@ void StyledSlider::setTickColor(QColor v)
 void StyledSlider::setBarThickness(double v)
       {
       _barThickness = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -285,7 +286,7 @@ void StyledSlider::setBarThickness(double v)
 void StyledSlider::setMargin(double v)
       {
       _margin = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -295,7 +296,7 @@ void StyledSlider::setMargin(double v)
 void StyledSlider::setNumMajorTicks(int v)
       {
       _numMajorTicks = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -305,7 +306,7 @@ void StyledSlider::setNumMajorTicks(int v)
 void StyledSlider::setNumMinorTicks(int v)
       {
       _numMinorTicks = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -315,7 +316,7 @@ void StyledSlider::setNumMinorTicks(int v)
 void StyledSlider::setMajorTickWidth(double v)
       {
       _majorTickWidth = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -325,7 +326,7 @@ void StyledSlider::setMajorTickWidth(double v)
 void StyledSlider::setMinorTickWidth(double v)
       {
       _minorTickWidth = v;
-      repaint();
+      update();
       }
 
 //---------------------------------------------------------
@@ -335,7 +336,7 @@ void StyledSlider::setMinorTickWidth(double v)
 void StyledSlider::setSliderHeadIcon(QIcon v)
       {
       _sliderHeadIcon = v;
-      repaint();
+      update();
       }
 
 }

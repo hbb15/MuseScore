@@ -76,6 +76,7 @@
 #include "scorePreview.h"
 #include "scorecmp/scorecmp.h"
 #include "extension.h"
+#include "tourhandler.h"
 
 #ifdef OMR
 #include "omr/omr.h"
@@ -92,7 +93,6 @@ namespace Ms {
 
 extern void importSoundfont(QString name);
 
-extern bool savePositions(Score*, const QString& name, bool segments);
 extern MasterSynthesizer* synti;
 
 //---------------------------------------------------------
@@ -285,18 +285,19 @@ void MuseScore::loadFiles(bool switchTab, bool singleFile)
          tr("MIDI Files") + " (*.mid *.midi *.kar);;" +
          tr("MuseData Files") + " (*.md);;" +
          tr("Capella Files") + " (*.cap *.capx);;" +
-         tr("BB Files <experimental>") + " (*.mgu *.sgu);;" +
+         tr("BB Files (experimental)") + " (*.mgu *.sgu);;" +
 #ifdef OMR
-         tr("PDF Files <experimental OMR>") + " (*.pdf);;" +
+         tr("PDF Files (experimental OMR)") + " (*.pdf);;" +
 #endif
-         tr("Overture / Score Writer Files <experimental>") + " (*.ove *.scw);;" +
-         tr("Bagpipe Music Writer Files <experimental>") + " (*.bww);;" +
+         tr("Overture / Score Writer Files (experimental)") + " (*.ove *.scw);;" +
+         tr("Bagpipe Music Writer Files (experimental)") + " (*.bww);;" +
          tr("Guitar Pro") + " (*.gtp *.gp3 *.gp4 *.gp5 *.gpx)",
          tr("Load Score"),
          singleFile
          );
       for (const QString& s : files)
             openScore(s, switchTab);
+      mscore->tourHandler()->showDelayedWelcomeTour();
       }
 
 //---------------------------------------------------------
@@ -341,7 +342,7 @@ MasterScore* MuseScore::readScore(const QString& name)
       if (rv == Score::FileError::FILE_TOO_OLD || rv == Score::FileError::FILE_TOO_NEW || rv == Score::FileError::FILE_CORRUPTED) {
             if (readScoreError(name, rv, true)) {
                   if (rv != Score::FileError::FILE_CORRUPTED) {
-                        // dont read file again if corrupted
+                        // don’t read file again if corrupted
                         // the check routine may try to fix it
                         delete score;
                         score = new MasterScore();
@@ -493,8 +494,10 @@ MasterScore* MuseScore::getNewFile()
       {
       if (!newWizard)
             newWizard = new NewWizard(this);
-      else
+	  else {
+            newWizard->updateValues();
             newWizard->restart();
+            }
       if (newWizard->exec() != QDialog::Accepted)
             return 0;
       int measures            = newWizard->measures();
@@ -602,7 +605,7 @@ MasterScore* MuseScore::getNewFile()
                   measure->setTick(tick);
 
                   if (pickupMeasure && tick == 0) {
-                        measure->setIrregular(true);        // dont count pickup measure
+                        measure->setIrregular(true);        // don’t count pickup measure
                         measure->setLen(Fraction(pickupTimesigZ, pickupTimesigN));
                         }
                   _score->measures()->add(measure);
@@ -785,6 +788,7 @@ void MuseScore::newFile()
       MasterScore* score = getNewFile();
       if (score)
             setCurrentScoreView(appendScore(score));
+      mscore->tourHandler()->showDelayedWelcomeTour();
       }
 
 //---------------------------------------------------------
@@ -1892,7 +1896,7 @@ bool MuseScore::saveAs(Score* cs_, bool saveCopy, const QString& path, const QSt
             rv = true;
             // store new file and path into score fileInfo
             // to have it accessible to resources
-            QString originalScoreFName(cs_->masterScore()->fileInfo()->canonicalFilePath());
+            QFileInfo originalScoreFileInfo(*cs_->masterScore()->fileInfo());
             cs_->masterScore()->fileInfo()->setFile(fn);
             if (!cs_->isMaster()) { // clone metaTags from masterScore
                   QMapIterator<QString, QString> j(cs_->masterScore()->metaTags());
@@ -1932,7 +1936,7 @@ bool MuseScore::saveAs(Score* cs_, bool saveCopy, const QString& path, const QSt
                               cs_->metaTags().remove(j.key());
                         }
                   }
-            cs_->masterScore()->fileInfo()->setFile(originalScoreFName);          // restore original file name
+            *cs_->masterScore()->fileInfo() = originalScoreFileInfo;          // restore original file info
 
             if (rv && !saveCopy) {
                   cs_->masterScore()->fileInfo()->setFile(fn);
@@ -1993,6 +1997,9 @@ bool MuseScore::saveAs(Score* cs_, bool saveCopy, const QString& path, const QSt
       else if (ext == "mlog") {
             rv = cs_->sanityCheck(fn);
             }
+      else if (ext == "metajson") {
+            rv = saveMetadataJSON(cs, fn);
+            }
       else {
             qDebug("Internal error: unsupported extension <%s>",
                qPrintable(ext));
@@ -2018,6 +2025,12 @@ bool MuseScore::saveMidi(Score* score, const QString& name)
       return em.write(name, preferences.getBool(PREF_IO_MIDI_EXPANDREPEATS), preferences.getBool(PREF_IO_MIDI_EXPORTRPNS));
       }
 
+bool MuseScore::saveMidi(Score* score, QIODevice* device)
+      {
+      ExportMidi em(score);
+      return em.write(device, preferences.getBool(PREF_IO_MIDI_EXPANDREPEATS), preferences.getBool(PREF_IO_MIDI_EXPORTRPNS));
+      }
+
 //---------------------------------------------------------
 //   savePdf
 //---------------------------------------------------------
@@ -2029,10 +2042,15 @@ bool MuseScore::savePdf(const QString& saveName)
 
 bool MuseScore::savePdf(Score* cs_, const QString& saveName)
       {
+      QPdfWriter printerDev(saveName);
+      return savePdf(cs_, printerDev);
+      }
+
+bool MuseScore::savePdf(Score* cs_, QPdfWriter& pdfWriter)
+      {
       cs_->setPrinting(true);
       MScore::pdfPrinting = true;
 
-      QPdfWriter pdfWriter(saveName);
       pdfWriter.setResolution(preferences.getInt(PREF_EXPORT_PDF_DPI));
       QSizeF size(cs_->styleD(Sid::pageWidth), cs_->styleD(Sid::pageHeight));
       QPageSize ps(QPageSize::id(size, QPageSize::Inch));
@@ -2209,6 +2227,8 @@ void importExtension(QString name)
 
 Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionError)
       {
+      ScoreLoad sl;
+
       QFileInfo info(name);
       QString suffix  = info.suffix().toLower();
       score->setName(info.completeBaseName());
@@ -2293,8 +2313,6 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
             score->setCreated(true); // force save as for imported files
             }
 
-      {
-      ScoreLoad sl;
       score->rebuildMidiMapping();
       score->setSoloMute();
       for (Score* s : score->scoreList()) {
@@ -2305,7 +2323,6 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
       score->updateChannel();
       score->setSaved(false);
       score->update();
-      }
 
       if (!ignoreVersionError && !MScore::noGui)
             if (!score->sanityCheck(QString()))
@@ -2453,7 +2470,7 @@ void MuseScore::addImage(Score* score, Element* e)
          tr("All Supported Files") + " (*.svg *.jpg *.jpeg *.png);;" +
          tr("Scalable Vector Graphics") + " (*.svg);;" +
          tr("JPEG") + " (*.jpg *.jpeg);;" +
-         tr("PNG") + " (*.png)",
+         tr("PNG Bitmap Graphic") + " (*.png)",
          0,
          preferences.getBool(PREF_UI_APP_USENATIVEDIALOGS) ? QFileDialog::Options() : QFileDialog::DontUseNativeDialog
          );
@@ -2514,85 +2531,17 @@ static QRect trim(QImage source, int margin)
 
 //---------------------------------------------------------
 //   savePng
-//    return true on success
+//    return true on success.  Works with editor, shows additional windows.
 //---------------------------------------------------------
 
 bool MuseScore::savePng(Score* score, const QString& name)
       {
-      return savePng(score, name, false, preferences.getBool(PREF_EXPORT_PNG_USETRANSPARENCY), preferences.getDouble(PREF_EXPORT_PNG_RESOLUTION), trimMargin, QImage::Format_ARGB32_Premultiplied);
-      }
-
-//---------------------------------------------------------
-//   savePng with options
-//    return true on success
-//---------------------------------------------------------
-
-bool MuseScore::savePng(Score* score, const QString& name, bool screenshot, bool transparent, double convDpi, int _trimMargin, QImage::Format format)
-      {
-      bool rv = true;
-      score->setPrinting(!screenshot);    // dont print page break symbols etc.
-      double pr = MScore::pixelRatio;
-
-      QImage::Format f;
-      if (format != QImage::Format_Indexed8)
-          f = format;
-      else
-          f = QImage::Format_ARGB32_Premultiplied;
-
       const QList<Page*>& pl = score->pages();
       int pages = pl.size();
-
       int padding = QString("%1").arg(pages).size();
       bool overwrite = false;
       bool noToAll = false;
       for (int pageNumber = 0; pageNumber < pages; ++pageNumber) {
-            Page* page = pl.at(pageNumber);
-
-            QRectF r;
-            if (_trimMargin >= 0) {
-                  QMarginsF margins(_trimMargin, _trimMargin, _trimMargin, _trimMargin);
-                  r = page->tbbox() + margins;
-                  }
-            else
-                  r = page->abbox();
-            int w = lrint(r.width()  * convDpi / DPI);
-            int h = lrint(r.height() * convDpi / DPI);
-
-            QImage printer(w, h, f);
-            printer.setDotsPerMeterX(lrint((convDpi * 1000) / INCH));
-            printer.setDotsPerMeterY(lrint((convDpi * 1000) / INCH));
-
-            printer.fill(transparent ? 0 : 0xffffffff);
-
-            double mag_ = convDpi / DPI;
-            MScore::pixelRatio = 1.0 / mag_;
-
-            QPainter p(&printer);
-            p.setRenderHint(QPainter::Antialiasing, true);
-            p.setRenderHint(QPainter::TextAntialiasing, true);
-            p.scale(mag_, mag_);
-            if (_trimMargin >= 0)
-                  p.translate(-r.topLeft());
-
-            QList<Element*> pel = page->elements();
-            qStableSort(pel.begin(), pel.end(), elementLessThan);
-            paintElements(p, pel);
-
-            if (format == QImage::Format_Indexed8) {
-                  //convert to grayscale & respect alpha
-                  QVector<QRgb> colorTable;
-                  colorTable.push_back(QColor(0, 0, 0, 0).rgba());
-                  if (!transparent) {
-                        for (int i = 1; i < 256; i++)
-                              colorTable.push_back(QColor(i, i, i).rgb());
-                        }
-                  else {
-                        for (int i = 1; i < 256; i++)
-                              colorTable.push_back(QColor(0, 0, 0, i).rgba());
-                        }
-                  printer = printer.convertToFormat(QImage::Format_Indexed8, colorTable);
-                  }
-
             QString fileName(name);
             if (fileName.endsWith(".png"))
                   fileName = fileName.left(fileName.size() - 4);
@@ -2621,10 +2570,84 @@ bool MuseScore::savePng(Score* score, const QString& name, bool screenshot, bool
                               continue;
                         }
                   }
-            rv = printer.save(fileName, "png");
+            QFile f(fileName);
+            if (!f.open(QIODevice::WriteOnly))
+                  return false;
+            bool rv = savePng(score, &f, pageNumber);
             if (!rv)
-                  break;
+                  return false;
             }
+      return true;
+      }
+
+//---------------------------------------------------------
+//   savePng with options
+//    return true on success
+//---------------------------------------------------------
+
+bool MuseScore::savePng(Score* score, QIODevice* device, int pageNumber)
+      {
+      const bool screenshot = false;
+      const bool transparent = preferences.getBool(PREF_EXPORT_PNG_USETRANSPARENCY);
+      const double convDpi = preferences.getDouble(PREF_EXPORT_PNG_RESOLUTION);
+      const int localTrimMargin = trimMargin;
+      const QImage::Format format = QImage::Format_ARGB32_Premultiplied;
+
+      bool rv = true;
+      score->setPrinting(!screenshot);    // don’t print page break symbols etc.
+      double pr = MScore::pixelRatio;
+
+      QImage::Format f;
+      if (format != QImage::Format_Indexed8)
+          f = format;
+      else
+          f = QImage::Format_ARGB32_Premultiplied;
+
+      const QList<Page*>& pl = score->pages();
+
+      Page* page = pl.at(pageNumber);
+      QRectF r;
+      if (localTrimMargin >= 0) {
+            QMarginsF margins(localTrimMargin, localTrimMargin, localTrimMargin, localTrimMargin);
+            r = page->tbbox() + margins;
+            }
+      else
+            r = page->abbox();
+      int w = lrint(r.width()  * convDpi / DPI);
+      int h = lrint(r.height() * convDpi / DPI);
+
+      QImage printer(w, h, f);
+      printer.setDotsPerMeterX(lrint((convDpi * 1000) / INCH));
+      printer.setDotsPerMeterY(lrint((convDpi * 1000) / INCH));
+
+      printer.fill(transparent ? 0 : 0xffffffff);
+      double mag_ = convDpi / DPI;
+      MScore::pixelRatio = 1.0 / mag_;
+
+      QPainter p(&printer);
+      p.setRenderHint(QPainter::Antialiasing, true);
+      p.setRenderHint(QPainter::TextAntialiasing, true);
+      p.scale(mag_, mag_);
+      if (localTrimMargin >= 0)
+            p.translate(-r.topLeft());
+      QList< Element*> pel = page->elements();
+      qStableSort(pel.begin(), pel.end(), elementLessThan);
+      paintElements(p, pel);
+       if (format == QImage::Format_Indexed8) {
+            //convert to grayscale & respect alpha
+            QVector<QRgb> colorTable;
+            colorTable.push_back(QColor(0, 0, 0, 0).rgba());
+            if (!transparent) {
+                  for (int i = 1; i < 256; i++)
+                        colorTable.push_back(QColor(i, i, i).rgb());
+                  }
+            else {
+                  for (int i = 1; i < 256; i++)
+                        colorTable.push_back(QColor(0, 0, 0, i).rgba());
+                  }
+            printer = printer.convertToFormat(QImage::Format_Indexed8, colorTable);
+            }
+      printer.save(device, "png");
       score->setPrinting(false);
       MScore::pixelRatio = pr;
       return rv;
@@ -2739,21 +2762,12 @@ QString MuseScore::getWallpaper(const QString& caption)
 //
 bool MuseScore::saveSvg(Score* score, const QString& saveName)
       {
-      QString title(score->title());
-      score->setPrinting(true);
-      MScore::pdfPrinting = true;
-      MScore::svgPrinting = true;
       const QList<Page*>& pl = score->pages();
       int pages = pl.size();
       int padding = QString("%1").arg(pages).size();
       bool overwrite = false;
       bool noToAll = false;
-      double pr = MScore::pixelRatio;
       for (int pageNumber = 0; pageNumber < pages; ++pageNumber) {
-            Page* page = pl.at(pageNumber);
-            SvgGenerator printer;
-            printer.setTitle(pages > 1 ? QString("%1 (%2)").arg(title).arg(pageNumber + 1) : title);
-
             QString fileName(saveName);
             if (fileName.endsWith(".svg"))
                   fileName = fileName.left(fileName.size() - 4);
@@ -2782,107 +2796,134 @@ bool MuseScore::saveSvg(Score* score, const QString& saveName)
                               continue;
                         }
                   }
-            printer.setFileName(fileName);
+            QFile f(fileName);
+            if (!f.open(QIODevice::WriteOnly))
+                  return false;
+            bool rv = saveSvg(score, &f, pageNumber);
+            if (!rv)
+                  return false;
+            }
+      return true;
+      }
 
-            QRectF r;
-            if (trimMargin >= 0) {
-                  QMarginsF margins(trimMargin, trimMargin, trimMargin, trimMargin);
-                  r = page->tbbox() + margins;
-                  }
-            else
-                  r = page->abbox();
-            qreal w = r.width();
-            qreal h = r.height();
-            printer.setSize(QSize(w, h));
-            printer.setViewBox(QRectF(0, 0, w, h));
-            QPainter p(&printer);
-            p.setRenderHint(QPainter::Antialiasing, true);
-            p.setRenderHint(QPainter::TextAntialiasing, true);
-            if (trimMargin >= 0 && score->npages() == 1)
-                  p.translate(-r.topLeft());
-            MScore::pixelRatio = DPI / printer.logicalDpiX();
-            if (trimMargin >= 0)
-                   p.translate(-r.topLeft());
-            // 1st pass: StaffLines
-            for  (System* s : page->systems()) {
-                  for (int i = 0, n = s->staves()->size(); i < n; i++) {
-                        if (score->staff(i)->invisible() || !score->staff(i)->show())
-                              continue;  // ignore invisible staves
-                        if (s->staves()->isEmpty() || !s->staff(i)->show())
-                              continue;
+//---------------------------------------------------------
+//   MuseScore::saveSvg
+///  Save a single page
+//---------------------------------------------------------
 
-                        // The goal here is to draw SVG staff lines more efficiently.
-                        // MuseScore draws staff lines by measure, but for SVG they can
-                        // generally be drawn once for each system. This makes a big
-                        // difference for scores that scroll horizontally on a single
-                        // page. But there are exceptions to this rule:
-                        //
-                        //   ~ One (or more) invisible measure(s) in a system/staff ~
-                        //   ~ One (or more) elements of type HBOX or VBOX          ~
-                        //
-                        // In these cases the SVG staff lines for the system/staff
-                        // are drawn by measure.
-                        //
-                        bool byMeasure = false;
-                        for (MeasureBase* mb = s->firstMeasure(); mb != 0; mb = s->nextMeasure(mb)) {
-                              if (mb->isHBox() || mb->isVBox() || !toMeasure(mb)->visible(i)) {
-                                    byMeasure = true;
-                                    break;
-                                    }
-                              }
-                        if (byMeasure) { // Draw visible staff lines by measure
-                              for (MeasureBase* mb = s->firstMeasure(); mb != 0; mb = s->nextMeasure(mb)) {
-                                    if (mb->type() != ElementType::HBOX
-                                     && mb->type() != ElementType::VBOX
-                                     && static_cast<Measure*>(mb)->visible(i)) {
-                                          StaffLines* sl = toMeasure(mb)->staffLines(i);
-                                          printer.setElement(sl);
-                                          paintElement(p, sl);
-                                          }
-                                    }
-                              }
-                        else { // Draw staff lines once per system
-                              StaffLines* firstSL = s->firstMeasure()->staffLines(i)->clone();
-                              StaffLines*  lastSL =  s->lastMeasure()->staffLines(i);
+bool MuseScore::saveSvg(Score* score, QIODevice* device, int pageNumber)
+      {
+      QString title(score->title());
+      score->setPrinting(true);
+      MScore::pdfPrinting = true;
+      MScore::svgPrinting = true;
+      const QList<Page*>& pl = score->pages();
+      int pages = pl.size();
+      double pr = MScore::pixelRatio;
 
-                              qreal lastX =  lastSL->bbox().right()
-                                          +  lastSL->pagePos().x()
-                                          - firstSL->pagePos().x();
-                              QVector<QLineF>& lines = firstSL->getLines();
-                              for (int l = 0, c = lines.size(); l < c; l++)
-                                    lines[l].setP2(QPointF(lastX, lines[l].p2().y()));
+      Page* page = pl.at(pageNumber);
+      SvgGenerator printer;
+      printer.setTitle(pages > 1 ? QString("%1 (%2)").arg(title).arg(pageNumber + 1) : title);
+      printer.setOutputDevice(device);
 
-                              printer.setElement(firstSL);
-                              paintElement(p, firstSL);
-                              }
-                        }
-                  }
-            // 2nd pass: the rest of the elements
-            QList<Element*> pel = page->elements();
-            qStableSort(pel.begin(), pel.end(), elementLessThan);
-            ElementType eType;
-            for (const Element* e : pel) {
-                  // Always exclude invisible elements
-                  if (!e->visible())
+      QRectF r;
+      if (trimMargin >= 0) {
+            QMarginsF margins(trimMargin, trimMargin, trimMargin, trimMargin);
+            r = page->tbbox() + margins;
+            }
+      else
+            r = page->abbox();
+      qreal w = r.width();
+      qreal h = r.height();
+      printer.setSize(QSize(w, h));
+      printer.setViewBox(QRectF(0, 0, w, h));
+      QPainter p(&printer);
+      p.setRenderHint(QPainter::Antialiasing, true);
+      p.setRenderHint(QPainter::TextAntialiasing, true);
+      if (trimMargin >= 0 && score->npages() == 1)
+            p.translate(-r.topLeft());
+      MScore::pixelRatio = DPI / printer.logicalDpiX();
+      if (trimMargin >= 0)
+             p.translate(-r.topLeft());
+      // 1st pass: StaffLines
+      for  (System* s : page->systems()) {
+            for (int i = 0, n = s->staves()->size(); i < n; i++) {
+                  if (score->staff(i)->invisible() || !score->staff(i)->show())
+                        continue;  // ignore invisible staves
+                  if (s->staves()->isEmpty() || !s->staff(i)->show())
                         continue;
 
-                  eType = e->type();
-                  switch (eType) { // In future sub-type code, this switch() grows, and eType gets used
-                  case ElementType::STAFF_LINES : // Handled in the 1st pass above
-                        continue; // Exclude from 2nd pass
-                        break;
-                  default:
-                        break;
-                  } // switch(eType)
+                  // The goal here is to draw SVG staff lines more efficiently.
+                  // MuseScore draws staff lines by measure, but for SVG they can
+                  // generally be drawn once for each system. This makes a big
+                  // difference for scores that scroll horizontally on a single
+                  // page. But there are exceptions to this rule:
+                  //
+                  //   ~ One (or more) invisible measure(s) in a system/staff ~
+                  //   ~ One (or more) elements of type HBOX or VBOX          ~
+                  //
+                  // In these cases the SVG staff lines for the system/staff
+                  // are drawn by measure.
+                  //
+                  bool byMeasure = false;
+                  for (MeasureBase* mb = s->firstMeasure(); mb != 0; mb = s->nextMeasure(mb)) {
+                        if (mb->isHBox() || mb->isVBox() || !toMeasure(mb)->visible(i)) {
+                              byMeasure = true;
+                              break;
+                              }
+                        }
+                  if (byMeasure) { // Draw visible staff lines by measure
+                        for (MeasureBase* mb = s->firstMeasure(); mb != 0; mb = s->nextMeasure(mb)) {
+                              if (mb->type() != ElementType::HBOX
+                               && mb->type() != ElementType::VBOX
+                               && static_cast<Measure*>(mb)->visible(i)) {
+                                    StaffLines* sl = toMeasure(mb)->staffLines(i);
+                                    printer.setElement(sl);
+                                    paintElement(p, sl);
+                                    }
+                              }
+                        }
+                  else { // Draw staff lines once per system
+                        StaffLines* firstSL = s->firstMeasure()->staffLines(i)->clone();
+                        StaffLines*  lastSL =  s->lastMeasure()->staffLines(i);
 
-                  // Set the Element pointer inside SvgGenerator/SvgPaintEngine
-                  printer.setElement(e);
+                        qreal lastX =  lastSL->bbox().right()
+                                    +  lastSL->pagePos().x()
+                                    - firstSL->pagePos().x();
+                        QVector<QLineF>& lines = firstSL->getLines();
+                        for (int l = 0, c = lines.size(); l < c; l++)
+                              lines[l].setP2(QPointF(lastX, lines[l].p2().y()));
 
-                  // Paint it
-                  paintElement(p, e);
+                        printer.setElement(firstSL);
+                        paintElement(p, firstSL);
+                        }
                   }
-            p.end(); // Writes MuseScore SVG file to disk, finally
             }
+      // 2nd pass: the rest of the elements
+      QList<Element*> pel = page->elements();
+      qStableSort(pel.begin(), pel.end(), elementLessThan);
+      ElementType eType;
+      for (const Element* e : pel) {
+            // Always exclude invisible elements
+            if (!e->visible())
+                  continue;
+
+            eType = e->type();
+            switch (eType) { // In future sub-type code, this switch() grows, and eType gets used
+            case ElementType::STAFF_LINES : // Handled in the 1st pass above
+                  continue; // Exclude from 2nd pass
+                  break;
+            default:
+                  break;
+            } // switch(eType)
+
+            // Set the Element pointer inside SvgGenerator/SvgPaintEngine
+            printer.setElement(e);
+
+            // Paint it
+            paintElement(p, e);
+            }
+      p.end(); // Writes MuseScore SVG file to disk, finally
 
       // Clean up and return
       MScore::pixelRatio = pr;
@@ -2929,6 +2970,233 @@ QPixmap MuseScore::extractThumbnail(const QString& name)
             return createThumbnail(name);
       pm.loadFromData(ba, "PNG");
       return pm;
+      }
+
+bool MuseScore::saveMetadataJSON(Score* score, const QString& name)
+      {
+      QFile f(name);
+      if (!f.open(QIODevice::WriteOnly))
+            return false;
+
+      QJsonObject json = saveMetadataJSON(score);
+      QJsonDocument saveDoc(json);
+      f.write(saveDoc.toJson());
+      f.close();
+      return true;
+      }
+
+QJsonObject MuseScore::saveMetadataJSON(Score* score)
+      {
+      auto boolToString = [](bool b) { return b ? "true" : "false"; };
+      QJsonObject json;
+
+      // title
+      QString title;
+      Text* t = score->getText(Tid::TITLE);
+      if (t)
+            title = QTextDocumentFragment::fromHtml(t->xmlText()).toPlainText().replace("&amp;","&").replace("&gt;",">").replace("&lt;","<").replace("&quot;", "\"");
+      if (title.isEmpty())
+            title = score->metaTag("workTitle");
+      if (title.isEmpty())
+            title = score->title();
+      title = title.simplified();
+      json.insert("title", title);
+
+      // subtitle
+      QString subtitle;
+      t = score->getText(Tid::SUBTITLE);
+      if (t)
+            subtitle = QTextDocumentFragment::fromHtml(t->xmlText()).toPlainText().replace("&amp;","&").replace("&gt;",">").replace("&lt;","<").replace("&quot;", "\"");
+      subtitle = subtitle.simplified();
+      json.insert("subtitle", subtitle);
+
+      // composer
+      QString composer;
+      t = score->getText(Tid::COMPOSER);
+      if (t)
+            composer = QTextDocumentFragment::fromHtml(t->xmlText()).toPlainText().replace("&amp;","&").replace("&gt;",">").replace("&lt;","<").replace("&quot;", "\"");
+      if (composer.isEmpty())
+            composer = score->metaTag("composer");
+      composer = composer.simplified();
+      json.insert("composer", composer);
+
+      // poet
+      QString poet;
+      t = score->getText(Tid::POET);
+      if (t)
+            poet = QTextDocumentFragment::fromHtml(t->xmlText()).toPlainText().replace("&amp;","&").replace("&gt;",">").replace("&lt;","<").replace("&quot;", "\"");
+      if (poet.isEmpty())
+            poet = score->metaTag("lyricist");
+      poet = poet.simplified();
+      json.insert("poet", poet);
+
+      json.insert("mscoreVersion", score->mscoreVersion());
+      json.insert("fileVersion", score->mscVersion());
+
+      json.insert("pages", score->npages());
+      json.insert("measures", score->nmeasures());
+      json.insert("hasLyrics", boolToString(score->hasLyrics()));
+      json.insert("hasHarmonies", boolToString(score->hasHarmonies()));
+      json.insert("keysig", score->keysig());
+
+      // timeSig
+      QString timeSig;
+      int staves = score->nstaves();
+      int tracks = staves * VOICES;
+      Segment* tss = score->firstSegmentMM(SegmentType::TimeSig);
+      if (tss) {
+            Element* e = nullptr;
+            for (int track = 0; track < tracks; ++track) {
+                  e = tss->element(track);
+                  if (e) break;
+                  }
+            if (e && e->isTimeSig()) {
+                  TimeSig* ts = toTimeSig(e);
+                  timeSig = QString("%1/%2").arg(ts->numerator()).arg(ts->denominator());
+                  }
+            }
+      json.insert("timesig", timeSig);
+
+      json.insert("duration", score->duration());
+      json.insert("lyrics", score->extractLyrics());
+
+      // tempo
+       int tempo = 0;
+       QString tempoText;
+       for (Segment* seg = score->firstSegmentMM(SegmentType::All); seg; seg = seg->next1MM()) {
+             auto annotations = seg->annotations();
+             for (Element* a : annotations) {
+                   if (a && a->isTempoText()) {
+                         TempoText* tt = toTempoText(a);
+                         tempo = round(tt->tempo() * 60);
+                         tempoText = tt->xmlText();
+                         }
+                   }
+             }
+      json.insert("tempo", tempo);
+      json.insert("tempoText", tempoText);
+
+      // parts
+      QJsonArray jsonPartsArray;
+      for (Part* p : score->parts()) {
+            QJsonObject jsonPart;
+            jsonPart.insert("name", p->longName().replace("\n", ""));
+            int midiProgram = p->midiProgram();
+            if (p->midiChannel() == 9)
+                midiProgram = 128;
+            jsonPart.insert("program", midiProgram);
+            jsonPart.insert("instrumentId", p->instrumentId());
+            jsonPart.insert("lyricCount", p->lyricCount());
+            jsonPart.insert("harmonyCount", p->harmonyCount());
+            jsonPart.insert("hasPitchedStaff", boolToString(p->hasPitchedStaff()));
+            jsonPart.insert("hasTabStaff", boolToString(p->hasTabStaff()));
+            jsonPart.insert("hasDrumStaff", boolToString(p->hasDrumStaff()));
+            jsonPartsArray.append(jsonPart);
+            }
+      json.insert("parts", jsonPartsArray);
+
+      // pageFormat
+      QJsonObject jsonPageformat;
+      jsonPageformat.insert("height",round(score->styleD(Sid::pageHeight) * INCH));
+      jsonPageformat.insert("width", round(score->styleD(Sid::pageWidth) * INCH));
+      jsonPageformat.insert("twosided", boolToString(score->styleB(Sid::pageTwosided)));
+      json.insert("pageFormat", jsonPageformat);
+
+      return json;
+      }
+
+bool MuseScore::exportAllMediaFiles(const QString& inFilePath, const QString& outFilePath)
+      {
+      MasterScore* score = mscore->readScore(inFilePath);
+      score->switchToPageMode();
+
+      QJsonObject jsonForMedia;
+      bool res = true;
+
+      //export score audio
+      QByteArray mp3Data;
+      QBuffer mp3Device(&mp3Data);
+      mp3Device.open(QIODevice::ReadWrite);
+      bool dummy = false;
+      res &= mscore->saveMp3(score, &mp3Device, dummy);
+      QJsonValue mp3Json(QString::fromLatin1(mp3Data.toBase64()));
+
+      //export score pngs and svgs
+      QJsonArray pngsJsonArray;
+      QJsonArray svgsJsonArray;
+      for (int i = 0; i < score->pages().size(); ++i) {
+            QByteArray pngData;
+            QBuffer pngDevice(&pngData);
+            pngDevice.open(QIODevice::ReadWrite);
+            res &= mscore->savePng(score, &pngDevice, i);
+            QJsonValue pngJson(QString::fromLatin1(pngData.toBase64()));
+            pngsJsonArray.append(pngJson);
+            QByteArray svgData;
+            QBuffer svgDevice(&svgData);
+            pngDevice.open(QIODevice::ReadWrite);
+            res &= mscore->saveSvg(score, &svgDevice, i);
+            QJsonValue svgJson(QString::fromLatin1(svgData.toBase64()));
+            svgsJsonArray.append(svgJson);
+            }
+
+      //export score .spos
+      QByteArray partDataPos;
+      QBuffer partPosDevice(&partDataPos);
+      partPosDevice.open(QIODevice::ReadWrite);
+      savePositions(score, &partPosDevice, true);
+      QJsonValue sposJson(QString::fromLatin1(partDataPos.toBase64()));
+      partPosDevice.close();
+      partDataPos.clear();
+
+      //export score .mpos
+      partPosDevice.open(QIODevice::ReadWrite);
+      savePositions(score, &partPosDevice, false);
+      QJsonValue mposJson(QString::fromLatin1(partDataPos.toBase64()));
+
+      //export score pdf
+      QByteArray pdfData;
+      QBuffer pdfDevice(&pdfData);
+      pdfDevice.open(QIODevice::ReadWrite);
+      QPdfWriter writer(&pdfDevice);
+      res &= mscore->savePdf(score, writer);
+      QJsonValue pdfJson(QString::fromLatin1(pdfData.toBase64()));
+
+      //export score midi
+      QByteArray midiData;
+      QBuffer midiDevice(&midiData);
+      midiDevice.open(QIODevice::ReadWrite);
+      res &= mscore->saveMidi(score, &midiDevice);
+      QJsonValue midiJson(QString::fromLatin1(midiData.toBase64()));
+
+      //export musicxml
+      QByteArray mxmlData;
+      QBuffer mxmlDevice(&mxmlData);
+      mxmlDevice.open(QIODevice::ReadWrite);
+      res &= saveMxl(score, &mxmlDevice);
+      QJsonValue mxmlJson(QString::fromLatin1(mxmlData.toBase64()));
+
+      //export metadata
+      QJsonObject mdJson = mscore->saveMetadataJSON(score);
+
+       //// JSON specification ///////////////////////////
+      jsonForMedia["mp3"] = mp3Json;
+      jsonForMedia["pngs"] = pngsJsonArray;
+      jsonForMedia["mposXML"] = mposJson;
+      jsonForMedia["sposXML"] = sposJson;
+      jsonForMedia["pdf"] = pdfJson;
+      jsonForMedia["svgs"] = svgsJsonArray;
+      jsonForMedia["midi"] = midiJson;
+      jsonForMedia["mxml"] = mxmlJson;
+      jsonForMedia["metadata"] = mdJson;
+      ///////////////////////////////////////////////////
+      QJsonDocument jsonDoc(jsonForMedia);
+      const QString& jsonPath{outFilePath}; //{"D:\\123\\score.json"};
+      QFile file(jsonPath);
+      file.open(QIODevice::WriteOnly);
+      file.write(jsonDoc.toJson(QJsonDocument::Compact));
+      file.close();
+      delete score;
+      return true;
       }
 
 }
