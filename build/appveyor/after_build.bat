@@ -73,19 +73,12 @@ goto :UPLOAD
 :UNSTABLE_LABEL
 echo "Unstable: build zip package"
 CD C:\MuseScore
-
-SET PACKAGE_NAME="MuseScore 3.0 alpha"
-RENAME C:\MuseScore\msvc.install_x64 %PACKAGE_NAME%
-XCOPY C:\MuseScore\build\appveyor\special C:\MuseScore\%PACKAGE_NAME%\special /I /E /Y /Q
-
-:: sign dlls and exe files
-CD C:\MuseScore\%PACKAGE_NAME%
-for /f "delims=" %%f in ('dir /a-d /b /s "*.dll" "*.exe"') do (
-    echo "Signing %%f"
-    "C:\Program Files (x86)\Windows Kits\8.1\bin\x64\signtool.exe" sign /f "C:\MuseScore\build\appveyor\resources\musescore.p12" /t http://timestamp.verisign.com/scripts/timstamp.dll /p "%CERTIFICATE_PASSWORD%" "%%f"
-    )
-CD C:\MuseScore
-
+RENAME C:\MuseScore\msvc.install_x64\bin\MuseScore3.exe nightly.exe
+RENAME C:\MuseScore\msvc.install_x64 MuseScoreNightly
+XCOPY C:\MuseScore\build\appveyor\special C:\MuseScore\MuseScoreNightly\special /I /E /Y /Q
+COPY C:\MuseScore\build\appveyor\support\README.txt C:\MuseScore\MuseScoreNightly\README.txt /Y
+COPY C:\MuseScore\build\appveyor\support\nightly.bat C:\MuseScore\MuseScoreNightly\nightly.bat /Y
+COPY C:\MuseScore\mscore\revision.h C:\MuseScore\MuseScoreNightly\revision.h
 :: get hour with a trailing 0 if necessary (add 100)
 SET hh0=%time:~0,2%
 SET /a hh1=%hh0%+100

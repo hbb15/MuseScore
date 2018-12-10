@@ -62,6 +62,7 @@
 #include "bracket.h"
 #include "spacer.h"
 #include "fermata.h"
+#include "measurenumber.h"
 
 namespace Ms {
 
@@ -2611,17 +2612,12 @@ void Score::getNextMeasure(LayoutContext& lc)
 
 bool isTopBeam(ChordRest* cr)
       {
-      if (cr->beam() && cr->beam()->elements().front() == cr) {
-            Beam* b = cr->beam();
-            bool movedUp = true;
+      Beam* b = cr->beam();
+      if (b && !b->cross() && b->elements().front() == cr) {
             for (ChordRest* cr1 : b->elements()) {
-                  if (cr1->staffMove() >= 0) {
-                        movedUp = false;
-                        break;
-                        }
+                  if (cr1->staffMove() >= 0)
+                        return true;
                   }
-            if (!b->cross() && !movedUp)
-                  return true;
             }
       return false;
       }
@@ -2632,20 +2628,9 @@ bool isTopBeam(ChordRest* cr)
 
 bool notTopBeam(ChordRest* cr)
       {
-      if (cr->beam() && cr->beam()->elements().front() == cr) {
-            Beam* b = cr->beam();
-            if (b->cross())
-                  return true;
-            bool movedUp = true;
-            for (ChordRest* cr1 : b->elements()) {
-                  if (cr1->staffMove() >= 0) {
-                        movedUp = false;
-                        break;
-                        }
-                  }
-            if (movedUp)
-                  return true;
-            }
+      Beam* b = cr->beam();
+      if (b)
+            return !isTopBeam(cr);
       return false;
       }
 
@@ -2959,11 +2944,11 @@ static void processLines(System* system, std::vector<Spanner*> lines, bool align
             }
 
       if (align && segments.size() > 1) {
-            qreal y = segments[0]->offset().y();
+            qreal y = segments[0]->rypos();
             for (unsigned i = 1; i < segments.size(); ++i)
-                  y = qMax(y, segments[i]->offset().y());
+                  y = qMax(y, segments[i]->rypos());
             for (auto ss : segments)
-                  ss->ryoffset() = y;
+                  ss->rypos() = y;
             }
 
       //
@@ -3253,6 +3238,7 @@ System* Score::collectSystem(LayoutContext& lc)
             if (!mb->isMeasure())
                   continue;
             Measure* m = toMeasure(mb);
+            m->layoutMeasureNumber();
             for (Segment* s = m->first(); s; s = s->next()) {
                   if (!s->isChordRestType())
                         continue;
@@ -3296,6 +3282,9 @@ System* Score::collectSystem(LayoutContext& lc)
                               }
                         }
                   ss->skyline().add(m->staffLines(staffIdx)->bbox().translated(m->pos()));
+                  MeasureNumber* mno = m->noText(staffIdx);
+                  if (mno)
+                        ss->skyline().add(mno->bbox().translated(m->pos() + mno->pos()));
                   }
             }
 
@@ -3305,26 +3294,24 @@ System* Score::collectSystem(LayoutContext& lc)
 
       for (Segment* s : sl) {
             for (Element* e : s->elist()) {
-                  if (!e || !score()->staff(e->staffIdx())->show())
+                  if (!e || !e->isChordRest() || !score()->staff(e->staffIdx())->show())
                         continue;
-                  if (e->isChordRest()) {
-                        ChordRest* cr = toChordRest(e);
-                        if (isTopBeam(cr)) {
-                              cr->beam()->layout();
-                              cr->beam()->addSkyline(system->staff(cr->beam()->staffIdx())->skyline());
+                  ChordRest* cr = toChordRest(e);
+                  if (isTopBeam(cr)) {
+                        cr->beam()->layout();
+                        cr->beam()->addSkyline(system->staff(cr->beam()->staffIdx())->skyline());
 
-                             // layout fingering a second time (first layout called in note->layout2())
-                             // to finally place fingerings above or below a beam
+                       // layout fingering a second time (first layout called in note->layout2())
+                       // to finally place fingerings above or below a beam
 
-                             if (e->isChord()) {
-                                   for (Note* note : toChord(e)->notes()) {
-                                         for (Element* e : note->el()) {
-                                               if (e->isFingering())
-                                                     e->layout();
-                                               }
+                       if (e->isChord()) {
+                             for (Note* note : toChord(e)->notes()) {
+                                   for (Element* e : note->el()) {
+                                         if (e->isFingering())
+                                               e->layout();
                                          }
                                    }
-                              }
+                             }
                         }
                   }
             }
@@ -3337,14 +3324,18 @@ System* Score::collectSystem(LayoutContext& lc)
             for (Element* e : s->elist()) {
                   if (!e || !e->isChordRest() || !score()->staff(e->staffIdx())->show())
                         continue;
-                  if (notTopBeam(toChordRest(e)))
+                  ChordRest* cr = toChordRest(e);
+                  // sanity check
+                  if (cr->beam() && !isTopBeam(cr))
                         continue;
-                  DurationElement* de = toChordRest(e);
+                  if (notTopBeam(cr))
+                        continue;
+                  DurationElement* de = cr;
                   while (de->tuplet() && de->tuplet()->elements().front() == de) {
                         Tuplet* t = de->tuplet();
                         t->layout();
                         system->staff(t->staffIdx())->skyline().add(t->shape().translated(t->pos() + t->measure()->pos()));
-                        de = de->tuplet();
+                        de = t;
                         }
                   }
             }
@@ -3789,6 +3780,8 @@ void Score::doLayoutRange(int stick, int etick)
             pages().clear();
             return;
             }
+//      if (!_systems.isEmpty())
+//            return;
 // qDebug("%p %d-%d %s systems %d", this, stick, etick, isMaster() ? "Master" : "Part", int(_systems.size()));
       bool layoutAll = stick <= 0 && (etick < 0 || etick >= last()->endTick());
       if (stick < 0)
