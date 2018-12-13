@@ -83,7 +83,7 @@ Element* HairpinSegment::drop(EditData& data)
 void HairpinSegment::layout()
       {
       const qreal _spatium = spatium();
-      const int _track = track();
+      const int _trck = track();
       if (autoplace() && !score()->isPalette()) {
             // Try to fit between adjacent dynamics
             const System* sys = system();
@@ -91,8 +91,8 @@ void HairpinSegment::layout()
                   Segment* start = hairpin()->startSegment();
                   Dynamic* sd = nullptr;
                   if (start && start->system() == sys)
-                        sd = toDynamic(start->findAnnotation(ElementType::DYNAMIC, _track, _track));
-                  if (sd) {
+                        sd = toDynamic(start->findAnnotation(ElementType::DYNAMIC, _trck, _trck));
+                  if (sd && sd->visible() && sd->autoplace()) {
                         const qreal sdRight = sd->bbox().right() + sd->pos().x()
                                               + sd->segment()->pos().x() + sd->measure()->pos().x();
                         const qreal dist    = sdRight - pos().x() + score()->styleP(Sid::autoplaceHairpinDynamicsDistance);
@@ -106,13 +106,15 @@ void HairpinSegment::layout()
                   if (end && end->tick() < sys->endTick()) {
                         // checking ticks rather than systems since latter
                         // systems may be unknown at layout stage.
-                        ed = toDynamic(end->findAnnotation(ElementType::DYNAMIC, _track, _track));
+                        ed = toDynamic(end->findAnnotation(ElementType::DYNAMIC, _trck, _trck));
                         }
-                  if (ed) {
+                  if (ed && ed->visible() && ed->autoplace()) {
                         const qreal edLeft  = ed->bbox().left() + ed->pos().x()
                                               + ed->segment()->pos().x() + ed->measure()->pos().x();
                         const qreal dist    = edLeft - pos2().x() - pos().x() - score()->styleP(Sid::autoplaceHairpinDynamicsDistance);
                         rxpos2() += dist;
+                        // TODO - don't extend hairpin across barline to reach dynamic in next measure?
+                        // or only if there is also a key signature? see Gould
                         }
                   }
             }
@@ -476,6 +478,7 @@ static const ElementStyle hairpinSegmentStyle {
 LineSegment* Hairpin::createLineSegment()
       {
       HairpinSegment* h = new HairpinSegment(this, score());
+      h->setTrack(track());
       h->initElementStyle(&hairpinSegmentStyle);
       return h;
       }
@@ -617,13 +620,36 @@ QVariant Hairpin::propertyDefault(Pid id) const
                   return int(Qt::CustomDashLine);
 
             case Pid::BEGIN_TEXT:
-            case Pid::END_TEXT:
+                  if (_hairpinType == HairpinType::CRESC_LINE)
+                        return QString("cresc.");
+                  if (_hairpinType == HairpinType::CRESC_LINE)
+                        return QString("dim.");
+                  return QString();
+
             case Pid::CONTINUE_TEXT:
+            case Pid::END_TEXT:
+                  if (_hairpinType == HairpinType::CRESC_LINE)
+                        return QString("(cresc.)");
+                  if (_hairpinType == HairpinType::CRESC_LINE)
+                        return QString("(dim.)");
                   return QString("");
 
             case Pid::BEGIN_TEXT_PLACE:
             case Pid::CONTINUE_TEXT_PLACE:
                   return int(PlaceText::LEFT);
+
+            case Pid::BEGIN_TEXT_OFFSET:
+            case Pid::CONTINUE_TEXT_OFFSET:
+            case Pid::END_TEXT_OFFSET:
+                  return QPointF();
+
+            case Pid::BEGIN_HOOK_TYPE:
+            case Pid::END_HOOK_TYPE:
+                  return int(HookType::NONE);
+
+            case Pid::BEGIN_HOOK_HEIGHT:
+            case Pid::END_HOOK_HEIGHT:
+                  return Spatium(0.0);
 
             case Pid::LINE_VISIBLE:
                   return true;

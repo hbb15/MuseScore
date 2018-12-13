@@ -1151,6 +1151,8 @@ static void readNote(Note* note, XmlReader& e)
                         note->setTpc1(Ms::transposeTpc(note->tpc2(), v, true));
                   }
             }
+#if 0
+      // TODO - adapt this code
 
       // check consistency of pitch, tpc1, tpc2, and transposition
       // see note in InstrumentChange::read() about a known case of tpc corruption produced in 2.0.x
@@ -1158,25 +1160,35 @@ static void readNote(Note* note, XmlReader& e)
       // including perhaps some we don't know about yet,
       // we will attempt to fix some problems here regardless of version
 
-      if (!e.pasteMode() && !MScore::testMode) {
-            int tpc1Pitch = (tpc2pitch(note->tpc1()) + 12) % 12;
-            int tpc2Pitch = (tpc2pitch(note->tpc2()) + 12) % 12;
-            int concertPitch = note->pitch() % 12;
-            if (tpc1Pitch != concertPitch) {
-                  qDebug("bad tpc1 - concertPitch = %d, tpc1 = %d", concertPitch, tpc1Pitch);
-                  note->setPitch(note->pitch() + tpc1Pitch - concertPitch);
+      if (staff() && !staff()->isDrumStaff(e.tick()) && !e.pasteMode() && !MScore::testMode) {
+            int tpc1Pitch = (tpc2pitch(_tpc[0]) + 12) % 12;
+            int tpc2Pitch = (tpc2pitch(_tpc[1]) + 12) % 12;
+            int soundingPitch = _pitch % 12;
+            if (tpc1Pitch != soundingPitch) {
+                  qDebug("bad tpc1 - soundingPitch = %d, tpc1 = %d", soundingPitch, tpc1Pitch);
+                  _pitch += tpc1Pitch - soundingPitch;
                   }
-            Interval v = note->staff()->part()->instrument(e.tick())->transpose();
-            int transposedPitch = (note->pitch() - v.chromatic) % 12;
-            if (tpc2Pitch != transposedPitch) {
-                  qDebug("bad tpc2 - transposedPitch = %d, tpc2 = %d", transposedPitch, tpc2Pitch);
-                  // just in case the staff transposition info is not reliable here,
-                  // do not attempt to correct tpc
-                  // except for older scores where we know there are tpc problems
-                  v.flip();
-                  note->setTpc2(Ms::transposeTpc(note->tpc1(), v, true));
+            if (staff()) {
+                  Interval v = staff()->part()->instrument(e.tick())->transpose();
+                  int writtenPitch = (_pitch - v.chromatic) % 12;
+                  if (tpc2Pitch != writtenPitch) {
+                        qDebug("bad tpc2 - writtenPitch = %d, tpc2 = %d", writtenPitch, tpc2Pitch);
+                        if (concertPitch()) {
+                              // assume we want to keep sounding pitch
+                              // so fix written pitch (tpc only)
+                              v.flip();
+                              _tpc[1] = Ms::transposeTpc(_tpc[0], v, true);
+                              }
+                        else {
+                              // assume we want to keep written pitch
+                              // so fix sounding pitch (both tpc and pitch)
+                              _tpc[0] = Ms::transposeTpc(_tpc[1], v, true);
+                              _pitch += tpc2Pitch - writtenPitch;
+                              }
+                        }
                   }
             }
+#endif
       }
 
 //---------------------------------------------------------
@@ -1451,6 +1463,15 @@ static bool readTextProperties206(XmlReader& e, TextBase* t, Element* be)
             t->readProperty(e, Pid::OFFSET);
             if ((char(t->align()) & char(Align::VMASK)) == char(Align::TOP))
                   t->ryoffset() += .5 * t->score()->spatium();     // HACK: bbox is different in 2.x
+            if (t->staff()) {
+                  qreal staffHeight = t->staff()->height();
+                  if (t->offset().y() >= staffHeight) {
+                        t->setProperty(Pid::PLACEMENT, int(Placement::BELOW));
+                        t->ryoffset() -= staffHeight;
+                        }
+                  else
+                        t->setProperty(Pid::PLACEMENT, int(Placement::ABOVE));
+                  }
             }
       else if (!t->readProperties(e))
             return false;
@@ -2928,26 +2949,24 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                   // MuseScore 3 has different types for system text and
                   // staff text while MuseScore 2 didn't.
                   // We need to decide first which one we should create.
-                  QIODevice* dev = e.device();
                   QString styleName;
-                  if (dev && !dev->isSequential()) { // we want to be able to seek a position
-                        const auto pos = dev->pos();
-                        dev->seek(e.characterOffset());
-                        const QString closeTag = QString("</").append(tag).append(">");
-                        QByteArray arrLine = dev->readLine();
-                        while (!arrLine.isEmpty()) {
-                              QString line(arrLine);
-                              if (line.contains("<style>")) {
-                                    QRegExp re("<style>([A-z0-9]+)</style>");
-                                    if (re.indexIn(line) > -1)
-                                          styleName = re.cap(1);
-                                    break;
+                  if (e.readAheadAvailable()) {
+                        e.performReadAhead([&styleName, tag](QIODevice& dev) {
+                              const QString closeTag = QString("</").append(tag).append(">");
+                              QByteArray arrLine = dev.readLine();
+                              while (!arrLine.isEmpty()) {
+                                    QString line(arrLine);
+                                    if (line.contains("<style>")) {
+                                          QRegExp re("<style>([A-z0-9]+)</style>");
+                                          if (re.indexIn(line) > -1)
+                                                styleName = re.cap(1);
+                                          return;
+                                          }
+                                    if (line.contains(closeTag))
+                                          return;
+                                    arrLine = dev.readLine();
                                     }
-                              if (line.contains(closeTag))
-                                    break;
-                              arrLine = dev->readLine();
-                              }
-                        dev->seek(pos);
+                              });
                         }
                   StaffTextBase* t;
                   if (styleName == "System"   || styleName == "Tempo"
@@ -3032,6 +3051,16 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                   // for symbols attached to anything but a measure
                   el->setTrack(e.track());
                   el->read(e);
+                  if (el->staff() && (el->isHarmony() || el->isFretDiagram() || el->isInstrumentChange())) {
+                        qreal staffHeight = el->staff()->height();
+                        if (el->offset().y() >= staffHeight) {
+                              el->setProperty(Pid::PLACEMENT, int(Placement::BELOW));
+                              el->ryoffset() -= staffHeight;
+                              }
+                        else
+                              el->setProperty(Pid::PLACEMENT, int(Placement::ABOVE));
+                        }
+
                   segment = m->getSegment(SegmentType::ChordRest, e.tick());
                   segment->add(el);
                   }
