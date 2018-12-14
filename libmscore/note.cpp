@@ -1165,10 +1165,10 @@ void Note::draw(QPainter* painter) const
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*0.0125*_numericHigth, _numericaccidentalPos);
+                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth, _numericaccidentalPos);
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*0.02*_numericHigth,_numericaccidentalPos);
+                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth,_numericaccidentalPos);
                         }
                   }
             }
@@ -2183,7 +2183,7 @@ void Note::layout()
             _fretString = _fretString+
                         getNumericDuration[int(chord()->durationType().type())]+
                         getNumericDurationDot[int(chord()->durationType().dots())];
-            _fretStringYShift=((_pitch+grundtonverschibung+clefshift+accidentalshift)/12-5)*_numericHigth*0.5;
+            _fretStringYShift=((_pitch+grundtonverschibung+clefshift+accidentalshift)/12-5)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
             bbox().setRect(0.0, numeric->fretBoxY() * mags, _numericWidth, numeric->fretBoxH() * mags);
             _numericHigth = bbox().height();
             }
@@ -2246,17 +2246,19 @@ void Note::layout2()
             if (paren)
                   _fretString = QString("(%1)").arg(_fretString);
             qreal w = tabHeadWidth(numeric); // !! use _fretString
-            QRectF stringbox = QRectF(0.0, _numericHigth*-0.5-_fretStringYShift,
+            QRectF stringbox = QRectF(0.0,_numericHigth*-1 + _numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_fretStringYShift,
                              w,( _numericHigth));
             setbbox(stringbox);
-            _numericTextPos = QPointF(bbox().x(), _numericHigth*0.5-_fretStringYShift);
+            _numericTextPos = QPointF(bbox().x(), _numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_fretStringYShift);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        _numericaccidentalPos = QPointF(_numericHigth*-0.5*magS(), (_numericHigth*0.1 -_fretStringYShift) * magS());
+                        _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*magS(),
+                                                        (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)*magS() -_fretStringYShift) * magS());
                         addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        _numericaccidentalPos = QPointF(_numericHigth*-0.5*magS(), (_numericHigth*0.17 -_fretStringYShift) * magS());
+                        _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*magS(),
+                                                        (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)*magS() -_fretStringYShift) * magS());
                         addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
                         }
                   }

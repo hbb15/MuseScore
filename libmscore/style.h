@@ -981,6 +981,19 @@ enum class Sid {
       fermataPosBelow,
       fermataMinDistance,
 
+      numericHeightDisplacement,
+      numericDistanceOctave,
+      numericHeigthLine,
+      numericDistanceBetweenLines,
+      numericWideLine,
+      numericThickLine,
+      numericSizeSignSharp,
+      numericSizeSignFlat,
+      numericDistanceSignSharp,
+      numericDistanceSignFlat,
+      numericHeigthSignSharp,
+      numericHeigthSignFlat,
+
       STYLES
       };
 

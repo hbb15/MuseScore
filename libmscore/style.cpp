@@ -1005,6 +1005,19 @@ static const StyleType styleTypes[] {
       { Sid::fermataPosAbove,               "fermataPosAbove",               QPointF(.0, -1.0) },
       { Sid::fermataPosBelow,               "fermataPosBelow",               QPointF(.0, 1.0)  },
       { Sid::fermataMinDistance,            "fermataMinDistance",            Spatium(0.4)  },
+
+      { Sid::numericHeightDisplacement,     "numericHeightDisplacement",     0.5 },
+      { Sid::numericDistanceOctave,         "numericDistanceOctave",         0.5 },
+      { Sid::numericHeigthLine,             "numericHeigthLine",             0.25},
+      { Sid::numericDistanceBetweenLines,   "numericDistanceBetweenLines",   0.3 },
+      { Sid::numericWideLine,               "numericWideLine",               0.7 },
+      { Sid::numericThickLine,              "numericThickLine",              0.09 },
+      { Sid::numericSizeSignSharp,          "numericSizeSignSharp",          1.25 },
+      { Sid::numericSizeSignFlat,           "numericSizeSignFlat",           2.00 },
+      { Sid::numericDistanceSignSharp,      "numericDistanceSignSharp",      0.5 },
+      { Sid::numericDistanceSignFlat,       "numericDistanceSignFlat",       0.5 },
+      { Sid::numericHeigthSignSharp,        "numericHeigthSignSharp",        0.1 },
+      { Sid::numericHeigthSignFlat,         "numericHeigthSignFlat",         0.17 },
       };
 
 MStyle  MScore::_baseStyle;

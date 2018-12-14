@@ -381,6 +381,19 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::bendFontStyle,     false, bendFontStyle,     resetBendFontStyle     },
       { Sid::bendLineWidth,     false, bendLineWidth,     resetBendLineWidth     },
       { Sid::bendArrowWidth,    false, bendArrowWidth,    resetBendArrowWidth    },
+
+      { Sid::numericHeightDisplacement,        false, numericHeightDisplacement,          resetNumericHeightDisplacement      },
+      { Sid::numericDistanceOctave,            false, numericDistanceOctave,              resetNumericDistanceOctave          },
+      { Sid::numericHeigthLine,                false, numericHeigthLine,                  resetNumericHeigthLine              },
+      { Sid::numericDistanceBetweenLines,      false, numericDistanceBetweenLines,        resetNumericDistanceBetweenLines    },
+      { Sid::numericWideLine,                  false, numericWideLine,                    resetNumericWideLine                },
+      { Sid::numericThickLine,                 false, numericThickLine,                   resetNumericThickLine               },
+      { Sid::numericSizeSignSharp,             false, numericSizeSignSharp,               resetNumericSizeSignSharp           },
+      { Sid::numericSizeSignFlat,              false, numericSizeSignFlat,                resetNumericSizeSignFlat            },
+      { Sid::numericDistanceSignSharp,         false, numericDistanceSignSharp,           resetNumericDistanceSignSharp       },
+      { Sid::numericDistanceSignFlat,          false, numericDistanceSignFlat,            resetNumericDistanceSignFlat        },
+      { Sid::numericHeigthSignSharp,           false, numericHeigthSignSharp,             resetNumericHeigthSignSharp         },
+      { Sid::numericHeigthSignFlat,            false, numericHeigthSignFlat,              resetNumericHeigthSignFlat          },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {

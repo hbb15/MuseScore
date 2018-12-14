@@ -69,9 +69,9 @@ void Hook::layout()
       {
       if (staff() && staff()->isNumericStaff( tick())) {
 
-            _numericLineThick=_numericHigth*0.1;
-            _numericLineSpace=_numericHigth*-0.3;
-            _numericHigthLine=_numericHigth*-0.75;
+            _numericLineThick=_numericHigth*score()->styleD(Sid::numericThickLine);
+            _numericLineSpace=_numericHigth*(score()->styleD(Sid::numericDistanceBetweenLines)*-1);
+            _numericHigthLine=_numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_numericHigth-_numericHigth*score()->styleD(Sid::numericHeigthLine);
             QRectF hookbox = QRectF(0.0, _numericHigthLine+((qAbs(_hookType)-1)*_numericLineSpace)-_numericLineThick, _numericLineWidht,
                                     ( _numericHigthLine+((qAbs(_hookType)-1)*_numericLineSpace)-_numericLineThick)*-1-_numericHigthLine*-1);
             setbbox(hookbox);
@@ -94,7 +94,8 @@ void Hook::draw(QPainter* painter) const
             painter->setPen(QPen(curColor(), _numericLineThick));
             for (int i = 0; i < qAbs(_hookType); ++i){
 
-                  painter->drawLine(QLineF(0, _numericHigthLine+(i*_numericLineSpace), _numericLineWidht, _numericHigthLine+(i*_numericLineSpace)));
+                  painter->drawLine(QLineF(_numericLineWidht/2-(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2, _numericHigthLine+(i*_numericLineSpace),
+                                           _numericLineWidht/2+(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2, _numericHigthLine+(i*_numericLineSpace)));
                   }
             }
       else{
