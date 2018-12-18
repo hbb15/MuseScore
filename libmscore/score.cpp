@@ -2560,6 +2560,7 @@ void Score::sortStaves(QList<int>& dst)
                         sp->setTrack2(idx * VOICES +(sp->track2() % VOICES)); // at least keep the voice...
                   }
             }
+      setLayoutAll();
       }
 
 //---------------------------------------------------------
@@ -3046,8 +3047,7 @@ void Score::collectMatch(void* data, Element* e)
       else if (p->subtypeValid && p->subtype != e->subtype())
             return;
 
-      if ((p->staffStart != -1)
-         && ((p->staffStart > e->staffIdx()) || (p->staffEnd <= e->staffIdx())))
+      if ((p->staffStart != -1) && ((p->staffStart > e->staffIdx()) || (p->staffEnd <= e->staffIdx())))
             return;
 
       if (p->voice != -1 && p->voice != e->voice())
@@ -3582,6 +3582,15 @@ Cursor* Score::newCursor()
 void Score::addSpanner(Spanner* s)
       {
       _spanner.addSpanner(s);
+      }
+
+//---------------------------------------------------------
+//   alreadyInList
+//---------------------------------------------------------
+
+bool Score::alreadyInList(Spanner* s) const
+      {
+      return _spanner.alreadyInList(s);
       }
 
 //---------------------------------------------------------
@@ -4299,6 +4308,23 @@ QVariant Score::propertyDefault(Pid /*id*/) const
 void Score::setStyle(const MStyle& s)
       {
       style() = s;
+      }
+
+//---------------------------------------------------------
+//   getTextStyleUserName
+//---------------------------------------------------------
+
+QString Score::getTextStyleUserName(Tid tid)
+      {
+      QString name = "";
+      if (int(tid) >= int(Tid::USER1) && int(tid) <= int(Tid::USER6)) {
+            int idx = int(tid) - int(Tid::USER1);
+            Sid sid[] = { Sid::user1Name, Sid::user2Name, Sid::user3Name, Sid::user4Name, Sid::user5Name, Sid::user6Name };
+            name = styleSt(sid[idx]);
+            }
+      if (name == "")
+            name = textStyleUserName(tid);
+      return name;
       }
 
 //---------------------------------------------------------

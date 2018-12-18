@@ -615,6 +615,13 @@ void readTextStyle206(MStyle* style, XmlReader& e)
                   qDebug("unhandled substyle <%s>", qPrintable(name));
                   return;
                   }
+            int idx = int(ss) - int(Tid::USER1);
+            if ((idx < 0) || (idx > 5)) {
+                  qDebug("User style index %d outside of range [0,5].", idx);
+                  return;
+                  }
+            Sid sid[] = { Sid::user1Name, Sid::user2Name, Sid::user3Name, Sid::user4Name, Sid::user5Name, Sid::user6Name };
+            style->set(sid[idx], name);
             }
 
       for (const auto& i : *textStyle(ss)) {
@@ -1043,12 +1050,12 @@ static void readStaff(Staff* staff, XmlReader& e)
 //   readPart
 //---------------------------------------------------------
 
-static void readPart(Part* part, XmlReader& e)
+void readPart206(Part* part, XmlReader& e)
       {
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
             if (tag == "Instrument") {
-                  Instrument* i = part->instrument();
+                  Instrument* i = part->_instruments.instrument(/* tick */ -1);
                   readInstrument(i, part, e);
                   Drumset* ds = i->drumset();
                   Staff*   s = part->staff(0);
@@ -3540,7 +3547,7 @@ static bool readScore(Score* score, XmlReader& e)
                   }
             else if (tag == "Part") {
                   Part* part = new Part(score);
-                  readPart(part, e);
+                  readPart206(part, e);
                   score->parts().push_back(part);
                   }
             else if ((tag == "HairPin")   // TODO: do this elements exist here?

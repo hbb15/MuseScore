@@ -2938,6 +2938,28 @@ void layoutTies(Chord* ch, System* system, int stick)
       }
 
 //---------------------------------------------------------
+//   layoutHarmonies
+//---------------------------------------------------------
+
+void layoutHarmonies(const std::vector<Segment*>& sl)
+      {
+      for (const Segment* s : sl) {
+            for (Element* e : s->annotations()) {
+                  if (e->isHarmony()) {
+                        Harmony* h = toHarmony(e);
+                        // For chord symbols that coincide with a chord or rest,
+                        // a partial layout can also happen (if needed) during ChordRest layout
+                        // in order to calculate a bbox and allocate its shape to the ChordRest.
+                        // But that layout (if it happens at all) does not do autoplace,
+                        // so we need the full layout here.
+                        h->layout();
+                        h->autoplaceSegmentElement(s->score()->styleP(Sid::minHarmonyDistance));
+                        }
+                  }
+            }
+      }
+
+//---------------------------------------------------------
 //   processLines
 //---------------------------------------------------------
 
@@ -3424,13 +3446,15 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             system->staff(si)->skyline().add(d->shape().translated(d->pos() + s->pos() + m->pos()));
             }
 
-      //
-      //    layout SpannerSegments for current system
-      //
+      //-------------------------------------------------------------
+      // layout SpannerSegments for current system
+      // ottavas, pedals, voltas are collected here, but layouted later
+      //-------------------------------------------------------------
 
       spanner.clear();
       std::vector<Spanner*> ottavas;
       std::vector<Spanner*> pedal;
+      std::vector<Spanner*> voltas;
 
       for (auto interval : spanners) {
             Spanner* sp = interval.value;
@@ -3439,30 +3463,35 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
                         ottavas.push_back(sp);
                   else if (sp->isPedal())
                         pedal.push_back(sp);
-                  else if (!sp->isSlur() && !sp->isVolta())    // slurs are already, voltas will be later handled
+                  else if (sp->isVolta())
+                        voltas.push_back(sp);
+                  else if (!sp->isSlur() && !sp->isVolta())    // slurs are already
                         spanner.push_back(sp);
                   }
             }
-      processLines(system, ottavas, false);
-      processLines(system, pedal,   true);
       processLines(system, spanner, false);
 
       //-------------------------------------------------------------
-      // TempoText, Fermata, TremoloBar
+      // Fermata, TremoloBar
       //-------------------------------------------------------------
 
       for (const Segment* s : sl) {
             for (Element* e : s->annotations()) {
-                  if (e->isTempoText()) {
-                        TempoText* tt = toTempoText(e);
-                        if (score()->isMaster())
-                              setTempo(tt->segment(), tt->tempo());
-                        tt->layout();
-                        }
-                  else if (e->isFermata() || e->isTremoloBar())
+                  if (e->isFermata() || e->isTremoloBar())
                         e->layout();
                   }
             }
+
+      //-------------------------------------------------------------
+      // Ottava, Pedal
+      //-------------------------------------------------------------
+
+      processLines(system, ottavas, false);
+      processLines(system, pedal,   true);
+
+      //-------------------------------------------------------------
+      // Lyric
+      //-------------------------------------------------------------
 
       layoutLyrics(system);
 
@@ -3473,19 +3502,76 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             sp->layoutSystem(system);
             }
 
+      //
+      // We need to known if we have FretDiagrams in the system to decide when to layout the Harmonies
+      //
+
+      bool hasFretDiagram = false;
+      for (const Segment* s : sl) {
+            for (Element* e : s->annotations()) {
+                  if (e->isFretDiagram()) {
+                        hasFretDiagram = true;
+                        break;
+                        }
+                  }
+
+            if (hasFretDiagram)
+                  break;
+            }
+
+      //-------------------------------------------------------------
+      // Harmony, 1st place
+      // If we have FretDiagrams, we want the Harmony above this and
+      // above the volta, therefore we delay the layout.
+      //-------------------------------------------------------------
+
+      if (!hasFretDiagram) 
+            layoutHarmonies(sl);
+
+      //-------------------------------------------------------------
+      // StaffText, InstrumentChange
+      //-------------------------------------------------------------
+
+      for (const Segment* s : sl) {
+            for (Element* e : s->annotations()) {
+                  if (e->isStaffText() || e->isSystemText() || e->isInstrumentChange())
+                        e->layout();
+                  }
+            }
+
+      //-------------------------------------------------------------
+      // Jump, Marker
+      //-------------------------------------------------------------
+
+      for (MeasureBase* mb : system->measures()) {
+            if (!mb->isMeasure())
+                  continue;
+            Measure* m = toMeasure(mb);
+            for (Element* e : m->el()) {
+                  if (e->isJump() || e->isMarker())
+                        e->layout();
+                  }
+            }
+
+      //-------------------------------------------------------------
+      // TempoText
+      //-------------------------------------------------------------
+
+      for (const Segment* s : sl) {
+            for (Element* e : s->annotations()) {
+                  if (e->isTempoText()) {
+                        TempoText* tt = toTempoText(e);
+                        if (score()->isMaster())
+                              setTempo(tt->segment(), tt->tempo());
+                        tt->layout();
+                        }
+                  }
+            }
+
       //-------------------------------------------------------------
       // layout Voltas for current sytem
       //-------------------------------------------------------------
 
-      std::vector<Spanner*> voltas;
-
-      for (auto interval : spanners) {
-            Spanner* sp = interval.value;
-            if (sp->tick() < etick && sp->tick2() > stick) {
-                  if (sp->isVolta())
-                        voltas.push_back(sp);
-                  }
-            }
       processLines(system, voltas, false);
 
       //
@@ -3513,23 +3599,14 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
                         ++idx;
                         prevVolta = volta;
                         }
-                  for (int i = 0; i < idx; ++i)
-                        voltaSegments[i]->rypos() = y;
+
+                  for (int i = 0; i < idx; ++i) {
+                        SpannerSegment* ss = voltaSegments[i];
+                        ss->rypos() = y;
+                        system->staff(staffIdx)->skyline().add(ss->shape().translated(ss->pos()));
+                        }
+
                   voltaSegments.erase(voltaSegments.begin(), voltaSegments.begin() + idx);
-                  }
-            }
-
-      //-------------------------------------------------------------
-      // Jump, Marker
-      //-------------------------------------------------------------
-
-      for (MeasureBase* mb : system->measures()) {
-            if (!mb->isMeasure())
-                  continue;
-            Measure* m = toMeasure(mb);
-            for (Element* e : m->el()) {
-                  if (e->isJump() || e->isMarker())
-                        e->layout();
                   }
             }
 
@@ -3537,31 +3614,21 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
       // FretDiagram
       //-------------------------------------------------------------
 
-      for (const Segment* s : sl) {
-            for (Element* e : s->annotations()) {
-                  if (e->isFretDiagram())
-                        e->layout();
-                  }
-            }
-
-      //-------------------------------------------------------------
-      // StaffText, Harmony, InstrumentChange
-      //-------------------------------------------------------------
-
-      for (const Segment* s : sl) {
-            for (Element* e : s->annotations()) {
-                  if (e->isStaffText() || e->isSystemText() || e->isInstrumentChange())
-                        e->layout();
-                  if (e->isHarmony()) {
-                        Harmony* h = toHarmony(e);
-                        // Layout of harmony seems to be bound currently
-                        // to ChordRest (see ChordRest::shape). But harmony
-                        // can exist without chord or rest too.
-                        if (h->isLayoutInvalid())
-                              h->layout();
-                        toHarmony(e)->autoplaceSegmentElement(styleP(Sid::minHarmonyDistance));
+      if (hasFretDiagram) {
+            for (const Segment* s : sl) {
+                  for (Element* e : s->annotations()) {
+                        if (e->isFretDiagram())
+                              e->layout();
                         }
                   }
+
+            //-------------------------------------------------------------
+            // Harmony, 2nd place
+            // We have FretDiagrams, we want the Harmony above this and
+            // above the volta.
+            //-------------------------------------------------------------
+
+            layoutHarmonies(sl);
             }
 
       //-------------------------------------------------------------

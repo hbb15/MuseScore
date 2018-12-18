@@ -125,7 +125,7 @@
 #elif defined(MAC_SPARKLE_ENABLED)
 #include "sparkle/sparkleAutoUpdater.h"
 #endif
- 
+
 #ifdef USE_LAME
 #include "exportmp3.h"
 #endif
@@ -173,7 +173,9 @@ bool noWebView = false;
 bool exportScoreParts = false;
 bool ignoreWarnings = false;
 bool exportScoreMedia = false;
-
+bool exportScoreMp3 = false;
+bool exportScorePartsPdf = false;
+      
 QString mscoreGlobalShare;
 
 static QString outFileName;
@@ -1630,13 +1632,13 @@ MuseScore::MuseScore()
       for (auto i : { "voice-x12", "voice-x13", "voice-x14", "voice-x23", "voice-x24", "voice-x34" })
             menuVoices->addAction(getAction(i));
       menuTools->addMenu(menuVoices);
-      
+
       menuMeasure = new QMenu("");
       for (auto i : { "split-measure", "join-measures" })
             menuMeasure->addAction(getAction(i));
       menuTools->addMenu(menuMeasure);
       menuTools->addAction(getAction("time-delete"));
-      
+
       menuTools->addSeparator();
 
       menuTools->addAction(getAction("slash-fill"));
@@ -1888,7 +1890,7 @@ MuseScore::MuseScore()
 #endif
       connect(this, SIGNAL(musescoreWindowWasShown()), this, SLOT(checkForUpdates()),
             Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
-      
+
       if (!converterMode && !pluginMode)
             _loginManager = new LoginManager(getAction(saveOnlineMenuItem), this);
       }
@@ -3463,6 +3465,11 @@ static bool processNonGui(const QStringList& argv)
       {
       if (exportScoreMedia)
             return mscore->exportAllMediaFiles(argv[0]);
+      else if (exportScoreMp3)
+            return mscore->exportMp3AsJSON(argv[0]);
+      else if (exportScorePartsPdf)
+            return mscore->exportPartsPdfsToJSON(argv[0]);
+      
       if (pluginMode) {
             loadScores(argv);
             QString pn(pluginName);
@@ -3808,8 +3815,8 @@ void MuseScore::clipboardChanged()
 
 void MuseScore::inputMethodAnchorRectangleChanged()
       {
-      QRectF r =  QGuiApplication::inputMethod()->anchorRectangle();
-      qDebug("inputMethod AnchorRectangle Changed: (%f, %f) + (%f, %f)", r.x(), r.y(), r.width(), r.height());
+//      QRectF r =  QGuiApplication::inputMethod()->anchorRectangle();
+//      qDebug("inputMethod AnchorRectangle Changed: (%f, %f) + (%f, %f)", r.x(), r.y(), r.width(), r.height());
       }
 
 //---------------------------------------------------------
@@ -3818,7 +3825,7 @@ void MuseScore::inputMethodAnchorRectangleChanged()
 
 void MuseScore::inputMethodAnimatingChanged()
       {
-      qDebug("inputMethod Animating Changed: %d", QGuiApplication::inputMethod()->isAnimating());
+//      qDebug("inputMethod Animating Changed: %d", QGuiApplication::inputMethod()->isAnimating());
       }
 
 //---------------------------------------------------------
@@ -3827,8 +3834,8 @@ void MuseScore::inputMethodAnimatingChanged()
 
 void MuseScore::inputMethodCursorRectangleChanged()
       {
-      QRectF r =  QGuiApplication::inputMethod()->cursorRectangle();
-      qDebug("inputMethod CursorRectangle Changed: (%f, %f) + (%f, %f)", r.x(), r.y(), r.width(), r.height());
+//      QRectF r =  QGuiApplication::inputMethod()->cursorRectangle();
+//      qDebug("inputMethod CursorRectangle Changed: (%f, %f) + (%f, %f)", r.x(), r.y(), r.width(), r.height());
       }
 
 //---------------------------------------------------------
@@ -3837,7 +3844,7 @@ void MuseScore::inputMethodCursorRectangleChanged()
 
 void MuseScore::inputMethodInputDirectionChanged(Qt::LayoutDirection newDirection)
       {
-      qDebug("inputMethod InputDirection Changed: (QLocale::LayoutDirection enum) #%d", newDirection);
+//      qDebug("inputMethod InputDirection Changed: (QLocale::LayoutDirection enum) #%d", newDirection);
       }
 
 //---------------------------------------------------------
@@ -3846,8 +3853,8 @@ void MuseScore::inputMethodInputDirectionChanged(Qt::LayoutDirection newDirectio
 
 void MuseScore::inputMethodInputItemClipRectangleChanged()
       {
-      QRectF r =  QGuiApplication::inputMethod()->inputItemClipRectangle();
-      qDebug("inputMethod InputItemClipRectangle Changed: (%f, %f) + (%f, %f)", r.x(), r.y(), r.width(), r.height());
+//      QRectF r =  QGuiApplication::inputMethod()->inputItemClipRectangle();
+//      qDebug("inputMethod InputItemClipRectangle Changed: (%f, %f) + (%f, %f)", r.x(), r.y(), r.width(), r.height());
       }
 
 //---------------------------------------------------------
@@ -3856,8 +3863,8 @@ void MuseScore::inputMethodInputItemClipRectangleChanged()
 
 void MuseScore::inputMethodKeyboardRectangleChanged()
       {
-      QRectF r =  QGuiApplication::inputMethod()->keyboardRectangle();
-      qDebug("inputMethod KeyboardRectangle Changed: (%f, %f) + (%f, %f)", r.x(), r.y(), r.width(), r.height());
+//      QRectF r =  QGuiApplication::inputMethod()->keyboardRectangle();
+//      qDebug("inputMethod KeyboardRectangle Changed: (%f, %f) + (%f, %f)", r.x(), r.y(), r.width(), r.height());
       }
 
 //---------------------------------------------------------
@@ -3866,7 +3873,7 @@ void MuseScore::inputMethodKeyboardRectangleChanged()
 
 void MuseScore::inputMethodLocaleChanged()
       {
-      qDebug("inputMethod Locale Changed: (QLocale::Script enum) #%d.", QGuiApplication::inputMethod()->locale().script());
+//      qDebug("inputMethod Locale Changed: (QLocale::Script enum) #%d.", QGuiApplication::inputMethod()->locale().script());
       }
 
 //---------------------------------------------------------
@@ -3875,7 +3882,7 @@ void MuseScore::inputMethodLocaleChanged()
 
 void MuseScore::inputMethodVisibleChanged()
       {
-      qDebug("inputMethodVisibleChanged: %d", QGuiApplication::inputMethod()->isVisible());
+//      qDebug("inputMethodVisibleChanged: %d", QGuiApplication::inputMethod()->isVisible());
       }
 
 //---------------------------------------------------------
@@ -6917,7 +6924,9 @@ int main(int argc, char* av[])
       parser.addOption(QCommandLineOption({"f", "force"}, "Used with '-o <file>', ignore warnings reg. score being corrupted or from wrong version"));
       parser.addOption(QCommandLineOption({"b", "bitrate"}, "Used with '-o <file>.mp3', sets bitrate, in kbps", "bitrate"));
       parser.addOption(QCommandLineOption({"E", "install-extension"}, "Install an extension, load soundfont as default unless if -e is passed too", "extension file"));
-      parser.addOption(QCommandLineOption("score-media", "Export all media for a given score in a single JSON file and print it to std out"));
+      parser.addOption(QCommandLineOption("score-media", "Export all media (excepting mp3) for a given score in a single JSON file and print it to std out"));
+      parser.addOption(QCommandLineOption("score-mp3", "Generates mp3 for the given score and export the data to a single JSON file, print it to std out"));
+      parser.addOption(QCommandLineOption("score-parts-pdf", "Generates parts data for the given score and export the data to a single JSON file, print it to std out"));
       parser.addOption(QCommandLineOption("raw-diff", "Print a raw diff for the given scores"));
       parser.addOption(QCommandLineOption("diff", "Print a diff for the given scores"));
 
@@ -7063,7 +7072,19 @@ int main(int argc, char* av[])
             MScore::noGui = true;
             converterMode = true;
             }
+      
+      if (parser.isSet("score-mp3")) {
+            exportScoreMp3 = true;
+            MScore::noGui = true;
+            converterMode = true;
+            }
 
+      if (parser.isSet("score-parts-pdf")) {
+            exportScorePartsPdf = true;
+            MScore::noGui = true;
+            converterMode = true;
+            }
+      
       if (parser.isSet("raw-diff")) {
             MScore::noGui = true;
             rawDiffMode = true;
@@ -7194,7 +7215,10 @@ int main(int argc, char* av[])
 
       QSplashScreen* sc = 0;
       if (!MScore::noGui && preferences.getBool(PREF_UI_APP_STARTUP_SHOWSPLASHSCREEN)) {
-            QPixmap pm(":/data/splash.png");
+            QString pictureScaling;
+            if (QGuiApplication::primaryScreen()->devicePixelRatio() >= 2)
+                  pictureScaling = "@2x";
+            QPixmap pm(":/data/splash" + pictureScaling + ".png");
             sc = new QSplashScreen(pm);
             sc->setWindowTitle(QString("MuseScore Startup"));
 #ifdef Q_OS_MAC // to have session dialog on top of splashscreen on mac
@@ -7429,3 +7453,89 @@ int main(int argc, char* av[])
       return qApp->exec();
       }
 
+//---------------------------------------------------------
+//   exportPartsPdfsToJSON
+//---------------------------------------------------------
+
+bool MuseScore::exportPartsPdfsToJSON(const QString& inFilePath, const QString& outFilePath)
+{
+      MasterScore* score = mscore->readScore(inFilePath);
+      if (!score)
+            return false;
+      
+      QString outPath = QFileInfo(inFilePath).path() + "/";
+      
+      QJsonObject jsonForPdfs;
+      QString outName = outPath + QFileInfo(inFilePath).baseName() + ".pdf";
+      jsonForPdfs["score"] = outName;
+      
+      //save score pdf
+      if (!styleFile.isEmpty()) {
+            QFile f(styleFile);
+            if (f.open(QIODevice::ReadOnly))
+                  score->style().load(&f);
+      }
+      score->switchToPageMode();
+      
+      QByteArray pdfData;
+      QBuffer scoreDevice(&pdfData);
+      scoreDevice.open(QIODevice::ReadWrite);
+      QPdfWriter writer(&scoreDevice);
+      bool res = mscore->savePdf(score, writer);
+      jsonForPdfs["scoreBin"] = QString::fromLatin1(pdfData.toBase64());
+      
+      //save extended score+parts and separate parts pdfs
+      //if no parts, generate parts from existing instruments
+      if (score->excerpts().size() == 0) {
+            auto excerpts = Excerpt::createAllExcerpt(score);
+            for (Excerpt* e : excerpts) {
+                  Score* nscore = new Score(e->oscore());
+                  e->setPartScore(nscore);
+                  nscore->style().set(Sid::createMultiMeasureRests, true);
+                  Excerpt::createExcerpt(e);
+                  auto excerptCmdFake = new AddExcerpt(e);
+                  excerptCmdFake->redo(nullptr);
+            }
+      }
+      
+      QList<Score*> scores;
+      scores.append(score);
+      QJsonArray partsArray;
+      QJsonArray partsNamesArray;
+      for (Excerpt* e : score->excerpts()) {
+            scores.append(e->partScore());
+            QJsonValue partNameVal(e->title());
+            partsNamesArray.append(partNameVal);
+            QByteArray partData;
+            QBuffer partDevice(&partData);
+            partDevice.open(QIODevice::ReadWrite);
+            QPdfWriter partWriter(&partDevice);
+            res &= mscore->savePdf(e->partScore(), partWriter);
+            QJsonValue partVal(QString::fromLatin1(partData.toBase64()));
+            partsArray.append(partVal);
+      }
+      jsonForPdfs["parts"] = partsNamesArray;
+      jsonForPdfs["partsBin"] = partsArray;
+      
+      jsonForPdfs["scoreFullPostfix"] = QString("-Score_and_parts") + ".pdf";
+      
+      QString tempFileName = outPath + "tempPdf.pdf";
+      res &= mscore->savePdf(scores, tempFileName);
+      QFile tempPdf(tempFileName);
+      tempPdf.open(QIODevice::ReadWrite);
+      QByteArray fullScoreData = tempPdf.readAll();
+      tempPdf.remove();
+      jsonForPdfs["scoreFullBin"] = QString::fromLatin1(fullScoreData.toBase64());
+      
+      QJsonDocument jsonDoc(jsonForPdfs);
+      const QString& jsonPath{outFilePath};
+      QFile file(jsonPath);
+      res &= file.open(QIODevice::WriteOnly);
+      if (res) {
+            file.write(jsonDoc.toJson(QJsonDocument::Compact));
+            file.close();
+      }
+      
+      delete score;
+      return res;
+      }

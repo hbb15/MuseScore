@@ -844,6 +844,7 @@ class Score : public QObject, public ScoreElement {
       int      styleI(Sid idx) const  { Q_ASSERT(!strcmp(MStyle::valueType(idx),"int"));         return style().value(idx).toInt();  }
 
       void setStyleValue(Sid sid, QVariant value) { style().set(sid, value);     }
+      QString getTextStyleUserName(Tid tid);
       qreal spatium() const                    { return styleD(Sid::spatium);    }
       void setSpatium(qreal v)                 { setStyleValue(Sid::spatium, v); }
 
@@ -1090,6 +1091,7 @@ class Score : public QObject, public ScoreElement {
       bool isSpannerStartEnd(int tick, int track) const;
       void removeSpanner(Spanner*);
       void addSpanner(Spanner*);
+      bool alreadyInList(Spanner*) const;
       void cmdAddSpanner(Spanner* spanner, const QPointF& pos);
       void cmdAddSpanner(Spanner* spanner, int staffIdx, Segment* startSegment, Segment* endSegment);
       void checkSpanner(int startTick, int lastTick);
