@@ -358,6 +358,7 @@ void Inspector::update(Score* s)
                               break;
                         }
                   }
+            connect(ie, &InspectorBase::elementChanged, this, QOverload<>::of(&Inspector::update), Qt::QueuedConnection);
             sa->setWidget(ie);      // will destroy previous set widget
 
             //focus policies were set by hand in each inspector_*.ui. this code just helps keeping them like they are
@@ -969,7 +970,8 @@ InspectorStem::InspectorStem(QWidget* parent)
             { Pid::LINE_WIDTH, 0, s.lineWidth,  s.resetLineWidth  },
             { Pid::USER_LEN,   0, s.userLength, s.resetUserLength },
             };
-      mapSignals(iiList);
+      const std::vector<InspectorPanel> ppList = { { s.title, s.panel } };
+      mapSignals(iiList, ppList);
       }
 
 //---------------------------------------------------------
@@ -1160,7 +1162,8 @@ InspectorBracket::InspectorBracket(QWidget* parent) : InspectorBase(parent)
       const std::vector<InspectorItem> il = {
             { Pid::BRACKET_COLUMN, 0, b.column, b.resetColumn }
             };
-      mapSignals(il);
+      const std::vector<InspectorPanel> ppList = { { b.title, b.panel } };
+      mapSignals(il, ppList);
       }
 
 //---------------------------------------------------------
@@ -1174,7 +1177,8 @@ InspectorIname::InspectorIname(QWidget* parent) : InspectorTextBase(parent)
       const std::vector<InspectorItem> il = {
             { Pid::INAME_LAYOUT_POSITION, 0, i.layoutPosition, i.resetLayoutPosition }
             };
-      mapSignals(il);
+      const std::vector<InspectorPanel> ppList = { { i.title, i.panel } };
+      mapSignals(il, ppList);
       }
 
 }
