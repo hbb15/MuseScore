@@ -1157,10 +1157,10 @@ void Note::draw(QPainter* painter) const
 
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
             StaffType* tab = staff()->staffType(tick());
-
-            QFont f(tab->fretFont());
-            f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
-            painter->setFont(f);
+            QFont font;
+            font.setFamily(score()->styleSt(Sid::numericFont));
+            font.setPointSizeF(font.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
+            painter->setFont(font);
             painter->setPen(c);
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){

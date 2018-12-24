@@ -1008,6 +1008,7 @@ enum class Sid {
       numericDistanceSignFlat,
       numericHeigthSignSharp,
       numericHeigthSignFlat,
+      numericFont,
 
       STYLES
       };

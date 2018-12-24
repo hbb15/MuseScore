@@ -1033,6 +1033,7 @@ static const StyleType styleTypes[] {
       { Sid::numericDistanceSignFlat,       "numericDistanceSignFlat",       0.5 },
       { Sid::numericHeigthSignSharp,        "numericHeigthSignSharp",        0.1 },
       { Sid::numericHeigthSignFlat,         "numericHeigthSignFlat",         0.17 },
+      { Sid::numericFont,                   "numericFont",                   "FreeSerif" },
       };
 
 MStyle  MScore::_baseStyle;

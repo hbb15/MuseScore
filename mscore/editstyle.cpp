@@ -394,6 +394,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::numericDistanceSignFlat,          false, numericDistanceSignFlat,            resetNumericDistanceSignFlat        },
       { Sid::numericHeigthSignSharp,           false, numericHeigthSignSharp,             resetNumericHeigthSignSharp         },
       { Sid::numericHeigthSignFlat,            false, numericHeigthSignFlat,              resetNumericHeigthSignFlat          },
+      { Sid::numericFont,                      false, numericFont,                        resetnumericFont                    },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {
