@@ -1024,6 +1024,7 @@ static const StyleType styleTypes[] {
       { Sid::numericHeightDisplacement,     "numericHeightDisplacement",     0.5 },
       { Sid::numericDistanceOctave,         "numericDistanceOctave",         0.5 },
       { Sid::numericHeigthLine,             "numericHeigthLine",             0.25},
+      { Sid::numericOffsetLine,             "numericOffsetLine",             0.0},
       { Sid::numericDistanceBetweenLines,   "numericDistanceBetweenLines",   0.3 },
       { Sid::numericWideLine,               "numericWideLine",               0.7 },
       { Sid::numericThickLine,              "numericThickLine",              0.09 },

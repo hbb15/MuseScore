@@ -999,6 +999,7 @@ enum class Sid {
       numericHeightDisplacement,
       numericDistanceOctave,
       numericHeigthLine,
+      numericOffsetLine,
       numericDistanceBetweenLines,
       numericWideLine,
       numericThickLine,

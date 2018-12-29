@@ -385,6 +385,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::numericHeightDisplacement,        false, numericHeightDisplacement,          resetNumericHeightDisplacement      },
       { Sid::numericDistanceOctave,            false, numericDistanceOctave,              resetNumericDistanceOctave          },
       { Sid::numericHeigthLine,                false, numericHeigthLine,                  resetNumericHeigthLine              },
+      { Sid::numericOffsetLine,                false, numericOffsetLine,                  resetnumericOffsetLine              },
       { Sid::numericDistanceBetweenLines,      false, numericDistanceBetweenLines,        resetNumericDistanceBetweenLines    },
       { Sid::numericWideLine,                  false, numericWideLine,                    resetNumericWideLine                },
       { Sid::numericThickLine,                 false, numericThickLine,                   resetNumericThickLine               },
