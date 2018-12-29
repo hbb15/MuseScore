@@ -2129,6 +2129,17 @@ int Note::getNumericTrans(Key key) const{
     return 0;
       }
 //---------------------------------------------------------
+//   getNumericOktave
+//---------------------------------------------------------voice.soprano
+int Note::getNumericOktave() const{
+      QString instname = part()->instrument(chord()->tick())->instrumentId();
+      if(instname == "voice.bass")
+            return -1;
+      if(instname == "voice.tenor")
+            return -1;
+    return 0;
+      }
+//---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
 
@@ -2164,6 +2175,7 @@ void Note::layout()
             int accidentalshift=0;
             _drawFlat = false;
             _drawSharp = false;
+            int numtransposeInterval=part()->instrument(chord()->tick())->transpose().chromatic;
             if (_accidental){
                   if (_accidental->accidentalType() == AccidentalType::SHARP){
                         accidentalshift=-1;
@@ -2172,18 +2184,15 @@ void Note::layout()
                         accidentalshift=1;
                         }
                   }
-            int clefshift=0;
-            ClefType clef = staff()->clef(tick());
-            if(clef==ClefType::F)
-                  clefshift=-12;
+            int clefshift=getNumericOktave();
             int grundtonverschibung=getNumericTrans(staff()->key(tick()));
-            int zifferkomatik=((_pitch+grundtonverschibung+clefshift)%12)+1;
+            int zifferkomatik=((_pitch+grundtonverschibung+numtransposeInterval)%12)+1;
             _fretString = getNumericString(zifferkomatik+accidentalshift);
             _numericWidth=tabHeadWidth(numeric);
             _fretString = _fretString+
                         getNumericDuration[int(chord()->durationType().type())]+
                         getNumericDurationDot[int(chord()->durationType().dots())];
-            _fretStringYShift=((_pitch+grundtonverschibung+clefshift+accidentalshift)/12-5)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
+            _fretStringYShift=((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
             bbox().setRect(0.0, numeric->fretBoxY() * mags, _numericWidth, numeric->fretBoxH() * mags);
             _numericHigth = bbox().height();
             }

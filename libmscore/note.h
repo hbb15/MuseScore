@@ -476,6 +476,7 @@ class Note final : public Element {
       int setAccidentalTypeBack(int defaultdirection) ;
 
       int getNumericTrans(Key key) const;
+      int getNumericOktave() const;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(Pid) const override;
       virtual QString propertyUserValue(Pid) const override;
