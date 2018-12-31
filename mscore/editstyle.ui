@@ -246,7 +246,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>34</number>
+       <number>8</number>
       </property>
       <widget class="QWidget" name="PageScore">
        <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -11557,7 +11557,7 @@
               <number>3</number>
              </property>
              <property name="minimum">
-              <double>0.000000000000000</double>
+              <double>-10.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>0.010000000000000</double>
@@ -11792,6 +11792,9 @@
              <property name="suffix">
               <string>sp</string>
              </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
+             </property>
              <property name="singleStep">
               <double>0.010000000000000</double>
              </property>
@@ -11840,6 +11843,9 @@
              </property>
              <property name="suffix">
               <string>sp</string>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>0.010000000000000</double>
@@ -11906,6 +11912,9 @@
              <property name="suffix">
               <string>sp</string>
              </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
+             </property>
              <property name="singleStep">
               <double>0.010000000000000</double>
              </property>
@@ -11921,6 +11930,9 @@
              </property>
              <property name="suffix">
               <string>sp</string>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>0.010000000000000</double>
@@ -12015,6 +12027,9 @@
             <widget class="QDoubleSpinBox" name="numericOffsetLine">
              <property name="suffix">
               <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>1.000000000000000</double>
