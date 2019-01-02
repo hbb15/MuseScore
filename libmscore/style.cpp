@@ -1036,9 +1036,10 @@ static const StyleType styleTypes[] {
       { Sid::numericHeigthSignFlat,         "numericHeigthSignFlat",         0.17 },
       { Sid::numericFont,                   "numericFont",                   "FreeSerif" },
       { Sid::numericSlurEckenform,          "numericSlurEckenform",          1.0 },
-      { Sid::numericSlurThick,              "numericSlurThick",              1.0 },
-      { Sid::numericSlurHeigth,             "numericSlurHeigth",             0.3 },
+      { Sid::numericSlurThick,              "numericSlurThick",              1.3 },
+      { Sid::numericSlurHeigth,             "numericSlurHeigth",             1.0 },
       { Sid::numericSlurUberhang,           "numericSlurUberhang",           0.2 },
+      { Sid::numericSlurShift,              "numericSlurShift",              0.3 },
       };
 
 MStyle  MScore::_baseStyle;

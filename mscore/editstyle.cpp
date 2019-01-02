@@ -400,6 +400,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::numericSlurThick,                 false, numericSlurThick,                   resetNumericSlurThick               },
       { Sid::numericSlurHeigth,                false, numericSlurHeigth,                  resetNumericSlurHeigth              },
       { Sid::numericSlurUberhang,              false, numericSlurUberhang,                resetNumericSlurUberhang            },
+      { Sid::numericSlurShift,                 false, numericSlurShift,                   resetNumericSlurShift               },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {
