@@ -60,6 +60,11 @@ void SlurSegment::draw(QPainter* painter) const
                   pen.setDashPattern(dashes);
                   break;
             }
+
+      if(slur()->staff() && slur()->staff()->isNumericStaff(slur()->tick())){
+
+            pen.setWidthF(score()->styleD(Sid::numericSlurThick));
+            }
       painter->setPen(pen);
       painter->drawPath(path);
       }
@@ -251,6 +256,13 @@ void SlurSegment::computeBezier(QPointF p6o)
             shoulderH = -shoulderH;
 
       qreal c    = p2.x();
+      qreal w = 0.0;
+      if(slur()->staff() && slur()->staff()->isNumericStaff(slur()->tick())){
+            shoulderW = (c-slur()->get_numericWidth()*score()->styleD(Sid::numericSlurEckenform))/c;
+            }
+      else {
+            w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
+            }
       qreal c1   = (c - c * shoulderW) * .5 + p6o.x();
       qreal c2   = c1 + c * shoulderW       + p6o.x();
 
@@ -259,7 +271,6 @@ void SlurSegment::computeBezier(QPointF p6o)
       QPointF p3(c1, -shoulderH);
       QPointF p4(c2, -shoulderH);
 
-      qreal w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
       if ((c2 - c1) <= _spatium)
             w *= .5;
       QPointF th(0.0, w);    // thickness of slur
@@ -552,7 +563,6 @@ void Slur::slurPos(SlurPos* sp)
             sp->system2 = sp->system1;
             return;
             }
-
       bool useTablature  = staff() && staff()->isTabStaff(endCR()->tick());
       bool staffHasStems = true;     // assume staff uses stems
       const StaffType* stt = 0;
@@ -594,6 +604,14 @@ void Slur::slurPos(SlurPos* sp)
       if (note2 && !note2->mirror())
             sp->p2.rx() += note2->x();
 
+      if(staff() && staff()->isNumericStaff(endCR()->tick())){
+            _numericWidth=note1->get_numericWidth();
+            sp->p1.rx() +=note1->get_numericWidth()*0.5-note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
+            sp->p2.rx() +=note2->get_numericWidth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
+            sp->p1.ry() = note1->y()-note1->fretStringYShift()+note1->get_numericHigth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurHeigth);
+            sp->p2.ry() = note2->y()-note2->fretStringYShift()+note2->get_numericHigth()*0.5+note2->get_numericHigth()*score()->styleD(Sid::numericSlurHeigth);
+            return;
+            }
       qreal xo, yo;
 
       Stem* stem1 = sc && staffHasStems ? sc->stem() : 0;

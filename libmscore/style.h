@@ -1010,6 +1010,10 @@ enum class Sid {
       numericHeigthSignSharp,
       numericHeigthSignFlat,
       numericFont,
+      numericSlurEckenform,
+      numericSlurThick,
+      numericSlurHeigth,
+      numericSlurUberhang,
 
       STYLES
       };
