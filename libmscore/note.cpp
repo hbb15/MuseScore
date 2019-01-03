@@ -910,9 +910,10 @@ qreal Note::tabHeadWidth(const StaffType* tab) const
             }
       else if (tab && _fretString != "" && (staff()->isNumericStaff(chord()->tick()))){
 
-            QFont f    = tab->fretFont();
-            f.setPointSizeF(tab->fretFontSize());
-            QFontMetricsF fm(f, MScore::paintDevice());
+          QFont font;
+          font.setFamily(score()->styleSt(Sid::numericFont));
+          font.setPointSizeF(tab->fretFontSize());
+            QFontMetricsF fm(font, MScore::paintDevice());
             val  = fm.width(_fretString) * magS();
             }
       else
@@ -1159,7 +1160,7 @@ void Note::draw(QPainter* painter) const
             StaffType* tab = staff()->staffType(tick());
             QFont font;
             font.setFamily(score()->styleSt(Sid::numericFont));
-            font.setPointSizeF(font.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
+            font.setPointSizeF(tab->fretFontSize() * spatium() * MScore::pixelRatio / SPATIUM20);
             painter->setFont(font);
             painter->setPen(c);
             painter->drawText(_numericTextPos, _fretString);
