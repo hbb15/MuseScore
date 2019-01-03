@@ -1015,6 +1015,9 @@ enum class Sid {
       numericSlurHeigth,
       numericSlurUberhang,
       numericSlurShift,
+      numericLedgerlineThick,
+      numericLedgerlineLength,
+      numericLedgerlineShift,
 
       STYLES
       };

@@ -2192,6 +2192,7 @@ void Note::layout()
             _fretString = _fretString+
                         getNumericDuration[int(chord()->durationType().type())]+
                         getNumericDurationDot[int(chord()->durationType().dots())];
+            _numericLedgerline = ((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)/2;
             _fretStringYShift=((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
             bbox().setRect(0.0, numeric->fretBoxY() * mags, _numericWidth, numeric->fretBoxH() * mags);
             _numericHigth = bbox().height();

@@ -663,6 +663,33 @@ qreal Chord::maxHeadWidth() const
 
 void Chord::addLedgerLines()
       {
+      if (staff() && (staff()->isNumericStaff(tick()))){
+            int anzahl = notes()[0]->get_numericLedgerline();
+            if (anzahl<0)
+                  anzahl *= -1;
+            for (int n=0;n<anzahl; n++) {
+                  LedgerLine* h = new LedgerLine(score());
+                  h->setParent(this);
+                  h->setTrack(track());
+                  h->setVisible(visible());
+                  h->setLineWidth(notes()[0]->get_numericHigth()*score()->styleD(Sid::numericLedgerlineThick));
+                  h->setLen(notes()[0]->get_numericWidth()*score()->styleD(Sid::numericLedgerlineLength));
+                  qreal x = (notes()[0]->get_numericWidth()*0.5)-(notes()[0]->get_numericWidth()*score()->styleD(Sid::numericLedgerlineLength)*0.5)+
+                              score()->styleD(Sid::numericLedgerlineShift);
+                  if(notes()[0]->get_numericLedgerline()<0)
+                        h->setPos(x, notes()[0]->get_numericHigth()*score()->styleD(Sid::numericDistanceOctave)*2.0*(n+1));
+                  else
+                        h->setPos(x, -notes()[0]->get_numericHigth()*score()->styleD(Sid::numericDistanceOctave)*2.0*(n+1));
+                  h->setNext(_ledgerLines);
+                  _ledgerLines = h;
+                  }
+
+
+            for (LedgerLine* ll = _ledgerLines; ll; ll = ll->next())
+                  ll->layout();
+
+            return;
+            }
       // initialize for palette
       int track          = 0;                   // the track lines belong to
       // the line pos corresponding to the bottom line of the staff
@@ -2377,8 +2404,6 @@ void Chord::layoutNumeric()
       StaffType* tab    = staff()->staffType(tick());
       qreal lineDist    = tab->lineDistance().val() *_spatium;
       qreal stemX       = tab->chordStemPosX(this) *_spatium;
-      int   ledgerLines = 0;
-      qreal llY         = 0.0;
 
       int   numOfNotes  = _notes.size();
       qreal minY        = 1000.0;               // just a very large value
@@ -2446,27 +2471,11 @@ void Chord::layoutNumeric()
                   }
             }
 
-      // create ledger lines, if required (in some historic styles)
-      if (ledgerLines > 0) {
-// there seems to be no need for widening 'ledger lines' beyond fret mark widths; more 'on the field'
-// tests and usage will show if this depends on the metrics of the specific fonts used or not.
-//            qreal extraLen    = score()->styleS(Sid::ledgerLineLength).val() * _spatium;
-            qreal extraLen    = 0;
-            qreal llX         = stemX - (headWidth + extraLen) * 0.5;
-            for (int i = 0; i < ledgerLines; i++) {
-                  LedgerLine* ldgLin = new LedgerLine(score());
-                  ldgLin->setParent(this);
-                  ldgLin->setTrack(track());
-                  ldgLin->setVisible(visible());
-                  ldgLin->setLen(headWidth + extraLen);
-                  ldgLin->setPos(llX, llY);
-                  ldgLin->setNext(_ledgerLines);
-                  _ledgerLines = ldgLin;
-                  ldgLin->layout();
-                  llY += lineDist / ledgerLines;
-                  }
-            headWidth += extraLen;        // include ledger lines extra width in chord width
-            }
+      //-----------------------------------------
+      //  create ledger lines
+      //-----------------------------------------
+
+      addLedgerLines();
 
       // horiz. spacing: leave half width at each side of the (potential) stem
       qreal halfHeadWidth = headWidth * 0.5;

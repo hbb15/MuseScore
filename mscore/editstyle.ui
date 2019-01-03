@@ -11147,13 +11147,13 @@
          </item>
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout_100">
-           <item row="3" column="6">
-            <widget class="QToolButton" name="resetNumericWideLine">
+           <item row="1" column="6">
+            <widget class="QToolButton" name="resetnumericOffsetLine">
              <property name="toolTip">
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Multimeasure rest margin' value</string>
+              <string>Reset 'Key to time signature distance' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -11164,75 +11164,8 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="4">
-            <widget class="QLabel" name="label_216">
-             <property name="text">
-              <string>breite Strich</string>
-             </property>
-            </widget>
-           </item>
-           <item row="17" column="0">
-            <widget class="QLabel" name="label_159">
-             <property name="text">
-              <string>System header distance:</string>
-             </property>
-             <property name="buddy">
-              <cstring>systemHeaderDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QToolButton" name="resetNumericDistanceOctave">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Minimum measure width' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="4">
-            <widget class="QLabel" name="label_200">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>höhe Strich</string>
-             </property>
-             <property name="buddy">
-              <cstring>measureSpacing</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="17" column="6">
-            <widget class="QToolButton" name="resetSystemHeaderTimeSigDistance_2">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'System header to time signature distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_92">
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_175">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -11240,74 +11173,15 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>höhe verschibung</string>
+              <string>höhe Virzeichen (Flat)</string>
              </property>
              <property name="buddy">
-              <cstring>barGraceDistance</cstring>
+              <cstring>keysigLeftMargin</cstring>
              </property>
             </widget>
            </item>
-           <item row="17" column="4">
-            <widget class="QLabel" name="label_213">
-             <property name="text">
-              <string>System header with time signature distance:</string>
-             </property>
-             <property name="buddy">
-              <cstring>systemHeaderTimeSigDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="17" column="5">
-            <widget class="QDoubleSpinBox" name="systemHeaderTimeSigDistance_2">
-             <property name="suffix">
-              <string extracomment="spatium unit">sp</string>
-             </property>
-             <property name="singleStep">
-              <double>0.100000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <spacer name="horizontalSpacer_31">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_90">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>abstand Octave</string>
-             </property>
-             <property name="buddy">
-              <cstring>minMeasureWidth_2</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="5">
-            <widget class="QDoubleSpinBox" name="numericWideLine">
-             <property name="suffix">
-              <string extracomment="spatium unit">sp</string>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QDoubleSpinBox" name="numericHeightDisplacement">
+           <item row="3" column="1">
+            <widget class="QDoubleSpinBox" name="numericSizeSignSharp">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -11322,50 +11196,26 @@
              </property>
             </widget>
            </item>
-           <item row="14" column="1">
-            <widget class="QDoubleSpinBox" name="clefTimesigDistance_2">
+           <item row="9" column="5">
+            <widget class="QDoubleSpinBox" name="numericSlurShift">
              <property name="suffix">
               <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>0.010000000000000</double>
              </property>
             </widget>
            </item>
-           <item row="14" column="2">
-            <widget class="QToolButton" name="resetClefTimesigDistance_2">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Clef to time signature distance' value</string>
-             </property>
+           <item row="1" column="4">
+            <widget class="QLabel" name="label_123">
              <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="14" column="0">
-            <widget class="QLabel" name="label_170">
-             <property name="text">
-              <string>Clef to time signature distance:</string>
+              <string>versatz Strich</string>
              </property>
              <property name="buddy">
-              <cstring>clefTimesigDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="16" column="0">
-            <widget class="QLabel" name="label_160">
-             <property name="text">
-              <string>Key to barline distance:</string>
-             </property>
-             <property name="buddy">
-              <cstring>keyBarlineDistance</cstring>
+              <cstring>keyTimesigDistance</cstring>
              </property>
             </widget>
            </item>
@@ -11386,8 +11236,38 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_172">
+           <item row="5" column="2">
+            <widget class="QToolButton" name="resetNumericHeigthSignSharp">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Minimum note distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <spacer name="horizontalSpacer_31">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_192">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -11395,23 +11275,23 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>größe Vorzeichen (Sharp)</string>
+              <string>abstand Vorzeichen (Sharp)</string>
              </property>
              <property name="buddy">
-              <cstring>barAccidentalDistance</cstring>
+              <cstring>barNoteDistance</cstring>
              </property>
             </widget>
            </item>
-           <item row="0" column="5">
-            <widget class="QDoubleSpinBox" name="numericHeigthLine">
+           <item row="7" column="1">
+            <widget class="QDoubleSpinBox" name="numericDistanceSignFlat">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="decimals">
-              <number>3</number>
+             <property name="suffix">
+              <string>sp</string>
              </property>
              <property name="minimum">
               <double>-10.000000000000000</double>
@@ -11421,10 +11301,105 @@
              </property>
             </widget>
            </item>
-           <item row="16" column="1">
-            <widget class="QDoubleSpinBox" name="keyBarlineDistance_2">
+           <item row="6" column="1">
+            <widget class="QDoubleSpinBox" name="numericSizeSignFlat">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="label_170">
+             <property name="text">
+              <string>Hilfslinie Länge</string>
+             </property>
+             <property name="buddy">
+              <cstring>clefTimesigDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_193">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>größe Vorzeichen (Flat)</string>
+             </property>
+             <property name="buddy">
+              <cstring>noteBarDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="4">
+            <widget class="QLabel" name="label_215">
+             <property name="text">
+              <string>abstand zwischen Schtriche</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="4">
+            <widget class="QLabel" name="label_174">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Bogen dicke</string>
+             </property>
+             <property name="buddy">
+              <cstring>timesigLeftMargin</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="5">
+            <widget class="QDoubleSpinBox" name="numericWideLine">
              <property name="suffix">
               <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="2">
+            <widget class="QToolButton" name="resetNumericLedgerlineLength">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Clef to time signature distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="5">
+            <widget class="QDoubleSpinBox" name="numericSlurUberhang">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
              </property>
              <property name="singleStep">
               <double>0.010000000000000</double>
@@ -11448,21 +11423,8 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QDoubleSpinBox" name="numericDistanceOctave">
-             <property name="suffix">
-              <string extracomment="spatium unit">sp</string>
-             </property>
-             <property name="minimum">
-              <double>0.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QDoubleSpinBox" name="numericSizeSignSharp">
+           <item row="1" column="1">
+            <widget class="QDoubleSpinBox" name="numericHeightDisplacement">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -11477,59 +11439,8 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="2">
-            <widget class="QToolButton" name="resetNumericSizeSignSharp">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Barline to accidental distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="4">
-            <widget class="QLabel" name="label_217">
-             <property name="text">
-              <string>dicke Strich</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="5">
-            <widget class="QDoubleSpinBox" name="numericThickLine">
-             <property name="suffix">
-              <string extracomment="spatium unit">sp</string>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="6">
-            <widget class="QToolButton" name="resetNumericThickLine">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'System header distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_193">
+           <item row="5" column="4">
+            <widget class="QLabel" name="label_214">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -11537,227 +11448,20 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>größe Vorzeichen (Flat)</string>
+              <string>Bogen Eckenform</string>
              </property>
              <property name="buddy">
-              <cstring>noteBarDistance</cstring>
+              <cstring>timesigBarlineDistance</cstring>
              </property>
             </widget>
            </item>
-           <item row="6" column="1">
-            <widget class="QDoubleSpinBox" name="numericSizeSignFlat">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="2">
-            <widget class="QToolButton" name="resetNumericSizeSignFlat">
+           <item row="7" column="6">
+            <widget class="QToolButton" name="resetNumericSlurHeigth">
              <property name="toolTip">
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Note to barline distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_192">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>abstand Vorzeichen (Sharp)</string>
-             </property>
-             <property name="buddy">
-              <cstring>barNoteDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QDoubleSpinBox" name="numericDistanceSignSharp">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="minimum">
-              <double>-10.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="2">
-            <widget class="QToolButton" name="resetNumericDistanceSignSharp">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Note left margin' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_194">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>höhe Virzeichen (Sharp)</string>
-             </property>
-             <property name="buddy">
-              <cstring>minNoteDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QDoubleSpinBox" name="numericHeigthSignSharp">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="minimum">
-              <double>-10.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="2">
-            <widget class="QToolButton" name="resetNumericHeigthSignSharp">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Minimum note distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="label_199">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>abstand Vorzeichen (Flat)</string>
-             </property>
-             <property name="buddy">
-              <cstring>clefLeftMargin</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_175">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>höhe Virzeichen (Flat)</string>
-             </property>
-             <property name="buddy">
-              <cstring>keysigLeftMargin</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QDoubleSpinBox" name="numericDistanceSignFlat">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="minimum">
-              <double>-10.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1">
-            <widget class="QDoubleSpinBox" name="numericHeigthSignFlat">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="minimum">
-              <double>-10.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="2">
-            <widget class="QToolButton" name="resetNumericDistanceSignFlat">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Clef left margin' value</string>
+              <string>Reset 'Clef/Key right margin' valua</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -11785,15 +11489,8 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="4">
-            <widget class="QLabel" name="label_215">
-             <property name="text">
-              <string>abstand zwischen Schtriche</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="5">
-            <widget class="QDoubleSpinBox" name="numericDistanceBetweenLines">
+           <item row="8" column="1">
+            <widget class="QDoubleSpinBox" name="numericHeigthSignFlat">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -11802,199 +11499,12 @@
              </property>
              <property name="suffix">
               <string>sp</string>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="6">
-            <widget class="QToolButton" name="resetNumericDistanceBetweenLines">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Staff line thickness' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="4">
-            <widget class="QLabel" name="label_123">
-             <property name="text">
-              <string>versatz Strich</string>
-             </property>
-             <property name="buddy">
-              <cstring>keyTimesigDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="5">
-            <widget class="QDoubleSpinBox" name="numericOffsetLine">
-             <property name="suffix">
-              <string extracomment="spatium unit">sp</string>
              </property>
              <property name="minimum">
               <double>-10.000000000000000</double>
              </property>
              <property name="singleStep">
-              <double>1.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="6">
-            <widget class="QToolButton" name="resetnumericOffsetLine">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Key to time signature distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="5">
-            <widget class="QDoubleSpinBox" name="numericSlurEckenform">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="singleStep">
-              <double>0.100000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="6">
-            <widget class="QToolButton" name="resetNumericSlurEckenform">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Time signature to barline distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="4">
-            <widget class="QLabel" name="label_214">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Bogen Eckenform</string>
-             </property>
-             <property name="buddy">
-              <cstring>timesigBarlineDistance</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="6">
-            <widget class="QToolButton" name="resetNumericSlurThick">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Time signature left margin' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="5">
-            <widget class="QDoubleSpinBox" name="numericSlurThick">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>sp</string>
-             </property>
-             <property name="singleStep">
               <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="4">
-            <widget class="QLabel" name="label_174">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Bogen dicke</string>
-             </property>
-             <property name="buddy">
-              <cstring>timesigLeftMargin</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="4">
-            <widget class="QLabel" name="label_173">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Bogen höhe</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::PlainText</enum>
-             </property>
-             <property name="buddy">
-              <cstring>clefKeyRightMargin</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="4">
-            <widget class="QLabel" name="label_93">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Bogen überhang</string>
-             </property>
-             <property name="buddy">
-              <cstring>clefBarlineDistance</cstring>
              </property>
             </widget>
            </item>
@@ -12017,13 +11527,32 @@
              </property>
             </widget>
            </item>
-           <item row="7" column="6">
-            <widget class="QToolButton" name="resetNumericSlurHeigth">
+           <item row="0" column="5">
+            <widget class="QDoubleSpinBox" name="numericHeigthLine">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="decimals">
+              <number>3</number>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="6">
+            <widget class="QToolButton" name="resetNumericSlurEckenform">
              <property name="toolTip">
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Clef/Key right margin' valua</string>
+              <string>Reset 'Time signature to barline distance' value</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -12031,6 +11560,258 @@
              <property name="icon">
               <iconset resource="musescore.qrc">
                <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="6">
+            <widget class="QToolButton" name="resetNumericWideLine">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Multimeasure rest margin' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="6">
+            <widget class="QToolButton" name="resetNumericSlurThick">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Time signature left margin' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="4">
+            <widget class="QLabel" name="label_119">
+             <property name="text">
+              <string>Bogen verschiebung</string>
+             </property>
+             <property name="buddy">
+              <cstring>clefKeyDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QToolButton" name="resetNumericDistanceOctave">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Minimum measure width' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QDoubleSpinBox" name="numericDistanceSignSharp">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="18" column="4">
+            <widget class="QLabel" name="label_213">
+             <property name="text">
+              <string>System header with time signature distance:</string>
+             </property>
+             <property name="buddy">
+              <cstring>systemHeaderTimeSigDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="4">
+            <widget class="QLabel" name="label_217">
+             <property name="text">
+              <string>dicke Strich</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QToolButton" name="resetNumericSizeSignSharp">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Barline to accidental distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="5">
+            <widget class="QDoubleSpinBox" name="numericDistanceBetweenLines">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="label_199">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>abstand Vorzeichen (Flat)</string>
+             </property>
+             <property name="buddy">
+              <cstring>clefLeftMargin</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="6">
+            <widget class="QToolButton" name="resetNumericSlurShift">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Clef to key distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="5">
+            <widget class="QDoubleSpinBox" name="numericOffsetLine">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_90">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>abstand Octave</string>
+             </property>
+             <property name="buddy">
+              <cstring>minMeasureWidth_2</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QToolButton" name="resetNumericDistanceSignSharp">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Note left margin' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="18" column="5">
+            <widget class="QDoubleSpinBox" name="systemHeaderTimeSigDistance_2">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="4">
+            <widget class="QLabel" name="label_216">
+             <property name="text">
+              <string>breite Strich</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="5">
+            <widget class="QDoubleSpinBox" name="numericThickLine">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="4">
+            <widget class="QLabel" name="label_93">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Bogen überhang</string>
+             </property>
+             <property name="buddy">
+              <cstring>clefBarlineDistance</cstring>
              </property>
             </widget>
            </item>
@@ -12051,33 +11832,67 @@
              </property>
             </widget>
            </item>
-           <item row="8" column="5">
-            <widget class="QDoubleSpinBox" name="numericSlurUberhang">
-             <property name="suffix">
-              <string extracomment="spatium unit">sp</string>
+           <item row="0" column="4">
+            <widget class="QLabel" name="label_200">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="minimum">
-              <double>-10.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.010000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="4">
-            <widget class="QLabel" name="label_119">
              <property name="text">
-              <string>Bogen verschiebung</string>
+              <string>höhe Strich</string>
              </property>
              <property name="buddy">
-              <cstring>clefKeyDistance</cstring>
+              <cstring>measureSpacing</cstring>
              </property>
             </widget>
            </item>
-           <item row="9" column="5">
-            <widget class="QDoubleSpinBox" name="numericSlurShift">
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_172">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>größe Vorzeichen (Sharp)</string>
+             </property>
+             <property name="buddy">
+              <cstring>barAccidentalDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="4">
+            <widget class="QLabel" name="label_173">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Bogen höhe</string>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::PlainText</enum>
+             </property>
+             <property name="buddy">
+              <cstring>clefKeyRightMargin</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QDoubleSpinBox" name="numericHeigthSignSharp">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="suffix">
-              <string extracomment="spatium unit">sp</string>
+              <string>sp</string>
              </property>
              <property name="minimum">
               <double>-10.000000000000000</double>
@@ -12087,13 +11902,245 @@
              </property>
             </widget>
            </item>
-           <item row="9" column="6">
-            <widget class="QToolButton" name="resetNumericSlurShift">
+           <item row="6" column="2">
+            <widget class="QToolButton" name="resetNumericSizeSignFlat">
              <property name="toolTip">
               <string>Reset to default</string>
              </property>
              <property name="accessibleName">
-              <string>Reset 'Clef to key distance' value</string>
+              <string>Reset 'Note to barline distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="1">
+            <widget class="QDoubleSpinBox" name="numericLedgerlineLength">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_92">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>höhe verschibung</string>
+             </property>
+             <property name="buddy">
+              <cstring>barGraceDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="5">
+            <widget class="QDoubleSpinBox" name="numericSlurThick">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="6">
+            <widget class="QToolButton" name="resetNumericThickLine">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'System header distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="18" column="6">
+            <widget class="QToolButton" name="resetSystemHeaderTimeSigDistance_2">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'System header to time signature distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="6">
+            <widget class="QToolButton" name="resetNumericDistanceBetweenLines">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Staff line thickness' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QDoubleSpinBox" name="numericDistanceOctave">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="minimum">
+              <double>0.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="2">
+            <widget class="QToolButton" name="resetNumericDistanceSignFlat">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Clef left margin' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_194">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>höhe Virzeichen (Sharp)</string>
+             </property>
+             <property name="buddy">
+              <cstring>minNoteDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="5">
+            <widget class="QDoubleSpinBox" name="numericSlurEckenform">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="0">
+            <widget class="QLabel" name="label_160">
+             <property name="text">
+              <string>Hilfslinie verschibung</string>
+             </property>
+             <property name="buddy">
+              <cstring>keyBarlineDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="1">
+            <widget class="QDoubleSpinBox" name="numericLedgerlineShift">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="minimum">
+              <double>-50.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="2">
+            <widget class="QToolButton" name="resetNumericLedgerlineShift">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Clef to time signature distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="0">
+            <widget class="QLabel" name="label_159">
+             <property name="text">
+              <string>Hilfslinie dicke</string>
+             </property>
+             <property name="buddy">
+              <cstring>systemHeaderDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="1">
+            <widget class="QDoubleSpinBox" name="numericLedgerlineThick">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="2">
+            <widget class="QToolButton" name="resetNumericLedgerlineThick">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Clef to time signature distance' value</string>
              </property>
              <property name="text">
               <string notr="true"/>

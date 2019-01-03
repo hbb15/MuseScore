@@ -1040,6 +1040,9 @@ static const StyleType styleTypes[] {
       { Sid::numericSlurHeigth,             "numericSlurHeigth",             1.0 },
       { Sid::numericSlurUberhang,           "numericSlurUberhang",           0.2 },
       { Sid::numericSlurShift,              "numericSlurShift",              0.3 },
+      { Sid::numericLedgerlineThick,        "numericLedgerlineThick",        0.06 },
+      { Sid::numericLedgerlineLength,       "numericLedgerlineLength",       1.2 },
+      { Sid::numericLedgerlineShift,        "numericLedgerlineShift",        0.0 },
       };
 
 MStyle  MScore::_baseStyle;
