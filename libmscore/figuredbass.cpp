@@ -34,9 +34,7 @@ namespace Ms {
 static const std::vector<StyledProperty> figuredBassTextStyle {
       { Sid::figuredBassFontFace,                Pid::FONT_FACE              },
       { Sid::figuredBassFontSize,                Pid::FONT_SIZE              },
-      { Sid::figuredBassFontBold,                Pid::FONT_BOLD              },
-      { Sid::figuredBassFontItalic,              Pid::FONT_ITALIC            },
-      { Sid::figuredBassFontUnderline,           Pid::FONT_UNDERLINE         },
+      { Sid::figuredBassFontStyle,               Pid::FONT_STYLE             },
       };
 
 static constexpr qreal  FB_CONTLINE_HEIGHT            = 0.875;    // the % of font EM to raise the cont. line at
@@ -986,6 +984,7 @@ FiguredBass::FiguredBass(Score* s)
       setElementStyle(st);
 #endif
       setTicks(0);
+      qDeleteAll(items);
       items.clear();
       }
 
@@ -1076,8 +1075,6 @@ void FiguredBass::read(XmlReader& e)
 
 void FiguredBass::layout()
       {
-      qreal yOff  = score()->styleD(Sid::figuredBassYOffset);
-      qreal _sp   = spatium();
       // if 'our' style, force 'our' style data from FiguredBass parameters
 #if 0
       if (textStyleType() == StyledPropertyListIdx::FIGURED_BASS) {
@@ -1088,25 +1085,19 @@ void FiguredBass::layout()
             setTextStyle(st);
             }
 #endif
-      // if in edit mode or if style has been changed,
-      // do nothing else, keeping default laying out and formatting
-//      if (editMode() || items.size() < 1 || subStyle() != ElementStyle::FIGURED_BASS) {
-//      if (items.size() < 1 || tid() != Tid::FIGURED_BASS) {
-      if (items.size() < 1) {
-            TextBase::layout();
-            return;
-            }
 
       // VERTICAL POSITION:
-      yOff *= _sp;                                    // convert spatium value to raster units
-      setPos(QPointF(0.0, yOff));
+      const qreal y = score()->styleD(Sid::figuredBassYOffset) * spatium();
+      setPos(QPointF(0.0, y));
 
       // BOUNDING BOX and individual item layout (if required)
-      createLayout();                                 // prepare structs and data expected by Text methods
+      TextBase::layout1(); // prepare structs and data expected by Text methods
       // if element could be parsed into items, layout each element
+      // Items list will be empty in edit mode (see FiguredBass::startEdit).
+      // TODO: consider disabling specific layout in case text style is changed (tid() != Tid::FIGURED_BASS).
       if (items.size() > 0) {
             layoutLines();
-            bbox().setRect(0, 0, _lineLenghts.at(0), 0);
+            bbox().setRect(0, 0, _lineLengths.at(0), 0);
             // layout each item and enlarge bbox to include items bboxes
             for (FiguredBassItem* item : items) {
                   item->layout();
@@ -1125,8 +1116,8 @@ void FiguredBass::layout()
 void FiguredBass::layoutLines()
       {
       if (_ticks <= 0 || !segment()) {
-            _lineLenghts.resize(1);                         // be sure to always have
-            _lineLenghts[0] = 0;                            // at least 1 item in array
+            _lineLengths.resize(1);                         // be sure to always have
+            _lineLengths[0] = 0;                            // at least 1 item in array
             return;
             }
 
@@ -1153,8 +1144,8 @@ void FiguredBass::layoutLines()
             }
       if (!m || !nextSegm) {
             qDebug("FiguredBass layout: no segment found for tick %d", nextTick);
-            _lineLenghts.resize(1);                         // be sure to always have
-            _lineLenghts[0] = 0;                            // at least 1 item in array
+            _lineLengths.resize(1);                         // be sure to always have
+            _lineLengths[0] = 0;                            // at least 1 item in array
             return;
             }
 
@@ -1201,14 +1192,14 @@ qDebug("FiguredBass: duration indicator middle line not implemented");
 qDebug("FiguredBass: duration indicator end line not implemented");
                   }
             // store length item, reusing array items if already present
-            if (_lineLenghts.size() <= segIdx)
-                  _lineLenghts.append(len);
+            if (_lineLengths.size() <= segIdx)
+                  _lineLengths.append(len);
             else
-                  _lineLenghts[segIdx] = len;
+                  _lineLengths[segIdx] = len;
             }
       // if more array items than needed, truncate array
-      if (_lineLenghts.size() > segIdx)
-            _lineLenghts.resize(segIdx);
+      if (_lineLengths.size() > segIdx)
+            _lineLengths.resize(segIdx);
       }
 
 //---------------------------------------------------------
@@ -1219,7 +1210,7 @@ void FiguredBass::draw(QPainter* painter) const
       {
       // if not printing, draw duration line(s)
       if (!score()->printing() && score()->showUnprintable()) {
-            for (qreal len : _lineLenghts) {
+            for (qreal len : _lineLengths) {
                   if (len > 0) {
                         painter->setPen(QPen(Qt::lightGray, 1));
                         painter->drawLine(0.0, -2, len, -2);      // -2: 2 rast. un. above digits
@@ -1254,7 +1245,9 @@ void FiguredBass::draw(QPainter* painter) const
 
 void FiguredBass::startEdit(EditData& ed)
       {
-      TextBase::layout();               // convert layout to standard Text conventions
+      qDeleteAll(items);
+      items.clear();
+      layout(); // re-layout without F.B.-specific formatting.
       TextBase::startEdit(ed);
       }
 
@@ -1273,14 +1266,16 @@ void FiguredBass::endEdit(EditData& ed)
 
       // split text into lines and create an item for each line
       QStringList list = txt.split('\n', QString::SkipEmptyParts);
+      qDeleteAll(items);
       items.clear();
       QString normalizedText = QString();
       idx = 0;
       foreach(QString str, list) {
             FiguredBassItem* pItem = new FiguredBassItem(score(), idx++);
             if(!pItem->parse(str)) {            // if any item fails parsing
+                  qDeleteAll(items);
                   items.clear();                // clear item list
-                  TextBase::layout();               // keeping text as entered by user
+                  layout();
                   return;
                   }
             pItem->setTrack(track());

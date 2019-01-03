@@ -33,6 +33,7 @@ struct LayoutContext {
       Fraction sig;
 
       QList<System*> systemList;          // reusable systems
+      std::set<Spanner*> processedSpanners;
 
       System* prevSystem       { 0 };     // used during page layout
       System* curSystem        { 0 };
@@ -45,6 +46,11 @@ struct LayoutContext {
       MeasureBase* nextMeasure { 0 };
       int measureNo            { 0 };
       int endTick;
+
+      LayoutContext() = default;
+      LayoutContext(const LayoutContext&) = delete;
+      LayoutContext& operator=(const LayoutContext&) = delete;
+      ~LayoutContext();
 
       void layoutLinear();
       void layoutMeasureLinear(MeasureBase*);
@@ -63,6 +69,8 @@ enum class VerticalAlignRange {
       SEGMENT, MEASURE, SYSTEM
       };
 
+extern bool isTopBeam(ChordRest* cr);
+extern bool notTopBeam(ChordRest* cr);
 
 }     // namespace Ms
 #endif

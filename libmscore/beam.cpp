@@ -286,6 +286,7 @@ bool Beam::twoBeamedNotes()
 //---------------------------------------------------------
 //   layout1
 //    - remove beam segments
+//    - detach from system
 //    - calculate stem direction and set chord
 //---------------------------------------------------------
 
@@ -294,6 +295,8 @@ void Beam::layout1()
       //delete old segments
       qDeleteAll(beamSegments);
       beamSegments.clear();
+
+      setParent(nullptr); // parent is System
 
       maxDuration.setType(TDuration::DurationType::V_INVALID);
       Chord* c1 = 0;
@@ -410,13 +413,11 @@ void Beam::layout1()
             // otherwise, assume beam direction is stem direction
 
             for (ChordRest* cr : _elements) {
-                  if (!cr->isChord())
-                        continue;
-                  Chord* chord = toChord(cr);
-                  if (!(_cross || chord->staffMove())) {
-                        if (chord->up() != _up) {
-                              chord->setUp(_up);
-                              chord->layoutStem1();
+                  const bool staffMove = cr->isChord() ? toChord(cr)->staffMove() : false;
+                  if (!(_cross || staffMove)) {
+                        if (cr->up() != _up) {
+                              cr->setUp(_up);
+                              cr->layoutStem1();
                               }
                         }
                   }
@@ -1458,8 +1459,9 @@ void Beam::computeStemLen(const std::vector<ChordRest*>& cl, qreal& py1, int bea
             bm.l = ll1 - l1;
             }
       else { // if (beamLevels > 4) {
-            static const int t[] = { 0, 0, 4, 4, 8, 12, 16 }; // spatium4 added to stem len
-            int n = t[beamLevels] + 12;
+            //static const int t[] = { 0, 0, 4, 4, 8, 12, 15, 18, 21 }; // spatium4 added to stem len
+            //int n = t[beamLevels] + 12;
+            int n = (3 * (beamLevels - 5)) + 24;
             bm.s = 0;
             if (_up) {
                   bm.l = -n;
@@ -1947,7 +1949,8 @@ void Beam::layout2(std::vector<ChordRest*>crl, SpannerSegmentType, int frag)
 
             Stem* stem = c->stem();
             if (stem) {
-                  qreal sw2  = stem->lineWidth() * .5;
+                  bool useTablature = staff() && staff()->isTabStaff(cr->tick());
+                  qreal sw2  = useTablature ? 0.f : stem->lineWidth() * .5;
                   if (c->up())
                         sw2 = -sw2;
                   stem->rxpos() = c->stemPosX() + sw2;

@@ -296,8 +296,10 @@ void Bracket::updateGrips(EditData& ed) const
 
 void Bracket::endEdit(EditData& ed)
       {
-      endEditDrag(ed);
-      layout();
+//      endEditDrag(ed);
+      score()->setLayoutAll();
+      score()->update();
+      ed.element = 0;         // score layout invalidates element
       }
 
 //---------------------------------------------------------
@@ -432,12 +434,24 @@ QVariant Bracket::propertyDefault(Pid id) const
       }
 
 //---------------------------------------------------------
+//   undoChangeProperty
+//---------------------------------------------------------
+
+void Bracket::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps)
+      {
+      // brackets do not survive layout() and therefore cannot be on
+      // the undo stack; delegate to BracketItem:
+      BracketItem* bi = bracketItem();
+      bi->undoChangeProperty(id, v, ps);
+      }
+
+//---------------------------------------------------------
 //   setSelected
 //---------------------------------------------------------
 
 void Bracket::setSelected(bool f)
       {
-      _bi->setSelected(f);
+//      _bi->setSelected(f);
       Element::setSelected(f);
       }
 

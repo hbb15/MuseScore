@@ -61,6 +61,7 @@ class TieSegment final : public SlurTieSegment {
 class Tie final : public SlurTie {
       static Note* editStartNote;
       static Note* editEndNote;
+      qreal _numericWidth;
 
    public:
       Tie(Score* = 0);
@@ -80,14 +81,15 @@ class Tie final : public SlurTie {
       TieSegment* layoutFor(System*);
       TieSegment* layoutBack(System*);
 
-      bool readProperties(XmlReader&);
-
-      TieSegment* frontSegment() const   { return (TieSegment*)spannerSegments().front();    }
-      TieSegment* backSegment() const    { return (TieSegment*)spannerSegments().back();     }
-      TieSegment* takeLastSegment()      { return (TieSegment*)spannerSegments().takeLast(); }
-      TieSegment* segmentAt(int n) const { return (TieSegment*)spannerSegments().at(n);      }
+      TieSegment* frontSegment()               { return toTieSegment(Spanner::frontSegment()); }
+      const TieSegment* frontSegment() const   { return toTieSegment(Spanner::frontSegment()); }
+      TieSegment* backSegment()                { return toTieSegment(Spanner::backSegment());  }
+      const TieSegment* backSegment() const    { return toTieSegment(Spanner::backSegment());  }
+      TieSegment* segmentAt(int n)             { return toTieSegment(Spanner::segmentAt(n));   }
+      const TieSegment* segmentAt(int n) const { return toTieSegment(Spanner::segmentAt(n));   }
 
       virtual SlurTieSegment* newSlurTieSegment() override { return new TieSegment(score()); }
+      qreal get_numericWidth()                      { return _numericWidth;   }
       };
 
 }     // namespace Ms

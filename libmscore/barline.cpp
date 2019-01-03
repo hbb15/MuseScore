@@ -44,13 +44,19 @@ static void undoChangeBarLineType(BarLine* bl, BarLineType barType)
             case BarLineType::BROKEN:
             case BarLineType::DOTTED: {
                   Segment* segment        = bl->segment();
+                  for (ScoreElement* el : bl->linkList()) {
+                        if (el->score()->isMaster() && el->isBarLine())
+                              segment = toBarLine(el)->segment();
+                        }
                   SegmentType segmentType = segment->segmentType();
                   if (segmentType == SegmentType::EndBarLine) {
                         m->undoChangeProperty(Pid::REPEAT_END, false);
                         for (Element* e : segment->elist()) {
                               if (e) {
-                                    e->score()->undo(new ChangeProperty(e, Pid::BARLINE_TYPE, QVariant::fromValue(barType), PropertyFlags::NOSTYLE));
-                                    e->score()->undo(new ChangeProperty(e, Pid::GENERATED, false, PropertyFlags::NOSTYLE));
+                                    for (ScoreElement* ee : e->linkList()) {
+                                          ee->score()->undo(new ChangeProperty(ee, Pid::BARLINE_TYPE, QVariant::fromValue(barType), PropertyFlags::NOSTYLE));
+                                          ee->score()->undo(new ChangeProperty(ee, Pid::GENERATED, false, PropertyFlags::NOSTYLE));
+                                          }
                                     }
                               }
                         }
@@ -321,15 +327,17 @@ void BarLine::drawDots(QPainter* painter, qreal x) const
 
       qreal y1l;
       qreal y2l;
-      if (parent() == 0) {    // for use in palette
-            y1l = 2.0 * _spatium;
-            y2l = 3.0 * _spatium;
+      if (parent() == 0) {    // for use in palette (always Bravura)
+            //Bravura shifted repeatDot symbol 0.5sp upper in the font itself (1.272)
+            y1l = 1.5 * _spatium;
+            y2l = 2.5 * _spatium;
             }
       else {
             Staff* staff        = score()->staff(staffIdx());
             const StaffType* st = staff->staffType(tick());
 
-            qreal offset = 0.5 * score()->spatium() * mag();
+            //workaround to make new Bravura font work correctly with repeatDots
+            qreal offset = score()->scoreFont()->name() == "Bravura" ? 0 : 0.5 * score()->spatium() * mag();
             y1l          = st->doty1() * _spatium + offset;
             y2l          = st->doty2() * _spatium + offset;
             }
@@ -373,7 +381,11 @@ bool BarLine::isTop() const
 
 bool BarLine::isBottom() const
       {
-      return !_spanStaff;      // TODO
+      int nstaves = score()->nstaves();
+      if (!_spanStaff || staffIdx() == nstaves - 1)
+            return true;
+      // TODO: check if spanned-to staves are visible on this system
+      return false;
       }
 
 //---------------------------------------------------------
@@ -483,9 +495,9 @@ void BarLine::draw(QPainter* painter) const
                   break;
             }
       Segment* s = segment();
-      if (s && !score()->printing()) {
+      if (s && s->isEndBarLineType() && !score()->printing()) {
             Measure* m = s->measure();
-            if (s && s->isEndBarLineType() && m->isIrregular() && score()->markIrregularMeasures() && !m->isMMRest()) {
+            if (m->isIrregular() && score()->markIrregularMeasures() && !m->isMMRest()) {
                   painter->setPen(MScore::layoutBreakColor);
                   QFont f("FreeSerif");
                   f.setPointSizeF(12 * spatium() * MScore::pixelRatio / SPATIUM20);
@@ -621,7 +633,7 @@ Element* BarLine::drop(EditData& data)
                         int spanTo     = bl->spanTo();
                         undoChangeProperty(Pid::BARLINE_SPAN, false);
                         undoChangeProperty(Pid::BARLINE_SPAN_FROM, spanFrom);
-                        undoChangeProperty(Pid::BARLINE_SPAN_FROM, spanTo);
+                        undoChangeProperty(Pid::BARLINE_SPAN_TO, spanTo);
                         }
                   // if drop refers to subtype, update this bar line subtype
                   else

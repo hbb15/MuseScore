@@ -16,6 +16,7 @@
 #include "seq.h"
 #include "texttools.h"
 #include "fotomode.h"
+#include "tourhandler.h"
 #include "libmscore/score.h"
 #include "libmscore/keysig.h"
 #include "libmscore/segment.h"
@@ -330,6 +331,7 @@ void ScoreView::mousePressEventNormal(QMouseEvent* ev)
                         r.translate(0.0, -m->spatium());
                         }
                   if (r.contains(editData.startMove)) {
+                        //TourHandler::startTour("select-tour");
                         _score->select(m, st, staffIdx);
                         _score->setUpdateAll();
                         clickOffElement = false;
@@ -468,11 +470,11 @@ void ScoreView::mouseMoveEvent(QMouseEvent* me)
 
       switch (state) {
             case ViewState::NORMAL:
-                   if (!drag)
+                  if (!drag)
                         return;
                   if (!editData.element && (me->modifiers() & Qt::ShiftModifier))
                         changeState(ViewState::LASSO);
-                  else if (editData.element && !(me->modifiers()) && editData.element->isMovable())
+                  else if (editData.element && editData.element->isMovable())
                         changeState(ViewState::DRAG_OBJECT);
                   else
                         changeState(ViewState::DRAG);
@@ -695,6 +697,10 @@ void ScoreView::keyReleaseEvent(QKeyEvent* ev)
 
 void ScoreView::contextMenuEvent(QContextMenuEvent* ev)
       {
+      if (state == ViewState::NOTE_ENTRY) {
+            // Do not show context menu in note input mode.
+            return;
+            }
       if (state == ViewState::FOTO) {
             fotoContextPopup(ev);
             return;
@@ -710,7 +716,7 @@ void ScoreView::contextMenuEvent(QContextMenuEvent* ev)
                   // select(ev);
                   }
             if (seq)
-                  seq->stopNotes();       // stop now because we dont get a mouseRelease event
+                  seq->stopNotes();       // stop now because we don’t get a mouseRelease event
             objectPopup(gp, e);
             }
       else {

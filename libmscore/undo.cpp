@@ -207,13 +207,13 @@ UndoStack::~UndoStack()
 //   beginMacro
 //---------------------------------------------------------
 
-void UndoStack::beginMacro()
+void UndoStack::beginMacro(Score* score)
       {
       if (curCmd) {
             qWarning("already active");
             return;
             }
-      curCmd = new UndoCommand();
+      curCmd = new UndoMacro(score);
       }
 
 //---------------------------------------------------------
@@ -398,30 +398,56 @@ void UndoStack::redo(EditData* ed)
       }
 
 //---------------------------------------------------------
-//   SaveState
+//   UndoMacro
 //---------------------------------------------------------
 
-SaveState::SaveState(Score* s)
-   : undoInputState(s), redoInputState(s->inputState())
+Element* UndoMacro::selectedElement(const Selection& sel)
       {
-      score = s;
-//      redoSelection  = score->selection();
+      if (sel.isSingle()) {
+            Element* e = sel.element();
+            Q_ASSERT(e); // otherwise it shouldn't be "single" selection
+            if (e->isNote() || e->isChordRest() || e->isTextBase())
+                  return e;
+            }
+      return nullptr;
       }
 
-void SaveState::undo(EditData*)
+UndoMacro::UndoMacro(Score* s)
+   : undoInputState(s->inputState()), redoInputState(s),
+   undoSelectedElement(selectedElement(s->selection())), score(s)
+      {
+      }
+
+void UndoMacro::undo(EditData* ed)
       {
       redoInputState = score->inputState();
-//      redoSelection  = score->selection();
+      redoSelectedElement = selectedElement(score->selection());
+      score->deselectAll();
+
+      // Undo for child commands.
+      UndoCommand::undo(ed);
+
       score->setInputState(undoInputState);
-//      score->setSelection(undoSelection);
+      if (undoSelectedElement) {
+            score->deselectAll();
+            score->selection().add(undoSelectedElement);
+            }
       }
 
-void SaveState::redo(EditData*)
+void UndoMacro::redo(EditData* ed)
       {
       undoInputState = score->inputState();
-//      undoSelection  = score->selection();
+      undoSelectedElement = selectedElement(score->selection());
+      score->deselectAll();
+
+      // Redo for child commands.
+      UndoCommand::redo(ed);
+
       score->setInputState(redoInputState);
-//      score->setSelection(redoSelection);
+      if (redoSelectedElement) {
+            score->deselectAll();
+            score->selection().add(redoSelectedElement);
+            }
       }
 
 //---------------------------------------------------------
@@ -1082,25 +1108,41 @@ void RemoveStaves::redo(EditData*)
       }
 
 //---------------------------------------------------------
-//   ChangeKeySig::flip
+//   ChangeKeySig
 //---------------------------------------------------------
+
+ChangeKeySig::ChangeKeySig(KeySig* k, KeySigEvent newKeySig, bool sc, bool addEvtToStaff)
+   : keysig(k), ks(newKeySig), showCourtesy(sc), evtInStaff(addEvtToStaff)
+      {}
 
 void ChangeKeySig::flip(EditData*)
       {
-      KeySigEvent oe = keysig->keySigEvent();
-      bool sc        = keysig->showCourtesy();
+      Segment* segment = keysig->segment();
+      const int tick = segment->tick();
+      Staff* staff = keysig->staff();
+
+      const bool curEvtInStaff = (staff->currentKeyTick(tick) == tick);
+      KeySigEvent curKey = keysig->keySigEvent();
+      const bool curShowCourtesy = keysig->showCourtesy();
 
       keysig->setKeySigEvent(ks);
       keysig->setShowCourtesy(showCourtesy);
 
-      int tick = keysig->segment()->tick();
+      // Add/remove the corresponding key events, if appropriate.
+      if (evtInStaff)
+            staff->setKey(tick, ks); // replace
+      else if (curEvtInStaff)
+            staff->removeKey(tick); // if nothing to add instead, just remove.
 
-      // update keys if keysig was not generated
-      if (!keysig->generated())
-            keysig->staff()->setKey(tick, ks);
+      // If no keysig event corresponds to the key signature then this keysig
+      // is probably generated. Otherwise it is probably added manually.
+      // Set segment flags according to this, layout will change it if needed.
+      segment->setEnabled(evtInStaff);
+      segment->setHeader(!evtInStaff && segment->rtick() == 0);
 
-      showCourtesy = sc;
-      ks           = oe;
+      showCourtesy = curShowCourtesy;
+      ks           = curKey;
+      evtInStaff   = curEvtInStaff;
       keysig->score()->setLayout(tick);
       keysig->score()->setLayout(keysig->staff()->nextKeyTick(tick));
       }
@@ -1124,18 +1166,13 @@ void ChangeMeasureLen::flip(EditData*)
       // to end of measure:
       //
 
-      Segment* s = measure->first();
       std::list<Segment*> sl;
-      for (; s;) {
-            Segment* ns = s->next();
-            if (!s->isEndBarLineType() && !s->isTimeSigAnnounceType()) {
-                  s = ns;
+      for (Segment* s = measure->first(); s; s = s->next()) {
+            if (!s->isEndBarLineType() && !s->isTimeSigAnnounceType())
                   continue;
-                  }
             s->setRtick(len.ticks());
             sl.push_back(s);
             measure->remove(s);
-            s = ns;
             }
       measure->setLen(len);
       measure->score()->fixTicks();
@@ -1462,6 +1499,8 @@ void ChangeStyleVal::flip(EditData*)
             score->style().set(idx, value);
             if (idx == Sid::chordDescriptionFile) {
                   score->style().chordList()->unload();
+                  if (score->styleB(Sid::chordsXmlFile))
+                      score->style().chordList()->read("chords.xml");
                   score->style().chordList()->read(value.toString());
                   }
             score->styleChanged();
@@ -1532,6 +1571,29 @@ void ChangeMStaffProperties::flip(EditData*)
       }
 
 //---------------------------------------------------------
+//   getCourtesyClefs
+//    remember clefs at the end of previous measure
+//---------------------------------------------------------
+
+std::vector<Clef*> InsertRemoveMeasures::getCourtesyClefs(Measure* m)
+      {
+      Score* score = m->score();
+      std::vector<Clef*> startClefs;
+      if (m->prev() && m->prev()->isMeasure()) {
+            Measure* prevMeasure = toMeasure(m->prev());
+            const Segment* clefSeg = prevMeasure->findSegmentR(SegmentType::Clef | SegmentType::HeaderClef, prevMeasure->ticks());
+            if (clefSeg) {
+                  for (int st = 0; st < score->nstaves(); ++st) {
+                        Element* clef = clefSeg->element(staff2track(st));
+                        if (clef->isClef())
+                              startClefs.push_back(toClef(clef));
+                        }
+                  }
+            }
+      return startClefs;
+      }
+
+//---------------------------------------------------------
 //   insertMeasures
 //---------------------------------------------------------
 
@@ -1539,6 +1601,7 @@ void InsertRemoveMeasures::insertMeasures()
       {
       Score* score = fm->score();
       QList<Clef*> clefs;
+      std::vector<Clef*> prevMeasureClefs;
       QList<KeySig*> keys;
       Segment* fs = 0;
       Segment* ls = 0;
@@ -1547,7 +1610,7 @@ void InsertRemoveMeasures::insertMeasures()
             fs = toMeasure(fm)->first();
             ls = toMeasure(lm)->last();
             for (Segment* s = fs; s && s != ls; s = s->next1()) {
-                  if (!(s->segmentType() & (SegmentType::Clef | SegmentType::KeySig)))
+                  if (!s->enabled() || !(s->segmentType() & (SegmentType::Clef | SegmentType::HeaderClef | SegmentType::KeySig)))
                         continue;
                   for (int track = 0; track < score->ntracks(); track += VOICES) {
                         Element* e = s->element(track);
@@ -1559,6 +1622,7 @@ void InsertRemoveMeasures::insertMeasures()
                               keys.append(toKeySig(e));
                         }
                   }
+            prevMeasureClefs = getCourtesyClefs(toMeasure(fm));
             }
       score->measures()->insert(fm, lm);
 
@@ -1574,6 +1638,8 @@ void InsertRemoveMeasures::insertMeasures()
                               }
                         }
                   }
+            for (Clef* clef : prevMeasureClefs)
+                  clef->staff()->setClef(clef);
             for (Clef* clef : clefs)
                   clef->staff()->setClef(clef);
             for (KeySig* key : keys)
@@ -1629,11 +1695,7 @@ void InsertRemoveMeasures::removeMeasures()
                   if (!systemList.contains(system)) {
                         systemList.push_back(system);
                         }
-                  auto i = std::find(system->measures().begin(), system->measures().end(), mb);
-                  if (i != system->measures().end()) {
-                        (*i)->setParent(0);
-                        system->measures().erase(i);
-                        }
+                  system->removeMeasure(mb);
                   }
             if (mb == fm)
                   break;
@@ -1658,8 +1720,18 @@ void InsertRemoveMeasures::removeMeasures()
                               }
                         }
                   }
+
+            // remember clefs at the end of previous measure
+            const auto clefs = getCourtesyClefs(toMeasure(fm));
+
             if (score->firstMeasure())
                   score->insertTime(tick1, -(tick2 - tick1));
+
+            // Restore clefs that were backed up. Events for them could be lost
+            // as a result of the recent insertTime() call.
+            for (Clef* clef : clefs)
+                  clef->staff()->setClef(clef);
+
             for (Spanner* sp : score->unmanagedSpanners()) {
                   if ((sp->tick() >= tick1 && sp->tick() < tick2) || (sp->tick2() >= tick1 && sp->tick2() < tick2))
                         sp->removeUnmanaged();
@@ -1913,26 +1985,11 @@ void ChangeProperty::flip(EditData*)
       {
       qCDebug(undoRedo) << element->name() << int(id) << "(" << propertyName(id) << ")" << element->getProperty(id) << "->" << property;
 
-//      if (id == Pid::SPANNER_TICK)
-//            static_cast<Element*>(element)->score()->removeSpanner(static_cast<Spanner*>(element));
-
       QVariant v       = element->getProperty(id);
       PropertyFlags ps = element->propertyFlags(id);
 
       element->setProperty(id, property);
       element->setPropertyFlags(id, flags);
-
-#if 0
-      if (id == Pid::SPANNER_TICK) {
-            static_cast<Element*>(element)->score()->addSpanner(static_cast<Spanner*>(element));
-            // while updating ticks for an Ottava, the parent staff calls updateOttava()
-            // and expects to find the Ottava spanner(s) in the score lists;
-            // thus, the above (re)setProperty() left the staff pitchOffset map in a wrong state
-            // as the spanner has been removed from the score lists; redo the map here
-            if (static_cast<Element*>(element)->type() == ElementType::OTTAVA)
-                  static_cast<Element*>(element)->staff()->updateOttava();
-            }
-#endif
       property = v;
       flags = ps;
       }

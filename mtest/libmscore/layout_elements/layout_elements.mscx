@@ -505,6 +505,11 @@
               <subtype>0</subtype>
               </Arpeggio>
             </Chord>
+          <Symbol>
+            <name>accdnRH3RanksAccordion</name>
+            <font>Bravura</font>
+            <offset x="0" y="-2"/>
+            </Symbol>
           <Chord>
             <durationType>quarter</durationType>
             <Note>
@@ -526,7 +531,14 @@
             </Chord>
           <FiguredBass>
             <ticks>480</ticks>
-            <text>Figured_bass</text>
+            <FiguredBassItem>
+              <brackets b0="0" b1="0" b2="0" b3="0" b4="0"/>
+              <digit>5</digit>
+              </FiguredBassItem>
+            <FiguredBassItem>
+              <brackets b0="0" b1="0" b2="0" b3="0" b4="0"/>
+              <digit>3</digit>
+              </FiguredBassItem>
             </FiguredBass>
           <Chord>
             <durationType>quarter</durationType>

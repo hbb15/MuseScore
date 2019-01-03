@@ -381,9 +381,29 @@ void FretDiagram::layout()
             setPos(QPointF());
             return;
             }
-      autoplaceSegmentElement(styleP(Sid::fretMinDistance));
+      qreal minDistance = styleP(Sid::fretMinDistance);
+      autoplaceSegmentElement(minDistance);
       if (_harmony)
             _harmony->layout();
+      if (_harmony && _harmony->visible() && _harmony->autoplace() && _harmony->parent()) {
+            Segment* s = toSegment(parent());
+            Measure* m = s->measure();
+            int si     = staffIdx();
+
+            SysStaff* ss = m->system()->staff(si);
+            QRectF r     = _harmony->bbox().translated(m->pos() + s->pos() + pos() + _harmony->pos());
+
+            SkylineLine sk(false);
+            sk.add(r.x(), r.bottom(), r.width());
+            qreal d = sk.minDistance(ss->skyline().north());
+            if (d > -minDistance) {
+                  qreal yd = d + minDistance;
+                  yd *= -1.0;
+                  _harmony->rypos() += yd;
+                  r.translate(QPointF(0.0, yd));
+                  }
+            ss->skyline().add(r);
+            }
       }
 
 //---------------------------------------------------------
@@ -428,11 +448,11 @@ void FretDiagram::read(XmlReader& e)
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
             if (tag == "strings")
-                  _strings = e.readInt();
+                  readProperty(e, Pid::FRET_STRINGS);
             else if (tag == "frets")
-                  _frets = e.readInt();
+                  readProperty(e, Pid::FRET_FRETS);
             else if (tag == "fretOffset")
-                  _fretOffset = e.readInt();
+                  readProperty(e, Pid::FRET_OFFSET);
             else if (tag == "string") {
                   int no = e.intAttribute("no");
                   while (e.readNextStartElement()) {
@@ -448,9 +468,9 @@ void FretDiagram::read(XmlReader& e)
                         }
                   }
             else if (tag == "barre")
-                  setBarre(e.readInt());
+                  readProperty(e, Pid::FRET_BARRE);
             else if (tag == "mag")
-                  _userMag = e.readDouble(0.1, 10.0);
+                  readProperty(e, Pid::MAG);
             else if (tag == "Harmony") {
                   Harmony* h = new Harmony(score());
                   h->read(e);

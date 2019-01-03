@@ -13,6 +13,7 @@
 #include "score.h"
 #include "page.h"
 #include "system.h"
+#include "tremolo.h"
 #include "measure.h"
 #include "layout.h"
 #include "bracket.h"
@@ -40,8 +41,6 @@
 
 namespace Ms {
 
-extern bool isTopBeam(ChordRest* cr);
-extern bool notTopBeam(ChordRest* cr);
 extern void layoutTies(Chord* ch, System* system, int stick);
 extern void layoutDrumsetChord(Chord* c, const Drumset* drumset, const StaffType* st, qreal spatium);
 
@@ -49,6 +48,7 @@ extern void layoutDrumsetChord(Chord* c, const Drumset* drumset, const StaffType
 //   processLines
 //---------------------------------------------------------
 
+#if 0
 static void processLines(System* system, std::vector<Spanner*> lines, bool align)
       {
       std::vector<SpannerSegment*> segments;
@@ -66,6 +66,7 @@ static void processLines(System* system, std::vector<Spanner*> lines, bool align
                   ss->ryoffset() = y;
             }
       }
+#endif
 
 //---------------------------------------------------------
 //   resetSystems
@@ -122,6 +123,7 @@ void Score::resetSystems(bool /*layoutAll*/, LayoutContext& lc)
  void Score::collectLinearSystem(LayoutContext& lc)
       {
       System* system = systems().front();
+      system->setInstrumentNames(/* longNames */ true);
       // we need to reset tempo because fermata is setted
       //inside getNextMeasure and it lead to twice timeStretch
       resetTempo();
@@ -203,6 +205,7 @@ void LayoutContext::layoutLinear()
       {
       System* system = score->systems().front();
 
+#if 0 // replaced by layoutSystemElements()
       //
       // layout
       //    - beams
@@ -311,34 +314,13 @@ void LayoutContext::layoutLinear()
                               ottavas.push_back(sp);
                         else if (sp->isPedal())
                               pedal.push_back(sp);
-                        else if (!sp->isSlur())             // slurs are already handled
+                        else if (!sp->isSlur() && !sp->isVolta())    // slurs are already, voltas will be later handled
                               spanner.push_back(sp);
                         }
                   }
             processLines(system, ottavas, false);
             processLines(system, pedal, true);
             processLines(system, spanner, false);
-
-            //
-            // vertical align volta segments
-            //
-            std::vector<SpannerSegment*> voltaSegments;
-            for (SpannerSegment* ss : system->spannerSegments()) {
-                  if (ss->isVoltaSegment())
-                       voltaSegments.push_back(ss);
-                 }
-            if (voltaSegments.size() > 1) {
-                  qreal y = 0;
-                  for (SpannerSegment* ss : voltaSegments)
-                        y = qMin(y, ss->offset().y());
-                  for (SpannerSegment* ss : voltaSegments)
-                        ss->ryoffset() = y;
-                  }
-            for (Spanner* sp : score->unmanagedSpanners()) {
-                  if (sp->tick() >= etick || sp->tick2() < stick)
-                        continue;
-                  sp->layout();
-                  }
             }
 
       //
@@ -361,6 +343,41 @@ void LayoutContext::layoutLinear()
                         else if (e->isFermata())
                               e->layout();
                         }
+                  }
+            }
+
+      //
+      // Volta
+      //
+
+      if (etick > stick) {    // ignore vbox
+            auto spanners = score->spannerMap().findOverlapping(stick, etick);
+
+            std::vector<Spanner*> voltas;
+
+            for (auto interval : spanners) {
+                  Spanner* sp = interval.value;
+                  if (sp->tick() < etick && sp->tick2() > stick) {
+                        if (sp->isVolta())
+                              voltas.push_back(sp);
+                        }
+                  }
+            processLines(system, voltas, false);
+
+            //
+            // vertical align volta segments
+            //
+            std::vector<SpannerSegment*> voltaSegments;
+            for (SpannerSegment* ss : system->spannerSegments()) {
+                  if (ss->isVoltaSegment())
+                       voltaSegments.push_back(ss);
+                 }
+            if (voltaSegments.size() > 1) {
+                  qreal y = 0;
+                  for (SpannerSegment* ss : voltaSegments)
+                        y = qMin(y, ss->offset().y());
+                  for (SpannerSegment* ss : voltaSegments)
+                        ss->ryoffset() = y;
                   }
             }
 
@@ -405,6 +422,15 @@ void LayoutContext::layoutLinear()
             }
 
       score->layoutLyrics(system);
+
+      for (Spanner* sp : score->unmanagedSpanners()) {
+            if (sp->tick() >= etick || sp->tick2() <= stick)
+                  continue;
+            sp->layoutSystem(system);
+            }
+#endif
+
+      score->layoutSystemElements(system, *this);
 
       system->layout2();   // compute staff distances
 

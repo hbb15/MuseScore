@@ -51,7 +51,7 @@ class MStaff;
 enum class MeasureNumberMode : char {
       AUTO,       // show measure number depending on style
       SHOW,       // always show measure number
-      HIDE        // dont show measure number
+      HIDE        // don’t show measure number
       };
 
 //---------------------------------------------------------
@@ -157,6 +157,7 @@ class Measure final : public MeasureBase {
       void stretchMeasure(qreal stretch);
       int computeTicks();
       void layout2();
+      void layoutMeasureNumber();
 
       Chord* findChord(int tick, int track);
       ChordRest* findChordRest(int tick, int track);

@@ -21,17 +21,6 @@
 
 namespace Ms {
 
-QString docName;
-
-//---------------------------------------------------------
-//   compareProperty
-//---------------------------------------------------------
-
-template <class T> bool compareProperty(void* val, void* defaultVal)
-      {
-      return (defaultVal == 0) || (*(T*)val != *(T*)defaultVal);
-      }
-
 //---------------------------------------------------------
 //   Xml
 //---------------------------------------------------------
@@ -363,6 +352,11 @@ void XmlWriter::tag(const QString& name, QVariant data)
                   *this << data.toInt();
                   *this << "</" << ename << ">\n";
                   break;
+            case QVariant::LongLong:
+                  *this << "<" << name << ">";
+                  *this << data.toLongLong();
+                  *this << "</" << ename << ">\n";
+                  break;
             case QVariant::Double:
                   *this << "<" << name << ">";
                   *this << data.value<double>();
@@ -542,43 +536,6 @@ void XmlWriter::writeXml(const QString& name, QString s)
       *this << "<" << name << ">";
       *this << s;
       *this << "</" << ename << ">\n";
-      }
-
-//---------------------------------------------------------
-//   addSpanner
-//---------------------------------------------------------
-
-int XmlWriter::addSpanner(const Spanner* s)
-      {
-      ++_spannerId;
-      _spanner.append(std::pair<int, const Spanner*>(_spannerId, s));
-      return _spannerId;
-      }
-
-//---------------------------------------------------------
-//   findSpanner
-//---------------------------------------------------------
-
-const Spanner* XmlWriter::findSpanner(int id)
-      {
-      for (auto i : _spanner) {
-            if (i.first == id)
-                  return i.second;
-            }
-      return nullptr;
-      }
-
-//---------------------------------------------------------
-//   spannerId
-//---------------------------------------------------------
-
-int XmlWriter::spannerId(const Spanner* s)
-      {
-      for (auto i : _spanner) {
-            if (i.second == s)
-                  return i.first;
-            }
-      return addSpanner(s);
       }
 
 //---------------------------------------------------------

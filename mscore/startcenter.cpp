@@ -23,18 +23,22 @@ namespace Ms {
 //   showStartcenter
 //---------------------------------------------------------
 
-void MuseScore::showStartcenter(bool val)
+void MuseScore::showStartcenter(bool show)
       {
       QAction* a = getAction("startcenter");
-      if (val && startcenter == nullptr) {
+      if (show && startcenter == nullptr) {
             startcenter = new Startcenter;
             startcenter->addAction(a);
             startcenter->readSettings();
             connect(startcenter, SIGNAL(closed(bool)), a, SLOT(setChecked(bool)));
-            connect(startcenter, SIGNAL(rejected()), a, SLOT(toggle()));
             connect(startcenter, SIGNAL(closed(bool)), tourHandler(), SLOT(showWelcomeTour()), Qt::QueuedConnection);
             }
-      startcenter->setVisible(val);
+      if (!startcenter)
+            return;
+      if (show)
+            startcenter->setVisible(true);
+      else
+            startcenter->close();
       }
 
 //---------------------------------------------------------
@@ -64,14 +68,15 @@ Startcenter::Startcenter()
             page->profile()->setRequestInterceptor(wuri);
             _webView->setPage(page);
 
-            _webView->setUrl(QUrl(QString("https://connect2.musescore.com/?version=%1").arg(VERSION)));
+            auto extendedVer = QString(VERSION) + "." + QString(BUILD_NUMBER);
+            _webView->setUrl(QUrl(QString("https://connect2.musescore.com/?version=%1").arg(extendedVer)));
 
             horizontalLayout->addWidget(_webView);
             }
 #endif
 
       if (enableExperimental)
-// right now dont know how it use in WebEngine @handrok
+// right now don’t know how it use in WebEngine @handrok
 //            QWebSettings::globalSettings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
 //      QWebSettings::globalSettings()->setAttribute(QWebSettings::PluginsEnabled, false);
       recentPage->setBoldTitle(false);
@@ -110,6 +115,7 @@ void Startcenter::loadScore(QString s)
 
 void Startcenter::newScore()
       {
+      mscore->tourHandler()->delayWelcomeTour();
       close();
       getAction("file-new")->trigger();
       }
@@ -120,8 +126,8 @@ void Startcenter::newScore()
 
 void Startcenter::closeEvent(QCloseEvent* event)
       {
-      emit closed(false);
       AbstractDialog::closeEvent(event);
+      emit closed(false);
       }
 
 //---------------------------------------------------------
@@ -143,6 +149,7 @@ void Startcenter::updateRecentScores()
 
 void Startcenter::openScoreClicked()
       {
+      mscore->tourHandler()->delayWelcomeTour();
       close();
       getAction("file-open")->trigger();
       }

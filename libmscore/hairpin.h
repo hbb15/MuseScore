@@ -24,7 +24,7 @@ namespace Ms {
 class Score;
 class Hairpin;
 
-enum class HairpinType : char {
+enum class HairpinType : signed char {
       INVALID = -1,
       CRESC_HAIRPIN,
       DECRESC_HAIRPIN,
@@ -53,7 +53,7 @@ class HairpinSegment final : public TextLineBaseSegment {
       Element* drop(EditData&);
 
    public:
-      HairpinSegment(Score* s);
+      HairpinSegment(Spanner* sp, Score* s);
       virtual HairpinSegment* clone() const override { return new HairpinSegment(*this);    }
       virtual ElementType type() const override      { return ElementType::HAIRPIN_SEGMENT; }
 
@@ -118,6 +118,7 @@ class Hairpin final : public TextLineBase {
       virtual QVariant propertyDefault(Pid id) const override;
 
       virtual QString accessibleInfo() const override;
+      bool isLineType() const  { return _hairpinType == HairpinType::CRESC_LINE || _hairpinType == HairpinType::DECRESC_LINE; }
       };
 
 }     // namespace Ms

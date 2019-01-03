@@ -228,6 +228,7 @@ class ScoreView : public QWidget, public MuseScoreView {
       void startFotoDrag();
       void endFotoDrag();
       void endFotoDragEdit();
+      QImage getRectImage(const QRectF& rect, double dpi, bool transparent, bool printMode);
 
       virtual void startEdit();
       void endEdit();
@@ -392,6 +393,7 @@ class ScoreView : public QWidget, public MuseScoreView {
       void setOmrView(OmrView* v)     { _omrView = v;    }
       FotoLasso* fotoLasso() const    { return _foto;    }
       Element* getEditElement();
+      void onElementDestruction(Element*) override;
 
       virtual Element* elementNear(QPointF);
 //      void editFretDiagram(FretDiagram*);

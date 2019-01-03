@@ -179,19 +179,7 @@ SpannerSegment* LyricsLine::layoutSystem(System* system)
 
 //      qDebug("%s %p %d-%d %d-%d", name(), this, stick, etick, tick(), tick2());
 
-      LyricsLineSegment* lineSegm = 0;
-      for (SpannerSegment* ss : segments) {
-            if (!ss->system()) {
-                  lineSegm = toLyricsLineSegment(ss);
-                  break;
-                  }
-            }
-      if (!lineSegm) {
-            lineSegm = toLyricsLineSegment(createLineSegment());
-            add(lineSegm);
-            }
-      lineSegm->setSystem(system);
-      lineSegm->setSpanner(this);
+      LyricsLineSegment* lineSegm = toLyricsLineSegment(getNextLayoutSystemSegment(system, [this]() { return createLineSegment(); }));
 
       SpannerSegmentType sst;
       if (tick() >= stick) {
@@ -265,19 +253,6 @@ SpannerSegment* LyricsLine::layoutSystem(System* system)
                   qreal len = p2.x() - x1;
                   lineSegm->setPos(QPointF(p2.x() - len, p2.y()));
                   lineSegm->setPos2(QPointF(len, 0.0));
-#if 1
-                  QList<SpannerSegment*> sl;
-                  for (SpannerSegment* ss : segments) {
-                        if (ss->system())
-                              sl.push_back(ss);
-                        else {
-                              qDebug("delete spanner segment %s", ss->name());
-                              score()->selection().remove(ss);
-                              delete ss;
-                              }
-                        }
-                  segments.swap(sl);
-#endif
                   }
                   break;
             }
@@ -286,20 +261,8 @@ SpannerSegment* LyricsLine::layoutSystem(System* system)
       // after the lyrics syllable (otherwise the melisma segment
       // will be too short).
       const bool tempMelismaTicks = (lyrics()->ticks() == Lyrics::TEMP_MELISMA_TICKS);
-      if (tempMelismaTicks && segments.size() > 0 && segments.front() == lineSegm)
+      if (tempMelismaTicks && spannerSegments().size() > 0 && spannerSegments().front() == lineSegm)
             lineSegm->rxpos2() += lyrics()->width();
-#if 0
-      QList<SpannerSegment*> sl;
-      for (SpannerSegment* ss : segments) {
-            if (ss->system())
-                  sl.push_back(ss);
-            else {
-                  qDebug("delete spanner segment %s", ss->name());
-                  delete ss;
-                  }
-            }
-      segments.swap(sl);
-#endif
       return lineSegm;
       }
 
@@ -309,7 +272,7 @@ SpannerSegment* LyricsLine::layoutSystem(System* system)
 
 LineSegment* LyricsLine::createLineSegment()
       {
-      LyricsLineSegment* seg = new LyricsLineSegment(score());
+      LyricsLineSegment* seg = new LyricsLineSegment(this, score());
       seg->setTrack(track());
       seg->setColor(color());
       return seg;
@@ -358,8 +321,8 @@ bool LyricsLine::setProperty(Pid propertyId, const QVariant& v)
 //   LyricsLineSegment
 //=========================================================
 
-LyricsLineSegment::LyricsLineSegment(Score* s)
-      : LineSegment(s, ElementFlag::ON_STAFF | ElementFlag::NOT_SELECTABLE)
+LyricsLineSegment::LyricsLineSegment(Spanner* sp, Score* s)
+      : LineSegment(sp, s, ElementFlag::ON_STAFF | ElementFlag::NOT_SELECTABLE)
       {
       setGenerated(true);
       }
@@ -466,13 +429,13 @@ void LyricsLineSegment::layout()
                   else                                                        //   if within system or dash not forced
                         _numOfDashes = 0;                                     //     draw no dash
                   }
-            else if (len < (maxDashDist * 2.0)) {                           // if no room for two dashes
+            else if (len < (maxDashDist * 1.5)) {                             // if no room for two dashes
                   _numOfDashes = 1;                                           //    draw one dash
                   if (_dashLength > len)                                      // if no room for a full dash
                         _dashLength = len;                                    //    shorten it
                   }
             else
-                  _numOfDashes = len / (maxDashDist);                         // draw several dashes
+                  _numOfDashes = len / maxDashDist + 1;                       // draw several dashes
 
             // adjust next lyrics horiz. position if too little a space forced to skip the dash
             if (_numOfDashes == 0 && nextLyr != nullptr && len > 0)
@@ -501,8 +464,8 @@ void LyricsLineSegment::draw(QPainter* painter) const
       if (lyricsLine()->lyrics()->ticks() > 0)           // melisma
             painter->drawLine(QPointF(), pos2());
       else {                                          // dash(es)
-            qreal step  = pos2().x() / (_numOfDashes+1);
-            qreal x     = step - _dashLength * .5;
+            qreal step  = pos2().x() / _numOfDashes;
+            qreal x     = step * .5 - _dashLength * .5;
             for (int i = 0; i < _numOfDashes; i++, x += step)
                   painter->drawLine(QPointF(x, 0.0), QPointF(x + _dashLength, 0.0));
             }

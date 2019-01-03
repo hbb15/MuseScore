@@ -180,7 +180,7 @@ void ChordRest::writeProperties(XmlWriter& xml) const
                   t /= staff()->timeStretch(xml.curTick());
             xml.incCurTick(t.ticks());
             }
-      for (auto i : score()->spanner()) {     // TODO: dont search whole list
+      for (auto i : score()->spanner()) {     // TODO: don’t search whole list
             Spanner* s = i.second;
             if (s->generated() || !s->isSlur() || toSlur(s)->broken() || !xml.canWrite(s))
                   continue;
@@ -472,6 +472,7 @@ Element* ChordRest::drop(EditData& data)
                         }
 
             case ElementType::FERMATA:
+                  e->setPlacement(track() & 1 ? Placement::BELOW : Placement::ABOVE);
                   for (Element* el: segment()->annotations())
                         if (el->isFermata() && (el->track() == track())) {
                               if (el->subtype() == e->subtype()) {
@@ -479,8 +480,7 @@ Element* ChordRest::drop(EditData& data)
                                     return el;
                                     }
                               else {
-                                    if (el->placeBelow())
-                                          e->setPlacement(Placement::BELOW);
+                                    e->setPlacement(el->placement());
                                     e->setTrack(track());
                                     e->setParent(segment());
                                     score()->undoChangeElement(el, e);
@@ -688,7 +688,7 @@ QString ChordRest::durationUserName() const
                         tupletType = QObject::tr("Nonuplet");
                         break;
                   default:
-                        tupletType = QObject::tr("Custom Tuplet");
+                        tupletType = QObject::tr("Custom tuplet");
                   }
             }
       QString dotString = "";
@@ -903,7 +903,16 @@ Segment* ChordRest::nextSegmentAfterCR(SegmentType types) const
       for (Segment* s = segment()->next1MM(types); s; s = s->next1MM(types)) {
             // chordrest ends at afrac+actualFraction
             // we return the segment at or after the end of the chordrest
-            if (s->afrac() >= afrac() + actualFraction())
+            // Segment::afrac() is based on ticks; use DurationElement::afrac() if possible
+            Element* e = s;
+            if (s->segmentType() == SegmentType::ChordRest)
+                  // Find the first non-NULL element in the segment
+                  for (Element* ee : s->elist())
+                        if (ee) {
+                              e = ee;
+                              break;
+                              }
+            if (e->afrac() >= afrac() + actualFraction())
                   return s;
             }
       return 0;
@@ -1164,10 +1173,13 @@ QString ChordRest::accessibleExtraInfo() const
 Shape ChordRest::shape() const
       {
       Shape shape;
+      {
       qreal x1 = 1000000.0;
       qreal x2 = -1000000.0;
       bool adjustWidth = false;
       for (Lyrics* l : _lyrics) {
+            if (!l || !l->visible() || !l->autoplace())
+                  continue;
             static const qreal margin = spatium() * .5;
             // for horizontal spacing we only need the lyrics width:
             x1 = qMin(x1, l->bbox().x() - margin + l->pos().x());
@@ -1176,17 +1188,34 @@ Shape ChordRest::shape() const
                   x2 += spatium();
             adjustWidth = true;
             }
+      if (adjustWidth)
+            shape.addHorizontalSpacing(Shape::SPACING_LYRICS, x1, x2);
+      }
 
+      {
+      qreal x1 = 1000000.0;
+      qreal x2 = -1000000.0;
+      bool adjustWidth = false;
       for (Element* e : segment()->annotations()) {
+            if (!e || !e->visible() || !e->autoplace())
+                  continue;
             if (e->isHarmony() && e->staffIdx() == staffIdx()) {
-                  e->layout();
-                  x1 = qMin(x1, e->bbox().x() + e->pos().x());
-                  x2 = qMax(x2, x1 + e->bbox().width());
+                  Harmony* h = toHarmony(e);
+                  // this layout is needed just to calculate the correct bbox
+                  // so only do it if necessary, as it will reset position to default
+                  // and there might not be an autoplace after this
+                  // since ChordRest::shape() can be called at several points
+                  if (h->isLayoutInvalid())
+                        h->layout();
+                  const qreal margin = styleP(Sid::minHarmonyDistance) * 0.5;
+                  x1 = qMin(x1, e->bbox().x() - margin + e->pos().x());
+                  x2 = qMax(x2, e->bbox().x() + e->bbox().width() + margin + e->pos().x());
                   adjustWidth = true;
                   }
             }
       if (adjustWidth)
-            shape.add(QRectF(x1, 0.0, x2-x1, 1.0));
+            shape.addHorizontalSpacing(Shape::SPACING_HARMONY, x1, x2);
+      }
 
       return shape;
       }
@@ -1266,6 +1295,22 @@ bool ChordRest::isBefore(ChordRest* o)
             t = t + (graceAfter ? 1 : -1) *  graceIndex;
             }
       return t < otick;
+      }
+
+//---------------------------------------------------------
+//   undoAddAnnotation
+//---------------------------------------------------------
+
+void ChordRest::undoAddAnnotation(Element* a)
+      {
+      Segment* seg = segment();
+      Measure* m = measure();
+      if (m && m->isMMRest())
+            seg = m->mmRestFirst()->findSegmentR(SegmentType::ChordRest, 0);
+
+      a->setTrack(a->systemFlag() ? 0 : track());
+      a->setParent(seg);
+      score()->undoAddElement(a);
       }
 
 }

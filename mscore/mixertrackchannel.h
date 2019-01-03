@@ -1,7 +1,6 @@
 //=============================================================================
 //  MuseScore
 //  Linux Music Score Editor
-//  $Id: mixer.h 4388 2011-06-18 13:17:58Z wschweer $
 //
 //  Copyright (C) 2002-2016 Werner Schweer and others
 //
@@ -68,11 +67,9 @@ public slots:
 protected:
       void mouseReleaseEvent(QMouseEvent * event) override;
       void propertyChanged(Channel::Prop property) override;
-      void disconnectChannelListener() override;
 
 public:
       explicit MixerTrackChannel(QWidget *parent, MixerTrackItemPtr trackItem);
-      ~MixerTrackChannel() override;
 
       bool selected() override { return _selected; }
       QWidget* getWidget() override { return this; }

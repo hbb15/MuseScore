@@ -214,7 +214,7 @@ bool TextBase::edit(EditData& ed)
             }
 
       if (!wasHex) {
-            // printf("======%x\n", s.isEmpty() ? -1 : s[0].unicode());
+//printf("======%x\n", s.isEmpty() ? -1 : s[0].unicode());
 
             switch (ed.key) {
                   case Qt::Key_Z:         // happens when the undo stack is empty
@@ -466,6 +466,7 @@ void SplitJoinText::split(EditData* ed)
       c.curLine().setEol(true);
 
       c.setRow(line+1);
+      c.curLine().setEol(true);
       c.setColumn(0);
       c.setFormat(*charFmt);             // restore orig. format at new line
       c.clearSelection();
@@ -663,6 +664,7 @@ void TextBase::inputTransition(EditData& ed, QInputMethodEvent* ie)
                   editInsertText(_cursor, preEdit);
                   setTextInvalid();
                   layout1();
+                  score()->update();
                   }
             }
       ie->accept();

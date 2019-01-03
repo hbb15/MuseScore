@@ -1,7 +1,6 @@
 //=============================================================================
 //  MuseScore
 //  Linux Music Score Editor
-//  $Id: mixer.h 4388 2011-06-18 13:17:58Z wschweer $
 //
 //  Copyright (C) 2002-2016 Werner Schweer and others
 //
@@ -25,6 +24,9 @@
 #include "libmscore/instrument.h"
 #include "mixertrackitem.h"
 
+#include <functional>
+#include <QPushButton>
+
 namespace Ms {
 
 
@@ -40,6 +42,9 @@ class MixerDetails : public QWidget, public Ui::MixerDetails, public ChannelList
       Q_OBJECT
 
       MixerTrackItemPtr _mti;
+      QWidget* mutePerVoiceHolder;
+      QGridLayout* mutePerVoiceGrid;
+      QList<QPushButton*> voiceButtons;
 
       void updateFromTrack();
 
@@ -56,14 +61,37 @@ public slots:
 
 public:
       explicit MixerDetails(QWidget *parent);
-      ~MixerDetails() override;
 
       MixerTrackItemPtr track() { return _mti; }
       void setTrack(MixerTrackItemPtr track);
+      void setVoiceMute(int staffIdx, int voice, bool shouldMute);
       void propertyChanged(Channel::Prop property) override;
-      void disconnectChannelListener() override;
-
       };
 
+//---------------------------------------------------------
+//   MixerDetailsVoiceButtonHandler
+//---------------------------------------------------------
+
+class MixerDetailsVoiceButtonHandler : public QObject
+      {
+      Q_OBJECT
+
+      MixerDetails* _mixerDetails;
+      int _staff;
+      int _voice;
+public:
+      MixerDetailsVoiceButtonHandler(MixerDetails* mixerDetails, int staff, int voice, QObject* parent = nullptr)
+            : QObject(parent),
+              _mixerDetails(mixerDetails),
+              _staff(staff),
+              _voice(voice)
+            {}
+
+public slots:
+      void setVoiceMute(bool checked)
+            {
+            _mixerDetails->setVoiceMute(_staff, _voice, checked);
+            }
+      };
 }
 #endif // __MIXERDETAILS_H__

@@ -23,7 +23,6 @@
 #include "noteevent.h"
 #include "pitchspelling.h"
 #include "shape.h"
-#include "tremolo.h"
 #include "key.h"
 
 namespace Ms {
@@ -262,6 +261,7 @@ class Note final : public Element {
       qreal _numericHigth;
       QPointF _numericaccidentalPos;
       QPointF _numericTextPos;
+      int _numericLedgerline;
       bool _fretHidden = false;
       bool _drawFlat = false;
       bool _drawSharp = false;
@@ -334,6 +334,7 @@ class Note final : public Element {
       qreal fretStringYShift() const                { return _fretStringYShift;   }
       qreal get_numericWidth()                      { return _numericWidth;   }
       qreal get_numericHigth()                      { return _numericHigth;   }
+      int get_numericLedgerline()                      { return _numericLedgerline;   }
       int get_numericGroundPitch();
 
       int tpc() const;
@@ -477,6 +478,7 @@ class Note final : public Element {
       int setAccidentalTypeBack(int defaultdirection) ;
 
       int getNumericTrans(Key key) const;
+      int getNumericOktave() const;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(Pid) const override;
       virtual QString propertyUserValue(Pid) const override;

@@ -538,6 +538,13 @@ Shortcut Shortcut::_sc[] = {
       {
          MsWidget::SCORE_TAB,
          STATE_NORMAL | STATE_NOTE_ENTRY_STAFF_PITCHED | STATE_NOTE_ENTRY_STAFF_DRUM,
+         "chord-tie",
+         QT_TRANSLATE_NOOP("action","Add Tied Note to Chord"),
+         QT_TRANSLATE_NOOP("action","Add tied note to chord")
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY_STAFF_PITCHED | STATE_NOTE_ENTRY_STAFF_DRUM,
          "insert-a",
          QT_TRANSLATE_NOOP("action","Insert A"),
          QT_TRANSLATE_NOOP("action","Insert note A")
@@ -3562,6 +3569,27 @@ Shortcut Shortcut::_sc[] = {
          0,
          Icons::Invalid_ICON,
          Qt::ApplicationShortcut
+         },
+      {
+         MsWidget::MAIN_WINDOW,
+         STATE_ALL,
+         "show-tours",
+         QT_TRANSLATE_NOOP("action", "Show Tours"),
+         QT_TRANSLATE_NOOP("action", "Show tours"),
+         QT_TRANSLATE_NOOP("action", "Toggle display of tours"),
+         Icons::Invalid_ICON,
+         Qt::WindowShortcut,
+         ShortcutFlags::A_CHECKABLE
+         },
+      {
+         MsWidget::MAIN_WINDOW,
+         STATE_ALL,
+         "reset-tours",
+         QT_TRANSLATE_NOOP("action", "Reset Tours"),
+         QT_TRANSLATE_NOOP("action", "Reset tours"),
+         0,
+         Icons::Invalid_ICON,
+         Qt::WindowShortcut
          },
       {
          MsWidget::MAIN_WINDOW,

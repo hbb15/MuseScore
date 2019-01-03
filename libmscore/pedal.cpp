@@ -29,15 +29,9 @@ static const ElementStyle pedalStyle {
       { Sid::pedalFontSize,                      Pid::BEGIN_FONT_SIZE         },
       { Sid::pedalFontSize,                      Pid::CONTINUE_FONT_SIZE      },
       { Sid::pedalFontSize,                      Pid::END_FONT_SIZE           },
-      { Sid::pedalFontBold,                      Pid::BEGIN_FONT_BOLD         },
-      { Sid::pedalFontBold,                      Pid::CONTINUE_FONT_BOLD      },
-      { Sid::pedalFontBold,                      Pid::END_FONT_BOLD           },
-      { Sid::pedalFontItalic,                    Pid::BEGIN_FONT_ITALIC       },
-      { Sid::pedalFontItalic,                    Pid::CONTINUE_FONT_ITALIC    },
-      { Sid::pedalFontItalic,                    Pid::END_FONT_ITALIC         },
-      { Sid::pedalFontUnderline,                 Pid::BEGIN_FONT_UNDERLINE    },
-      { Sid::pedalFontUnderline,                 Pid::CONTINUE_FONT_UNDERLINE },
-      { Sid::pedalFontUnderline,                 Pid::END_FONT_UNDERLINE      },
+      { Sid::pedalFontStyle,                     Pid::BEGIN_FONT_STYLE        },
+      { Sid::pedalFontStyle,                     Pid::CONTINUE_FONT_STYLE     },
+      { Sid::pedalFontStyle,                     Pid::END_FONT_STYLE          },
       { Sid::pedalTextAlign,                     Pid::BEGIN_TEXT_ALIGN        },
       { Sid::pedalTextAlign,                     Pid::CONTINUE_TEXT_ALIGN     },
       { Sid::pedalTextAlign,                     Pid::END_TEXT_ALIGN          },
@@ -130,6 +124,7 @@ void Pedal::write(XmlWriter& xml) const
          Pid::END_TEXT,
          Pid::LINE_WIDTH,
          Pid::LINE_STYLE,
+         Pid::LINE_VISIBLE,
          Pid::BEGIN_HOOK_TYPE
          }) {
             writeProperty(xml, i);
@@ -152,7 +147,8 @@ static const ElementStyle pedalSegmentStyle {
 
 LineSegment* Pedal::createLineSegment()
       {
-      PedalSegment* p = new PedalSegment(score());
+      PedalSegment* p = new PedalSegment(this, score());
+      p->setTrack(track());
       p->initElementStyle(&pedalSegmentStyle);
       return p;
       }

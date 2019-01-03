@@ -29,6 +29,7 @@
 #include "libmscore/layout.h"
 #include "inspector/alignSelect.h"
 #include "inspector/offsetSelect.h"
+#include "inspector/fontStyleSelect.h"
 
 namespace Ms {
 
@@ -127,20 +128,6 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::lyricsDashPad,           false, lyricsDashPad,           resetLyricsDashPad           },
       { Sid::lyricsDashLineThickness, false, lyricsDashLineThickness, resetLyricsDashLineThickness },
       { Sid::lyricsDashYposRatio,     false, lyricsDashYposRatio,     resetLyricsDashYposRatio     },
-
-      { Sid::lyricsOddFontFace,       false, lyricsOddFontFace,       resetLyricsOddFontFace       },
-      { Sid::lyricsOddFontSize,       false, lyricsOddFontSize,       resetLyricsOddFontSize       },
-      { Sid::lyricsOddFontBold,       false, lyricsOddFontBold,       resetLyricsOddFontBold       },
-      { Sid::lyricsOddFontItalic,     false, lyricsOddFontItalic,     resetLyricsOddFontItalic     },
-      { Sid::lyricsOddFontUnderline,  false, lyricsOddFontUnderline,  resetLyricsOddFontUnderline  },
-      { Sid::lyricsOddAlign,          false, lyricsOddAlign,          resetLyricsOddAlign          },
-
-      { Sid::lyricsEvenFontFace,      false, lyricsEvenFontFace,      resetLyricsEvenFontFace      },
-      { Sid::lyricsEvenFontSize,      false, lyricsEvenFontSize,      resetLyricsEvenFontSize      },
-      { Sid::lyricsEvenFontBold,      false, lyricsEvenFontBold,      resetLyricsEvenFontBold      },
-      { Sid::lyricsEvenFontItalic,    false, lyricsEvenFontItalic,    resetLyricsEvenFontItalic    },
-      { Sid::lyricsEvenFontUnderline, false, lyricsEvenFontUnderline, resetLyricsEvenFontUnderline },
-      { Sid::lyricsEvenAlign,         false, lyricsEvenAlign,         resetLyricsEvenAlign         },
 
       { Sid::systemFrameDistance,     false, systemFrameDistance,     resetSystemFrameDistance },
       { Sid::frameSystemDistance,     false, frameSystemDistance,     resetFrameSystemDistance },
@@ -257,7 +244,6 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::vibratoPosAbove,         false, vibratoLinePosAbove,       resetVibratoLinePosAbove   },
       { Sid::vibratoPosBelow,         false, vibratoLinePosBelow,       resetVibratoLinePosBelow   },
 
-      { Sid::chordSymbolPosAbove,     false, chordSymbolPosAbove,     resetChordSymbolPosAbove },
       { Sid::harmonyFretDist,         false, harmonyFretDist,         0 },
       { Sid::minHarmonyDistance,      false, minHarmonyDistance,      0 },
       { Sid::maxHarmonyBarDistance,   false, maxHarmonyBarDistance,   0 },
@@ -275,105 +261,90 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::tupletBracketType,       false, tupletBracketType,       resetTupletBracketType        },
       { Sid::tupletMaxSlope,          false, tupletMaxSlope,          resetTupletMaxSlope           },
       { Sid::tupletOufOfStaff,        false, tupletOutOfStaff,        0                             },
-      { Sid::tupletFontFace,          false, tupletFontFace,          resetTupletFontFace           },
-      { Sid::tupletFontSize,          false, tupletFontSize,          resetTupletFontSize           },
-      { Sid::tupletFontBold,          false, tupletFontBold,          resetTupletFontBold           },
-      { Sid::tupletFontItalic,        false, tupletFontItalic,        resetTupletFontItalic         },
-      { Sid::tupletFontUnderline,     false, tupletFontUnderline,     resetTupletFontUnderline      },
 
-      { Sid::repeatBarTips,           false, showRepeatBarTips,            resetShowRepeatBarTips },
-      { Sid::startBarlineSingle,      false, showStartBarlineSingle,       resetShowStartBarlineSingle },
-      { Sid::startBarlineMultiple,    false, showStartBarlineMultiple,     resetShowStartBarlineMultiple },
-      { Sid::dividerLeftSym,          false, dividerLeftSym,               0 },
-      { Sid::dividerRightSym,         false, dividerRightSym,              0 },
+      { Sid::repeatBarTips,            false, showRepeatBarTips,            resetShowRepeatBarTips },
+      { Sid::startBarlineSingle,       false, showStartBarlineSingle,       resetShowStartBarlineSingle },
+      { Sid::startBarlineMultiple,     false, showStartBarlineMultiple,     resetShowStartBarlineMultiple },
+      { Sid::dividerLeftSym,           false, dividerLeftSym,               0 },
+      { Sid::dividerRightSym,          false, dividerRightSym,              0 },
 
-      { Sid::showMeasureNumber,          false, showMeasureNumber,            0 },
-      { Sid::showMeasureNumberOne,       false, showFirstMeasureNumber,       0 },
-      { Sid::measureNumberInterval,      false, intervalMeasureNumber,        0 },
-      { Sid::measureNumberSystem,        false, showEverySystemMeasureNumber, 0 },
-      { Sid::measureNumberAllStaffs,     false, showAllStaffsMeasureNumber,   0 },
-      { Sid::measureNumberFontFace,      false, measureNumberFontFace,        resetMeasureNumberFontFace },
-      { Sid::measureNumberFontSize,      false, measureNumberFontSize,        resetMeasureNumberFontSize },
-      { Sid::measureNumberFontBold,      false, measureNumberBold,            resetMeasureNumberBold },
-      { Sid::measureNumberFontItalic,    false, measureNumberItalic,          resetMeasureNumberItalic },
-      { Sid::measureNumberFontUnderline, false, measureNumberUnderline,       resetMeasureNumberUnderline },
-      { Sid::measureNumberAlign,         false, measureNumberAlign,           resetMeasureNumberAlign },
-      { Sid::measureNumberOffset,        false, measureNumberOffset,          resetMeasureNumberOffset },
+      { Sid::showMeasureNumber,        false, showMeasureNumber,            0 },
+      { Sid::showMeasureNumberOne,     false, showFirstMeasureNumber,       0 },
+      { Sid::measureNumberInterval,    false, intervalMeasureNumber,        0 },
+      { Sid::measureNumberSystem,      false, showEverySystemMeasureNumber, 0 },
+      { Sid::measureNumberAllStaffs,   false, showAllStaffsMeasureNumber,   0 },
+      { Sid::measureNumberFontFace,    false, measureNumberFontFace,        resetMeasureNumberFontFace },
+      { Sid::measureNumberFontSize,    false, measureNumberFontSize,        resetMeasureNumberFontSize },
+      { Sid::measureNumberFontStyle,   false, measureNumberFontStyle,       resetMeasureNumberFontStyle },
+      { Sid::measureNumberAlign,       false, measureNumberAlign,           resetMeasureNumberAlign },
+      { Sid::measureNumberOffset,      false, measureNumberOffset,          resetMeasureNumberOffset },
 
-      { Sid::shortInstrumentFontFace,      false, shortInstrumentFontFace,      resetShortInstrumentFontFace },
-      { Sid::shortInstrumentFontSize,      false, shortInstrumentFontSize,      resetShortInstrumentFontSize },
-      { Sid::shortInstrumentFontBold,      false, shortInstrumentFontBold,      resetShortInstrumentFontBold },
-      { Sid::shortInstrumentFontItalic,    false, shortInstrumentFontItalic,    resetShortInstrumentFontItalic },
-      { Sid::shortInstrumentFontUnderline, false, shortInstrumentFontUnderline, resetShortInstrumentFontUnderline },
-      { Sid::shortInstrumentAlign,         false, shortInstrumentAlign,         resetShortInstrumentAlign },
+      { Sid::shortInstrumentFontFace,  false, shortInstrumentFontFace,      resetShortInstrumentFontFace },
+      { Sid::shortInstrumentFontSize,  false, shortInstrumentFontSize,      resetShortInstrumentFontSize },
+      { Sid::shortInstrumentFontStyle, false, shortInstrumentFontStyle,     resetShortInstrumentFontStyle },
+      { Sid::shortInstrumentAlign,     false, shortInstrumentAlign,         resetShortInstrumentAlign },
 
-      { Sid::longInstrumentFontFace,      false, longInstrumentFontFace,        resetLongInstrumentFontFace },
-      { Sid::longInstrumentFontSize,      false, longInstrumentFontSize,        resetLongInstrumentFontSize },
-      { Sid::longInstrumentFontBold,      false, longInstrumentFontBold,        resetLongInstrumentFontBold },
-      { Sid::longInstrumentFontItalic,    false, longInstrumentFontItalic,      resetLongInstrumentFontItalic },
-      { Sid::longInstrumentFontUnderline, false, longInstrumentFontUnderline,   resetLongInstrumentFontUnderline },
-      { Sid::longInstrumentAlign,         false, longInstrumentAlign,           resetLongInstrumentAlign },
+      { Sid::longInstrumentFontFace,   false, longInstrumentFontFace,        resetLongInstrumentFontFace },
+      { Sid::longInstrumentFontSize,   false, longInstrumentFontSize,        resetLongInstrumentFontSize },
+      { Sid::longInstrumentFontStyle,  false, longInstrumentFontStyle,       resetLongInstrumentFontStyle },
+      { Sid::longInstrumentAlign,      false, longInstrumentAlign,           resetLongInstrumentAlign },
 
-      { Sid::headerFontFace,      false, headerFontFace,        resetHeaderFontFace },
-      { Sid::headerFontSize,      false, headerFontSize,        resetHeaderFontSize },
-      { Sid::headerFontBold,      false, headerFontBold,        resetHeaderFontBold },
-      { Sid::headerFontItalic,    false, headerFontItalic,      resetHeaderFontItalic },
-      { Sid::headerFontUnderline, false, headerFontUnderline,   resetHeaderFontUnderline },
+      { Sid::headerFontFace,           false, headerFontFace,        resetHeaderFontFace },
+      { Sid::headerFontSize,           false, headerFontSize,        resetHeaderFontSize },
+      { Sid::headerFontStyle,          false, headerFontStyle,       resetHeaderFontStyle },
 
-      { Sid::footerFontFace,      false, footerFontFace,        resetFooterFontFace },
-      { Sid::footerFontSize,      false, footerFontSize,        resetFooterFontSize },
-      { Sid::footerFontBold,      false, footerFontBold,        resetFooterFontBold },
-      { Sid::footerFontItalic,    false, footerFontItalic,      resetFooterFontItalic },
-      { Sid::footerFontUnderline, false, footerFontUnderline,   resetFooterFontUnderline },
+      { Sid::footerFontFace,           false, footerFontFace,        resetFooterFontFace },
+      { Sid::footerFontSize,           false, footerFontSize,        resetFooterFontSize },
+      { Sid::footerFontStyle,          false, footerFontStyle,       resetFooterFontStyle },
 
-      { Sid::beamDistance,            true,  beamDistance,                 0 },
-      { Sid::beamNoSlope,             false, beamNoSlope,                  0 },
-      { Sid::graceNoteMag,            true,  graceNoteSize,                resetGraceNoteSize  },
-      { Sid::smallStaffMag,           true,  smallStaffSize,               resetSmallStaffSize },
-      { Sid::smallNoteMag,            true,  smallNoteSize,                resetSmallNoteSize  },
-      { Sid::smallClefMag,            true,  smallClefSize,                resetSmallClefSize  },
-      { Sid::lastSystemFillLimit,     true,  lastSystemFillThreshold,      resetLastSystemFillThreshold },
-      { Sid::genClef,                 false, genClef,                      0 },
-      { Sid::genKeysig,               false, genKeysig,                    0 },
-      { Sid::genCourtesyTimesig,      false, genCourtesyTimesig,           0 },
-      { Sid::genCourtesyKeysig,       false, genCourtesyKeysig,            0 },
-      { Sid::genCourtesyClef,         false, genCourtesyClef,              0 },
-      { Sid::swingRatio,              false, swingBox,                     0 },
-      { Sid::chordsXmlFile,           false, chordsXmlFile,                0 },
-      { Sid::dotMag,                  true,  dotMag,                       0 },
-      { Sid::articulationMag,         true,  articulationMag,              0 },
-      { Sid::shortenStem,             false, shortenStem,                  0 },
-      { Sid::showHeader,              false, showHeader,                   0 },
-      { Sid::headerFirstPage,         false, showHeaderFirstPage,          0 },
-      { Sid::headerOddEven,           false, headerOddEven,                0 },
-      { Sid::evenHeaderL,             false, evenHeaderL,                  0 },
-      { Sid::evenHeaderC,             false, evenHeaderC,                  0 },
-      { Sid::evenHeaderR,             false, evenHeaderR,                  0 },
-      { Sid::oddHeaderL,              false, oddHeaderL,                   0 },
-      { Sid::oddHeaderC,              false, oddHeaderC,                   0 },
-      { Sid::oddHeaderR,              false, oddHeaderR,                   0 },
-      { Sid::showFooter,              false, showFooter,                   0 },
-      { Sid::footerFirstPage,         false, showFooterFirstPage,          0 },
-      { Sid::footerOddEven,           false, footerOddEven,                0 },
-      { Sid::evenFooterL,             false, evenFooterL,                  0 },
-      { Sid::evenFooterC,             false, evenFooterC,                  0 },
-      { Sid::evenFooterR,             false, evenFooterR,                  0 },
-      { Sid::oddFooterL,              false, oddFooterL,                   0 },
-      { Sid::oddFooterC,              false, oddFooterC,                   0 },
-      { Sid::oddFooterR,              false, oddFooterR,                   0 },
+      { Sid::beamDistance,             true,  beamDistance,                 0 },
+      { Sid::beamNoSlope,              false, beamNoSlope,                  0 },
+      { Sid::graceNoteMag,             true,  graceNoteSize,                resetGraceNoteSize  },
+      { Sid::smallStaffMag,            true,  smallStaffSize,               resetSmallStaffSize },
+      { Sid::smallNoteMag,             true,  smallNoteSize,                resetSmallNoteSize  },
+      { Sid::smallClefMag,             true,  smallClefSize,                resetSmallClefSize  },
+      { Sid::lastSystemFillLimit,      true,  lastSystemFillThreshold,      resetLastSystemFillThreshold },
+      { Sid::genClef,                  false, genClef,                      0 },
+      { Sid::genKeysig,                false, genKeysig,                    0 },
+      { Sid::genCourtesyTimesig,       false, genCourtesyTimesig,           0 },
+      { Sid::genCourtesyKeysig,        false, genCourtesyKeysig,            0 },
+      { Sid::genCourtesyClef,          false, genCourtesyClef,              0 },
+      { Sid::swingRatio,               false, swingBox,                     0 },
+      { Sid::chordsXmlFile,            false, chordsXmlFile,                0 },
+      { Sid::dotMag,                   true,  dotMag,                       0 },
+      { Sid::articulationMag,          true,  articulationMag,              0 },
+      { Sid::shortenStem,              false, shortenStem,                  0 },
+      { Sid::showHeader,               false, showHeader,                   0 },
+      { Sid::headerFirstPage,          false, showHeaderFirstPage,          0 },
+      { Sid::headerOddEven,            false, headerOddEven,                0 },
+      { Sid::evenHeaderL,              false, evenHeaderL,                  0 },
+      { Sid::evenHeaderC,              false, evenHeaderC,                  0 },
+      { Sid::evenHeaderR,              false, evenHeaderR,                  0 },
+      { Sid::oddHeaderL,               false, oddHeaderL,                   0 },
+      { Sid::oddHeaderC,               false, oddHeaderC,                   0 },
+      { Sid::oddHeaderR,               false, oddHeaderR,                   0 },
+      { Sid::showFooter,               false, showFooter,                   0 },
+      { Sid::footerFirstPage,          false, showFooterFirstPage,          0 },
+      { Sid::footerOddEven,            false, footerOddEven,                0 },
+      { Sid::evenFooterL,              false, evenFooterL,                  0 },
+      { Sid::evenFooterC,              false, evenFooterC,                  0 },
+      { Sid::evenFooterR,              false, evenFooterR,                  0 },
+      { Sid::oddFooterL,               false, oddFooterL,                   0 },
+      { Sid::oddFooterC,               false, oddFooterC,                   0 },
+      { Sid::oddFooterR,               false, oddFooterR,                   0 },
 
-      { Sid::ottavaNumbersOnly,       false, ottavaNumbersOnly,            resetOttavaNumbersOnly },
-      { Sid::capoPosition,            false, capoPosition,                 0 },
-      { Sid::fretNumMag,              true,  fretNumMag,                   0 },
-      { Sid::fretNumPos,              false, fretNumGroup,                 0 },
-      { Sid::fretY,                   false, fretY,                        0 },
-      { Sid::barreLineWidth,          false, barreLineWidth,               0 },
-      { Sid::fretMag,                 false, fretMag,                      0 },
-      { Sid::scaleBarlines,           false, scaleBarlines,                resetScaleBarlines},
-      { Sid::crossMeasureValues,      false, crossMeasureValues,           0 },
+      { Sid::ottavaNumbersOnly,        false, ottavaNumbersOnly,            resetOttavaNumbersOnly },
+      { Sid::capoPosition,             false, capoPosition,                 0 },
+      { Sid::fretNumMag,               true,  fretNumMag,                   0 },
+      { Sid::fretNumPos,               false, fretNumGroup,                 0 },
+      { Sid::fretY,                    false, fretY,                        0 },
+      { Sid::barreLineWidth,           false, barreLineWidth,               0 },
+      { Sid::fretMag,                  false, fretMag,                      0 },
+      { Sid::scaleBarlines,            false, scaleBarlines,                resetScaleBarlines},
+      { Sid::crossMeasureValues,       false, crossMeasureValues,           0 },
 
-      { Sid::MusicalSymbolFont,       false, musicalSymbolFont,            0 },
-      { Sid::MusicalTextFont,         false, musicalTextFont,              0 },
+      { Sid::MusicalSymbolFont,        false, musicalSymbolFont,            0 },
+      { Sid::MusicalTextFont,          false, musicalTextFont,              0 },
       { Sid::autoplaceHairpinDynamicsDistance, false, autoplaceHairpinDynamicsDistance, resetAutoplaceHairpinDynamicsDistance },
 
       { Sid::dynamicsPlacement,       false, dynamicsPlacement,          resetDynamicsPlacement },
@@ -407,11 +378,32 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
 
       { Sid::bendFontFace,      false, bendFontFace,      resetBendFontFace      },
       { Sid::bendFontSize,      false, bendFontSize,      resetBendFontSize      },
-      { Sid::bendFontBold,      false, bendFontBold,      resetBendFontBold      },
-      { Sid::bendFontItalic,    false, bendFontItalic,    resetBendFontItalic    },
-      { Sid::bendFontUnderline, false, bendFontUnderline, resetBendFontUnderline },
+      { Sid::bendFontStyle,     false, bendFontStyle,     resetBendFontStyle     },
       { Sid::bendLineWidth,     false, bendLineWidth,     resetBendLineWidth     },
-      { Sid::bendArrowWidth,    false, bendArrowWidth,    resetBendArrowWidth     },
+      { Sid::bendArrowWidth,    false, bendArrowWidth,    resetBendArrowWidth    },
+
+      { Sid::numericHeightDisplacement,        false, numericHeightDisplacement,          resetNumericHeightDisplacement      },
+      { Sid::numericDistanceOctave,            false, numericDistanceOctave,              resetNumericDistanceOctave          },
+      { Sid::numericHeigthLine,                false, numericHeigthLine,                  resetNumericHeigthLine              },
+      { Sid::numericOffsetLine,                false, numericOffsetLine,                  resetnumericOffsetLine              },
+      { Sid::numericDistanceBetweenLines,      false, numericDistanceBetweenLines,        resetNumericDistanceBetweenLines    },
+      { Sid::numericWideLine,                  false, numericWideLine,                    resetNumericWideLine                },
+      { Sid::numericThickLine,                 false, numericThickLine,                   resetNumericThickLine               },
+      { Sid::numericSizeSignSharp,             false, numericSizeSignSharp,               resetNumericSizeSignSharp           },
+      { Sid::numericSizeSignFlat,              false, numericSizeSignFlat,                resetNumericSizeSignFlat            },
+      { Sid::numericDistanceSignSharp,         false, numericDistanceSignSharp,           resetNumericDistanceSignSharp       },
+      { Sid::numericDistanceSignFlat,          false, numericDistanceSignFlat,            resetNumericDistanceSignFlat        },
+      { Sid::numericHeigthSignSharp,           false, numericHeigthSignSharp,             resetNumericHeigthSignSharp         },
+      { Sid::numericHeigthSignFlat,            false, numericHeigthSignFlat,              resetNumericHeigthSignFlat          },
+      { Sid::numericFont,                      false, numericFont,                        resetNumericFont                    },
+      { Sid::numericSlurEckenform,             false, numericSlurEckenform,               resetNumericSlurEckenform           },
+      { Sid::numericSlurThick,                 false, numericSlurThick,                   resetNumericSlurThick               },
+      { Sid::numericSlurHeigth,                false, numericSlurHeigth,                  resetNumericSlurHeigth              },
+      { Sid::numericSlurUberhang,              false, numericSlurUberhang,                resetNumericSlurUberhang            },
+      { Sid::numericSlurShift,                 false, numericSlurShift,                   resetNumericSlurShift               },
+      { Sid::numericLedgerlineThick,           false, numericLedgerlineThick,             resetNumericLedgerlineThick         },
+      { Sid::numericLedgerlineLength,          false, numericLedgerlineLength,            resetNumericLedgerlineLength        },
+      { Sid::numericLedgerlineShift,           false, numericLedgerlineShift,             resetNumericLedgerlineShift         },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {
@@ -432,12 +424,12 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       tupletNumberType->clear();
       tupletNumberType->addItem(tr("Number"), int(TupletNumberType::SHOW_NUMBER));
       tupletNumberType->addItem(tr("Ratio"), int(TupletNumberType::SHOW_RELATION));
-      tupletNumberType->addItem(tr("Nothing"), int(TupletNumberType::NO_TEXT));
+      tupletNumberType->addItem(tr("None"), int(TupletNumberType::NO_TEXT));
 
       tupletBracketType->clear();
       tupletBracketType->addItem(tr("Automatic"), int(TupletBracketType::AUTO_BRACKET));
       tupletBracketType->addItem(tr("Bracket"), int(TupletBracketType::SHOW_BRACKET));
-      tupletBracketType->addItem(tr("Nothing"), int(TupletBracketType::SHOW_NO_BRACKET));
+      tupletBracketType->addItem(tr("None"), int(TupletBracketType::SHOW_NO_BRACKET));
 
       pageList->setCurrentRow(0);
       accidentalsGroup->setVisible(false); // disable, not yet implemented
@@ -475,37 +467,37 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
             + tr("Special symbols in header/footer")
             + QString("</b></p>")
             + QString("<table><tr><td>$p</td><td>-</td><td><i>")
-            + tr("page number, except on first page")
+            + tr("Page number, except on first page")
             + QString("</i></td></tr><tr><td>$N</td><td>-</td><td><i>")
-            + tr("page number, if there is more than one page")
+            + tr("Page number, if there is more than one page")
             + QString("</i></td></tr><tr><td>$P</td><td>-</td><td><i>")
-            + tr("page number, on all pages")
+            + tr("Page number, on all pages")
             + QString("</i></td></tr><tr><td>$n</td><td>-</td><td><i>")
-            + tr("number of pages")
+            + tr("Number of pages")
             + QString("</i></td></tr><tr><td>$f</td><td>-</td><td><i>")
-            + tr("file name")
+            + tr("File name")
             + QString("</i></td></tr><tr><td>$F</td><td>-</td><td><i>")
-            + tr("file path+name")
+            + tr("File path+name")
             + QString("</i></td></tr><tr><td>$i</td><td>-</td><td><i>")
-            + tr("part name, except on first page")
+            + tr("Part name, except on first page")
             + QString("</i></td></tr><tr><td>$I</td><td>-</td><td><i>")
-            + tr("part name, on all pages")
+            + tr("Part name, on all pages")
             + QString("</i></td></tr><tr><td>$d</td><td>-</td><td><i>")
-            + tr("current date")
+            + tr("Current date")
             + QString("</i></td></tr><tr><td>$D</td><td>-</td><td><i>")
-            + tr("creation date")
+            + tr("Creation date")
             + QString("</i></td></tr><tr><td>$m</td><td>-</td><td><i>")
-            + tr("last modification time")
+            + tr("Last modification time")
             + QString("</i></td></tr><tr><td>$M</td><td>-</td><td><i>")
-            + tr("last modification date")
+            + tr("Last modification date")
             + QString("</i></td></tr><tr><td>$C</td><td>-</td><td><i>")
-            + tr("copyright, on first page only")
+            + tr("Copyright, on first page only")
             + QString("</i></td></tr><tr><td>$c</td><td>-</td><td><i>")
-            + tr("copyright, on all pages")
+            + tr("Copyright, on all pages")
             + QString("</i></td></tr><tr><td>$$</td><td>-</td><td><i>")
-            + tr("the $ sign itself")
+            + tr("The $ sign itself")
             + QString("</i></td></tr><tr><td>$:tag:</td><td>-</td><td><i>")
-            + tr("metadata tag, see below")
+            + tr("Metadata tag, see below")
             + QString("</i></td></tr></table><p>")
             + tr("Available metadata tags and their current values")
             + QString("<br />")
@@ -535,6 +527,9 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       connect(chordsStandard,      SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
       connect(chordsJazz,          SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
       connect(chordsCustom,        SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
+      connect(chordsXmlFile,       SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
+      connect(chordDescriptionFile,&QLineEdit::editingFinished,       [=]() { setChordStyle(true); });
+      //chordDescriptionFile->setEnabled(false);
 
       connect(SwingOff,            SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
       connect(swingEighth,         SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
@@ -587,6 +582,8 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
                   connect(qobject_cast<AlignSelect*>(sw.widget), SIGNAL(alignChanged(Align)), mapper2, SLOT(map()));
             else if (qobject_cast<OffsetSelect*>(sw.widget))
                   connect(qobject_cast<OffsetSelect*>(sw.widget), SIGNAL(offsetChanged(const QPointF&)), mapper2, SLOT(map()));
+            else if (FontStyleSelect* fontStyle = qobject_cast<FontStyleSelect*>(sw.widget))
+                  connect(fontStyle, &FontStyleSelect::fontStyleChanged, mapper2, QOverload<>::of(&QSignalMapper::map));
             else {
                   qFatal("unhandled gui widget type %s valueType %s",
                      sw.widget->metaObject()->className(),
@@ -600,36 +597,21 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       connect(mapper,  SIGNAL(mapped(int)), SLOT(resetStyleValue(int)));
       connect(mapper2, SIGNAL(mapped(int)), SLOT(valueChanged(int)));
       textStyles->clear();
-      for (auto ss : {
-         Tid::SYSTEM,
-         Tid::STAFF,
-         Tid::TEMPO,
-         Tid::METRONOME,
-         Tid::REHEARSAL_MARK,
-         Tid::EXPRESSION,
-         Tid::REPEAT_LEFT,
-         Tid::REPEAT_RIGHT,
-         Tid::FRAME,
-         Tid::TITLE,
-         Tid::SUBTITLE,
-         Tid::COMPOSER,
-         Tid::POET,
-         Tid::INSTRUMENT_EXCERPT,
-         Tid::TRANSLATOR,
-         Tid::HEADER,
-         Tid::FOOTER,
-         Tid::USER1,
-         Tid::USER2,
-         Tid::USER3,
-         Tid::USER4,
-         Tid::USER5,
-         Tid::USER6
-         } )
-            {
-            QListWidgetItem* item = new QListWidgetItem(textStyleUserName(ss));
+      for (auto ss : allTextStyles()) {
+            QListWidgetItem* item = new QListWidgetItem(s->getTextStyleUserName(ss));
             item->setData(Qt::UserRole, int(ss));
             textStyles->addItem(item);
             }
+
+      textStyleFrameType->clear();
+      textStyleFrameType->addItem(tr("No frame"), int(FrameType::NO_FRAME));
+      textStyleFrameType->addItem(tr("Square"),   int(FrameType::SQUARE));
+      textStyleFrameType->addItem(tr("Circle"),   int(FrameType::CIRCLE));
+
+      resetTextStyleName->setIcon(*icons[int(Icons::reset_ICON)]);
+      connect(resetTextStyleName, &QToolButton::clicked, [=](){ resetUserStyleName(); });
+      connect(styleName, &QLineEdit::textEdited, [=]() { editUserStyleName(); });
+      connect(styleName, &QLineEdit::editingFinished, [=]() { endEditUserStyleName(); });
 
       // font face
       resetTextStyleFontFace->setIcon(*icons[int(Icons::reset_ICON)]);
@@ -649,34 +631,13 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
          [=](){ textStyleValueChanged(Pid::FONT_SIZE, QVariant(textStyleFontSize->value())); }
          );
 
-      // font bold
-      resetTextStyleFontBold->setIcon(*icons[int(Icons::reset_ICON)]);
-      textStyleFontBold->setIcon(*icons[int(Icons::textBold_ICON)]);
-      connect(resetTextStyleFontBold, &QToolButton::clicked,
-         [=](){ resetTextStyle(Pid::FONT_BOLD); }
+      // font style
+      resetTextStyleFontStyle->setIcon(*icons[int(Icons::reset_ICON)]);
+      connect(resetTextStyleFontStyle, &QToolButton::clicked,
+         [=](){ resetTextStyle(Pid::FONT_STYLE); }
          );
-      connect(textStyleFontBold, &QCheckBox::toggled,
-         [=](){ textStyleValueChanged(Pid::FONT_BOLD, QVariant(textStyleFontBold->isChecked())); }
-         );
-
-      // font italic
-      resetTextStyleFontItalic->setIcon(*icons[int(Icons::reset_ICON)]);
-      textStyleFontItalic->setIcon(*icons[int(Icons::textItalic_ICON)]);
-      connect(resetTextStyleFontItalic, &QToolButton::clicked,
-         [=](){ resetTextStyle(Pid::FONT_ITALIC); }
-         );
-      connect(textStyleFontItalic, &QCheckBox::toggled,
-         [=](){ textStyleValueChanged(Pid::FONT_ITALIC, QVariant(textStyleFontItalic->isChecked())); }
-         );
-
-      // font underline
-      resetTextStyleFontUnderline->setIcon(*icons[int(Icons::reset_ICON)]);
-      textStyleFontUnderline->setIcon(*icons[int(Icons::textUnderline_ICON)]);
-      connect(resetTextStyleFontUnderline, &QToolButton::clicked,
-         [=](){ resetTextStyle(Pid::FONT_UNDERLINE); }
-         );
-      connect(textStyleFontUnderline, &QCheckBox::toggled,
-         [=](){ textStyleValueChanged(Pid::FONT_UNDERLINE, QVariant(textStyleFontUnderline->isChecked())); }
+      connect(textStyleFontStyle, &FontStyleSelect::fontStyleChanged,
+         [=](){ textStyleValueChanged(Pid::FONT_STYLE, QVariant(int(textStyleFontStyle->fontStyle()))); }
          );
 
       // align
@@ -810,7 +771,7 @@ void EditStyle::on_buttonTogglePagelist_clicked()
             pageList->setVisible(true);
             buttonTogglePagelist->setIcon(QIcon(*icons[int(Icons::goNext_ICON)]));
             }
-      }		  
+      }
 //---------------------------------------------------------
 //   applyToAllParts
 //---------------------------------------------------------
@@ -872,6 +833,8 @@ QVariant EditStyle::getValue(Sid idx)
                   QButtonGroup* bg = qobject_cast<QButtonGroup*>(sw.widget);
                   return bg->checkedId();
                   }
+            else if (FontStyleSelect* fontStyle = qobject_cast<FontStyleSelect*>(sw.widget))
+                  return int(fontStyle->fontStyle());
             else
                   qFatal("unhandled int");
             }
@@ -964,6 +927,8 @@ void EditStyle::setValues()
                                     }
                               }
                         }
+                  else if (FontStyleSelect* fontStyle = qobject_cast<FontStyleSelect*>(sw.widget))
+                        fontStyle->setFontStyle(FontStyle(val.toInt()));
                   else
                         unhandledType(&sw);
                   }
@@ -999,10 +964,12 @@ void EditStyle::setValues()
                   OffsetSelect* as = qobject_cast<Ms::OffsetSelect*>(sw.widget);
                   if (as)
                         as->setOffset(val.value<QPointF>());
+#if 0  // debug
                   else {
                         printf("no widget for QPointF <%s><%s>\n",
-                           sw.widget->metaObject()->className(), MStyle::valueName(sw.idx));
+                               sw.widget->metaObject()->className(), MStyle::valueName(sw.idx));
                         }
+#endif
                   }
             else
                   unhandledType(&sw);
@@ -1090,6 +1057,7 @@ void EditStyle::selectChordDescriptionFile()
       if (fn.isEmpty())
             return;
       chordDescriptionFile->setText(fn);
+      setChordStyle(true);
       }
 
 //---------------------------------------------------------
@@ -1127,24 +1095,31 @@ void EditStyle::setChordStyle(bool checked)
             return;
       QVariant val;
       QString file;
+      bool chordsXml;
       if (chordsStandard->isChecked()) {
             val  = QString("std");
             file = "chords_std.xml";
+            chordsXml = false;
             }
       else if (chordsJazz->isChecked()) {
             val  = QString("jazz");
             file = "chords_jazz.xml";
+            chordsXml = false;
             }
       else {
             val = QString("custom");
             chordDescriptionGroup->setEnabled(true);
+            file = chordDescriptionFile->text();
+            chordsXml = chordsXmlFile->isChecked();
             }
-      cs->undo(new ChangeStyleVal(cs, Sid::chordStyle, val));
-      if (!file.isEmpty()) {
-            cs->undo(new ChangeStyleVal(cs, Sid::chordsXmlFile, false));
-            chordsXmlFile->setChecked(false);
+      if (val != "custom") {
+            chordsXmlFile->setChecked(chordsXml);
             chordDescriptionGroup->setEnabled(false);
             chordDescriptionFile->setText(file);
+            }
+      cs->undo(new ChangeStyleVal(cs, Sid::chordsXmlFile, chordsXml));
+      cs->undo(new ChangeStyleVal(cs, Sid::chordStyle, val));
+      if (!file.isEmpty()) {
             cs->undo(new ChangeStyleVal(cs, Sid::chordDescriptionFile, file));
             cs->update();
             }
@@ -1269,8 +1244,8 @@ void EditStyle::valueChanged(int i)
       QVariant val  = getValue(idx);
       bool setValue = false;
       if (idx == Sid::MusicalSymbolFont && optimizeStyleCheckbox->isChecked()) {
-              ScoreFont* scoreFont = ScoreFont::fontFactory(val.toString());
-              if (scoreFont) {
+            ScoreFont* scoreFont = ScoreFont::fontFactory(val.toString());
+            if (scoreFont) {
                   for (auto j : scoreFont->engravingDefaults()) {
 #if 0  // debug
                         if (cs->styleV(j.first) != j.second) {
@@ -1290,20 +1265,23 @@ void EditStyle::valueChanged(int i)
                   cs->undo(new ChangeStyleVal(cs, Sid::endBarDistance,
                     cs->styleV(Sid::endBarDistance).toDouble()
                     + (cs->styleV(Sid::barWidth).toDouble() + cs->styleV(Sid::endBarWidth).toDouble()) * .5));
+                  cs->undo(new ChangeStyleVal(cs, Sid::doubleBarDistance,
+                    cs->styleV(Sid::doubleBarDistance).toDouble()
+                    + (cs->styleV(Sid::barWidth).toDouble() + cs->styleV(Sid::barWidth).toDouble()) * .5));
 
                   // guess the repeat dot width = spatium * .3
                   cs->undo(new ChangeStyleVal(cs, Sid::repeatBarlineDotSeparation,
                     cs->styleV(Sid::repeatBarlineDotSeparation).toDouble()
                     + (cs->styleV(Sid::barWidth).toDouble() + .3) * .5));
 
-                    if (scoreFont->textEnclosureThickness()) {
-//                           TextStyle ts = cs->textStyle(TextStyleType::REHEARSAL_MARK);
-//                           ts.setFrameWidth(Spatium(scoreFont->textEnclosureThickness()));
-//TODO                           cs->undo(new ChangeTextStyle(cs, ts));
-                           }
-                    }
-              setValue = true;
-              }
+//                  if (scoreFont->textEnclosureThickness()) {
+//                        TextStyle ts = cs->textStyle(TextStyleType::REHEARSAL_MARK);
+//                        ts.setFrameWidth(Spatium(scoreFont->textEnclosureThickness()));
+//TODO                        cs->undo(new ChangeTextStyle(cs, ts));
+//                        }
+                  }
+            setValue = true;
+            }
       cs->undo(new ChangeStyleVal(cs, idx, val));
       cs->update();
       if (setValue)
@@ -1348,19 +1326,9 @@ void EditStyle::textStyleChanged(int row)
                         resetTextStyleFontSize->setEnabled(cs->styleV(a.sid) != MScore::defaultStyle().value(a.sid));
                         break;
 
-                  case Pid::FONT_BOLD:
-                        textStyleFontBold->setChecked(cs->styleB(a.sid));
-                        resetTextStyleFontBold->setEnabled(cs->styleV(a.sid) != MScore::defaultStyle().value(a.sid));
-                        break;
-
-                  case Pid::FONT_ITALIC:
-                        textStyleFontItalic->setChecked(cs->styleB(a.sid));
-                        resetTextStyleFontItalic->setEnabled(cs->styleV(a.sid) != MScore::defaultStyle().value(a.sid));
-                        break;
-
-                  case Pid::FONT_UNDERLINE:
-                        textStyleFontUnderline->setChecked(cs->styleB(a.sid));
-                        resetTextStyleFontUnderline->setEnabled(cs->styleV(a.sid) != MScore::defaultStyle().value(a.sid));
+                  case Pid::FONT_STYLE:
+                        textStyleFontStyle->setFontStyle(FontStyle(cs->styleV(a.sid).toInt()));
+                        resetTextStyleFontStyle->setEnabled(cs->styleV(a.sid) != MScore::defaultStyle().value(a.sid));
                         break;
 
                   case Pid::ALIGN:
@@ -1413,7 +1381,10 @@ void EditStyle::textStyleChanged(int row)
                         break;
                   }
             }
-      }
+      styleName->setText(cs->getTextStyleUserName(tid));
+      styleName->setEnabled(int(tid) >= int(Tid::USER1));
+      resetTextStyleName->setEnabled(styleName->text() != textStyleUserName(tid));
+     }
 
 //---------------------------------------------------------
 //   textStyleValueChanged
@@ -1452,5 +1423,52 @@ void EditStyle::resetTextStyle(Pid pid)
       textStyleChanged(textStyles->currentRow());     // update GUI
       cs->update();
       }
+
+//---------------------------------------------------------
+//   editUserStyleName
+//---------------------------------------------------------
+
+void EditStyle::editUserStyleName()
+      {
+      int row = textStyles->currentRow();
+      Tid tid = Tid(textStyles->item(row)->data(Qt::UserRole).toInt());
+      textStyles->item(row)->setText(styleName->text());
+      resetTextStyleName->setEnabled(styleName->text() != textStyleUserName(tid));
+      }
+
+//---------------------------------------------------------
+//   endEditUserStyleName
+//---------------------------------------------------------
+
+void EditStyle::endEditUserStyleName()
+      {
+      int row = textStyles->currentRow();
+      Tid tid = Tid(textStyles->item(row)->data(Qt::UserRole).toInt());
+      int idx = int(tid) - int(Tid::USER1);
+      if ((idx < 0) || (idx > 5)) {
+            qDebug("User style index %d outside of range [0,5].", idx);
+            return;
+            }
+      Sid sid[] = { Sid::user1Name, Sid::user2Name, Sid::user3Name, Sid::user4Name, Sid::user5Name, Sid::user6Name };
+      QString name = styleName->text();
+      cs->undoChangeStyleVal(sid[idx], name);
+      if (name == "") {
+            name = textStyleUserName(tid);
+            styleName->setText(name);
+            textStyles->item(row)->setText(name);
+            resetTextStyleName->setEnabled(false);
+            }
+      MuseScoreCore::mscoreCore->updateInspector();
+      }
+//---------------------------------------------------------
+//   resetUserStyleName
+//---------------------------------------------------------
+
+void EditStyle::resetUserStyleName()
+      {
+      styleName->clear();
+      endEditUserStyleName();
+      }
+
 } //namespace Ms
 

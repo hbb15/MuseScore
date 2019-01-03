@@ -260,23 +260,23 @@ void Lyrics::layout()
 
       bool styleDidChange = false;
       if ((_no & 1) && !_even) {
-            initTid(Tid::LYRICS_EVEN);
+            initTid(Tid::LYRICS_EVEN, /* preserveDifferent */ true);
             _even             = true;
             styleDidChange    = true;
             }
       if (!(_no & 1) && _even) {
-            initTid(Tid::LYRICS_ODD);
+            initTid(Tid::LYRICS_ODD, /* preserveDifferent */ true);
             _even             = false;
             styleDidChange    = true;
             }
+
+      if (styleDidChange)
+            styleChanged();
 
       if (isMelisma() || hasNumber)
             if (isStyled(Pid::ALIGN)) {
                   setAlign(score()->styleV(Sid::lyricsMelismaAlign).value<Align>());
             }
-      if (styleDidChange)
-            styleChanged();
-
       QPointF o(propertyDefault(Pid::OFFSET).toPointF());
       rxpos() = o.x();
       qreal x = pos().x();

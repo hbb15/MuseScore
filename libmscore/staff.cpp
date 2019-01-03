@@ -49,7 +49,7 @@ namespace Ms {
 Staff::Staff(Score* score)
    : ScoreElement(score)
       {
-//      initFromStaffType(0);
+      initFromStaffType(0);
       }
 
 //---------------------------------------------------------
@@ -83,8 +83,10 @@ void Staff::fillBrackets(int idx)
 
 void Staff::cleanBrackets()
       {
-      while (!_brackets.empty() && (_brackets.last()->bracketType() == BracketType::NO_BRACKET))
-            delete _brackets.takeLast();
+      while (!_brackets.empty() && (_brackets.last()->bracketType() == BracketType::NO_BRACKET)) {
+            BracketItem* bi = _brackets.takeLast();
+            delete bi;
+            }
       }
 
 //---------------------------------------------------------
@@ -987,10 +989,14 @@ void Staff::staffTypeListChanged(int tick)
 
 StaffType* Staff::setStaffType(int tick, const StaffType& nst)
       {
+#if 0
+#ifndef NDEBUG
       auto i = _staffTypeList.find(tick);
       if (i != _staffTypeList.end()) {
             qDebug("there is already a type at %d", tick);
             }
+#endif
+#endif
       return _staffTypeList.setStaffType(tick, nst);
       }
 

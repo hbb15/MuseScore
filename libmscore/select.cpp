@@ -175,7 +175,8 @@ ChordRest* Selection::activeCR() const
 
 Segment* Selection::firstChordRestSegment() const
       {
-      if (!isRange()) return 0;
+      if (!isRange())
+            return 0;
 
       for (Segment* s = _startSegment; s && (s != _endSegment); s = s->next1MM()) {
             if (!s->enabled())
@@ -319,9 +320,10 @@ void Selection::clear()
 
 void Selection::remove(Element* el)
       {
-      _el.removeOne(el);
+      const bool removed = _el.removeOne(el);
       el->setSelected(false);
-      updateState();
+      if (removed)
+            updateState();
       }
 
 //---------------------------------------------------------
@@ -450,6 +452,10 @@ void Selection::appendChord(Chord* chord)
 
 void Selection::updateSelectedElements()
       {
+      if (_state != SelState::RANGE) {
+            update();
+            return;
+            }
       if (_state == SelState::RANGE && _plannedTick1 != -1 && _plannedTick2 != -1) {
             const int staffStart = _staffStart;
             const int staffEnd = _staffEnd;
@@ -461,6 +467,11 @@ void Selection::updateSelectedElements()
                                       // are needed to prevent bug #173381.
                                       // This should exclude any segments belonging
                                       // to MM-rest range from the selection.
+            if (s1 && s2 && s1->tick() + s1->ticks() > s2->tick()) {
+                  // can happen with MM rests as tick2measure returns only
+                  // the first segment for them.
+                  return;
+                  }
             setRange(s1, s2, staffStart, staffEnd);
             _plannedTick1 = -1;
             _plannedTick2 = -1;
@@ -554,6 +565,7 @@ void Selection::updateSelectedElements()
 void Selection::setRange(Segment* startSegment, Segment* endSegment, int staffStart, int staffEnd)
       {
       Q_ASSERT(staffEnd > staffStart && staffStart >= 0 && staffEnd >= 0 && staffEnd <= _score->nstaves());
+      Q_ASSERT(!(endSegment && !startSegment));
 
       _startSegment  = startSegment;
       _endSegment    = endSegment;
@@ -575,6 +587,7 @@ void Selection::setRangeTicks(int tick1, int tick2, int staffStart, int staffEnd
       {
       Q_ASSERT(staffEnd > staffStart && staffStart >= 0 && staffEnd >= 0 && staffEnd <= _score->nstaves());
 
+      deselectAll();
       _plannedTick1 = tick1;
       _plannedTick2 = tick2;
       _startSegment = _endSegment = _activeSegment = nullptr;
@@ -1280,6 +1293,7 @@ void Selection::extendRangeSelection(Segment* seg, Segment* segAfter, int staffI
             }
       activeIsFirst ? _activeSegment = _startSegment : _activeSegment = _endSegment;
       _score->setSelectionChanged(true);
+      Q_ASSERT(!(_endSegment && !_startSegment));
       }
 
 //---------------------------------------------------------

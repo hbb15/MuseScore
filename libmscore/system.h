@@ -107,6 +107,8 @@ class System final : public Element {
       virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true) override;
 
       void appendMeasure(MeasureBase*);
+      void removeMeasure(MeasureBase*);
+      void removeLastMeasure();
 
       Page* page() const                    { return (Page*)parent(); }
 
@@ -128,11 +130,10 @@ class System final : public Element {
       void removeStaff(int);
 
       int y2staff(qreal y) const;
-      void setInstrumentNames(bool longName);
+      void setInstrumentNames(bool longName, int tick = 0);
       int snap(int tick, const QPointF p) const;
       int snapNote(int tick, const QPointF p, int staff) const;
 
-      std::vector<MeasureBase*>& measures()             { return ml; }
       const std::vector<MeasureBase*>& measures() const { return ml; }
 
       MeasureBase* measure(int idx)          { return ml[idx]; }

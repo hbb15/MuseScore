@@ -84,13 +84,12 @@ int Articulation::subtype() const
 
 void Articulation::setUp(bool val)
       {
-      if (val != _up) {
-            QString s = Sym::id2name(_symId);
-            if (s.endsWith(_up ? "Above" : "Below")) {
-                  QString s2 = s.left(s.size() - 5) + (val ? "Above" : "Below");
-                  _symId = Sym::name2id(s2);
-                  }
-            _up = val;
+      _up = val;
+      bool dup = _direction == Direction::AUTO ? val : _direction == Direction::UP;
+      QString s = Sym::id2name(_symId);
+      if (s.endsWith(!dup ? "Above" : "Below")) {
+            QString s2 = s.left(s.size() - 5) + (dup ? "Above" : "Below");
+            _symId = Sym::name2id(s2);
             }
       }
 
@@ -570,7 +569,7 @@ QString Articulation::accessibleInfo() const
 void Articulation::doAutoplace()
       {
       qreal minDistance = score()->styleP(Sid::dynamicsMinDistance);
-      if (autoplace() && parent()) {
+      if (autoplace() && visible() && parent()) {
             Segment* s = segment();
             Measure* m = measure();
             int si     = staffIdx();
@@ -601,6 +600,3 @@ void Articulation::doAutoplace()
       }
 
 }
-
-
-

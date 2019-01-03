@@ -428,28 +428,6 @@ Channel::Channel()
 //      qDebug("construct Channel ");
       }
 
-Channel::~Channel()
-      {
-      QList<ChannelListener *> list(listeners);
-
-      for (ChannelListener * l: list) {
-            l->disconnectChannelListener();
-            }
-      }
-
-//---------------------------------------------------------
-//   firePropertyChanged
-//---------------------------------------------------------
-
-void Channel::firePropertyChanged(Channel::Prop prop)
-      {
-      QList<ChannelListener *> list(listeners);
-
-      for (ChannelListener * l: list) {
-            l->propertyChanged(prop);
-            }
-      }
-
 //---------------------------------------------------------
 //   setVolume
 //---------------------------------------------------------
@@ -807,6 +785,24 @@ void Channel::updateInitList() const
       }
 
 //---------------------------------------------------------
+//   addListener
+//---------------------------------------------------------
+
+void Channel::addListener(ChannelListener* l)
+      {
+      _notifier.addListener(l);
+      }
+
+//---------------------------------------------------------
+//   removeListener
+//---------------------------------------------------------
+
+void Channel::removeListener(ChannelListener* l)
+      {
+      _notifier.removeListener(l);
+      }
+
+//---------------------------------------------------------
 //   channelIdx
 //---------------------------------------------------------
 
@@ -916,13 +912,20 @@ bool Instrument::operator==(const Instrument& i) const
             if (!(i._shortNames[k] == _shortNames[k].name()))
                   return false;
             }
+      n = _channel.size();
+      if (i._channel.size() != n)
+            return false;
+      for (int k = 0; k < n; ++k) {
+            if (!(*i._channel[k] == *_channel[k]))
+                  return false;
+            }
+
       return i._minPitchA == _minPitchA
          &&  i._maxPitchA == _maxPitchA
          &&  i._minPitchP == _minPitchP
          &&  i._maxPitchP == _maxPitchP
          &&  i._useDrumset == _useDrumset
          &&  i._midiActions == _midiActions
-         &&  i._channel == _channel
          &&  i._articulation == _articulation
          &&  i._transpose.diatonic == _transpose.diatonic
          &&  i._transpose.chromatic == _transpose.chromatic

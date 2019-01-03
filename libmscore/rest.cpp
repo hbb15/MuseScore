@@ -100,14 +100,15 @@ void Rest::draw(QPainter* painter) const
             f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
             painter->setFont(f);
             painter->setPen(c);
-            painter->drawText(QPointF(0, _numericHigth*0.5), "0"+
+            painter->drawText(QPointF(0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement)), "0"+
                               getNumericDurationRest[int(durationType().type())]+
                               getNumericDurationDotRest[int(durationType().dots())]);
 
             painter->setPen(QPen(curColor(), _numericLineThick));
             for (int i = 0; i < qAbs(durationType().hooks()); ++i){
 
-                  painter->drawLine(QLineF(0, (_numericHigthLine)+(i*_numericLineSpace), _numericLineWidht, (_numericHigthLine)+(i*_numericLineSpace)));
+                  painter->drawLine(QLineF(_numericLineWidht/2-(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2, _numericHigthLine+(i*_numericLineSpace),
+                                           _numericLineWidht/2+(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2, _numericHigthLine+(i*_numericLineSpace)));
                   }
             return;
             }
@@ -421,11 +422,11 @@ void Rest::layout()
             _numericLineWidht=numericGetWidthRest(numeric,_fretString);
             QRectF hookbox = QRectF(0.0, numeric->fretBoxY() * magS(), _numericLineWidht, numeric->fretBoxH() * magS());
             _numericHigth = hookbox.height();
-            _numericLineThick=_numericHigth*0.1;
-            _numericLineSpace=_numericHigth*-0.3;
-            _numericHigthLine=_numericHigth*-0.75;
+            _numericLineThick=_numericHigth*score()->styleD(Sid::numericThickLine);
+            _numericLineSpace=_numericHigth*(score()->styleD(Sid::numericDistanceBetweenLines)*-1);
+            _numericHigthLine=_numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_numericHigth-_numericHigth*score()->styleD(Sid::numericHeigthLine);
             hookbox = QRectF(0.0, (_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick,
-                             _numericLineWidht,(_numericHigth*0.5+((_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick)*-1));
+                             _numericLineWidht,(_numericHigth*score()->styleD(Sid::numericHeightDisplacement)+((_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick)*-1));
             setbbox(hookbox);
             return;
 
@@ -784,9 +785,9 @@ QPointF Rest::stemPosBeam() const
       {
       QPointF p(pagePos());
       if (_up)
-            p.ry() += bbox().top() + spatium() * 2;
+            p.ry() += bbox().top() + spatium() * 1.5;
       else
-            p.ry() += bbox().bottom() - spatium() * 2;
+            p.ry() += bbox().bottom() - spatium() * 1.5;
       return p;
       }
 
@@ -1063,6 +1064,10 @@ Shape Rest::shape() const
 #endif
             for (NoteDot* dot : _dots)
                   shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()));
+            }
+      for (Element* e : el()) {
+            if (e->autoplace() && e->visible())
+                  shape.add(e->shape().translated(e->pos()));
             }
       return shape;
       }

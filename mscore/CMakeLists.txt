@@ -154,6 +154,7 @@ QT5_WRAP_UI (ui_headers
       inspector/inspector_frametext.ui
       inspector/inspector_fermata.ui
       inspector/align_select.ui
+      inspector/font_style_select.ui
       inspector/offset_select.ui
       inspector/scale_select.ui
       inspector/size_select.ui
@@ -375,6 +376,7 @@ add_executable ( ${ExecutableName}
       inspector/inspectorArpeggio.cpp
       inspector/inspectorFingering.cpp
       inspector/alignSelect.cpp
+      inspector/fontStyleSelect.cpp
       inspector/offsetSelect.cpp
       inspector/scaleSelect.cpp
       inspector/sizeSelect.cpp
@@ -441,6 +443,8 @@ add_executable ( ${ExecutableName}
       ${MAC_SPARKLE_FILES}
       driver.h
       tremolobarcanvas.h bendcanvas.h fretcanvas.h keycanvas.h harmonycanvas.h
+
+      sparkle/autoUpdater.h sparkle/sparkleAutoUpdater.h sparkle/winSparkleAutoUpdater.h
       )
 
 
@@ -471,7 +475,7 @@ if (USE_SYSTEM_FREETYPE)
 endif (USE_SYSTEM_FREETYPE)
 
 if (MINGW OR MSVC)
-      set(MSCORE_OUTPUT_NAME ${MUSESCORE_NAME})
+      set(MSCORE_OUTPUT_NAME ${MUSESCORE_NAME}${MUSESCORE_VERSION_MAJOR})
 elseif (MSCORE_INSTALL_SUFFIX)
       set(MSCORE_OUTPUT_NAME "${ExecutableName}${MSCORE_INSTALL_SUFFIX}")
 endif (MINGW OR MSVC)
@@ -543,13 +547,13 @@ if (MINGW)
      set_target_properties( mscore
         PROPERTIES
            COMPILE_FLAGS "${PCH_INCLUDE} -g -Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
-           LINK_FLAGS "-mwindows -mconsole -L ${QT_INSTALL_PREFIX}/lib"
+           LINK_FLAGS "-mwindows -mconsole -L ${QT_INSTALL_LIBS}"
         )
    else(CMAKE_BUILD_TYPE MATCHES "DEBUG")
      set_target_properties( mscore
           PROPERTIES
              COMPILE_FLAGS "${PCH_INCLUDE} -Wall -Wextra -Winvalid-pch ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
-             LINK_FLAGS "-Wl,-S -mwindows -L ${QT_INSTALL_PREFIX}/lib"
+             LINK_FLAGS "-Wl,-S -mwindows -L ${QT_INSTALL_LIBS}"
           )
    endif(CMAKE_BUILD_TYPE MATCHES "DEBUG")
 
@@ -610,8 +614,8 @@ if (MINGW)
       ${MINGW_ROOT}/lib/libvorbis.dll
       ${MINGW_ROOT}/lib/libvorbisfile.dll
       ${MINGW_ROOT}/opt/bin/ssleay32.dll
-      ${QT_INSTALL_PREFIX}/bin/libEGL.dll
-      ${QT_INSTALL_PREFIX}/bin/libGLESv2.dll
+      ${QT_INSTALL_BINS}/libEGL.dll
+      ${QT_INSTALL_BINS}/libGLESv2.dll
       ${QtInstallLibraries}
       ${PROJECT_SOURCE_DIR}/build/qt.conf
       DESTINATION bin)
@@ -622,29 +626,29 @@ if (MINGW)
       OPTIONAL)
 
     install(FILES
-      ${QT_INSTALL_PREFIX}/plugins/iconengines/qsvgicon.dll
+      ${QT_INSTALL_PLUGINS}/iconengines/qsvgicon.dll
       DESTINATION bin/iconengines)
 
     install(FILES
-      ${QT_INSTALL_PREFIX}/plugins/imageformats/qjpeg.dll
-      ${QT_INSTALL_PREFIX}/plugins/imageformats/qsvg.dll
-      ${QT_INSTALL_PREFIX}/plugins/imageformats/qtiff.dll
+      ${QT_INSTALL_PLUGINS}/imageformats/qjpeg.dll
+      ${QT_INSTALL_PLUGINS}/imageformats/qsvg.dll
+      ${QT_INSTALL_PLUGINS}/imageformats/qtiff.dll
       DESTINATION bin/imageformats)
 
     install(FILES
-      ${QT_INSTALL_PREFIX}/plugins/platforms/qwindows.dll
+      ${QT_INSTALL_PLUGINS}/platforms/qwindows.dll
       DESTINATION bin/platforms)
 
     install(FILES
-      ${QT_INSTALL_PREFIX}/plugins/printsupport/windowsprintersupport.dll
+      ${QT_INSTALL_PLUGINS}/printsupport/windowsprintersupport.dll
       DESTINATION bin/printsupport)
 
     install(FILES
-      ${QT_INSTALL_PREFIX}/plugins/sqldrivers/qsqlite.dll
+      ${QT_INSTALL_PLUGINS}/sqldrivers/qsqlite.dll
       DESTINATION bin/sqldrivers)
 
     install(DIRECTORY
-      ${QT_INSTALL_PREFIX}/qml
+      ${QT_INSTALL_QML}
       DESTINATION .
       REGEX ".*d\\.dll" EXCLUDE
       REGEX ".*QtGraphicalEffects.*" EXCLUDE
@@ -659,15 +663,15 @@ else (MINGW)
 ## install qwebengine core
       if (NOT APPLE AND USE_WEBENGINE)
          install(FILES
-            ${QT_INSTALL_PREFIX}/libexec/QtWebEngineProcess
+            ${QT_INSTALL_LIBEXECS}/QtWebEngineProcess
             DESTINATION bin
             )
          install(DIRECTORY
-            ${QT_INSTALL_PREFIX}/resources
+            ${QT_INSTALL_DATA}/resources
             DESTINATION lib/qt5
             )
          install(DIRECTORY
-            ${QT_INSTALL_PREFIX}/translations/qtwebengine_locales
+            ${QT_INSTALL_TRANSLATIONS}/qtwebengine_locales
             DESTINATION lib/qt5/translations
             )
       endif(NOT APPLE AND USE_WEBENGINE)
@@ -757,11 +761,7 @@ else (MINGW)
                )
         endif (LN_EXECUTABLE)
         # Install MuseScore icons (use SVGs where possible, but install PNGs as backup for systems that don't support SVG)
-        if (MSCORE_UNSTABLE)
-            set(MSCORE_ICON_BASE ../assets/musescore-icon-square) # Square icons on development builds
-        else (MSCORE_UNSTABLE)
-            set(MSCORE_ICON_BASE ../assets/musescore-icon-round) # Round icons on stable releases
-        endif (MSCORE_UNSTABLE)
+        set(MSCORE_ICON_BASE ../assets/musescore-icon-round)
         install(FILES ${MSCORE_ICON_BASE}.svg RENAME mscore${MSCORE_INSTALL_SUFFIX}.svg DESTINATION share/icons/hicolor/scalable/apps)
         install(FILES ${MSCORE_ICON_BASE}-16.png RENAME mscore${MSCORE_INSTALL_SUFFIX}.png DESTINATION share/icons/hicolor/16x16/apps)
         install(FILES ${MSCORE_ICON_BASE}-24.png RENAME mscore${MSCORE_INSTALL_SUFFIX}.png DESTINATION share/icons/hicolor/24x24/apps)
@@ -805,14 +805,14 @@ else (MINGW)
         set_target_properties( mscore
            PROPERTIES
               COMPILE_FLAGS "${PCH_INCLUDE} ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
-              LINK_FLAGS    "/LIBPATH:${QT_INSTALL_PREFIX}/lib ${all_library_paths}"
+              LINK_FLAGS    "/LIBPATH:${QT_INSTALL_LIBS} ${all_library_paths}"
               LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
            )
       else(CMAKE_BUILD_TYPE MATCHES "RELEASE")
         set_target_properties( mscore
            PROPERTIES
               COMPILE_FLAGS "${PCH_INCLUDE} ${QT_DEFINITIONS} /DQT_SVG_LIB /DQT_GUI_LIB /DQT_XML_LIB /DQT_CORE_LIB"
-              LINK_FLAGS    "/LIBPATH:${QT_INSTALL_PREFIX}/lib ${all_library_paths}"
+              LINK_FLAGS    "/LIBPATH:${QT_INSTALL_LIBS} ${all_library_paths}"
               LINK_FLAGS "/SUBSYSTEM:CONSOLE"
            )
       endif(CMAKE_BUILD_TYPE MATCHES "RELEASE")
@@ -838,29 +838,38 @@ else (MINGW)
 
       # Copy DLL dependencies to .EXE DIRECTORY
       list(APPEND dlls_to_copy
-                  "${QT_INSTALL_PREFIX}/bin/Qt5Core.dll"  "${QT_INSTALL_PREFIX}/bin/Qt5Gui.dll"  "${QT_INSTALL_PREFIX}/bin/Qt5Help.dll"
-                  "${QT_INSTALL_PREFIX}/bin/Qt5Network.dll"  "${QT_INSTALL_PREFIX}/bin/Qt5PrintSupport.dll"
-                  "${QT_INSTALL_PREFIX}/bin/Qt5Qml.dll"  "${QT_INSTALL_PREFIX}/bin/Qt5Quick.dll"  "${QT_INSTALL_PREFIX}/bin/Qt5Sql.dll"
-                  "${QT_INSTALL_PREFIX}/bin/Qt5Svg.dll"  "${QT_INSTALL_PREFIX}/bin/Qt5Widgets.dll"  "${QT_INSTALL_PREFIX}/bin/Qt5Xml.dll"
-                  "${QT_INSTALL_PREFIX}/bin/Qt5XmlPatterns.dll"
-                  "${QT_INSTALL_PREFIX}/bin/Qt5WebChannel.dll"
-                  "${QT_INSTALL_PREFIX}/bin/Qt5QuickWidgets.dll" "${QT_INSTALL_PREFIX}/bin/Qt5Positioning.dll"
-                  "${QT_INSTALL_PREFIX}/bin/libEGL.dll" "${QT_INSTALL_PREFIX}/bin/libGLESv2.dll"
+                  "${QT_INSTALL_BINS}/Qt5Core.dll"  "${QT_INSTALL_BINS}/Qt5Gui.dll"  "${QT_INSTALL_BINS}/Qt5Help.dll"
+                  "${QT_INSTALL_BINS}/Qt5Network.dll"  "${QT_INSTALL_BINS}/Qt5PrintSupport.dll"
+                  "${QT_INSTALL_BINS}/Qt5Qml.dll"  "${QT_INSTALL_BINS}/Qt5Quick.dll"  "${QT_INSTALL_BINS}/Qt5Sql.dll"
+                  "${QT_INSTALL_BINS}/Qt5Svg.dll"  "${QT_INSTALL_BINS}/Qt5Widgets.dll"  "${QT_INSTALL_BINS}/Qt5Xml.dll"
+                  "${QT_INSTALL_BINS}/Qt5XmlPatterns.dll"
+                  "${QT_INSTALL_BINS}/Qt5WebChannel.dll"
+                  "${QT_INSTALL_BINS}/Qt5QuickWidgets.dll" "${QT_INSTALL_BINS}/Qt5Positioning.dll"
+                  "${QT_INSTALL_BINS}/libEGL.dll" "${QT_INSTALL_BINS}/libGLESv2.dll"
                   )
       if (USE_WEBENGINE)
-         list(APPEND dlls_to_copy "${QT_INSTALL_PREFIX}/bin/Qt5WebEngineWidgets.dll" "${QT_INSTALL_PREFIX}/bin/Qt5WebEngineCore.dll")
+         list(APPEND dlls_to_copy "${QT_INSTALL_BINS}/Qt5WebEngineWidgets.dll" "${QT_INSTALL_BINS}/Qt5WebEngineCore.dll")
       endif(USE_WEBENGINE)
 
       set(CMAKE_FIND_LIBRARY_PREFIX "")
       set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
+
+      if (WIN_SPARKLE_ENABLED)
+            target_link_libraries(mscore winsparkledll)
+            find_library( dll_winsparkle  NAMES "WinSparkle" PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+            list(APPEND dlls_to_copy ${dll_winsparkle})
+      endif (WIN_SPARKLE_ENABLED)
+
       find_library( dll_lame        NAMES "lame_enc"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_ogg         NAMES "libogg"         PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_sndfile     NAMES "libsndfile-1"   PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_vorbis      NAMES "libvorbis"      PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_vorbisfile  NAMES "libvorbisfile"  PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_portaudio   NAMES "portaudio"      PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+      find_library( dll_ssl1        NAMES "libeay32"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+      find_library( dll_ssl2        NAMES "ssleay32"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
 
-      list(APPEND dlls_to_copy ${dll_lame} ${dll_ogg} ${dll_sndfile} ${dll_vorbis} ${dll_vorbisfile} ${dll_portaudio} "$<TARGET_FILE_DIR:mscore>/${MUSESCORE_NAME}.exe")
+      list(APPEND dlls_to_copy ${dll_lame} ${dll_ogg} ${dll_sndfile} ${dll_vorbis} ${dll_vorbisfile} ${dll_portaudio} ${dll_ssl1} ${dll_ssl2} "$<TARGET_FILE_DIR:mscore>/${MSCORE_OUTPUT_NAME}.exe")
       set( output_dir_for_dlls "${PROJECT_BINARY_DIR}/../msvc.install${ARCH_TYPE}/bin")
 
       COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${dlls_to_copy}" ${output_dir_for_dlls}  mscore)
@@ -872,7 +881,7 @@ else (MINGW)
       get_filename_component(COMPILER_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
       get_filename_component (MINGW_ROOT ${COMPILER_DIR} DIRECTORY)
 
-	  foreach (QtLibrary ${QT_LIBRARIES})
+      foreach (QtLibrary ${QT_LIBRARIES})
          message("Library ${QtLibrary}")
          # always use release libs
          set_target_properties(${QtLibrary} PROPERTIES MAP_IMPORTED_CONFIG_DEBUG "RELEASE")
@@ -887,57 +896,64 @@ else (MINGW)
       add_dependencies(mscore lrelease)
 
       install( FILES
-		 ${dll_ogg}
-		 ${dll_lame}
-		 ${dll_sndfile}
-		 ${dll_portaudio}
-		 ${dll_vorbis}
-		 ${dll_vorbisfile}
-		 ${QtInstallLibraries}
-		 ${PROJECT_SOURCE_DIR}/build/qt.conf
-		 DESTINATION bin)
+            ${dll_ogg}
+            ${dll_lame}
+            ${dll_sndfile}
+            ${dll_portaudio}
+            ${dll_vorbis}
+            ${dll_vorbisfile}
+            ${dll_ssl1}
+            ${dll_ssl2}
+            ${dll_winsparkle}
+            ${QtInstallLibraries}
+            ${QT_INSTALL_BINS}/libEGL.dll
+            ${QT_INSTALL_BINS}/libGLESv2.dll
+            ${QT_INSTALL_BINS}/Qt5Positioning.dll
+            ${QT_INSTALL_BINS}/Qt5WebChannel.dll
+            ${PROJECT_SOURCE_DIR}/build/qt.conf
+            DESTINATION bin)
 
       install(FILES
-         ${QT_INSTALL_PREFIX}/plugins/iconengines/qsvgicon.dll
+         ${QT_INSTALL_PLUGINS}/iconengines/qsvgicon.dll
          DESTINATION bin/iconengines)
 
       install(FILES
-         ${QT_INSTALL_PREFIX}/plugins/imageformats/qjpeg.dll
-         ${QT_INSTALL_PREFIX}/plugins/imageformats/qsvg.dll
-         ${QT_INSTALL_PREFIX}/plugins/imageformats/qtiff.dll
+         ${QT_INSTALL_PLUGINS}/imageformats/qjpeg.dll
+         ${QT_INSTALL_PLUGINS}/imageformats/qsvg.dll
+         ${QT_INSTALL_PLUGINS}/imageformats/qtiff.dll
          DESTINATION bin/imageformats)
 
       install(FILES
-         ${QT_INSTALL_PREFIX}/plugins/platforms/qwindows.dll
+         ${QT_INSTALL_PLUGINS}/platforms/qwindows.dll
          DESTINATION bin/platforms)
 
       install(FILES
-         ${QT_INSTALL_PREFIX}/plugins/printsupport/windowsprintersupport.dll
+         ${QT_INSTALL_PLUGINS}/printsupport/windowsprintersupport.dll
          DESTINATION bin/printsupport)
 
       install(FILES
-         ${QT_INSTALL_PREFIX}/plugins/sqldrivers/qsqlite.dll
+         ${QT_INSTALL_PLUGINS}/sqldrivers/qsqlite.dll
          DESTINATION bin/sqldrivers)
 
       install( TARGETS mscore RUNTIME DESTINATION bin ) # this duplicate due to the correctly package step
 
       if (USE_WEBENGINE)
          install(FILES
-            ${QT_INSTALL_PREFIX}/bin/QtWebEngineProcess.exe
+            ${QT_INSTALL_LIBEXECS}/QtWebEngineProcess.exe
             DESTINATION bin
             )
          install(DIRECTORY
-            ${QT_INSTALL_PREFIX}/resources
+            ${QT_INSTALL_DATA}/resources
             DESTINATION bin/webengineresources
             )
          install(DIRECTORY
-            ${QT_INSTALL_PREFIX}/translations/qtwebengine_locales
+            ${QT_INSTALL_TRANSLATIONS}/qtwebengine_locales
             DESTINATION bin/webengineresources/translations
             )
       endif (USE_WEBENGINE)
 
       install(DIRECTORY
-         ${QT_INSTALL_PREFIX}/qml
+         ${QT_INSTALL_QML}
          DESTINATION .
          REGEX ".*d\\.dll" EXCLUDE
          REGEX ".pdb" EXCLUDE
@@ -968,7 +984,7 @@ if (APPLE)
      DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}fonts
      )
      install(DIRECTORY
-      ${QT_INSTALL_PREFIX}/qml
+      ${QT_INSTALL_QML}
       DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}
       REGEX ".*QtWebkit.*" EXCLUDE
       REGEX ".*QtTest.*" EXCLUDE
@@ -984,3 +1000,47 @@ if (NOT MSVC)
    ADD_DEPENDENCIES(${ExecutableName} mops1)
    ADD_DEPENDENCIES(${ExecutableName} mops2)
 endif (NOT MSVC)
+
+add_library(
+      inspectorplugin SHARED
+      inspector/inspectorplugin.cpp
+      inspector/inspectorplugin.h
+#      inspector/alignSelect.cpp
+      inspector/fontStyleSelect.cpp
+#      inspector/offsetSelect.cpp
+#      inspector/scaleSelect.cpp
+#      inspector/sizeSelect.cpp
+      inspector/resetButton.cpp
+      icons.cpp
+      miconengine.cpp
+      ${qrc_files}
+      )
+
+if (APPLE)
+      set_property(SOURCE inspector/inspectorplugin.cpp inspector/inspectorplugin.h PROPERTY SKIP_AUTOGEN ON)
+endif (APPLE)
+
+if (NOT MSVC)
+   set_target_properties(inspectorplugin
+      PROPERTIES
+      COMPILE_FLAGS
+         "-fPIC -D_GNU_SOURCE -D_REENTRANT -DHAVE_CONFIG_H -DQT_PLUGIN -DQT_SVG_LIB -DQT_SHARED -DQT_NO_DEBUG -include ${PROJECT_SOURCE_DIR}/all.h"
+      )
+else (NOT MSVC)
+   # x86 archictecture does not support position-independent code, the -fPIC option is not relevant for this processor.
+   set_target_properties (
+      inspectorplugin
+      PROPERTIES
+         COMPILE_FLAGS "${PCH_INCLUDE} -D_GNU_SOURCE -D_REENTRANT -DHAVE_CONFIG_H -DQT_PLUGIN -DQT_SVG_LIB -DQT_SHARED -DQT_NO_DEBUG"
+      )
+endif (NOT MSVC)
+
+# Don't install awlplugin on default
+#install( TARGETS inspectorplugin DESTINATION ${designerPlugins}/plugins/designer/ )
+
+# add_executable(itest inspector/itest.cpp)
+# target_link_libraries (itest inspectorplugin ${QT_LIBRARIES})
+# set_target_properties(itest PROPERTIES EXCLUDE_FROM_ALL 1)
+
+target_link_libraries (inspectorplugin ${QT_LIBRARIES})
+set_target_properties(inspectorplugin PROPERTIES EXCLUDE_FROM_ALL 1)

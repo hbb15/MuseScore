@@ -103,7 +103,7 @@ class Chord final : public ChordRest {
       virtual Element* linkedClone()     { return new Chord(*this, true); }
       virtual void undoUnlink() override;
 
-      virtual void setScore(Score* s);
+      virtual void setScore(Score* s) override;
       virtual ElementType type() const         { return ElementType::CHORD; }
       virtual qreal mag() const;
 
@@ -140,7 +140,7 @@ class Chord final : public ChordRest {
       Stem* stem() const                     { return _stem; }
       Arpeggio* arpeggio() const             { return _arpeggio;  }
       Tremolo* tremolo() const               { return _tremolo;   }
-      void setTremolo(Tremolo* t)            { _tremolo = t;      }
+      void setTremolo(Tremolo* t);
       bool endsGlissando() const             { return _endsGlissando; }
       void setEndsGlissando (bool val)       { _endsGlissando = val; }
       void updateEndsGlissando();
@@ -200,6 +200,7 @@ class Chord final : public ChordRest {
 
       void layoutArticulations();
       void layoutArticulations2();
+      void layoutArticulations3(Slur* s);
 
       QVector<Articulation*>& articulations()             { return _articulations; }
       const QVector<Articulation*>& articulations() const { return _articulations; }

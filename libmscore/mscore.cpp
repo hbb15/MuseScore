@@ -204,9 +204,9 @@ const char* toString(Direction val)
 void fillComboBoxDirection(QComboBox* cb)
       {
       cb->clear();
-      cb->addItem(qApp->translate("Direction", "auto"), QVariant::fromValue<Direction>(Direction::AUTO));
-      cb->addItem(qApp->translate("Direction", "up"),   QVariant::fromValue<Direction>(Direction::UP));
-      cb->addItem(qApp->translate("Direction", "down"), QVariant::fromValue<Direction>(Direction::DOWN));
+      cb->addItem(qApp->translate("Direction", "Auto"), QVariant::fromValue<Direction>(Direction::AUTO));
+      cb->addItem(qApp->translate("Direction", "Up"),   QVariant::fromValue<Direction>(Direction::UP));
+      cb->addItem(qApp->translate("Direction", "Down"), QVariant::fromValue<Direction>(Direction::DOWN));
       }
 
 //---------------------------------------------------------
@@ -529,7 +529,7 @@ int MPaintDevice::metric(PaintDeviceMetric m) const
             case QPaintDevice::PdmDpiY:
                   return int(DPI);
             default:
-                  printf("debug: metric %d\n", int(m));
+//printf("debug: metric %d\n", int(m));
                   return 1;
             }
       }
@@ -540,7 +540,7 @@ int MPaintDevice::metric(PaintDeviceMetric m) const
 
 QPaintEngine* MPaintDevice::paintEngine() const
       {
-      printf("paint engine\n");
+//printf("paint engine\n");
       return 0;
       }
 

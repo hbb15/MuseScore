@@ -79,7 +79,8 @@ static void transposeChord(Chord* c, Interval srcTranspose, int tick)
 
 bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff)
       {
-      Q_ASSERT(dst->segmentType() == SegmentType::ChordRest);
+      Q_ASSERT(dst->isChordRestType());
+
       QList<Chord*> graceNotes;
       Beam* startingBeam = nullptr;
       Tuplet* tuplet = nullptr;
@@ -166,7 +167,7 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff)
                               // no paste into local time signature
                               if (staff(dstStaffIdx)->isLocalTimeSignature(tick)) {
                                     MScore::setError(DEST_LOCAL_TIME_SIGNATURE);
-                                    if (oldTuplet->elements().empty())
+                                    if (oldTuplet && oldTuplet->elements().empty())
                                           delete oldTuplet;
                                     return false;
                                     }
@@ -176,11 +177,10 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff)
                               Measure* measure = tick2measure(tick);
                               tuplet->setParent(measure);
                               tuplet->setTick(tick);
-                              int ticks = tuplet->actualTicks();
-                              int rticks = measure->endTick() - tick;
-                              if (rticks < ticks) {
+                              tuplet->setTuplet(oldTuplet);
+                              if (tuplet->rfrac() + tuplet->actualFraction() > measure->len()) {
                                     delete tuplet;
-                                    if (oldTuplet->elements().empty())
+                                    if (oldTuplet && oldTuplet->elements().empty())
                                           delete oldTuplet;
                                     MScore::setError(TUPLET_CROSSES_BAR);
                                     return false;
@@ -315,16 +315,8 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff)
                               int tick = e.tick();
                               Measure* m = tick2measure(tick);
                               Segment* seg = m->undoGetSegment(SegmentType::ChordRest, tick);
-                              if (seg->findAnnotationOrElement(ElementType::HARMONY, e.track(), e.track())) {
-                                    QList<Element*> elements;
-                                    foreach (Element* el, seg->annotations()) {
-                                          if (el->isHarmony() && el->track() == e.track()) {
-                                                elements.append(el);
-                                                }
-                                          }
-                                    foreach (Element* el, elements)
-                                          undoRemoveElement(el);
-                                    }
+                              for (Element* el : seg->findAnnotations(ElementType::HARMONY, e.track(), e.track()))
+                                    undoRemoveElement(el);
                               harmony->setParent(seg);
                               undoAddElement(harmony);
                               }
@@ -343,6 +335,8 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff)
                            ) {
                               Element* el = Element::name2Element(tag, this);
                               el->setTrack(e.track());      // a valid track might be necessary for el->read() to work
+                              if (el->isFermata())
+                                    el->setPlacement(el->track() & 1 ? Placement::BELOW : Placement::ABOVE);
                               el->read(e);
 
                               Measure* m = tick2measure(e.tick());
@@ -422,10 +416,10 @@ bool Score::pasteStaff(XmlReader& e, Segment* dst, int dstStaff)
                   endStaff = nstaves();
             //check and add truly invisible rests insted of gaps
             //TODO: look if this could be done different
-            Measure* dstM = tick2measureMM(dstTick);
-            Measure* endM = tick2measureMM(dstTick + tickLen);
+            Measure* dstM = tick2measure(dstTick);
+            Measure* endM = tick2measure(dstTick + tickLen);
             for (int i = dstStaff; i < endStaff; i++) {
-                  for (Measure* m = dstM; m && m != endM->nextMeasureMM(); m = m->nextMeasureMM())
+                  for (Measure* m = dstM; m && m != endM->nextMeasure(); m = m->nextMeasure())
                         m->checkMeasure(i);
                   }
             _selection.setRangeTicks(dstTick, dstTick + tickLen, dstStaff, endStaff);
@@ -888,6 +882,7 @@ void Score::cmdPaste(const QMimeData* ms, MuseScoreView* view)
             else
                   els.append(_selection.elements());
 
+            deselectAll();
             if (type != ElementType::INVALID) {
                   Element* el = Element::create(type, this);
                   if (el) {
@@ -905,6 +900,8 @@ void Score::cmdPaste(const QMimeData* ms, MuseScoreView* view)
                                     if (_selection.element())
                                           addRefresh(_selection.element()->abbox());
                                     }
+                              else
+                                    delete nel;
                               }
                         }
                   delete el;

@@ -387,7 +387,7 @@ void ScoreView::measurePopup(QContextMenuEvent* ev, Measure* obj)
       a = popup->addAction(tr("Piano Roll Editor..."));
       a->setData("pianoroll");
 
-      a = popup->addAction(tr("Staff Properties..."));
+      a = popup->addAction(tr("Staff/Part Properties..."));
       a->setData("staff-properties");
       a = popup->addAction(tr("Split Staff..."));
       a->setData("staff-split");
@@ -407,6 +407,9 @@ void ScoreView::measurePopup(QContextMenuEvent* ev, Measure* obj)
       menuAdd->addAction(getAction("insert-vbox"));
       menuAdd->addAction(getAction("insert-textframe"));
 
+      a = popup->addAction(tr("Delete Selected Measures"));
+      a->setData("delete-selected-measures");
+      
       popup->addSeparator();
 
       a = popup->addAction(tr("Measure Properties..."));
@@ -471,6 +474,9 @@ void ScoreView::measurePopup(QContextMenuEvent* ev, Measure* obj)
       else if (cmd == "props") {
             MeasureProperties im(obj);
             im.exec();
+            }
+      else if (cmd == "delete-selected-measures") {
+            _score->cmdTimeDelete();
             }
       if (_score->undoStack()->active())
             _score->endCmd();
@@ -1067,6 +1073,7 @@ void ScoreView::paint(const QRect& r, QPainter& p)
       QRectF fr = imatrix.mapRect(QRectF(r));
 
       Element* editElement = 0;
+      Element* lassoToDraw = 0;
       if (editData.element) {
             switch (state) {
                   case ViewState::NORMAL:
@@ -1084,7 +1091,11 @@ void ScoreView::paint(const QRect& r, QPainter& p)
                   case ViewState::FOTO_DRAG_EDIT:
                   case ViewState::FOTO_DRAG_OBJECT:
                   case ViewState::FOTO_LASSO:
-                        editData.element->drawEditMode(&p, editData);
+                        if (editData.element->_name() == "Lasso") // There is no isLasso() method
+                              lassoToDraw = editData.element;
+                        else
+                              editData.element->drawEditMode(&p, editData);
+
                         if (editData.element->isHarmony())
                               editElement = editData.element;     // do not call paint() method
                         break;
@@ -1121,8 +1132,8 @@ void ScoreView::paint(const QRect& r, QPainter& p)
                                     QPointF pt(system->ipos());
                                     qreal h = system->minBottom() + system->minTop();
                                     p.translate(pt);
-                                    QRectF r(0.0, -system->minTop(), system->width(), h);
-                                    p.drawRect(r);
+                                    QRectF rect(0.0, -system->minTop(), system->width(), h);
+                                    p.drawRect(rect);
                                     p.translate(-pt);
                                     }
                               }
@@ -1298,6 +1309,11 @@ void ScoreView::paint(const QRect& r, QPainter& p)
             //
             p.drawLine(QLineF(x2, y1, x2, y2).translated(system2->page()->pos()));
             }
+
+      // Draw foto lasso to ensure that it is above everything else
+      if (lassoToDraw)
+            lassoToDraw->drawEditMode(&p, editData);
+
       p.setMatrixEnabled(false);
       if (_score->layoutMode() != LayoutMode::LINE && _score->layoutMode() != LayoutMode::SYSTEM && !r1.isEmpty()) {
             p.setClipRegion(r1);  // only background
@@ -1561,8 +1577,10 @@ void ScoreView::editCopy()
 
 void ScoreView::editCut()
       {
+      _score->startCmd();
       if (editData.element)
             editData.element->editCut(editData);
+      _score->endCmd();
       }
 
 //---------------------------------------------------------
@@ -1638,8 +1656,8 @@ void ScoreView::editPaste()
       if (editData.element) {
             if (editData.element->isLyrics())
                   toLyrics(editData.element)->paste(editData);
-            else if (editData.element->isText())
-                  toText(editData.element)->paste(editData);
+            else if (editData.element->isTextBase())
+                  toTextBase(editData.element)->paste(editData);
             }
       }
 
@@ -1910,16 +1928,17 @@ void ScoreView::cmd(const char* s)
          || cmd == "next-measure"
          || cmd == "prev-measure") {
             Element* el = score()->selection().element();
-            if (el && (el->isText())) {
+            if (el && (el->isTextBase())) {
                   score()->startCmd();
+                  const PropertyFlags pf = PropertyFlags::UNSTYLED;
                   if (cmd == "prev-chord")
-                        el->undoChangeProperty(Pid::OFFSET, el->offset() - QPointF (MScore::nudgeStep * el->spatium(), 0.0));
+                        el->undoChangeProperty(Pid::OFFSET, el->offset() - QPointF (MScore::nudgeStep * el->spatium(), 0.0), pf);
                   else if (cmd == "next-chord")
-                        el->undoChangeProperty(Pid::OFFSET, el->offset() + QPointF (MScore::nudgeStep * el->spatium(), 0.0));
+                        el->undoChangeProperty(Pid::OFFSET, el->offset() + QPointF (MScore::nudgeStep * el->spatium(), 0.0), pf);
                   else if (cmd == "prev-measure")
-                        el->undoChangeProperty(Pid::OFFSET, el->offset() - QPointF (MScore::nudgeStep10 * el->spatium(), 0.0));
+                        el->undoChangeProperty(Pid::OFFSET, el->offset() - QPointF (MScore::nudgeStep10 * el->spatium(), 0.0), pf);
                   else if (cmd == "next-measure")
-                        el->undoChangeProperty(Pid::OFFSET, el->offset() + QPointF (MScore::nudgeStep10 * el->spatium(), 0.0));
+                        el->undoChangeProperty(Pid::OFFSET, el->offset() + QPointF (MScore::nudgeStep10 * el->spatium(), 0.0), pf);
                   score()->endCmd();
                   }
             else {
@@ -2064,6 +2083,10 @@ void ScoreView::cmd(const char* s)
             }
       else if (cmd == "tie") {
             _score->cmdAddTie();
+            moveCursor();
+            }
+      else if (cmd == "chord-tie") {
+            _score->cmdAddTie(true);
             moveCursor();
             }
       else if (cmd == "duplet")
@@ -2468,8 +2491,8 @@ void ScoreView::endNoteEntry()
       InputState& is = _score->inputState();
       is.setNoteEntryMode(false);
       if (is.slur()) {
-            const QList<SpannerSegment*>& el = is.slur()->spannerSegments();
-            if (!el.isEmpty())
+            const std::vector<SpannerSegment*>& el = is.slur()->spannerSegments();
+            if (!el.empty())
                   el.front()->setSelected(false);
             is.setSlur(0);
             }
@@ -2495,6 +2518,8 @@ void ScoreView::dragScoreView(QMouseEvent* ev)
 
       constraintCanvas(&dx, &dy);
 
+      TourHandler::startTour("navigate-tour");
+
       _matrix.setMatrix(_matrix.m11(), _matrix.m12(), _matrix.m13(), _matrix.m21(),
          _matrix.m22(), _matrix.m23(), _matrix.dx()+dx, _matrix.dy()+dy, _matrix.m33());
       imatrix = _matrix.inverted();
@@ -2515,6 +2540,7 @@ void ScoreView::dragScoreView(QMouseEvent* ev)
 
 void ScoreView::doDragLasso(QMouseEvent* ev)
       {
+      TourHandler::startTour("select-tour");
       QPointF p = toLogical(ev->pos());
       _score->addRefresh(lasso->canvasBoundingRect());
       QRectF r;
@@ -2560,9 +2586,8 @@ void ScoreView::deselectAll()
 QVariant ScoreView::inputMethodQuery(Qt::InputMethodQuery query) const
       {
 //      qDebug("0x%x  %s", int(query), editData.element ? editData.element->name() : "-no element-");
-      // if editing a text object, place the InputMethod popup window just below the text
-      if (editData.dropElement && editData.dropElement->isTextBase()) {
-            TextBase* text = toTextBase(editData.dropElement);
+      if (editData.element && editData.element->isTextBase()) {
+            TextBase* text = toTextBase(editData.element);
             switch (query) {
                   case Qt::ImCursorRectangle: {
                         QRectF r;
@@ -2574,11 +2599,14 @@ QVariant ScoreView::inputMethodQuery(Qt::InputMethodQuery query) const
                         else
                               r = toPhysical(text->canvasBoundingRect());
                         r.setHeight(r.height() + 10); // add a little margin under the cursor
-                        qDebug("   cursorRect: [%3f,%3f,%3f,%3f]", r.x(), r.y(), r.width(), r.height());
-                        return QVariant(r);
+                        qDebug("ScoreView::inputMethodQuery() updating cursorRect to: (%3f, %3f) + (%3f, %3f)", r.x(), r.y(), r.width(), r.height());
+                        return QVariant(r);     
                         }
                   case Qt::ImEnabled:
-                        return editMode();
+                        return true; // TextBase will always accept input method input
+                  case Qt::ImHints:
+                        return Qt::ImhNone; // No hints for now, but maybe in future will give hints
+                  case Qt::ImInputItemClipRectangle: // maybe give clip rect hint in future, but for now use default parent clipping rect
                   default:
                         return QWidget::inputMethodQuery(query); // fall back to QWidget's version as default
                   }
@@ -2914,7 +2942,7 @@ void ScoreView::adjustCanvasPosition(const Element* el, bool playBack, int staff
                         .adjusted(-border, -border, border, border);
             }
       else {
-            //find a box for the individual stave in a system
+            // find a box for the individual stave in a system
             QRectF stave = QRectF(sys->canvasBoundingRect().left(),
                                   sys->staffCanvasYpage(staff),
                                   sys->width(),
@@ -2922,12 +2950,12 @@ void ScoreView::adjustCanvasPosition(const Element* el, bool playBack, int staff
             showRect = mRect.intersected(stave).adjusted(-border, -border, border, border);
             }
 
-/*      printf("%f %f %f %f   %f %f %f %f  %d\n",
-            showRect.x(), showRect.y(), showRect.width(), showRect.height(),
-            r.x(), r.y(), r.width(), r.height(),
-            r.contains(showRect)
-            );
-  */
+/*printf("%f %f %f %f   %f %f %f %f  %d\n",
+   showRect.x(), showRect.y(), showRect.width(), showRect.height(),
+   r.x(), r.y(), r.width(), r.height(),
+   r.contains(showRect)
+   );
+*/
       // canvas is not as wide as measure, track note instead
       if (r.width() < showRect.width()) {
             showRect.setX(p.x());
@@ -3092,8 +3120,8 @@ void ScoreView::addSlur()
       {
       InputState& is = _score->inputState();
       if (noteEntryMode() && is.slur()) {
-            const QList<SpannerSegment*>& el = is.slur()->spannerSegments();
-            if (!el.isEmpty())
+            const std::vector<SpannerSegment*>& el = is.slur()->spannerSegments();
+            if (!el.empty())
                   el.front()->setSelected(false);
             is.setSlur(nullptr);
             return;
@@ -3240,9 +3268,9 @@ void ScoreView::cmdAddHairpin(HairpinType type)
 //          pin->layout();
             _score->endCmd();
 
-            const QList<SpannerSegment*>& el = pin->spannerSegments();
+            const std::vector<SpannerSegment*>& el = pin->spannerSegments();
             if (!noteEntryMode()) {
-                  if (!el.isEmpty()) {
+                  if (!el.empty()) {
                         editData.element = el.front();
                         changeState(ViewState::EDIT);
                         }
@@ -3310,8 +3338,7 @@ void ScoreView::cmdAddNoteLine()
 void ScoreView::cmdChangeEnharmonic(bool both)
       {
       _score->startCmd();
-      Selection selection = _score->selection();
-      QList<Note*> notes = selection.uniqueNotes();
+      QList<Note*> notes = _score->selection().uniqueNotes();
       for (Note* n : notes) {
             Staff* staff = n->staff();
             if (staff->part()->instrument()->useDrumset())
@@ -3372,6 +3399,7 @@ void ScoreView::cmdChangeEnharmonic(bool both)
                   }
             }
 
+      Selection& selection = _score->selection();
       selection.clear();
       for (Note* n : notes)
             selection.add(n);
@@ -3388,8 +3416,8 @@ void ScoreView::cloneElement(Element* e)
             return;
       QDrag* drag = new QDrag(this);
       QMimeData* mimeData = new QMimeData;
-      if (e->isSegment())
-            e = static_cast<SpannerSegment*>(e)->spanner();
+      if (e->isSpannerSegment())
+            e = toSpannerSegment(e)->spanner();
       mimeData->setData(mimeSymbolFormat, e->mimeData(QPointF()));
       drag->setMimeData(mimeData);
       drag->setPixmap(QPixmap());
@@ -3628,7 +3656,7 @@ void ScoreView::triggerCmdRealtimeAdvance()
             allowRealtimeRests = true;
             return;
             }
-      // give audible feedback immediately to indicate a beat, but dont advance just yet.
+      // give audible feedback immediately to indicate a beat, but don’t advance just yet.
       seq->playMetronomeBeat(_score->tick2beatType(is.tick()));
       // The user will want to press notes "on the beat" and not before the beat, so wait a
       // little in case midi input event is received just after realtime-advance was called.
@@ -3722,7 +3750,6 @@ void ScoreView::cmdAddText(Tid tid)
             changeState(ViewState::NORMAL);
 
       TextBase* s = 0;
-      TextBase* es = 0;
       _score->startCmd();
       switch (tid) {
             case Tid::TITLE:
@@ -3739,6 +3766,7 @@ void ScoreView::cmdAddText(Tid tid)
                   s = new Text(_score, tid);
                   s->setParent(measure);
                   adjustCanvasPosition(measure, false);
+                  _score->undoAddElement(s);
                   }
                   break;
 
@@ -3748,8 +3776,7 @@ void ScoreView::cmdAddText(Tid tid)
                   if (!cr)
                         break;
                   s = new RehearsalMark(_score);
-                  s->setTrack(0);
-                  s->setParent(cr->segment());
+                  cr->undoAddAnnotation(s);
                   }
                   break;
             case Tid::STAFF:
@@ -3758,20 +3785,7 @@ void ScoreView::cmdAddText(Tid tid)
                   if (!cr)
                         break;
                   s = new StaffText(_score, Tid::STAFF);
-                  Segment* parent = 0;
-                  if (cr->segment()->measure()->isMMRest()) {     // mm hack
-                        Measure* m = cr->segment()->measure()->mmRestFirst();
-                        parent = m->findSegmentR(SegmentType::ChordRest, 0);
-                        es = new StaffText(_score, Tid::STAFF);
-                        es->setTrack(cr->track());
-                        es->setParent(cr->segment());
-                        _score->addElement(es);
-                        s->linkTo(es);
-                        }
-                  else
-                        parent = cr->segment();
-                  s->setTrack(cr->track());
-                  s->setParent(parent);
+                  cr->undoAddAnnotation(s);
                   }
                   break;
             case Tid::SYSTEM:
@@ -3780,8 +3794,7 @@ void ScoreView::cmdAddText(Tid tid)
                   if (!cr)
                         break;
                   s = new SystemText(_score, Tid::SYSTEM);
-                  s->setTrack(0);
-                  s->setParent(cr->segment());
+                  cr->undoAddAnnotation(s);
                   }
                   break;
             case Tid::EXPRESSION:
@@ -3790,9 +3803,8 @@ void ScoreView::cmdAddText(Tid tid)
                   if (!cr)
                         break;
                   s = new StaffText(_score, Tid::EXPRESSION);
-                  s->setTrack(cr->track());
                   s->setPlacement(Placement::BELOW);
-                  s->setParent(cr->segment());
+                  cr->undoAddAnnotation(s);
                   }
                   break;
             case Tid::INSTRUMENT_CHANGE:
@@ -3801,8 +3813,7 @@ void ScoreView::cmdAddText(Tid tid)
                   if (!cr)
                         break;
                   s = new InstrumentChange(_score);
-                  s->setTrack(cr->track());
-                  s->setParent(cr->segment());
+                  cr->undoAddAnnotation(s);
                   }
                   break;
             case Tid::FINGERING:
@@ -3817,6 +3828,7 @@ void ScoreView::cmdAddText(Tid tid)
                   s = new Fingering(_score);
                   s->setTrack(e->track());
                   s->setParent(e);
+                  _score->undoAddElement(s);
                   }
                   break;
             default:
@@ -3824,10 +3836,20 @@ void ScoreView::cmdAddText(Tid tid)
             }
 
       if (s) {
-            _score->undoAddElement(s);
             _score->select(s, SelectType::SINGLE, 0);
             _score->endCmd();
-            startEditMode(es ? es : s);
+            Measure* m = s->findMeasure();
+            if (m && m->hasMMRest() && s->links()) {
+                  Measure* mmRest = m->mmRest();
+                  for (ScoreElement* se : *s->links()) {
+                        TextBase* s1 = toTextBase(se);
+                        if (s != s1 && s1->findMeasure() == mmRest) {
+                              s = s1;
+                              break;
+                              }
+                        }
+                  }
+            startEditMode(s);
             }
       else
             _score->endCmd();
@@ -4381,6 +4403,16 @@ void ScoreView::updateShadowNotes()
 Element* ScoreView::getEditElement()
       {
       return editData.element;
+      }
+
+//---------------------------------------------------------
+//   onElementDestruction
+//---------------------------------------------------------
+
+void ScoreView::onElementDestruction(Element* e)
+      {
+      if (editData.element == e)
+            editData.element = nullptr;
       }
 
 //---------------------------------------------------------

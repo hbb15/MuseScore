@@ -58,6 +58,8 @@ class Tuplet final : public DurationElement {
       QPointF bracketL[4];
       QPointF bracketR[3];
 
+      Fraction addMissingElement(int startTick, int endTick);
+
    public:
       Tuplet(Score*);
       Tuplet(const Tuplet&);
@@ -119,8 +121,7 @@ class Tuplet final : public DurationElement {
       Direction direction() const          { return _direction; }
       bool isUp() const                    { return _isUp; }
       virtual int tick() const override    { return _tick; }
-      virtual Fraction afrac() const override;
-      virtual Fraction rfrac() const override;
+      virtual int rtick() const override   { return _tick - parent()->tick(); }
       void setTick(int val)                { _tick = val; }
       Fraction elementsDuration();
       void sortElements();
@@ -135,9 +136,6 @@ class Tuplet final : public DurationElement {
 
       void sanitizeTuplet();
       void addMissingElements();
-
-   private:
-      Fraction addMissingElement(int startTick, int endTick);
       };
 
 

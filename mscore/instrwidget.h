@@ -61,6 +61,12 @@ class StaffListItem : public QObject, public QTreeWidgetItem {
       QComboBox* _staffTypeCombo { nullptr };
       Staff* _staff              { 0       };
       ListItemOp _op             { ListItemOp::KEEP };
+      static int customStandardIdx;
+      static int customPercussionIdx;
+      static int customTablatureIdx;
+      static constexpr int CUSTOM_STAFF_TYPE_IDX = -1000;
+
+      int staffTypeIdx(int idx) const;
 
    private slots:
       void staffTypeChanged(int);

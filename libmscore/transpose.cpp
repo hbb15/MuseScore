@@ -390,6 +390,8 @@ bool Score::transpose(TransposeMode mode, TransposeDirection direction, Key trKe
             s1 = s1->measure()->first();
       Segment* s2 = _selection.endSegment();
       for (Segment* segment = s1; segment && segment != s2; segment = segment->next1()) {
+            if (!segment->enabled())
+                  continue;
             for (int track : tracks) {
                   if (staff(track/VOICES)->staffType(s1->tick())->group() == StaffGroup::PERCUSSION)
                         continue;
@@ -436,25 +438,27 @@ bool Score::transpose(TransposeMode mode, TransposeDirection direction, Key trKe
                   foreach (Element* e, segment->annotations()) {
                         if ((e->type() != ElementType::HARMONY) || (!tracks.contains(e->track())))
                               continue;
-                        Harmony* h  = toHarmony(e);
+                        Harmony* hh  = toHarmony(e);
                         int rootTpc, baseTpc;
-                        if (mode == TransposeMode::DIATONICALLY) {
-                              int tick = segment->tick();
-                              Key key = !h->staff() ? Key::C : h->staff()->key(tick);
-                              rootTpc = transposeTpcDiatonicByKey(h->rootTpc(),
-                                          transposeInterval, key, trKeys, useDoubleSharpsFlats);
-                              baseTpc = transposeTpcDiatonicByKey(h->baseTpc(),
-                                          transposeInterval, key, trKeys, useDoubleSharpsFlats);
-                              }
-                        else {
-                              rootTpc = transposeTpc(h->rootTpc(), interval, useDoubleSharpsFlats);
-                              baseTpc = transposeTpc(h->baseTpc(), interval, useDoubleSharpsFlats);
-                              }
                         // undoTransposeHarmony does not do links
                         // because it is also used to handle transposing instruments
                         // and score / parts could be in different concert pitch states
-                        for (ScoreElement* scoreElement : h->linkList())
-                              undoTransposeHarmony(toHarmony(scoreElement), rootTpc, baseTpc);
+                        for (ScoreElement* se : hh->linkList()) {
+                              Harmony* h = toHarmony(se);
+                              if (mode == TransposeMode::DIATONICALLY) {
+                                    int tick = segment->tick();
+                                    Key key = !h->staff() ? Key::C : h->staff()->key(tick);
+                                    rootTpc = transposeTpcDiatonicByKey(h->rootTpc(),
+                                                transposeInterval, key, trKeys, useDoubleSharpsFlats);
+                                    baseTpc = transposeTpcDiatonicByKey(h->baseTpc(),
+                                                transposeInterval, key, trKeys, useDoubleSharpsFlats);
+                                    }
+                              else {
+                                    rootTpc = transposeTpc(h->rootTpc(), interval, useDoubleSharpsFlats);
+                                    baseTpc = transposeTpc(h->baseTpc(), interval, useDoubleSharpsFlats);
+                                    }
+                              undoTransposeHarmony(h, rootTpc, baseTpc);
+                              }
                         }
                   }
             }
@@ -492,14 +496,16 @@ void Score::transposeKeys(int staffStart, int staffEnd, int tickStart, int tickE
       {
       Interval firstInterval = interval;
       Interval segmentInterval = interval;
+      if (tickStart < 0)            // -1 and 0 are valid values to indicate start of score
+            tickStart = 0;
       for (int staffIdx = staffStart; staffIdx < staffEnd; ++staffIdx) {
             Staff* st = staff(staffIdx);
             if (st->staffType(tickStart)->group() == StaffGroup::PERCUSSION)
                   continue;
 
-            bool createKey = tickStart <= 0;    // 0 and -1 are both valid values to indicate start of score
+            bool createKey = tickStart == 0;
             for (Segment* s = firstSegment(SegmentType::KeySig); s; s = s->next1(SegmentType::KeySig)) {
-                  if (s->tick() < tickStart)
+                  if (!s->enabled() || s->tick() < tickStart)
                         continue;
                   if (tickEnd != -1 && s->tick() >= tickEnd)
                         break;
@@ -509,7 +515,7 @@ void Score::transposeKeys(int staffStart, int staffEnd, int tickStart, int tickE
                               segmentInterval.flip();
                         }
                   KeySig* ks = toKeySig(s->element(staffIdx * VOICES));
-                  if (!ks || (ks->generated() && ks->segment()->rtick() > 0))
+                  if (!ks || ks->generated())
                         continue;
                   if (s->tick() == 0)
                         createKey = false;
@@ -666,6 +672,8 @@ void Note::transposeDiatonic(int interval, bool keepAlterations, bool useDoubleA
 
 void Score::transpositionChanged(Part* part, Interval oldV, int tickStart, int tickEnd)
       {
+      if (tickStart == -1)
+            tickStart = 0;
       Interval v = part->instrument(tickStart)->transpose();
       v.flip();
       Interval diffV(oldV.chromatic + v.chromatic);

@@ -69,10 +69,12 @@ void Hook::layout()
       {
       if (staff() && staff()->isNumericStaff( tick())) {
 
-            _numericLineThick=_numericHigth*0.1;
-            _numericLineSpace=_numericHigth*-0.3;
-            _numericHigthLine=_numericHigth*-0.75;
-            QRectF hookbox = QRectF(0.0, _numericHigthLine+((qAbs(_hookType)-1)*_numericLineSpace)-_numericLineThick, _numericLineWidht,
+            _numericLineThick=_numericHigth*score()->styleD(Sid::numericThickLine);
+            _numericLineSpace=_numericHigth*(score()->styleD(Sid::numericDistanceBetweenLines)*-1);
+            _numericHigthLine=_numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_numericHigth-_numericHigth*score()->styleD(Sid::numericHeigthLine);
+            qreal linienlaenge=_numericLineWidht*score()->styleD(Sid::numericWideLine);
+            QRectF hookbox = QRectF(score()->styleD(Sid::numericOffsetLine)+((_numericLineWidht-linienlaenge)/2),
+                                    _numericHigthLine+((qAbs(_hookType)-1)*_numericLineSpace)-_numericLineThick, linienlaenge,
                                     ( _numericHigthLine+((qAbs(_hookType)-1)*_numericLineSpace)-_numericLineThick)*-1-_numericHigthLine*-1);
             setbbox(hookbox);
 
@@ -94,7 +96,10 @@ void Hook::draw(QPainter* painter) const
             painter->setPen(QPen(curColor(), _numericLineThick));
             for (int i = 0; i < qAbs(_hookType); ++i){
 
-                  painter->drawLine(QLineF(0, _numericHigthLine+(i*_numericLineSpace), _numericLineWidht, _numericHigthLine+(i*_numericLineSpace)));
+                  painter->drawLine(QLineF(score()->styleD(Sid::numericOffsetLine)+(_numericLineWidht/2-(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2),
+                                           _numericHigthLine+(i*_numericLineSpace),
+                                           score()->styleD(Sid::numericOffsetLine)+(_numericLineWidht/2+(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2),
+                                           _numericHigthLine+(i*_numericLineSpace)));
                   }
             }
       else{

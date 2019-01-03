@@ -71,6 +71,10 @@ void TieSegment::draw(QPainter* painter) const
                   pen.setDashPattern(dashes);
                   break;
             }
+      if(tie()->startNote()->staff() && tie()->startNote()->staff()->isNumericStaff(tie()->startNote()->tick())){
+
+            pen.setWidthF(score()->styleD(Sid::numericSlurThick));
+            }
       painter->setPen(pen);
       painter->drawPath(path);
       }
@@ -123,11 +127,11 @@ void TieSegment::changeAnchor(EditData& ed, Element* element)
                   }
             }
 
-      int segments  = spanner()->spannerSegments().size();
+      const size_t segments  = spanner()->spannerSegments().size();
       ups(ed.curGrip).off = QPointF();
       spanner()->layout();
       if (spanner()->spannerSegments().size() != segments) {
-            QList<SpannerSegment*>& ss = spanner()->spannerSegments();
+            const std::vector<SpannerSegment*>& ss = spanner()->spannerSegments();
 
             TieSegment* newSegment = toTieSegment(ed.curGrip == Grip::END ? ss.back() : ss.front());
             score()->endCmd();
@@ -236,10 +240,18 @@ void TieSegment::computeBezier(QPointF p6o)
 
       shoulderH -= p6o.y();
 
+      qreal w = 0.0;
+      qreal c    = p2.x();
+      if(tie()->startNote()->staff() && tie()->startNote()->staff()->isNumericStaff(tie()->startNote()->tick())){
+            shoulderH = tie()->get_numericWidth()*score()->styleD(Sid::numericSlurHeigth);
+            shoulderW = (c-tie()->get_numericWidth()*score()->styleD(Sid::numericSlurEckenform))/c;
+            }
+      else {
+            w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
+            }
       if (!tie()->up())
             shoulderH = -shoulderH;
 
-      qreal c    = p2.x();
       qreal c1   = (c - c * shoulderW) * .5 + p6o.x();
       qreal c2   = c1 + c * shoulderW       + p6o.x();
 
@@ -248,7 +260,6 @@ void TieSegment::computeBezier(QPointF p6o)
       QPointF p3(c1, -shoulderH);
       QPointF p4(c2, -shoulderH);
 
-      qreal w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
       QPointF th(0.0, w);    // thickness of slur
 
       QPointF p3o = p6o + t.map(ups(Grip::BEZIER1).off);
@@ -333,10 +344,7 @@ void TieSegment::computeBezier(QPointF p6o)
 
 void TieSegment::layoutSegment(const QPointF& p1, const QPointF& p2)
       {
-      if (autoplace()) {
-            for (UP& up : _ups)
-                  up.off = QPointF();
-            }
+      setPos(QPointF());
       ups(Grip::START).p = p1;
       ups(Grip::END).p   = p2;
       computeBezier();
@@ -387,13 +395,11 @@ void TieSegment::layoutSegment(const QPointF& p1, const QPointF& p2)
                               else
                                     offY = (lineY + minDistance) - bottomY;
                               setAutoAdjust(0.0, offY * sp);
-                              bbox = path.boundingRect();
                               }
                         }
                   }
             }
-
-      setbbox(bbox);
+      setbbox(path.boundingRect());
       }
 
 //---------------------------------------------------------
@@ -451,48 +457,64 @@ void Tie::slurPos(SlurPos* sp)
       qreal yOffInside  = useTablature ? yOffOutside * 0.5 : hw * .3 * __up;
 
       Chord* sc   = startNote()->chord();
+      Chord* ec = endNote()->chord();
       sp->system1 = sc->measure()->system();
       if (!sp->system1) {
             Measure* m = sc->measure();
             qDebug("No system: measure is %d has %d count %d", m->isMMRest(), m->hasMMRest(), m->mmRestCount());
             }
 
+      sp->p1    = sc->pos() + sc->segment()->pos() + sc->measure()->pos();
+      Note* note1    = sc->upNote();
+      Note* note2 = ec->upNote();
       qreal xo;
       qreal yo;
       bool shortStart = false;
+      if(note1->staff() && note1->staff()->isNumericStaff(note1->tick())){
+            _numericWidth=note1->get_numericWidth();
+            sp->p1.rx() +=note1->get_numericWidth()*0.5-note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
+            sp->p1.ry() = note1->y()-note1->fretStringYShift()+note1->get_numericHigth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
 
-      // determine attachment points
-      // similar code is used in Chord::layoutPitched()
-      // to allocate extra space to enforce minTieLength
-      // so keep these in sync
-
-      sp->p1    = sc->pos() + sc->segment()->pos() + sc->measure()->pos();
-
-      //------p1
-      if ((sc->notes().size() > 1) || (sc->stem() && (sc->up() == _up))) {
-            xo = startNote()->x() + hw * 1.12;
-            yo = startNote()->pos().y() + yOffInside;
-            shortStart = true;
             }
       else {
-            xo = startNote()->x() + hw * 0.65;
-            yo = startNote()->pos().y() + yOffOutside;
-            }
-      sp->p1 += QPointF(xo, yo);
 
+
+            // determine attachment points
+            // similar code is used in Chord::layoutPitched()
+            // to allocate extra space to enforce minTieLength
+            // so keep these in sync
+
+
+            //------p1
+            if ((sc->notes().size() > 1) || (sc->stem() && (sc->up() == _up))) {
+                  xo = startNote()->x() + hw * 1.12;
+                  yo = startNote()->pos().y() + yOffInside;
+                  shortStart = true;
+                  }
+            else {
+                  xo = startNote()->x() + hw * 0.65;
+                  yo = startNote()->pos().y() + yOffOutside;
+                  }
+            sp->p1 += QPointF(xo, yo);
+
+            }
       //------p2
       if (endNote() == 0) {
             sp->p2 = sp->p1 + QPointF(_spatium * 3, 0.0);
             sp->system2 = sp->system1;
             return;
             }
-      Chord* ec = endNote()->chord();
       sp->p2    = ec->pos() + ec->segment()->pos() + ec->measure()->pos();
       if ((sc->measure() == sp->system1->lastMeasure()) && (ec->measure() != sc->measure()))
             sp->system2 = nullptr;
       else
             sp->system2 = ec->measure()->system();
 
+      if(note1->staff() && note1->staff()->isNumericStaff(note1->tick())){
+            sp->p2.rx() +=note2->get_numericWidth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
+            sp->p2.ry() = note2->y()-note2->fretStringYShift()+note2->get_numericHigth()*0.5+note2->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
+            return;
+            }
       hw = endNote()->tabHeadWidth(stt);
       if ((ec->notes().size() > 1) || (ec->stem() && !ec->up() && !_up))
             xo = endNote()->x() - hw * 0.12;
@@ -538,7 +560,11 @@ void Tie::calculateDirection()
       if (_slurDirection == Direction::AUTO) {
             std::vector<Note*> notes = c1->notes();
             size_t n = notes.size();
-            if (m1->hasVoices(c1->staffIdx()) || m2->hasVoices(c2->staffIdx())) {
+            if (startNote()->staff() && startNote()->staff()->isNumericStaff( startNote()->tick())) {
+                  // bei nummeric standard unten
+                  _up = false;
+                  }
+            else if (m1->hasVoices(c1->staffIdx()) || m2->hasVoices(c2->staffIdx())) {
                   // in polyphonic passage, ties go on the stem side
                   _up = c1->up();
                   }
@@ -606,7 +632,11 @@ TieSegment* Tie::layoutFor(System* system)
                   }
             Chord* c1 = startNote()->chord();
             if (_slurDirection == Direction::AUTO) {
-                  if (c1->measure()->hasVoices(c1->staffIdx())) {
+                  if (startNote()->staff() && startNote()->staff()->isNumericStaff( startNote()->tick())) {
+                        // bei nummeric standard unten
+                        _up = false;
+                        }
+                  else if (c1->measure()->hasVoices(c1->staffIdx())) {
                         // in polyphonic passage, ties go on the stem side
                         _up = c1->up();
                         }
@@ -691,7 +721,7 @@ TieSegment* Tie::layoutBack(System* system)
 
 void Tie::startEdit(EditData& ed)
       {
-      printf("tie start edit %p %p\n", editStartNote, editEndNote);
+printf("tie start edit %p %p\n", editStartNote, editEndNote);
       editStartNote = startNote();
       editEndNote   = endNote();
       SlurTie::startEdit(ed);
@@ -703,7 +733,7 @@ void Tie::startEdit(EditData& ed)
 
 void Tie::endEdit(EditData& ed)
       {
-      printf("tie::endEdit\n");
+//printf("tie::endEdit\n");
 //      if (editStartNote != startNote() || editEndNote != endNote()) {
 //            score()->undoStack()->push1(new ChangeSpannerElements(this, editStartNote, editEndNote));
 //            }
@@ -739,29 +769,5 @@ Note* Tie::endNote() const
       {
       return toNote(endElement());
       }
-
-//---------------------------------------------------------
-//   readProperties
-//---------------------------------------------------------
-
-bool Tie::readProperties(XmlReader& e)
-      {
-      const QStringRef& tag(e.name());
-
-      if (tag == "TieSegment") {
-            int idx = e.intAttribute("no", 0);
-            int n = spannerSegments().size();
-            for (int i = n; i < idx; ++i)
-                  add(new TieSegment(score()));
-            TieSegment* segment = new TieSegment(score());
-            segment->read(e);
-            add(segment);
-            }
-      else if (!SlurTie::readProperties(e))
-            return false;
-      return true;
-      }
-
-
 }
 

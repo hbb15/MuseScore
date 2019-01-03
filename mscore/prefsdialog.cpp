@@ -26,6 +26,7 @@
 #include "pa.h"
 #include "shortcut.h"
 #include "workspace.h"
+#include "palettebox.h"
 
 #ifdef USE_PORTMIDI
 #include "pm.h"
@@ -332,7 +333,14 @@ void PreferenceDialog::updateValues(bool useDefaultValues)
 
       iconWidth->setValue(preferences.getInt(PREF_UI_THEME_ICONWIDTH));
       iconHeight->setValue(preferences.getInt(PREF_UI_THEME_ICONHEIGHT));
-      fontFamily->setCurrentFont(QFont(preferences.getString(PREF_UI_THEME_FONTFAMILY)));
+      
+      //macOS default fonts are not in QFontCombobox because they are "private":
+      //https://code.woboq.org/qt5/qtbase/src/widgets/widgets/qfontcombobox.cpp.html#329
+      auto currFontFamily = preferences.getString(PREF_UI_THEME_FONTFAMILY);
+      if (-1 == fontFamily->findText(currFontFamily))
+            fontFamily->addItem(currFontFamily);
+      fontFamily->setCurrentIndex(fontFamily->findText(currFontFamily));
+      
       fontSize->setValue(preferences.getInt(PREF_UI_THEME_FONTSIZE));
 
       enableMidiInput->setChecked(preferences.getBool(PREF_IO_MIDI_ENABLEINPUT));
@@ -610,7 +618,6 @@ void PreferenceDialog::updateSCListView()
                             && !s->key().startsWith("debugger")
 #endif
                             && !s->key().startsWith("edit_harmony")
-                            && (MuseScore::unstable() && !s->key().startsWith("file-save-online"))
                             && !s->key().startsWith("insert-fretframe"))) {
                   shortcutList->addTopLevelItem(newItem);
                   }
@@ -1027,7 +1034,7 @@ void PreferenceDialog::apply()
             QMessageBox msgBox;
             msgBox.setWindowTitle(tr("Possible MIDI Loopback"));
             msgBox.setIcon(QMessageBox::Warning);
-            msgBox.setText(tr("Warning: You used the same CoreMIDI IAC bus for input and output.  This will cause problematic loopback, whereby MuseScore's outputted MIDI messages will be sent back to MuseScore as input, causing confusion.  To avoid this problem, access Audio MIDI Setup via Spotlight to create a dedicated virtual port for MuseScore's MIDI output, restart MuseScore, return to Preferences, and select your new virtual port for MuseScore's MIDI output.  Other programs may then use that dedicated virtual port to receive MuseScore's MIDI output."));
+            msgBox.setText(tr("Warning: You used the same CoreMIDI IAC bus for input and output.  This will cause problematic loopback, whereby MuseScore's output MIDI messages will be sent back to MuseScore as input, causing confusion.  To avoid this problem, access Audio MIDI Setup via Spotlight to create a dedicated virtual port for MuseScore's MIDI output, restart MuseScore, return to Preferences, and select your new virtual port for MuseScore's MIDI output.  Other programs may then use that dedicated virtual port to receive MuseScore's MIDI output."));
             msgBox.exec();
             }
       preferences.setPreference(PREF_IO_PORTMIDI_OUTPUTLATENCYMILLISECONDS, portMidiOutputLatencyMilliseconds->value());
@@ -1114,7 +1121,12 @@ void PreferenceDialog::apply()
             preferences.setPreference(PREF_SCORE_STYLE_PARTSTYLEFILE, partStyle->text());
             MScore::defaultStyleForPartsHasChanged();
             }
-
+      
+      Workspace::retranslate();
+      preferences.setPreference(PREF_APP_WORKSPACE, Workspace::currentWorkspace->name());
+      mscore->changeWorkspace(Workspace::currentWorkspace);
+      mscore->getPaletteBox()->updateWorkspaces();
+      
       emit preferencesChanged();
       preferences.save();
       mscore->startAutoSave();

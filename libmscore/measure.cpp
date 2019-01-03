@@ -467,6 +467,76 @@ qreal Measure::tick2pos(int tck) const
       }
 
 //---------------------------------------------------------
+//   layoutMeasureNumber
+//---------------------------------------------------------
+
+void Measure::layoutMeasureNumber()
+      {
+      bool smn = false;
+
+      if (_noMode == MeasureNumberMode::SHOW)
+            smn = true;
+      else if (_noMode == MeasureNumberMode::HIDE)
+            smn = false;
+      else {
+            if (score()->styleB(Sid::showMeasureNumber)
+               && !irregular()
+               && (no() || score()->styleB(Sid::showMeasureNumberOne))) {
+                  if (score()->styleB(Sid::measureNumberSystem))
+                        smn = (system()->firstMeasure() == this) || (prevMeasure() && prevMeasure()->irregular() && system()->firstMeasure() == prevMeasure());
+                  else {
+                        smn = (no() == 0 && score()->styleB(Sid::showMeasureNumberOne)) ||
+                              ( ((no() + 1) % score()->styleI(Sid::measureNumberInterval)) == (score()->styleB(Sid::showMeasureNumberOne) ? 1 : 0) ) ||
+                              (score()->styleI(Sid::measureNumberInterval) == 1);
+                        }
+                  }
+            }
+      QString s;
+      if (smn)
+            s = QString("%1").arg(no() + 1);
+      int nn = 1;
+      bool nas = score()->styleB(Sid::measureNumberAllStaffs);
+
+      if (!nas) {
+            //find first non invisible staff
+            for (unsigned staffIdx = 0; staffIdx < _mstaves.size(); ++staffIdx) {
+                  MStaff* ms = _mstaves[staffIdx];
+                  SysStaff* ss  = system()->staff(staffIdx);
+                  Staff* staff = score()->staff(staffIdx);
+                  if (ms->visible() && staff->show() && ss->show()) {
+                        nn = staffIdx;
+                        break;
+                        }
+                  }
+            }
+      for (int staffIdx = 0; staffIdx < int(_mstaves.size()); ++staffIdx) {
+            MStaff* ms       = _mstaves[staffIdx];
+            MeasureNumber* t = ms->noText();
+            if (t)
+                  t->setTrack(staffIdx * VOICES);
+            if (smn && ((staffIdx == nn) || nas)) {
+                  if (t == 0) {
+                        t = new MeasureNumber(score());
+                        t->setTrack(staffIdx * VOICES);
+                        t->setGenerated(true);
+                        t->setParent(this);
+                        add(t);
+                        }
+                  t->setXmlText(s);
+                  t->layout();
+                  }
+            else {
+                  if (t) {
+                        if (t->generated())
+                              score()->removeElement(t);
+                        else
+                              score()->undo(new RemoveElement(t));
+                        }
+                  }
+            }
+      }
+
+//---------------------------------------------------------
 //   layout2
 //    called after layout of page
 //---------------------------------------------------------
@@ -496,7 +566,7 @@ void Measure::layout2()
             }
 
       MeasureBase::layout();  // layout LAYOUT_BREAK elements
-
+#if 0
       //---------------------------------------------------
       //   set measure number
       //---------------------------------------------------
@@ -563,6 +633,7 @@ void Measure::layout2()
                         }
                   }
             }
+#endif
 
       //---------------------------------------------------
       //    layout ties
@@ -1444,7 +1515,9 @@ Element* Measure::drop(EditData& data)
                   if (spacer->spacerType() == SpacerType::FIXED) {
                         qreal gap = spatium() * 10;
                         System* s = system();
-                        if (staffIdx == score()->nstaves()-1) {
+                        const int nextVisStaffIdx = s->nextVisibleStaff(staffIdx);
+                        const bool systemEnd = (nextVisStaffIdx == score()->nstaves());
+                        if (systemEnd) {
                               System* ns = 0;
                               for (System* ts : score()->systems()) {
                                     if (ns) {
@@ -1454,7 +1527,7 @@ Element* Measure::drop(EditData& data)
                                     if (ts  == s)
                                           ns = ts;
                                     }
-                              if (ns) {
+                              if (ns && ns->page() == s->page()) {
                                     qreal y1 = s->staffYpage(staffIdx);
                                     qreal y2 = ns->staffYpage(0);
                                     gap = y2 - y1 - score()->staff(staffIdx)->height();
@@ -1462,7 +1535,7 @@ Element* Measure::drop(EditData& data)
                               }
                         else {
                               qreal y1 = s->staffYpage(staffIdx);
-                              qreal y2 = s->staffYpage(staffIdx+1);
+                              qreal y2 = s->staffYpage(nextVisStaffIdx);
                               gap = y2 - y1 - score()->staff(staffIdx)->height();
                               }
                         spacer->setGap(gap);
@@ -2189,6 +2262,8 @@ void Measure::readVoice(XmlReader& e, int staffIdx, bool irregular)
                   // hack - needed because tick tags are unreliable in 1.3 scores
                   // for symbols attached to anything but a measure
                   el->setTrack(e.track());
+                  if (el->isFermata())
+                        el->setPlacement(el->track() & 1 ? Placement::BELOW : Placement::ABOVE);
                   el->read(e);
                   segment = getSegment(SegmentType::ChordRest, e.tick());
                   segment->add(el);
@@ -2558,7 +2633,7 @@ bool Measure::isMeasureRest(int staffIdx) const
                         return false;
                   }
             for (Element* a : s->annotations()) {
-                  if (!a || a->systemFlag())
+                  if (!a || a->systemFlag() || !a->visible())
                         continue;
                   int atrack = a->track();
                   if (atrack >= strack && atrack < etrack)
@@ -3493,7 +3568,7 @@ void Measure::addSystemHeader(bool isFirstSystem)
             bool needKeysig = isFirstSystem || score()->styleB(Sid::genKeysig);
 
             // If we need a Key::C KeySig (which would be invisible) and there is
-            // a courtesy key sig, dont create it and switch generated flags.
+            // a courtesy key sig, don’t create it and switch generated flags.
             // This avoids creating an invisible KeySig which can distort layout.
 
             KeySigEvent keyIdx = staff->keySigEvent(tick());
@@ -3890,16 +3965,32 @@ void Measure::computeMinWidth(Segment* s, qreal x, bool isSystemHeader)
 
       if (isMMRest()) {
             // Reset MM rest to initial size and position
-            Rest* mmRest = toRest(findChordRest(tick(), 0));
-            if (mmRest) {
-                  mmRest->rxpos() = 0;
-                  mmRest->layoutMMRest(score()->styleP(Sid::minMMRestWidth) * mag());
-                  mmRest->segment()->createShapes();
+            Segment* seg = findSegmentR(SegmentType::ChordRest, 0);
+            const int nstaves = score()->nstaves();
+            for (int st = 0; st < nstaves; ++st) {
+                  Rest* mmRest = toRest(seg->element(staff2track(st)));
+                  if (mmRest) {
+                        mmRest->rxpos() = 0;
+                        mmRest->layoutMMRest(score()->styleP(Sid::minMMRestWidth) * mag());
+                        mmRest->segment()->createShapes();
+                        }
                   }
             }
 
       while (s) {
-            s->rxpos() = x;
+
+            if ((s->segmentType() == SegmentType::TimeSig && s->element(0)->staff()->isNumericStaff( tick())) ||
+                (s->segmentType() == SegmentType::KeySig && s->element(0)->staff()->isNumericStaff( tick()))) {
+                  qreal temp =fs->x()-10.0;
+                  s->rxpos() = temp;
+                  s->setWidth(0.0);
+                  s = s->next();
+                  continue;
+                  }
+            else {
+
+                  s->rxpos() = x;
+                  }
             if (!s->enabled()) {
                   s->setWidth(0);
                   s = s->next();

@@ -74,6 +74,7 @@
 namespace Ms {
 
 MasterScore* gscore;                 ///< system score, used for palettes etc.
+std::set<Score*> Score::validScores;
 
 bool scriptDebug     = false;
 bool noSeq           = false;
@@ -244,6 +245,7 @@ void MeasureBaseList::change(MeasureBase* ob, MeasureBase* nb)
 Score::Score()
    : ScoreElement(this), _is(this), _selection(this), _selectionFilter(this)
       {
+      Score::validScores.insert(this);
       _masterScore = 0;
       Layer l;
       l.name          = "default";
@@ -265,6 +267,7 @@ Score::Score()
 Score::Score(MasterScore* parent)
    : Score{}
       {
+      Score::validScores.insert(this);
       _masterScore = parent;
       if (MScore::defaultStyleForParts())
             _style = *MScore::defaultStyleForParts();
@@ -301,6 +304,7 @@ Score::Score(MasterScore* parent)
 Score::Score(MasterScore* parent, const MStyle& s)
    : Score{parent}
       {
+      Score::validScores.erase(this);
       _style  = s;
       }
 
@@ -313,6 +317,8 @@ Score::~Score()
       foreach(MuseScoreView* v, viewer)
             v->removeScore();
       // deselectAll();
+      qDeleteAll(_systems); // systems are layout-only objects so we delete
+                            // them prior to measures.
       for (MeasureBase* m = _measures.first(); m;) {
             MeasureBase* nm = m->next();
             delete m;
@@ -320,7 +326,6 @@ Score::~Score()
             }
       qDeleteAll(_parts);
       qDeleteAll(_staves);
-      qDeleteAll(_systems);
 //      qDeleteAll(_pages);         // TODO: check
       _masterScore = 0;
       }
@@ -351,6 +356,24 @@ Score* Score::clone()
       score->addLayoutFlags(LayoutFlag::FIX_PITCH_VELO);
       score->doLayout();
       return score;
+      }
+
+//---------------------------------------------------------
+//   Score::onElementDestruction
+//    Ensure correct state of the score after destruction
+//    of the element (e.g. remove invalid pointers etc.).
+//---------------------------------------------------------
+
+void Score::onElementDestruction(Element* e)
+      {
+      Score* score = e->score();
+      if (!score || Score::validScores.find(score) == Score::validScores.end()) {
+            // No score or the score is already deleted
+            return;
+            }
+      score->selection().remove(e);
+      for (MuseScoreView* v : score->viewer)
+            v->onElementDestruction(e);
       }
 
 //---------------------------------------------------------
@@ -2115,6 +2138,7 @@ void Score::splitStaff(int staffIdx, int splitPoint)
       Staff* st = staff(staffIdx);
       Part*  p  = st->part();
       Staff* ns = new Staff(this);
+      ns->init(st);
       ns->setPart(p);
       // convert staffIdx from score-relative to part-relative
       int staffIdxPart = staffIdx - p->staff(0)->idx();
@@ -2538,6 +2562,7 @@ void Score::sortStaves(QList<int>& dst)
                         sp->setTrack2(idx * VOICES +(sp->track2() % VOICES)); // at least keep the voice...
                   }
             }
+      setLayoutAll();
       }
 
 //---------------------------------------------------------
@@ -2763,8 +2788,8 @@ void Score::select(Element* e, SelectType type, int staffIdx)
             if (ee->isNote())
                   ee = ee->parent();
             int tick = toChordRest(ee)->segment()->tick();
-            if (playPos() != tick)
-                  setPlayPos(tick);
+            if (masterScore()->playPos() != tick)
+                  masterScore()->setPlayPos(tick);
             }
       if (MScore::debugMode)
             qDebug("select element <%s> type %d(state %d) staff %d",
@@ -2877,44 +2902,37 @@ void Score::selectRange(Element* e, int staffIdx)
       int activeTrack = e->track();
       // current selection is range extending to end of score?
       bool endRangeSelected = selection().isRange() && selection().endSegment() == nullptr;
-      if (e->type() == ElementType::MEASURE) {
-            Measure* m = toMeasure(e);
-            int tick  = m->tick();
-            int etick = tick + m->ticks();
+      if (e->isMeasure()) {
+            Measure* m  = toMeasure(e);
+            int tick    = m->tick();
+            int etick   = tick + m->ticks();
             activeTrack = staffIdx * VOICES;
-            if (_selection.isNone()
-               || (_selection.isList() && !_selection.isSingle())) {
-                        if (_selection.isList())
-                              deselectAll();
-                  _selection.setRange(m->tick2segment(tick),
-                                      m == lastMeasure() ? 0 : m->last(),
-                                      staffIdx,
-                                      staffIdx + 1);
+            Segment* s1 = m->tick2segment(tick);
+            if (!s1)                      // m is corrupted!
+                  s1 = m->first(SegmentType::ChordRest);
+            Segment* s2 = m == lastMeasure() ? 0 : m->last();
+            if (_selection.isNone() || (_selection.isList() && !_selection.isSingle())) {
+                  if (_selection.isList())
+                        deselectAll();
+                  _selection.setRange(s1, s2, staffIdx, staffIdx + 1);
                   }
-            else if (_selection.isRange()) {
-                  _selection.extendRangeSelection(m->tick2segment(tick),
-                                                  m == lastMeasure() ? 0 : m->last(),
-                                                  staffIdx,
-                                                  tick,
-                                                  etick);
-                  }
+            else if (_selection.isRange())
+                  _selection.extendRangeSelection(s1, s2, staffIdx, tick, etick);
             else if (_selection.isSingle()) {
                   Element* oe = selection().element();
                   if (oe->isNote() || oe->isChordRest()) {
                         if (oe->isNote())
                               oe = oe->parent();
-
                         ChordRest* cr = toChordRest(oe);
                         int oetick = cr->segment()->tick();
                         Segment* startSegment = cr->segment();
                         Segment* endSegment = m->last();
                         if (tick < oetick) {
                               startSegment = m->tick2segment(tick);
-                              if (etick <= oetick)
-                                    endSegment = cr->nextSegmentAfterCR(SegmentType::ChordRest
-                                                                                    | SegmentType::EndBarLine
-                                                                                    | SegmentType::Clef);
-
+                              if (etick <= oetick) {
+                                    SegmentType st = SegmentType::ChordRest | SegmentType::EndBarLine | SegmentType::Clef;
+                                    endSegment = cr->nextSegmentAfterCR(st);
+                                    }
                               }
                         int staffStart = staffIdx;
                         int endStaff = staffIdx + 1;
@@ -2926,10 +2944,7 @@ void Score::selectRange(Element* e, int staffIdx)
                         }
                   else {
                         deselectAll();
-                        _selection.setRange(m->tick2segment(tick),
-                                            m == lastMeasure() ? 0 : m->last(),
-                                            staffIdx,
-                                            staffIdx + 1);
+                        _selection.setRange(s1, s2, staffIdx, staffIdx + 1);
                         }
                   }
             else {
@@ -2937,27 +2952,22 @@ void Score::selectRange(Element* e, int staffIdx)
                   return;
                   }
             }
-      else if (e->type() == ElementType::NOTE || e->isChordRest()) {
-            if (e->type() == ElementType::NOTE)
+      else if (e->isNote() || e->isChordRest()) {
+            if (e->isNote())
                   e = e->parent();
             ChordRest* cr = toChordRest(e);
 
-            if (_selection.isNone()
-                || (_selection.isList() && !_selection.isSingle())) {
+            if (_selection.isNone() || (_selection.isList() && !_selection.isSingle())) {
                   if (_selection.isList())
                         deselectAll();
-                  _selection.setRange(cr->segment(),
-                                      cr->nextSegmentAfterCR(SegmentType::ChordRest
-                                                             | SegmentType::EndBarLine
-                                                             | SegmentType::Clef),
-                                      e->staffIdx(),
-                                      e->staffIdx() + 1);
+                  SegmentType st = SegmentType::ChordRest | SegmentType::EndBarLine | SegmentType::Clef;
+                  _selection.setRange(cr->segment(), cr->nextSegmentAfterCR(st), e->staffIdx(), e->staffIdx() + 1);
                   activeTrack = cr->track();
                   }
             else if (_selection.isSingle()) {
                   Element* oe = _selection.element();
-                  if (oe && (oe->type() == ElementType::NOTE || oe->type() == ElementType::REST)) {
-                        if (oe->type() == ElementType::NOTE)
+                  if (oe && (oe->isNote() || oe->isRest())) {
+                        if (oe->isNote())
                               oe = oe->parent();
                         ChordRest* ocr = toChordRest(oe);
 
@@ -2965,12 +2975,8 @@ void Score::selectRange(Element* e, int staffIdx)
                         if (!endSeg)
                               endSeg = ocr->segment()->next();
 
-                        _selection.setRange(ocr->segment(),
-                                            endSeg,
-                                            oe->staffIdx(),
-                                            oe->staffIdx() + 1);
+                        _selection.setRange(ocr->segment(), endSeg, oe->staffIdx(), oe->staffIdx() + 1);
                         _selection.extendRangeSelection(cr);
-
                         }
                   else {
                         select(e, SelectType::SINGLE, 0);
@@ -2997,8 +3003,11 @@ void Score::selectRange(Element* e, int staffIdx)
       _selection.setActiveTrack(activeTrack);
 
       // doing this in note entry mode can clear selection
-      if (_selection.startSegment() && !noteEntryMode())
-            setPlayPos(_selection.startSegment()->tick());
+      if (_selection.startSegment() && !noteEntryMode()) {
+            int tick = _selection.startSegment()->tick();
+            if (masterScore()->playPos() != tick)
+                  masterScore()->setPlayPos(tick);
+            }
 
       _selection.updateSelectedElements();
       }
@@ -3952,7 +3961,10 @@ int Score::keysig()
 int Score::duration()
       {
       updateRepeatList(true);
-      RepeatSegment* rs = repeatList()->last();
+      RepeatList* rl = repeatList();
+      if (rl->isEmpty())
+            return 0;
+      RepeatSegment* rs = rl->last();
       return lrint(utick2utime(rs->utick + rs->len()));
       }
 
@@ -4277,6 +4289,23 @@ void Score::setStyle(const MStyle& s)
       }
 
 //---------------------------------------------------------
+//   getTextStyleUserName
+//---------------------------------------------------------
+
+QString Score::getTextStyleUserName(Tid tid)
+      {
+      QString name = "";
+      if (int(tid) >= int(Tid::USER1) && int(tid) <= int(Tid::USER6)) {
+            int idx = int(tid) - int(Tid::USER1);
+            Sid sid[] = { Sid::user1Name, Sid::user2Name, Sid::user3Name, Sid::user4Name, Sid::user5Name, Sid::user6Name };
+            name = styleSt(sid[idx]);
+            }
+      if (name == "")
+            name = textStyleUserName(tid);
+      return name;
+      }
+
+//---------------------------------------------------------
 //   MasterScore
 //---------------------------------------------------------
 
@@ -4483,14 +4512,14 @@ Movements::~Movements()
 
 //---------------------------------------------------------
 //   ScoreLoad::_loading
-//    If the _loading flag is set pushes and pops to
+//    If the _loading > 0 then pushes and pops to
 //    the undo stack do not emit a warning.
 //    Usually pushes and pops to the undo stack are only
 //    valid inside a startCmd() - endCmd(). Exceptions
 //    occure during score loading.
 //---------------------------------------------------------
 
-bool ScoreLoad::_loading = false;
+int ScoreLoad::_loading = 0;
 
 }
 

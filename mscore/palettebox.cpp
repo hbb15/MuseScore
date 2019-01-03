@@ -44,6 +44,7 @@ PaletteBox::PaletteBox(QWidget* parent)
       hl->setContentsMargins(5,0,5,0);
 
       workspaceList = new QComboBox;
+      workspaceList->setObjectName("workspace-list");
       hl->addWidget(workspaceList);
       addWorkspaceButton = new QToolButton;
 
@@ -122,9 +123,6 @@ void PaletteBox::filterPalettes(const QString& text)
                  }
             else
                  b->showPalette(false);
-
-            // disable editing while palette is filtered
-            b->enableEditing(text.isEmpty());
             }
       }
 
@@ -290,7 +288,7 @@ void PaletteBox::paletteCmd(PaletteCommand cmd, int slot)
                   break;
 
             case PaletteCommand::NEW:
-                  palette = newPalette(tr("new Palette"), slot);
+                  palette = newPalette(tr("New Palette"), slot);
                   item   = vbox->itemAt(slot);
                   b = static_cast<PaletteBoxButton*>(item->widget());
                   // fall through

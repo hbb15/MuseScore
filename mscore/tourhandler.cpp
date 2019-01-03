@@ -95,7 +95,21 @@ void OverlayWidget::paintEvent(QPaintEvent *)
 
 void TourHandler::showWelcomeTour()
       {
-      startTour("welcome");
+      if (!delayedWelcomeTour)
+            startTour("welcome");
+      }
+
+//---------------------------------------------------------
+//   showDelayedWelcomeTour
+//   delays showing the welcome tour when the user
+//   attempts to open a score or create a new score
+//---------------------------------------------------------
+
+void TourHandler::showDelayedWelcomeTour()
+      {
+      if (delayedWelcomeTour)
+            startTour("welcome");
+      delayedWelcomeTour = false;
       }
 
 //---------------------------------------------------------
@@ -140,7 +154,8 @@ void TourHandler::loadTour(XmlReader& tourXml)
                   while (tourXml.readNextStartElement()) {
                         if (tourXml.name() == "Text") {
                               QTextDocument doc;
-                              doc.setHtml(tourXml.readXml());
+                              QString ttext = qApp->translate("TourXML", tourXml.readXml().toUtf8().data());
+                              doc.setHtml(ttext);
                               text = doc.toPlainText().replace("\\n", "\n");
                               }
                         else if (tourXml.name() == "Widget")
@@ -167,6 +182,16 @@ void TourHandler::loadTour(XmlReader& tourXml)
       allTours[tourName] = tour;
       for (QString s : shortcuts)
             shortcutToTour[s] = tour;
+      }
+
+//---------------------------------------------------------
+//   resetCompletedTours
+//---------------------------------------------------------
+
+void TourHandler::resetCompletedTours()
+      {
+      for (auto tour : allTours)
+            tour->setCompleted(false);
       }
 
 //---------------------------------------------------------
@@ -408,27 +433,30 @@ void TourHandler::displayTour(Tour* tour)
             mbox->setWindowTitle(tr("Tour"));
             QPushButton* backButton = nullptr;
             QPushButton* nextButton = nullptr;
+            QPushButton* closeButton = nullptr;
 
-            mbox->addButton(tr("Close"), QMessageBox::RejectRole);
+            //QMessageBox doesn't support next/back semantic for various OS styles. QWizard does.
+            closeButton = mbox->addButton(tr("Close"), QMessageBox::RejectRole);
             if (i != 0)
-                  backButton = mbox->addButton(tr("< Back"), QMessageBox::YesRole);
+                  backButton = mbox->addButton(tr("Back"), QMessageBox::NoRole); //Explicit text is bad since it varies depending on the OS. MacOS uses "Go back"
             if (i != tourMessages.size() - 1)
-                  nextButton = mbox->addButton(tr("Next >"), QMessageBox::YesRole);
+                  nextButton = mbox->addButton(tr("Next"), QMessageBox::YesRole); //MacOS uses "Continue"
             else
-                  nextButton = mbox->addButton(tr("End"), QMessageBox::YesRole);
+                  nextButton = mbox->addButton(tr("End"), QMessageBox::YesRole); // MacOS uses "Done"
 
             // Sets default to last pressed button
             if (next)
                   mbox->setDefaultButton(nextButton);
             else
                   mbox->setDefaultButton(backButton);
+            mbox->setEscapeButton(closeButton);
 
             // Add text (translation?)
             mbox->setText(tourMessages[i].message);
 
-            // Add "Do not show again" checkbox
-            QCheckBox* showToursBox = new QCheckBox(tr("Do not show me tours"), mbox);
-            showToursBox->setChecked(!showTours);
+            // Add checkbox to show tours
+            QCheckBox* showToursBox = new QCheckBox(tr("Continue showing tours"), mbox);
+            showToursBox->setChecked(showTours);
             mbox->setCheckBox(showToursBox);
 
             // Display the message box, position it if needed
@@ -443,7 +471,7 @@ void TourHandler::displayTour(Tour* tour)
             overlay->show();
             mbox->exec();
             overlay->hide();
-            showTours = !(showToursBox->isChecked());
+            showTours = showToursBox->isChecked();
 
             // Handle the button presses
             if (mbox->clickedButton() == nextButton) {

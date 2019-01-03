@@ -25,18 +25,18 @@ namespace Ms {
 
 const char* keyNames[] = {
       QT_TRANSLATE_NOOP("MuseScore", "G major, E minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "Cb major, Ab minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "C♭ major, A♭ minor"),
       QT_TRANSLATE_NOOP("MuseScore", "D major, B minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "Gb major, Eb minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "G♭ major, E♭ minor"),
       QT_TRANSLATE_NOOP("MuseScore", "A major, F# minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "Db major, Bb minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "E major, C# minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "Ab major, F minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "B major, G# minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "Eb major, C minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "F# major, D# minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "Bb major, G minor"),
-      QT_TRANSLATE_NOOP("MuseScore", "C# major, A# minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "D♭ major, B♭ minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "E major, C♯ minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "A♭ major, F minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "B major, G♯ minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "E♭ major, C minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "F♯ major, D♯ minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "B♭ major, G minor"),
+      QT_TRANSLATE_NOOP("MuseScore", "C♯ major, A♯ minor"),
       QT_TRANSLATE_NOOP("MuseScore", "F major, D minor"),
       QT_TRANSLATE_NOOP("MuseScore", "C major, A minor"),
       QT_TRANSLATE_NOOP("MuseScore", "Open/Atonal")
@@ -160,9 +160,12 @@ void KeySig::layout()
       Measure* prevMeasure = measure() ? measure()->prevMeasure() : 0;
 
       // If we're not force hiding naturals (Continuous panel), use score style settings
-      if (!_hideNaturals)
-            naturalsOn = (prevMeasure && !prevMeasure->sectionBreak()
-               && (score()->styleI(Sid::keySigNaturals) != int(KeySigNatural::NONE))) || (t1 == 0);
+      if (!_hideNaturals) {
+            const bool newSection = (!segment()
+               || (segment()->rtick() == 0 && (!prevMeasure || prevMeasure->sectionBreak()))
+               );
+            naturalsOn = !newSection && (score()->styleI(Sid::keySigNaturals) != int(KeySigNatural::NONE) || (t1 == 0));
+            }
 
 
       // Don't repeat naturals if shown in courtesy
@@ -311,6 +314,26 @@ void KeySig::layout()
             }
       }
 
+
+//---------------------------------------------------------
+//   shape
+//---------------------------------------------------------
+
+Shape KeySig::shape() const
+      {
+      QRectF box(bbox());
+      const Staff* st = staff();
+      if (st && autoplace() && visible()) {
+            // Extend key signature shape up and down to
+            // the first ledger line height to ensure that
+            // no notes will be too close to the keysig.
+            const qreal sp = spatium();
+            const qreal y = pos().y();
+            box.setTop(std::min(-sp - y, box.top()));
+            box.setBottom(std::max(st->height() - y + sp, box.bottom()));
+            }
+      return Shape(box);
+      }
 
 //---------------------------------------------------------
 //   set

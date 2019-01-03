@@ -33,13 +33,15 @@ namespace Ms {
 
 bool Workspace::workspacesRead = false;
 //std::unordered_map<std::string, QVariant> Workspace::localPreferences {};
-Workspace* Workspace::currentWorkspace;
+Workspace* Workspace::currentWorkspace = nullptr;
 
 QList<Workspace*> Workspace::_workspaces {};
 
 QList<QPair<QAction*, QString>> Workspace::actionToStringList {};
 QList<QPair<QMenu*  , QString>> Workspace::menuToStringList   {};
 
+const char* Workspace::advancedWorkspaceTranslatableName{ QT_TRANSLATE_NOOP("Ms::Workspace", "Advanced") };
+const char* Workspace::basicWorkspaceTranslatableName{ QT_TRANSLATE_NOOP("Ms::Workspace", "Basic") };
 
 //---------------------------------------------------------
 //   undoWorkspace
@@ -646,27 +648,33 @@ void Workspace::read(XmlReader& e)
                               case QVariant::Int:
                                     {
                                     int new_int = e.readInt();
-                                    preferences.getLocalPreferences()[preference_name] = QVariant(new_int);
+                                    preferences.setLocalPreference(preference_name, QVariant(new_int));
                                     }
                                     break;
                               case QVariant::Color:
                                     {
                                     QColor new_color = e.readColor();
-                                    preferences.getLocalPreferences()[preference_name] = QVariant(new_color);
+                                    preferences.setLocalPreference(preference_name, QVariant(new_color));
                                     }
                                     break;
                               case QVariant::String:
                                     {
                                     QString new_string = e.readXml();
-                                    preferences.getLocalPreferences()[preference_name] = QVariant(new_string);
+                                    preferences.setLocalPreference(preference_name, QVariant(new_string));
                                     }
                                     break;
                               case QVariant::Bool:
                                     {
                                     bool new_bool = e.readBool();
-                                    preferences.getLocalPreferences()[preference_name] = QVariant(new_bool);
+                                    preferences.setLocalPreference(preference_name, QVariant(new_bool));
                                     }
                                     break;
+                              case QVariant::LongLong:
+                                    {
+                                    bool new_longlong = e.readLongLong();
+                                    preferences.setLocalPreference(preference_name, QVariant(new_longlong));
+                                    break;
+                                    }
                               default:
                                     qDebug() << preferences.defaultValue(preference_name).type() << " not handled.";
                                     e.unknown();
@@ -922,6 +930,11 @@ void Workspace::readGlobalGUIState()
 
 void Workspace::save()
       {
+      if (!saveComponents)
+            writeGlobalGUIState();
+      if (!saveToolbars)
+            writeGlobalToolBar();
+
       if (_readOnly)
             return;
       PaletteBox* pb = mscore->getPaletteBox();
@@ -984,7 +997,7 @@ QList<Workspace*>& Workspace::workspaces()
                   }
             // hack
             for (int i = 0; i < _workspaces.size(); i++) {
-                  if (_workspaces[i]->translatableName() == "Basic") {
+                  if (_workspaces[i]->translatableName() == basicWorkspaceTranslatableName) {
                         _workspaces.move(i, 0);
                         break;
                         }

@@ -73,6 +73,7 @@ class Harmony final : public TextBase {
       QString _userName;                  // name as typed by user if applicable
       QString _textName;                  // name recognized from chord list, read from score file, or constructed from imported source
       ParsedChord* _parsedForm;           // parsed form of chord
+      bool showSpell = false;             // show spell check warning
 
       QList<HDegree> _degreeList;
       QList<QFont> fontList;              // temp values used in render()
@@ -92,6 +93,7 @@ class Harmony final : public TextBase {
       void render(const QString&, qreal&, qreal&);
       void render(const QList<RenderAction>& renderList, qreal&, qreal&, int tpc, NoteSpellingType noteSpelling = NoteSpellingType::STANDARD, NoteCaseType noteCase = NoteCaseType::AUTO);
       virtual void styleChanged() override     { render(); }
+      virtual Sid getPropertyStyle(Pid) const override;
 
    public:
       Harmony(Score* = 0);

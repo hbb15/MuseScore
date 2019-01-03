@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>303</width>
-    <height>525</height>
+    <width>236</width>
+    <height>380</height>
    </rect>
   </property>
   <property name="accessibleName">
@@ -84,32 +84,6 @@
         <property name="maxVisibleItems">
          <number>14</number>
         </property>
-        <property name="frame">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2">
-       <widget class="QToolButton" name="resetTuning">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Tuning' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-        </property>
        </widget>
       </item>
       <item row="10" column="1">
@@ -122,23 +96,6 @@
         </property>
         <property name="maximum">
          <number>30</number>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="2">
-       <widget class="QToolButton" name="resetVelocity">
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Velocity' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
         </property>
        </widget>
       </item>
@@ -177,15 +134,15 @@
         <property name="accessibleName">
          <string>Head type</string>
         </property>
-        <property name="frame">
-         <bool>true</bool>
-        </property>
        </widget>
       </item>
       <item row="4" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Mirror head:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
         <property name="buddy">
          <cstring>mirrorHead</cstring>
@@ -195,10 +152,7 @@
       <item row="4" column="1">
        <widget class="QComboBox" name="mirrorHead">
         <property name="accessibleName">
-         <string>Mirror Head</string>
-        </property>
-        <property name="frame">
-         <bool>true</bool>
+         <string>Mirror head</string>
         </property>
         <item>
          <property name="text">
@@ -238,31 +192,11 @@
         <property name="text">
          <string>Head type:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
         <property name="buddy">
          <cstring>noteHeadType</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="2">
-       <widget class="QToolButton" name="resetVelocityType">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Velocity type' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
         </property>
        </widget>
       </item>
@@ -270,6 +204,9 @@
        <widget class="QLabel" name="label_6">
         <property name="text">
          <string>Head group:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
         <property name="buddy">
          <cstring>noteHeadGroup</cstring>
@@ -281,54 +218,11 @@
         <property name="text">
          <string>Line:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
         <property name="buddy">
          <cstring>fixedLine</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="2">
-       <widget class="QToolButton" name="resetPlay">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Play' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QToolButton" name="resetSmall">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Small' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
         </property>
        </widget>
       </item>
@@ -336,6 +230,9 @@
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>Velocity:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
         <property name="buddy">
          <cstring>velocity</cstring>
@@ -347,31 +244,11 @@
         <property name="text">
          <string>Tuning:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
         <property name="buddy">
          <cstring>tuning</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QToolButton" name="resetMirrorHead">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Mirror head' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
         </property>
        </widget>
       </item>
@@ -380,88 +257,11 @@
         <property name="text">
          <string>Velocity type:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
         <property name="buddy">
          <cstring>velocityType</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QToolButton" name="resetNoteHeadGroup">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Head group' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QToolButton" name="resetNoteHeadType">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Head type' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="2">
-       <widget class="QToolButton" name="resetFixed">
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Fix to line' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-        </property>
-       </widget>
-      </item>
-      <item row="10" column="2">
-       <widget class="QToolButton" name="resetFixedLine">
-        <property name="toolTip">
-         <string>Reset to default</string>
-        </property>
-        <property name="accessibleName">
-         <string>Reset 'Line' value</string>
-        </property>
-        <property name="text">
-         <string notr="true"/>
-        </property>
-        <property name="icon">
-         <iconset resource="../musescore.qrc">
-          <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
         </property>
        </widget>
       </item>
@@ -469,9 +269,6 @@
        <widget class="QCheckBox" name="small">
         <property name="focusPolicy">
          <enum>Qt::TabFocus</enum>
-        </property>
-        <property name="accessibleName">
-         <string>Small</string>
         </property>
         <property name="text">
          <string>Small</string>
@@ -483,9 +280,6 @@
         <property name="focusPolicy">
          <enum>Qt::TabFocus</enum>
         </property>
-        <property name="accessibleName">
-         <string>Play</string>
-        </property>
         <property name="text">
          <string>Play</string>
         </property>
@@ -496,11 +290,45 @@
         <property name="focusPolicy">
          <enum>Qt::TabFocus</enum>
         </property>
-        <property name="accessibleName">
-         <string>Fix to line</string>
-        </property>
         <property name="text">
          <string>Fix to line</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="Ms::ResetButton" name="resetSmall"/>
+      </item>
+      <item row="2" column="2">
+       <widget class="Ms::ResetButton" name="resetNoteHeadGroup"/>
+      </item>
+      <item row="3" column="2">
+       <widget class="Ms::ResetButton" name="resetNoteHeadType"/>
+      </item>
+      <item row="4" column="2">
+       <widget class="Ms::ResetButton" name="resetMirrorHead"/>
+      </item>
+      <item row="5" column="2">
+       <widget class="Ms::ResetButton" name="resetTuning"/>
+      </item>
+      <item row="6" column="2">
+       <widget class="Ms::ResetButton" name="resetPlay"/>
+      </item>
+      <item row="7" column="2">
+       <widget class="Ms::ResetButton" name="resetVelocityType"/>
+      </item>
+      <item row="8" column="2">
+       <widget class="Ms::ResetButton" name="resetVelocity"/>
+      </item>
+      <item row="9" column="2">
+       <widget class="Ms::ResetButton" name="resetFixed"/>
+      </item>
+      <item row="10" column="2">
+       <widget class="Ms::ResetButton" name="resetFixedLine">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
        </widget>
       </item>
@@ -514,8 +342,8 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>20</width>
-       <height>40</height>
+       <width>0</width>
+       <height>0</height>
       </size>
      </property>
     </spacer>
@@ -601,28 +429,34 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Ms::ResetButton</class>
+   <extends>QWidget</extends>
+   <header>inspector/resetButton.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>title</tabstop>
   <tabstop>small</tabstop>
-  <tabstop>resetSmall</tabstop>
   <tabstop>noteHeadGroup</tabstop>
-  <tabstop>resetNoteHeadGroup</tabstop>
   <tabstop>noteHeadType</tabstop>
-  <tabstop>resetNoteHeadType</tabstop>
   <tabstop>mirrorHead</tabstop>
-  <tabstop>resetMirrorHead</tabstop>
   <tabstop>tuning</tabstop>
-  <tabstop>resetTuning</tabstop>
   <tabstop>play</tabstop>
-  <tabstop>resetPlay</tabstop>
   <tabstop>velocityType</tabstop>
-  <tabstop>resetVelocityType</tabstop>
   <tabstop>velocity</tabstop>
-  <tabstop>resetVelocity</tabstop>
   <tabstop>fixed</tabstop>
-  <tabstop>resetFixed</tabstop>
   <tabstop>fixedLine</tabstop>
-  <tabstop>resetFixedLine</tabstop>
+  <tabstop>dot1</tabstop>
+  <tabstop>dot2</tabstop>
+  <tabstop>dot3</tabstop>
+  <tabstop>dot4</tabstop>
+  <tabstop>hook</tabstop>
+  <tabstop>stem</tabstop>
+  <tabstop>beam</tabstop>
+  <tabstop>tuplet</tabstop>
  </tabstops>
  <resources>
   <include location="../musescore.qrc"/>

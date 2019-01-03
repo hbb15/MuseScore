@@ -31,9 +31,9 @@ endif (CI)
 # Libraries linked via full path no longer produce linker search paths.
 cmake_policy(SET CMP0003 NEW)
 
-# Apperently needed on Mac only (?)
+# Apparently needed on Mac only (?)
 if (APPLE)
-    # Issue no warning non-existent target argument to get_targer_property()
+    # Issue no warning non-existent target argument to get_target_property()
     # and set the result variable to a -NOTFOUND value rather than issuing a FATAL_ERROR 40
     if(POLICY CMP0045)
         cmake_policy(SET CMP0045 OLD)
@@ -106,7 +106,7 @@ endif (NOT APPLE AND NOT MINGW AND NOT MSVC)
 option(AEOLUS        "Enable pipe organ synthesizer"      OFF)
 option(ZERBERUS      "Enable experimental SFZ sampler"    ON)
 option(OSC           "Enable OSC remote control protocol" ON)
-option(OMR           "Enable PDF import"  ON)                 # OMR - optical music recognition
+option(OMR           "Enable PDF import"  OFF)                 # OMR - optical music recognition
 # For installation see: http://ubuntuforums.org/showthread.php?t=1647350
 option(OCR           "Enable OCR, requires OMR" OFF)           # Requires tesseract 3.0, needs work on mac/win
 option(SOUNDFONT3    "Ogg Vorbis compressed fonts" ON)         # Enable Ogg Vorbis compressed fonts, requires Ogg & Vorbis
@@ -147,7 +147,7 @@ if (APPLE)
       # of MacOSX.
       #set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk)
 
-      set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)      # Min version required
+      set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)      # Min version required
       set(HAS_AUDIOFILE TRUE)            # Requires libsndfile
       set(MAC_APPCAST_URL "")
 
@@ -159,15 +159,43 @@ if (APPLE)
       find_library(CoreServicesFW        NAMES CoreServices)
       find_library(AppKit                NAMES AppKit)
       set(OsxFrameworks ${AudioToolboxFW} ${AudioUnitFW} ${CoreAudioFW} ${CoreMidiFW} ${SystemConfigurationFW} ${CoreServicesFW} ${AppKit})
-      if (BUILD_AUTOUPDATE)
-        find_package(Sparkle) #needed for SPARKLE_FOUND variable
-        if(SPARKLE_FOUND)
-          set(MAC_SPARKLE_ENABLED 1)
-          set(OsxFrameworks ${OsxFrameworks} ${SPARKLE_LIBRARY})
-          set(MAC_APPCAST_URL "https://sparkle.musescore.org/${MSCORE_RELEASE_CHANNEL}/3/macos/appcast.xml")
-        endif(SPARKLE_FOUND)
-      endif(BUILD_AUTOUPDATE)
 endif (APPLE)
+
+#
+# Set up Windows arch variables/paths
+#
+
+if (BUILD_64 STREQUAL "ON")
+      SET (ARCH_TYPE "_x64")
+      SET (DEPENDENCIES_DIR "${PROJECT_SOURCE_DIR}/dependencies/libx64")
+else (BUILD_64 STREQUAL "ON")
+      SET (ARCH_TYPE "_x86")
+      SET (DEPENDENCIES_DIR "${PROJECT_SOURCE_DIR}/dependencies/libx86")
+endif (BUILD_64 STREQUAL "ON")
+
+#
+#  Sparkle/WinSparkle routine
+#
+if (BUILD_AUTOUPDATE STREQUAL "ON")
+      if (APPLE)
+             find_package(Sparkle) #needed for SPARKLE_FOUND variable
+             if(SPARKLE_FOUND)
+                   set(MAC_SPARKLE_ENABLED 1)
+                   set(OsxFrameworks ${OsxFrameworks} ${SPARKLE_LIBRARY})
+                   set(MAC_APPCAST_URL "https://sparkle.musescore.org/${MSCORE_RELEASE_CHANNEL}/3/macos/appcast.xml")
+             endif(SPARKLE_FOUND)
+      elseif (MSVC)
+             if (NOT MSCORE_UNSTABLE)
+                   include(FindWinSparkle)
+                   add_library(winsparkledll SHARED IMPORTED)
+                   set_target_properties(winsparkledll PROPERTIES IMPORTED_IMPLIB ${WINSPARKLE_LIBRARY})
+                   set(WIN_SPARKLE_ENABLED 1)
+                   set(WIN_SPARKLE_APPCAST_URL "https://sparkle.musescore.org/${MSCORE_RELEASE_CHANNEL}/3/win/appcast.xml")
+             endif (NOT MSCORE_UNSTABLE)
+      else (APPLE)
+             message("Sparkle is not supported on your system.")
+      endif (APPLE)
+endif(BUILD_AUTOUPDATE STREQUAL "ON")
 
 #
 #     Check for gcc compiler >= 4.8
@@ -190,7 +218,7 @@ if (APPLE)
    # This is necessary for genManual to be executed during the build phase,
    # it needs to be able to get the Qt libs.
    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-   SET(CMAKE_INSTALL_RPATH "${QT_INSTALL_PREFIX}/lib")
+   SET(CMAKE_INSTALL_RPATH "${QT_INSTALL_LIBS}")
 else (APPLE)
    if (MSVC)
       if (BUILD_64 STREQUAL "ON")
@@ -385,14 +413,6 @@ endif (BUILD_PULSEAUDIO)
 ##
 ## LAME
 ##
-
-if (BUILD_64 STREQUAL "ON")
-      SET (ARCH_TYPE "_x64")
-      SET (DEPENDENCIES_DIR "${PROJECT_SOURCE_DIR}/dependencies/libx64")
-else (BUILD_64 STREQUAL "ON")
-      SET (ARCH_TYPE "_x86")
-      SET (DEPENDENCIES_DIR "${PROJECT_SOURCE_DIR}/dependencies/libx86")
-endif (BUILD_64 STREQUAL "ON")
 
 if (APPLE OR MINGW)
       if (BUILD_LAME)
@@ -810,9 +830,11 @@ include(Packaging)
 
 add_custom_target(lupdate
    COMMAND ${PROJECT_SOURCE_DIR}/build/gen-qt-projectfile ${PROJECT_SOURCE_DIR} > mscore.pro
-   COMMAND Qt5::lupdate -no-obsolete ${PROJECT_BINARY_DIR}/mscore.pro
+   COMMAND Qt5::lupdate ${PROJECT_BINARY_DIR}/mscore.pro
    COMMAND ${PROJECT_SOURCE_DIR}/build/gen-instruments-projectfile ${PROJECT_SOURCE_DIR}/share/instruments > instruments.pro
-   COMMAND Qt5::lupdate -no-obsolete ${PROJECT_BINARY_DIR}/instruments.pro
+   COMMAND Qt5::lupdate ${PROJECT_BINARY_DIR}/instruments.pro
+   COMMAND ${PROJECT_SOURCE_DIR}/build/gen-tours-projectfile ${PROJECT_SOURCE_DIR}/share/tours > tours.pro
+   COMMAND Qt5::lupdate ${PROJECT_BINARY_DIR}/tours.pro
    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
    )
 
@@ -824,6 +846,9 @@ file(GLOB INSTRUMENTS_TS_FILES
 file(GLOB MSCORE_TS_FILES
    "share/locale/mscore*.ts"
 )
+file(GLOB TOURS_TS_FILES
+   "share/locale/tours*.ts"
+)
 file(GLOB QT_TS_FILES
    "share/locale/qt*.ts"
 )
@@ -831,6 +856,7 @@ file(GLOB QT_TS_FILES
 add_custom_target(lrelease
    COMMAND Qt5::lrelease ${INSTRUMENTS_TS_FILES}
    COMMAND Qt5::lrelease ${MSCORE_TS_FILES}
+   COMMAND Qt5::lrelease ${TOURS_TS_FILES}
    COMMAND Qt5::lrelease ${QT_TS_FILES}
    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )

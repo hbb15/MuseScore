@@ -396,12 +396,32 @@ void TimeSig::layout()
       }
 
 //---------------------------------------------------------
+//   shape
+//---------------------------------------------------------
+
+Shape TimeSig::shape() const
+      {
+      QRectF box(bbox());
+      const Staff* st = staff();
+      if (st && autoplace() && visible()) {
+            // Extend time signature shape up and down to
+            // the first ledger line height to ensure that
+            // no notes will be too close to the timesig.
+            const qreal sp = spatium();
+            const qreal y = pos().y();
+            box.setTop(std::min(-sp - y, box.top()));
+            box.setBottom(std::max(st->height() - y + sp, box.bottom()));
+            }
+      return Shape(box);
+      }
+
+//---------------------------------------------------------
 //   draw
 //---------------------------------------------------------
 
 void TimeSig::draw(QPainter* painter) const
       {
-      if (staff() && !staff()->staffType(tick())->genTimesig())
+      if (staff() && !const_cast<const Staff*>(staff())->staffType(tick())->genTimesig())
             return;
       if (staff() && staff()->isNumericStaff( tick())) {
           if(tick()==0 && staff() && (staff()->idx())<1){

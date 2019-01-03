@@ -175,8 +175,8 @@ class Element : public ScoreElement {
 
       Element* parent() const                 { return _parent;     }
       void setParent(Element* e)              { _parent = e;        }
-      Element* findMeasure();
-      const Element* findMeasure() const;
+      Measure* findMeasure();
+      const Measure* findMeasure() const;
       MeasureBase* findMeasureBase();
       const MeasureBase* findMeasureBase() const;
 
@@ -409,6 +409,8 @@ class Element : public ScoreElement {
 
       virtual QVariant getProperty(Pid) const override;
       virtual bool setProperty(Pid, const QVariant&) override;
+      virtual void undoChangeProperty(Pid id, const QVariant&, PropertyFlags ps) override;
+      using ScoreElement::undoChangeProperty;
       virtual QVariant propertyDefault(Pid) const override;
       virtual Pid propertyId(const QStringRef& xmlName) const override;
       virtual QString propertyUserValue(Pid) const override;

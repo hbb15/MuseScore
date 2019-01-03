@@ -1157,18 +1157,18 @@ void Note::draw(QPainter* painter) const
 
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
             StaffType* tab = staff()->staffType(tick());
-
-            QFont f(tab->fretFont());
-            f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
-            painter->setFont(f);
+            QFont font;
+            font.setFamily(score()->styleSt(Sid::numericFont));
+            font.setPointSizeF(font.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
+            painter->setFont(font);
             painter->setPen(c);
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*0.0125*_numericHigth, _numericaccidentalPos);
+                        score()->scoreFont()->draw(SymId::accidentalSharp, painter, magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth, _numericaccidentalPos);
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*0.02*_numericHigth,_numericaccidentalPos);
+                        score()->scoreFont()->draw(SymId::accidentalFlat, painter, magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth,_numericaccidentalPos);
                         }
                   }
             }
@@ -2129,6 +2129,17 @@ int Note::getNumericTrans(Key key) const{
     return 0;
       }
 //---------------------------------------------------------
+//   getNumericOktave
+//---------------------------------------------------------voice.soprano
+int Note::getNumericOktave() const{
+      QString instname = part()->instrument(chord()->tick())->instrumentId();
+      if(instname == "voice.bass")
+            return -1;
+      if(instname == "voice.tenor")
+            return -1;
+    return 0;
+      }
+//---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
 
@@ -2164,6 +2175,7 @@ void Note::layout()
             int accidentalshift=0;
             _drawFlat = false;
             _drawSharp = false;
+            int numtransposeInterval=part()->instrument(chord()->tick())->transpose().chromatic;
             if (_accidental){
                   if (_accidental->accidentalType() == AccidentalType::SHARP){
                         accidentalshift=-1;
@@ -2172,18 +2184,16 @@ void Note::layout()
                         accidentalshift=1;
                         }
                   }
-            int clefshift=0;
-            ClefType clef = staff()->clef(tick());
-            if(clef==ClefType::F)
-                  clefshift=-12;
+            int clefshift=getNumericOktave();
             int grundtonverschibung=getNumericTrans(staff()->key(tick()));
-            int zifferkomatik=((_pitch+grundtonverschibung+clefshift)%12)+1;
+            int zifferkomatik=((_pitch+grundtonverschibung+numtransposeInterval)%12)+1;
             _fretString = getNumericString(zifferkomatik+accidentalshift);
             _numericWidth=tabHeadWidth(numeric);
             _fretString = _fretString+
                         getNumericDuration[int(chord()->durationType().type())]+
                         getNumericDurationDot[int(chord()->durationType().dots())];
-            _fretStringYShift=((_pitch+grundtonverschibung+clefshift+accidentalshift)/12-5)*_numericHigth*0.5;
+            _numericLedgerline = ((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)/2;
+            _fretStringYShift=((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
             bbox().setRect(0.0, numeric->fretBoxY() * mags, _numericWidth, numeric->fretBoxH() * mags);
             _numericHigth = bbox().height();
             }
@@ -2246,17 +2256,19 @@ void Note::layout2()
             if (paren)
                   _fretString = QString("(%1)").arg(_fretString);
             qreal w = tabHeadWidth(numeric); // !! use _fretString
-            QRectF stringbox = QRectF(0.0, _numericHigth*-0.5-_fretStringYShift,
+            QRectF stringbox = QRectF(0.0,_numericHigth*-1 + _numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_fretStringYShift,
                              w,( _numericHigth));
             setbbox(stringbox);
-            _numericTextPos = QPointF(bbox().x(), _numericHigth*0.5-_fretStringYShift);
+            _numericTextPos = QPointF(bbox().x(), _numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_fretStringYShift);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        _numericaccidentalPos = QPointF(_numericHigth*-0.5*magS(), (_numericHigth*0.1 -_fretStringYShift) * magS());
+                        _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*magS(),
+                                                        (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)*magS() -_fretStringYShift) * magS());
                         addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        _numericaccidentalPos = QPointF(_numericHigth*-0.5*magS(), (_numericHigth*0.17 -_fretStringYShift) * magS());
+                        _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*magS(),
+                                                        (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)*magS() -_fretStringYShift) * magS());
                         addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
                         }
                   }
@@ -2313,7 +2325,6 @@ void Note::layout2()
             if (e->isSymbol()) {
                   qreal w = headWidth();
                   Symbol* sym = toSymbol(e);
-//                  QPointF rp = e->readPos();
                   e->layout();
                   if (sym->sym() == SymId::noteheadParenthesisRight) {
                         if (staff()->isTabStaff(chord()->tick())) {
@@ -2330,11 +2341,6 @@ void Note::layout2()
                   else if (sym->sym() == SymId::noteheadParenthesisLeft) {
                         e->rxpos() -= symWidth(SymId::noteheadParenthesisLeft);
                         }
-/*                  if (sym->sym() == SymId::noteheadParenthesisLeft || sym->sym() == SymId::noteheadParenthesisRight) {
-                        if (!rp.isNull())
-                              e->setOffset(QPointF());
-                        }
- */
                   }
             else
                   e->layout();
@@ -3107,7 +3113,7 @@ QString Note::accessibleInfo() const
       QString pitchName;
       const Drumset* drumset = part()->instrument()->drumset();
       if (fixed() && headGroup() == NoteHead::Group::HEAD_SLASH)
-            pitchName = chord()->noStem() ? QObject::tr("Beat Slash") : QObject::tr("Rhythm Slash");
+            pitchName = chord()->noStem() ? QObject::tr("Beat slash") : QObject::tr("Rhythm slash");
       else if (staff()->isDrumStaff(tick()) && drumset)
             pitchName = qApp->translate("drumset", drumset->name(pitch()).toUtf8().constData());
       else
@@ -3510,16 +3516,25 @@ void Note::setAccidentalType(AccidentalType type)
 
 Shape Note::shape() const
       {
+      QRectF r(bbox());
+      qreal extraTieDistance = score()->styleP(Sid::MinTieLength) * .5;       // make room for ties
+      if (_tieFor)
+            r.adjust(0.0, 0.0, extraTieDistance, 0.0);
+      if (_tieBack)
+            r.adjust(-extraTieDistance, 0.0, 0.0, 0.0);
+
 #ifndef NDEBUG
-      Shape shape(bbox(), name());
+      Shape shape(r, name());
       for (NoteDot* dot : _dots)
             shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()), dot->name());
       if (_accidental)
             shape.add(_accidental->bbox().translated(_accidental->pos()), _accidental->name());
-      for (auto e : _el)
-            shape.add(e->bbox().translated(e->pos()), e->name());
+      for (auto e : _el) {
+            if (e->autoplace() && e->visible())
+                  shape.add(e->bbox().translated(e->pos()), e->name());
+            }
 #else
-      Shape shape(bbox());
+      Shape shape(r);
       for (NoteDot* dot : _dots)
             shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()));
       if (_accidental)

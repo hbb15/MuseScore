@@ -1,7 +1,6 @@
 //=============================================================================
 //  MuseScore
 //  Linux Music Score Editor
-//  $Id: mixer.h 4388 2011-06-18 13:17:58Z wschweer $
 //
 //  Copyright (C) 2002-2016 Werner Schweer and others
 //
@@ -40,7 +39,9 @@ namespace Ms {
 //---------------------------------------------------------
 
 MixerDetails::MixerDetails(QWidget *parent) :
-      QWidget(parent), _mti(0)
+      QWidget(parent),
+      _mti(nullptr),
+      mutePerVoiceHolder(nullptr)
       {
       setupUi(this);
 
@@ -63,36 +64,13 @@ MixerDetails::MixerDetails(QWidget *parent) :
       }
 
 //---------------------------------------------------------
-//   ~MixerDetails
-//---------------------------------------------------------
-
-MixerDetails::~MixerDetails()
-      {
-      if (_mti) {
-            //Remove old attachment
-            _mti->midiMap()->articulation->removeListener(this);
-            }
-      }
-
-//---------------------------------------------------------
 //   setTrack
 //---------------------------------------------------------
 
 void MixerDetails::setTrack(MixerTrackItemPtr track)
       {
-      if (_mti) {
-            //Remove old attachment
-            Channel* chan = _mti->focusedChan();
-            chan->removeListener(this);
-            }
-
       _mti = track;
-
-      if (_mti) {
-            //Listen to new track
-            Channel* chan = _mti->focusedChan();
-            chan->addListener(this);
-            }
+      setNotifier(_mti ? _mti->focusedChan() : nullptr);
       updateFromTrack();
       }
 
@@ -103,6 +81,11 @@ void MixerDetails::setTrack(MixerTrackItemPtr track)
 
 void MixerDetails::updateFromTrack()
       {
+      if (mutePerVoiceHolder) {
+            mutePerVoiceHolder->deleteLater();
+            mutePerVoiceHolder = nullptr;
+            }
+
       if (!_mti) {
             drumkitCheck->setChecked(false);
             patchCombo->clear();
@@ -187,14 +170,16 @@ void MixerDetails::updateFromTrack()
       //Populate patch combo
       patchCombo->blockSignals(true);
       patchCombo->clear();
-      const QList<MidiPatch*> pl = synti->getPatchInfo();
+      const auto& pl = synti->getPatchInfo();
       int patchIndex = 0;
 
       for (const MidiPatch* p : pl) {
             if (p->drum == drum || p->synti != "Fluid") {
-                      patchCombo->addItem(p->name, QVariant::fromValue<void*>((void*)p));
-                      if (p->bank == chan->bank() && p->prog == chan->program())
-                              patchIndex = patchCombo->count() - 1;
+                  patchCombo->addItem(p->name, QVariant::fromValue<void*>((void*)p));
+                  if (p->synti == chan->synti() &&
+                      p->bank == chan->bank() &&
+                      p->prog == chan->program())
+                        patchIndex = patchCombo->count() - 1;
                   }
             }
       patchCombo->setCurrentIndex(patchIndex);
@@ -208,7 +193,6 @@ void MixerDetails::updateFromTrack()
             channelLabel->setText("");
       partNameLineEdit->setText(partName);
       partNameLineEdit->setToolTip(partName);
-
 
 
       trackColorLabel->blockSignals(true);
@@ -245,7 +229,60 @@ void MixerDetails::updateFromTrack()
       chorusSlider->blockSignals(false);
       chorusSpinBox->blockSignals(false);
 
+      //Set up mute per voice buttons
+      mutePerVoiceHolder = new QWidget();
+      mutePerVoiceArea->addWidget(mutePerVoiceHolder);
+
+      mutePerVoiceGrid = new QGridLayout();
+      mutePerVoiceHolder->setLayout(mutePerVoiceGrid);
+      mutePerVoiceGrid->setContentsMargins(0, 0, 0, 0);
+      mutePerVoiceGrid->setSpacing(7);
+
+      for (int staffIdx = 0; staffIdx < (*part->staves()).length(); ++staffIdx) {
+            Staff* staff = (*part->staves())[staffIdx];
+            for (int voice = 0; voice < VOICES; ++voice) {
+                  QPushButton* tb = new QPushButton;
+                  tb->setStyleSheet(
+                        QString("QPushButton{padding: 4px 8px 4px 8px;}QPushButton:checked{background-color:%1}")
+                        .arg(MScore::selectColor[voice].name()));
+                  tb->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+                  tb->setText(QString("%1").arg(voice + 1));
+                  tb->setCheckable(true);
+                  tb->setChecked(!staff->playbackVoice(voice));
+                  tb->setToolTip(QString(tr("Staff #%1")).arg(staffIdx + 1));
+
+                  mutePerVoiceGrid->addWidget(tb, staffIdx, voice);
+                  MixerDetailsVoiceButtonHandler* handler =
+                              new MixerDetailsVoiceButtonHandler(this, staffIdx, voice, tb);
+                  connect(tb, SIGNAL(toggled(bool)), handler, SLOT(setVoiceMute(bool)));
+                  }
+            }
       }
+
+//---------------------------------------------------------
+//   setVoiceMute
+//---------------------------------------------------------
+
+void MixerDetails::setVoiceMute(int staffIdx, int voice, bool shouldMute)
+      {
+      Part* part = _mti->part();
+      Staff* staff = part->staff(staffIdx);
+      switch (voice) {
+            case 0:
+                  staff->undoChangeProperty(Pid::PLAYBACK_VOICE1, !shouldMute);
+                  break;
+            case 1:
+                  staff->undoChangeProperty(Pid::PLAYBACK_VOICE2, !shouldMute);
+                  break;
+            case 2:
+                  staff->undoChangeProperty(Pid::PLAYBACK_VOICE3, !shouldMute);
+                  break;
+            case 3:
+                  staff->undoChangeProperty(Pid::PLAYBACK_VOICE4, !shouldMute);
+                  break;
+            }
+      }
+
 
 //---------------------------------------------------------
 //   partNameChanged
@@ -283,16 +320,6 @@ void MixerDetails::trackColorChanged(QColor col)
             }
 
       _mti->setColor(col.rgb());
-      }
-
-//---------------------------------------------------------
-//   disconnectChannelListener
-//---------------------------------------------------------
-
-void MixerDetails::disconnectChannelListener()
-      {
-      //Channel has been destroyed.  Don't remove listener when invoking destructor.
-      _mti = nullptr;
       }
 
 //---------------------------------------------------------

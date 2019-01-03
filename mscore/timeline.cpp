@@ -1203,23 +1203,23 @@ void Timeline::key_meta(Segment* seg, int* stagger, int pos)
       QString tooltip;
       if (new_key == Key::INVALID) {
             key_text = "X";
-            tooltip = keyNames[15];
+            tooltip = qApp->translate("MuseScore", keyNames[15]);
             }
       else if (new_key == Key::NUM_OF) {
             key_text = "?";
-            tooltip = tr("Custom Key");
+            tooltip = tr("Custom Key Signature");
             }
       else if (int(new_key) == 0) {
             key_text = "\u266E";
-            tooltip = keyNames[14];
+            tooltip = qApp->translate("MuseScore", keyNames[14]);
             }
       else if (int(new_key) < 0) {
             key_text = QString::number(abs(int(new_key))) + "\u266D";
-            tooltip = keyNames[(7 + int(new_key)) * 2 + 1];
+            tooltip = qApp->translate("MuseScore", keyNames[(7 + int(new_key)) * 2 + 1]);
             }
       else {
             key_text = QString::number(abs(int(new_key))) + "\u266F";
-            tooltip = keyNames[(int(new_key) - 1) * 2];
+            tooltip = qApp->translate("MuseScore", keyNames[(int(new_key) - 1) * 2]);
             }
 
       int x = pos + (*stagger) * spacing;
@@ -1751,8 +1751,8 @@ void Timeline::drawSelection()
 
       std::set<std::tuple<Measure*, int, ElementType>> meta_labels_set;
 
-      const Selection selection = _score->selection();
-      QList<Element*> el = selection.elements();
+      const Selection& selection = _score->selection();
+      const QList<Element*>& el = selection.elements();
       for (Element* element : el) {
             if (element->tick() == -1)
                   continue;
@@ -2471,7 +2471,8 @@ QColor Timeline::colorBox(QGraphicsRectItem* item)
             for (int track = stave * VOICES; track < stave * VOICES + VOICES; track++) {
                   ChordRest* chord_rest = seg->cr(track);
                   if (chord_rest) {
-                        if (chord_rest->type() == ElementType::CHORD)
+                        ElementType crt = chord_rest->type();
+                        if (crt == ElementType::CHORD || crt == ElementType::REPEAT_MEASURE)
                               return QColor(Qt::gray);
                         }
                   }
