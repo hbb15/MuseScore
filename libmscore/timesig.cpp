@@ -424,7 +424,7 @@ void TimeSig::draw(QPainter* painter) const
       if (staff() && !const_cast<const Staff*>(staff())->staffType(tick())->genTimesig())
             return;
       if (staff() && staff()->isNumericStaff( tick())) {
-          if(tick()==0 && staff() && (staff()->idx())<1){
+          if((tick()==0&&(staff()->idx())<1) || (staff()->idx())<1){
                 StaffType* numeric = staff()->staffType(tick());
 
                 QFont f(numeric->fretFont());

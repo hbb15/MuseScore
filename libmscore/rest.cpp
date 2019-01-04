@@ -95,10 +95,11 @@ void Rest::draw(QPainter* painter) const
             QColor c(curColor());
             painter->setPen(c);
             StaffType* tab = staff()->staffType(tick());
-
-            QFont f(tab->fretFont());
-            f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20 * magS());
-            painter->setFont(f);
+            
+            QFont font;
+            font.setFamily(score()->styleSt(Sid::numericFont));
+            font.setPointSizeF(tab->fretFontSize() * spatium() * MScore::pixelRatio / SPATIUM20);
+            painter->setFont(font);
             painter->setPen(c);
             painter->drawText(QPointF(0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement)), "0"+
                               getNumericDurationRest[int(durationType().type())]+
