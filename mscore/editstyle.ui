@@ -11643,16 +11643,6 @@
              </property>
             </widget>
            </item>
-           <item row="18" column="4">
-            <widget class="QLabel" name="label_213">
-             <property name="text">
-              <string>System header with time signature distance:</string>
-             </property>
-             <property name="buddy">
-              <cstring>systemHeaderTimeSigDistance</cstring>
-             </property>
-            </widget>
-           </item>
            <item row="4" column="4">
             <widget class="QLabel" name="label_217">
              <property name="text">
@@ -11769,16 +11759,6 @@
              <property name="icon">
               <iconset resource="musescore.qrc">
                <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="18" column="5">
-            <widget class="QDoubleSpinBox" name="systemHeaderTimeSigDistance_2">
-             <property name="suffix">
-              <string extracomment="spatium unit">sp</string>
-             </property>
-             <property name="singleStep">
-              <double>0.100000000000000</double>
              </property>
             </widget>
            </item>
@@ -11978,23 +11958,6 @@
              </property>
             </widget>
            </item>
-           <item row="18" column="6">
-            <widget class="QToolButton" name="resetSystemHeaderTimeSigDistance_2">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'System header to time signature distance' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="6">
             <widget class="QToolButton" name="resetNumericDistanceBetweenLines">
              <property name="toolTip">
@@ -12141,6 +12104,46 @@
              </property>
              <property name="accessibleName">
               <string>Reset 'Clef to time signature distance' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="4">
+            <widget class="QLabel" name="label_213">
+             <property name="text">
+              <string>Notenzeilen abstand</string>
+             </property>
+             <property name="buddy">
+              <cstring>systemHeaderTimeSigDistance</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="5">
+            <widget class="QDoubleSpinBox" name="numericStaffDistans">
+             <property name="suffix">
+              <string extracomment="spatium unit">sp</string>
+             </property>
+             <property name="maximum">
+              <double>1000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="6">
+            <widget class="QToolButton" name="resetNumericStaffDistans">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'System header to time signature distance' value</string>
              </property>
              <property name="text">
               <string notr="true"/>

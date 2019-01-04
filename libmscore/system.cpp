@@ -429,7 +429,12 @@ void System::layout2()
             int si1       = i->first;
             Staff* staff  = score()->staff(si1);
             auto ni       = i + 1;
-
+            if(staff && staff->isNumericStaff(0)){
+                  staffDistance       = score()->styleP(Sid::numericStaffDistans);
+                  }
+            else {
+                  staffDistance       = score()->styleP(Sid::staffDistance);
+                  }
             qreal h = staff->height();
             if (ni == visibleStaves.end()) {
 //                  ss->setYOff(staff->lines(0) == 1 ? _spatium * staff->mag(0) : 0.0);

@@ -3487,7 +3487,7 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
                               BarLine* bl = toBarLine(s.element(0));
                               if (bl) {
                                     qreal w = BarLine::layoutWidth(score(), bl->barLineType());
-                                    skyline.add(QRectF(0.0, 0.0, w, spatium() * 4.0).translated(bl->pos() + p));
+                                    skyline.add(QRectF(0.0, 0.0, w, 0.0).translated(bl->pos() + p));
                                     }
                               }
                         else {

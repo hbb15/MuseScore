@@ -1043,6 +1043,7 @@ static const StyleType styleTypes[] {
       { Sid::numericLedgerlineThick,        "numericLedgerlineThick",        0.06 },
       { Sid::numericLedgerlineLength,       "numericLedgerlineLength",       1.2 },
       { Sid::numericLedgerlineShift,        "numericLedgerlineShift",        0.0 },
+      { Sid::numericStaffDistans,           "numericStaffDistans",           Spatium(3.5) },
       };
 
 MStyle  MScore::_baseStyle;

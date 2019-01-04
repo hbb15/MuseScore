@@ -404,6 +404,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::numericLedgerlineThick,           false, numericLedgerlineThick,             resetNumericLedgerlineThick         },
       { Sid::numericLedgerlineLength,          false, numericLedgerlineLength,            resetNumericLedgerlineLength        },
       { Sid::numericLedgerlineShift,           false, numericLedgerlineShift,             resetNumericLedgerlineShift         },
+      { Sid::numericStaffDistans,              false, numericStaffDistans,                resetNumericStaffDistans            },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {
