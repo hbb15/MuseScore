@@ -57,6 +57,7 @@
 #include "navigator.h"
 #include "timeline.h"
 #include "importmidi/importmidi_panel.h"
+#include "importmidi/importmidi_instrument.h"
 #include "importmidi/importmidi_operations.h"
 #include "scorecmp/scorecmp.h"
 #include "script/recorderwidget.h"
@@ -2307,6 +2308,10 @@ void MuseScore::reloadInstrumentTemplates()
             for (auto instFile : instFiles)
                   loadInstrumentTemplates(instFile.absoluteFilePath());
             }
+
+      MidiInstr::instrumentTemplatesChanged();
+      if (importmidiPanel)
+            importmidiPanel->instrumentTemplatesChanged();
       }
 
 //---------------------------------------------------------
@@ -2795,12 +2800,39 @@ void MeasuresDialog::accept()
       }
 
 //---------------------------------------------------------
+//   rebuildAudioDrivers
+//---------------------------------------------------------
+
+void MuseScore::restartAudioEngine()
+      {
+      if (seq)
+            seq->exit();
+
+      if (seq) {
+            Driver* driver = driverFactory(seq, "");
+            if (driver) {
+                  // Updating synthesizer's sample rate
+                  if (seq->synti()) {
+                        seq->synti()->setSampleRate(driver->sampleRate());
+                        seq->synti()->init();
+                        }
+                  seq->setDriver(driver);
+                  }
+            if (!seq->init())
+                  qDebug("sequencer init failed");
+            }
+      }
+
+//---------------------------------------------------------
 //   midiinToggled
 //---------------------------------------------------------
 
 void MuseScore::midiinToggled(bool val)
       {
       _midiinEnabled = val;
+
+      if (_midiinEnabled)
+            restartAudioEngine();
       }
 
 //---------------------------------------------------------

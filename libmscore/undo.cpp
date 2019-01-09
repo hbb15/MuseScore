@@ -1585,7 +1585,7 @@ std::vector<Clef*> InsertRemoveMeasures::getCourtesyClefs(Measure* m)
             if (clefSeg) {
                   for (int st = 0; st < score->nstaves(); ++st) {
                         Element* clef = clefSeg->element(staff2track(st));
-                        if (clef->isClef())
+                        if (clef && clef->isClef())
                               startClefs.push_back(toClef(clef));
                         }
                   }
@@ -2197,6 +2197,20 @@ void InsertTime::redo(EditData*)
 void InsertTime::undo(EditData*)
       {
       score->insertTime(tick, -len);
+      }
+
+//---------------------------------------------------------
+//   InsertTimeUnmanagedSpanner::flip
+//---------------------------------------------------------
+
+void InsertTimeUnmanagedSpanner::flip(EditData*)
+      {
+      for (Score* s : score->scoreList()) {
+            const auto unmanagedSpanners(s->unmanagedSpanners());
+            for (Spanner* sp : unmanagedSpanners)
+                  sp->insertTimeUnmanaged(tick, len);
+            }
+      len = -len;
       }
 
 //---------------------------------------------------------

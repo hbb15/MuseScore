@@ -1440,11 +1440,19 @@ void Score::cmdFlip()
                || e->isFermata()
                || e->isLyrics()
                || e->isTrillSegment()) {
+                  e->undoChangeProperty(Pid::AUTOPLACE, true);
                   // getProperty() delegates call from spannerSegment to Spanner:
                   Placement p = Placement(e->getProperty(Pid::PLACEMENT).toInt());
                   p = (p == Placement::ABOVE) ? Placement::BELOW : Placement::ABOVE;
-                  e->undoChangeProperty(Pid::AUTOPLACE, true);
-                  e->undoChangeProperty(Pid::PLACEMENT, int(p), PropertyFlags::UNSTYLED);
+                  // TODO: undoChangeProperty() should probably do this directly
+                  // see https://musescore.org/en/node/281432
+                  Element* ee = e->propertyDelegate(Pid::PLACEMENT);
+                  if (!ee)
+                        ee = e;
+                  PropertyFlags pf = ee->propertyFlags(Pid::PLACEMENT);
+                  if (pf == PropertyFlags::STYLED)
+                        pf = PropertyFlags::UNSTYLED;
+                  ee->undoChangeProperty(Pid::PLACEMENT, int(p), pf);
                   }
             }
       }
@@ -1589,6 +1597,7 @@ void Score::deleteItem(Element* el)
                                     if (toRest(del)->isGap())
                                           undoRemoveElement(del);
                                     }
+                              checkSpanner(m->tick(), m->endTick());
                               }
                         else {
                               // check if the other rest could be combined
@@ -3026,7 +3035,15 @@ void Score::timeDelete(Measure* m, Segment* startSegment, const Fraction& f)
                                     }
 
                               if (cr->isFullMeasureRest()) {
-                                    cr->setDuration(cr->duration() - f);
+                                    if (cr->rtick() >= tick) {
+                                          // Move full-measure rest from the deleted area
+                                          undoRemoveElement(cr);
+                                          ChordRest* newCR = toChordRest(cr->clone());
+                                          newCR->setDuration(cr->duration() - f);
+                                          undoAddCR(newCR, m, m->tick() + etick);
+                                          }
+                                    else
+                                          cr->undoChangeProperty(Pid::DURATION, cr->duration() - f);
                                     }
                               // inside deleted area
                               else if (s->rtick() >= tick && cetick <= etick) {
@@ -4775,12 +4792,7 @@ void Score::undoInsertTime(int tick, int len)
                   }
             }
 
-      for (auto i = _unmanagedSpanner.begin(); i != _unmanagedSpanner.end();) {
-            auto ni = i;
-            ++ni;
-            (*i)->undoInsertTimeUnmanaged(tick, len); // may remove spanner from list
-            i = ni;
-            }
+      undo(new InsertTimeUnmanagedSpanner(this, tick, len));
       }
 
 //---------------------------------------------------------

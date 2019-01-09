@@ -3592,9 +3592,9 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             Slur* slur = toSlur(s);
             ChordRest* scr = s->startCR();
             ChordRest* ecr = s->endCR();
-            if (scr->isChord())
+            if (scr && scr->isChord())
                   toChord(scr)->layoutArticulations3(slur);
-            if (ecr->isChord())
+            if (ecr && ecr->isChord())
                   toChord(ecr)->layoutArticulations3(slur);
             }
 
@@ -3640,6 +3640,7 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
       //-------------------------------------------------------------
 
       spanner.clear();
+      std::vector<Spanner*> hairpins;
       std::vector<Spanner*> ottavas;
       std::vector<Spanner*> pedal;
       std::vector<Spanner*> voltas;
@@ -3653,10 +3654,13 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
                         pedal.push_back(sp);
                   else if (sp->isVolta())
                         voltas.push_back(sp);
+                  else if (sp->isHairpin())
+                        hairpins.push_back(sp);
                   else if (!sp->isSlur() && !sp->isVolta())    // slurs are already
                         spanner.push_back(sp);
                   }
             }
+      processLines(system, hairpins, false);
       processLines(system, spanner, false);
 
       //-------------------------------------------------------------
@@ -4108,8 +4112,10 @@ void Score::doLayoutRange(int stick, int etick)
 
       if (cmdState().layoutFlags & LayoutFlag::FIX_PITCH_VELO)
             updateVelo();
+#if 0 // TODO: needed? It was introduced in ab9774ec4098512068b8ef708167d9aa6e702c50
       if (cmdState().layoutFlags & LayoutFlag::PLAY_EVENTS)
             createPlayEvents();
+#endif
 
       //---------------------------------------------------
       //    initialize layout context lc

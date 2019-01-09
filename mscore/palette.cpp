@@ -720,29 +720,33 @@ void PaletteScrollArea::keyPressEvent(QKeyEvent* event)
       {
       QWidget* w = this->widget();
       Palette* p = static_cast<Palette*>(w);
-      if (event->key() == Qt::Key_Right) {
-            int i = p->getSelectedIdx();
-            if (i == -1)
-                  p->setSelected(0);
-            i++;
-            if (i >= 0 && i < p->size())
-                  p->setSelected(i);
-            else
-                  p->setSelected(0);
-
-            p->update();
-            }
-      else if (event->key() == Qt::Key_Left) {
-            int i = p->getSelectedIdx();
-            if (i == -1)
-                  p->setSelected(p->size()-1);
-            i--;
-            if (i >= 0 && i < p->size())
-                  p->setSelected(i);
-            else
-                  p->setSelected(p->size()-1);
-
-            p->update();
+      int pressedKey = event->key();
+      switch (pressedKey) {
+            case Qt::Key_Right:
+            case Qt::Key_Left:
+            case Qt::Key_Up:
+            case Qt::Key_Down:
+                  {
+                  int idx = p->getSelectedIdx();
+                  if (pressedKey == Qt::Key_Left || pressedKey == Qt::Key_Up)
+                        idx--;
+                  else
+                        idx++;
+                  if (idx < 0)
+                        idx = p->size() - 1;
+                  else if (idx >= p->size())
+                        idx = 0;
+                  p->setSelected(idx);
+                  // Set widget name to name of selected key signature. We could
+                  // set the description, but some screen readers ignore it.
+                  setAccessibleName(qApp->translate("Palette", p->cellAt(idx)->name.toUtf8()));
+                  QAccessibleEvent event(this, QAccessible::NameChanged);
+                  QAccessible::updateAccessibility(&event);
+                  p->update();
+                  break;
+                  }
+            default:
+                  break;
             }
       QScrollArea::keyPressEvent(event);
       }
@@ -763,6 +767,11 @@ void Palette::mouseDoubleClickEvent(QMouseEvent* ev)
             return;
       if (score->selection().isNone())
             return;
+      
+      // exit edit mode, to allow for palette element to be applied properly
+      ScoreView* viewer = mscore->currentScoreView();
+      if (viewer && viewer->editMode() && !(viewer->mscoreState() & STATE_ALLTEXTUAL_EDIT))
+            viewer->changeState(ViewState::NORMAL);
 
       applyPaletteElement(cellAt(i), ev->modifiers());
       }
