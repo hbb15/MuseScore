@@ -4031,6 +4031,32 @@ void LayoutContext::collectPage()
                               }
                         }
                   m->layout2();
+
+                  for (int track = 0; track < currentScore->ntracks(); ++track) {
+                        for (Segment* segment = m->first(); segment; segment = segment->next()) {
+                              Element* e = segment->element(track);
+
+                              if (!e)
+                                    continue;
+                              else if (e->isTimeSig()&&segment->isTimeSigType()){
+                                    if(toTimeSig(e)->get_numericVisible()){
+                                          qreal w=0.0;
+                                          if(m->first() && m->first()->firstElement(0) && m->first()->isBeginBarLineType())
+                                                w = m->first()->firstElement(0)->width();
+                                          if(m->prevMeasure() && m->prevMeasure()->last() && m->prevMeasure()->last()->firstElement(0)
+                                                  && m->prevMeasure()->last()->isEndBarLineType())
+                                                w =qMax(w, m->prevMeasure()->last()->firstElement(0)->width());
+                                          if(m->prevMeasure() && m->prevMeasure()->last() && m->prevMeasure()->last()->prev()
+                                                  && m->prevMeasure()->last()->prev()->firstElement(0)
+                                                  && m->prevMeasure()->last()->prev()->isEndBarLineType())
+                                                w =qMax(w, m->prevMeasure()->last()->prev()->firstElement(0)->width());
+                                          TimeSig* sig1 = toTimeSig(e);
+                                          sig1->set_numericXpos(-segment->rxpos()- w);
+                                          sig1->layout2();
+                                          }
+                                    }
+                              }
+                        }
                   }
             }
 

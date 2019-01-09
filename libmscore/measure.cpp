@@ -3979,18 +3979,7 @@ void Measure::computeMinWidth(Segment* s, qreal x, bool isSystemHeader)
 
       while (s) {
 
-            if ((s->segmentType() == SegmentType::TimeSig && s->element(0)->staff()->isNumericStaff( tick())) ||
-                (s->segmentType() == SegmentType::KeySig && s->element(0)->staff()->isNumericStaff( tick()))) {
-                  qreal temp =fs->x()-10.0;
-                  s->rxpos() = temp;
-                  s->setWidth(0.0);
-                  s = s->next();
-                  continue;
-                  }
-            else {
-
-                  s->rxpos() = x;
-                  }
+            s->rxpos() = x;
             if (!s->enabled()) {
                   s->setWidth(0);
                   s = s->next();

@@ -1019,6 +1019,10 @@ enum class Sid {
       numericLedgerlineLength,
       numericLedgerlineShift,
       numericStaffDistans,
+      numericTimeSigSize,
+      numericTimeSigDistance,
+      numericTimeSigLineThick,
+      numericTimeSigLineSize,
 
       STYLES
       };

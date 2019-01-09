@@ -45,6 +45,9 @@ class TimeSig final : public Element {
       QString _numeric_ds;
 
       qreal _numericlinethick;
+      qreal _numericXpos;
+      qreal _numericHigth;
+      bool _numericVisible;
 
 
       std::vector<SymId> ns;
@@ -82,6 +85,7 @@ class TimeSig final : public Element {
       virtual void write(XmlWriter& xml) const override;
       virtual void read(XmlReader&) override;
       virtual void layout() override;
+      void layout2();
       virtual Shape shape() const override;
 
       Fraction sig() const               { return _sig; }
@@ -114,7 +118,10 @@ class TimeSig final : public Element {
       void setScale(const QSizeF& s)      { _scale = s; }
 
       qreal numericGetWidth(StaffType* numeric, QString string)const;
-
+      void set_numericVisible(bool s)      { _numericVisible = s; }
+      bool get_numericVisible() const  { return _numericVisible; }
+      void set_numericXpos(qreal s)      { _numericXpos = s; }
+      qreal get_numericXpos() const  { return _numericXpos; }
 
       void setFrom(const TimeSig*);
 

@@ -405,6 +405,10 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::numericLedgerlineLength,          false, numericLedgerlineLength,            resetNumericLedgerlineLength        },
       { Sid::numericLedgerlineShift,           false, numericLedgerlineShift,             resetNumericLedgerlineShift         },
       { Sid::numericStaffDistans,              false, numericStaffDistans,                resetNumericStaffDistans            },
+      { Sid::numericTimeSigSize,               false, numericTimeSigSize,                 resetNumericTimeSigSize             },
+      { Sid::numericTimeSigDistance,           false, numericTimeSigDistance,             resetNumericTimeSigDistance         },
+      { Sid::numericTimeSigLineThick,          false, numericTimeSigLineThick,            resetNumericTimeSigLineThick        },
+      { Sid::numericTimeSigLineSize,           false, numericTimeSigLineSize,             resetNumericTimeSigLineSize         },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {

@@ -1044,6 +1044,10 @@ static const StyleType styleTypes[] {
       { Sid::numericLedgerlineLength,       "numericLedgerlineLength",       1.2 },
       { Sid::numericLedgerlineShift,        "numericLedgerlineShift",        0.0 },
       { Sid::numericStaffDistans,           "numericStaffDistans",           Spatium(3.5) },
+      { Sid::numericTimeSigSize,            "numericTimeSigSize",            0.95 },
+      { Sid::numericTimeSigDistance,        "numericTimeSigDistance",        0.15 },
+      { Sid::numericTimeSigLineThick,       "numericTimeSigLineThick",       0.09 },
+      { Sid::numericTimeSigLineSize,        "numericTimeSigLineSize",        1.0 },
       };
 
 MStyle  MScore::_baseStyle;
