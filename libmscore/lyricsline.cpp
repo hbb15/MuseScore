@@ -356,6 +356,8 @@ void LyricsLineSegment::layout()
             lyr         = nextLyr = lyricsLine()->nextLyrics();
             sys         = lyr->segment()->system();
             endOfSystem = (sys != system());
+            if(!sys)
+                  return;
             // if next lyrics is on a different system, this line segment is at the end of its system:
             // do not adjust for next lyrics position
             if (!endOfSystem) {

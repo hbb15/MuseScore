@@ -855,6 +855,8 @@ QVariant ChordRest::propertyDefault(Pid propertyId) const
 
 bool ChordRest::isGrace() const
       {
+      if(!this)
+            return false;
       return isChord() && toChord(this)->isGrace();
       }
 

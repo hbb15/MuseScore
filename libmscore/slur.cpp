@@ -605,7 +605,7 @@ void Slur::slurPos(SlurPos* sp)
       if (note2 && !note2->mirror())
             sp->p2.rx() += note2->x();
 
-      if(staff() && staff()->isNumericStaff(endCR()->tick())){
+      if(staff() && note1 && note2&& staff()->isNumericStaff(endCR()->tick())){
             _numericWidth=note1->get_numericWidth();
             sp->p1.rx() +=note1->get_numericWidth()*0.5-note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
             sp->p2.rx() +=note2->get_numericWidth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);

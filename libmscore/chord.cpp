@@ -2582,11 +2582,6 @@ void Chord::layoutNumeric()
                   _hook->setNumericHookDimension(note->get_numericWidth(),note->get_numericHigth());
                   }
             _hook->layout();
-            if (up()) {
-                  // hook position is not set yet
-                  qreal x = _hook->bbox().right() + stem()->hookPos().x();
-                  rrr = qMax(rrr, x);
-                  }
 
             }
 
