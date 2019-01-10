@@ -4059,6 +4059,11 @@ void LayoutContext::collectPage()
                                           sig1->layout2();
                                           }
                                     }
+                              else if (e->isKeySig()){
+                                    KeySig* sig1 = toKeySig(e);
+                                    sig1->set_numericXpos(-segment->rxpos());
+                                    sig1->layout2();
+                                    }
                               }
                         }
                   }

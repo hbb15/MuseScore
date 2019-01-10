@@ -677,9 +677,10 @@ qreal TimeSig::numericGetWidth(StaffType* numeric, QString string) const
       {
       qreal val;
       if (numeric) {
-            QFont f    = numeric->fretFont();
-            f.setPointSizeF(numeric->fretFontSize() * score()->styleD(Sid::numericTimeSigSize));
-            QFontMetricsF fm(f, MScore::paintDevice());
+            QFont font;
+            font.setFamily(score()->styleSt(Sid::numericFont));
+            font.setPointSizeF(numeric->fretFontSize() * score()->styleD(Sid::numericTimeSigSize));
+            QFontMetricsF fm(font, MScore::paintDevice());
             val  = fm.width(string) * magS();
             }
       else

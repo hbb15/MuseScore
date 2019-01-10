@@ -36,6 +36,8 @@ class KeySig final : public Element {
       void addLayout(SymId sym, qreal x, int y);
       QString _numericString;
       QPointF _numericPoint;
+      qreal _numericXpos;
+      bool _numericEnable;
       bool _keyListSave = false;
       int _keyListSaveTick = 0;
       KeySigEvent _keyListSaveSig;
@@ -50,6 +52,7 @@ class KeySig final : public Element {
       virtual bool acceptDrop(EditData&) const override;
       virtual Element* drop(EditData&) override;
       virtual void layout() override;
+      void layout2();
       virtual Shape shape() const override;
       virtual qreal mag() const override;
 
@@ -87,6 +90,8 @@ class KeySig final : public Element {
       virtual QString accessibleInfo() const override;
 
       qreal numericGetWidth(StaffType* numeric, QString string) const;
+      void set_numericXpos(qreal s)      { _numericXpos = s; }
+      qreal get_numericXpos() const  { return _numericXpos; }
 
       SymId convertFromOldId(int val) const;
       };
