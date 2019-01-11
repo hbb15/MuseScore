@@ -1048,6 +1048,11 @@ static const StyleType styleTypes[] {
       { Sid::numericTimeSigDistance,        "numericTimeSigDistance",        0.15 },
       { Sid::numericTimeSigLineThick,       "numericTimeSigLineThick",       0.09 },
       { Sid::numericTimeSigLineSize,        "numericTimeSigLineSize",        1.0 },
+      { Sid::numericTimeSigFont,            "numericTimeSigFont",            "FreeSerif" },
+      { Sid::numericKeySigFont,             "numericKeySigFont",             "FreeSerif" },
+      { Sid::numericKeySigSize,             "numericKeySigSize",             0.95 },
+      { Sid::numericKeySigHorizontalShift,  "numericKeySigHorizontalShift",  1.0 },
+      { Sid::numericKeySigHigth,            "numericKeySigHigth",            2.5 },
       };
 
 MStyle  MScore::_baseStyle;

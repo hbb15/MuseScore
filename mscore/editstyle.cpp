@@ -409,6 +409,11 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::numericTimeSigDistance,           false, numericTimeSigDistance,             resetNumericTimeSigDistance         },
       { Sid::numericTimeSigLineThick,          false, numericTimeSigLineThick,            resetNumericTimeSigLineThick        },
       { Sid::numericTimeSigLineSize,           false, numericTimeSigLineSize,             resetNumericTimeSigLineSize         },
+      { Sid::numericTimeSigFont,               false, numericTimeSigFont,                 resetNumericTimeSigFont             },
+      { Sid::numericKeySigFont,                false, numericKeySigFont,                  resetNumericKeySigFont              },
+      { Sid::numericKeySigSize,                false, numericKeySigSize,                  resetNumericKeySigSize              },
+      { Sid::numericKeySigHorizontalShift,     false, numericKeySigHorizontalShift,       resetNumericKeySigHorizontalShift   },
+      { Sid::numericKeySigHigth,               false, numericKeySigHigth,                 resetNumericKeySigHigth             },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {
@@ -437,6 +442,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       tupletBracketType->addItem(tr("None"), int(TupletBracketType::SHOW_NO_BRACKET));
 
       pageList->setCurrentRow(0);
+      numericListPage->setCurrentRow(0);
       accidentalsGroup->setVisible(false); // disable, not yet implemented
 
       musicalSymbolFont->clear();

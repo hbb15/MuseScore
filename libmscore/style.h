@@ -1023,6 +1023,11 @@ enum class Sid {
       numericTimeSigDistance,
       numericTimeSigLineThick,
       numericTimeSigLineSize,
+      numericTimeSigFont,
+      numericKeySigFont,
+      numericKeySigSize,
+      numericKeySigHorizontalShift,
+      numericKeySigHigth,
 
       STYLES
       };

@@ -229,10 +229,12 @@ void KeySig::layout()
                   int sigMode =int(_sig.mode())-1;
                   if(sigMode < 0 || sigMode > 2)
                         sigMode =0;
+                  qreal heigth = numeric->fretBoxH() * magS() * score()->styleD(Sid::numericKeySigSize);
                   _numericString = NumericString[int(_sig.key())+7][sigMode];
-                  _numericPoint = QPointF(0, numeric->fretBoxH() * magS()*-4);
+                  _numericPoint = QPointF(0 * score()->styleD(Sid::numericKeySigHorizontalShift),
+                                          heigth * -score()->styleD(Sid::numericKeySigHigth));
                   qreal wd = numericGetWidth(numeric, _numericString);
-                  QRectF denRect = QRectF(_numericPoint.x(), _numericPoint.y()-numeric->fretBoxH(), wd, numeric->fretBoxH() * magS());
+                  QRectF denRect = QRectF(_numericPoint.x(), _numericPoint.y()-heigth, wd, heigth);
                   setbbox(denRect);
                   }
             else {
@@ -360,13 +362,13 @@ void KeySig::draw(QPainter* p) const
       {
     if (staff() && staff()->isNumericStaff( tick())) {
         if((tick()==0 || staff()->key(tick()-1) != _sig.key()) && staff() && (staff()->idx())<1){
-                    StaffType* tab = staff()->staffType(tick());
+                    StaffType* numeric = staff()->staffType(tick());
 
-                    QFont f(tab->fretFont());
-
+                    QFont font;
+                    font.setFamily(score()->styleSt(Sid::numericKeySigFont));
+                    font.setPointSizeF(numeric->fretFontSize() * spatium() * score()->styleD(Sid::numericKeySigSize) * MScore::pixelRatio / SPATIUM20);
                     QColor c(curColor());
-                    f.setPointSizeF(f.pointSizeF() * spatium() * MScore::pixelRatio / SPATIUM20);
-                    p->setFont(f);
+                    p->setFont(font);
                     p->setPen(c);
                     p->drawText(_numericPoint,_numericString);
                   }
@@ -742,9 +744,10 @@ qreal KeySig::numericGetWidth(StaffType* numeric, QString string) const
       {
       qreal val;
       if (numeric) {
-            QFont f    = numeric->fretFont();
-            f.setPointSizeF(numeric->fretFontSize());
-            QFontMetricsF fm(f, MScore::paintDevice());
+            QFont font;
+            font.setFamily(score()->styleSt(Sid::numericKeySigFont));
+            font.setPointSizeF(numeric->fretFontSize() * score()->styleD(Sid::numericKeySigSize));
+            QFontMetricsF fm(font, MScore::paintDevice());
             val  = fm.width(string) * magS();
             }
       else
