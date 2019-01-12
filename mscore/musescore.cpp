@@ -721,7 +721,7 @@ bool MuseScore::importExtension(QString path)
       infoMsgBox->setMinimumSize(300, 100);
       infoMsgBox->setMaximumSize(300, 100);
       infoMsgBox->setStandardButtons(0);
-      infoMsgBox->setText(QString("<p align='center'>") + tr("Please wait, unpacking extension...") + QString("</p>"));
+      infoMsgBox->setText(QString("<p align='center'>") + tr("Please wait, unpacking extension…") + QString("</p>"));
 
       //setup async run of long operations
       QFutureWatcher<bool> futureWatcherUnzip;
@@ -795,7 +795,7 @@ bool MuseScore::importExtension(QString path)
             QFutureWatcher<void> futureWatcherLoadSFs;
             futureWatcherLoadSFs.setFuture(futureLoadSFs);
             connect(&futureWatcherLoadSFs, SIGNAL(finished()), this, SLOT(onLongOperationFinished()));
-            infoMsgBox->setText(QString("<p align='center'>") + tr("Please wait, loading soundfonts...") + QString("</p>"));
+            infoMsgBox->setText(QString("<p align='center'>") + tr("Please wait, loading soundfonts…") + QString("</p>"));
             if (!MScore::noGui)
                   infoMsgBox->exec();
             else
@@ -1932,7 +1932,7 @@ void MuseScore::retranslate()
       menuView->setTitle(tr("&View"));
       menuToolbars->setTitle(tr("&Toolbars"));
       menuWorkspaces->setTitle(tr("W&orkspaces"));
-      pref->setText(tr("&Preferences..."));
+      pref->setText(tr("&Preferences…"));
       menuAdd->setTitle(tr("&Add"));
       menuAddMeasures->setTitle(tr("&Measures"));
       menuAddFrames->setTitle(tr("&Frames"));
@@ -1949,9 +1949,9 @@ void MuseScore::retranslate()
       menuHelp->setTitle(tr("&Help"));
       menuTours->setTitle(tr("&Tours"));
 
-      aboutAction->setText(tr("&About..."));
-      aboutQtAction->setText(tr("About &Qt..."));
-      aboutMusicXMLAction->setText(tr("About &MusicXML..."));
+      aboutAction->setText(tr("&About…"));
+      aboutQtAction->setText(tr("About &Qt…"));
+      aboutMusicXMLAction->setText(tr("About &MusicXML…"));
       onlineHandbookAction->setText(tr("&Online Handbook"));
       if (checkForUpdateAction)
             checkForUpdateAction->setText(tr("Check for &Update"));
@@ -2320,11 +2320,12 @@ void MuseScore::reloadInstrumentTemplates()
 
 void MuseScore::askResetOldScorePositions(Score* score)
       {
-      if (score->mscVersion() < 300 && score->mscVersion() > 114) {
+      if (score->mscVersion() < 300) {
             QMessageBox msgBox;
-            QString question = tr("Reset all elements positions?");
+            QString question = tr("Reset the positions of all elements?");
             msgBox.setWindowTitle(question);
-            msgBox.setText(tr("This score was created in older versions of MuseScore. For a better experience of using MuseScore 3.0 it is recommended to reset elements positions to their default values.") + "\n\n" + question);
+            msgBox.setText(tr("To best take advantage of automatic placement in MuseScore 3 when importing '%1' from MuseScore %2, it is recommended to reset the positions of all elements.")
+                           .arg(score->masterScore()->fileInfo()->completeBaseName(), score->mscoreVersion()) + "\n\n" + question);
             msgBox.setIcon(QMessageBox::Question);
             msgBox.setStandardButtons(
                QMessageBox::Yes | QMessageBox::No
@@ -4489,7 +4490,7 @@ AboutBoxDialog::AboutBoxDialog()
       copyrightLabel->setText(QString("<span style=\"font-size:10pt;\">%1</span>")
                               .arg(tr(   "Visit %1www.musescore.org%2 for new versions and more information.\n"
                                          "Support MuseScore with your %3donation%4.\n\n"
-                                         "Copyright &copy; 1999-2018 Werner Schweer and Others.\n"
+                                         "Copyright &copy; 1999-2019 Werner Schweer and Others.\n"
                                          "Published under the GNU General Public License.")
                                    .arg("<a href=\"http://www.musescore.org/\">")
                                    .arg("</a>")
@@ -6633,7 +6634,7 @@ bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled)
       progress.setWindowModality(Qt::ApplicationModal);
       //progress.setCancelButton(0);
       progress.setCancelButtonText(tr("Cancel"));
-      progress.setLabelText(tr("Exporting..."));
+      progress.setLabelText(tr("Exporting…"));
       if (!MScore::noGui)
             progress.show();
 
