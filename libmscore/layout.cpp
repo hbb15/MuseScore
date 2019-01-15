@@ -2232,11 +2232,13 @@ void Score::createBeams(Measure* measure)
                         Beam::Mode mode = cr->beamMode();
                         if (mode == Beam::Mode::MID || mode == Beam::Mode::END) {
                               ChordRest* prevCR = findCR(measure->tick() - 1, track);
-                              const Measure* pm = prevCR->measure();
-                              if (prevCR && !beamNoContinue(prevCR->beamMode())
-                                 && !pm->lineBreak() && !pm->pageBreak() && !pm->sectionBreak()) {
-                                    beam = prevCR->beam();
-                                    a1 = beam ? beam->elements().front() : prevCR;
+                              if (prevCR) {
+                                    const Measure* pm = prevCR->measure();
+                                    if (!beamNoContinue(prevCR->beamMode())
+                                        && !pm->lineBreak() && !pm->pageBreak() && !pm->sectionBreak()) {
+                                          beam = prevCR->beam();
+                                          a1 = beam ? beam->elements().front() : prevCR;
+                                          }
                                     }
                               }
                         }
@@ -4183,8 +4185,11 @@ void Score::doLayoutRange(int stick, int etick)
                   lc.tick      = 0;
                   }
             else {
-                  lc.measureNo = lc.nextMeasure->prevMeasure()->no() + 1; // will be adjusted later with respect
-                                                                          // to the user-defined offset.
+                  if (lc.nextMeasure->prevMeasure()->sectionBreak())
+                        lc.measureNo = 0;
+                  else
+                        lc.measureNo = lc.nextMeasure->prevMeasure()->no() + 1; // will be adjusted later with respect
+                                                                                // to the user-defined offset.
                   lc.tick      = lc.nextMeasure->tick();
                   }
             }
