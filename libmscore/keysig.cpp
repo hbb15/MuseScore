@@ -220,6 +220,7 @@ void KeySig::layout()
       // add prefixed naturals, if any
 
       if (staff() && staff()->isNumericStaff( tick())) {
+            rxpos() = 0.0;
             if((tick()==0 || staff()->key(tick()-1) != _sig.key()) && staff() && (staff()->idx())<1){
                   _numericEnable= enabled();
                   setEnabled(false);
