@@ -427,6 +427,7 @@ void Rest::layout()
             _numericLineWidht=numericGetWidthRest(numeric,_fretString);
             QRectF hookbox = QRectF(0.0, numeric->fretBoxY() * magS(), _numericLineWidht, numeric->fretBoxH() * magS());
             _numericHigth = hookbox.height();
+            staff()->set_numericHeight(_numericHigth);
             _numericLineThick=_numericHigth*score()->styleD(Sid::numericThickLine);
             _numericLineSpace=_numericHigth*(score()->styleD(Sid::numericDistanceBetweenLines)*-1);
             _numericHigthLine=_numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_numericHigth-_numericHigth*score()->styleD(Sid::numericHeigthLine);

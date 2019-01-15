@@ -324,26 +324,30 @@ void BarLine::getY() const
 
       if(staff()->isNumericStaff(tick)){
 
-            int staffIdx0      = staffIdx1;
-            bool spanStavesEnd     = false;
+            bool spanStavesbefor     = false;
+            int staffbefor=staffIdx1;
             for (int i2 = staffIdx1 - 1; i2 >= 0; --i2)  {
                   Staff* s = score()->staff(i2);
                   if (s && !s->invisible() && s->part()->show() && measure->visible(i2)) {
                         BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
-                        if(nbl && nbl->spanStaff())
-                        spanStavesEnd = true;
-                        staffIdx0  = i2;
+                        if(nbl && nbl->spanStaff()){
+                              spanStavesbefor = true;
+                              staffbefor=i2;
+                              }
                         break;
                         }
                   }
             if (spanStaves){
                   y1 = 0.0;
+                  if (spanStavesbefor){
+                        y1 = -(yp - measure->staffLines(staffbefor)->y1())*0.6  - from;
+                        }
 
-                  y2 = measure->staffLines(staffIdx2)->y1() - yp - to;
+                  y2 = (measure->staffLines(staffIdx2)->y1() - yp)*0.6 - to;
                   }
-            else if (spanStavesEnd){
+            else if (spanStavesbefor){
 
-                  y1 = -1.0;
+                  y1 = -(yp - measure->staffLines(staffbefor)->y1())*0.6  - from;
 
                   y2 = 0.0;
                   }
