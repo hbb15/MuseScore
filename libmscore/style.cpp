@@ -1096,6 +1096,7 @@ static const StyleType styleTypes[] {
       { Sid::numericKeySigSize,             "numericKeySigSize",             0.95 },
       { Sid::numericKeySigHorizontalShift,  "numericKeySigHorizontalShift",  1.0 },
       { Sid::numericKeySigHigth,            "numericKeySigHigth",            2.5 },
+      { Sid::numericBarlineLength,          "numericBarlineLength",          1.0 },
       };
 
 MStyle  MScore::_baseStyle;

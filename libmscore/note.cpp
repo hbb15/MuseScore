@@ -2197,6 +2197,7 @@ void Note::layout()
             _fretStringYShift=((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
             bbox().setRect(0.0, numeric->fretBoxY() * mags, _numericWidth, numeric->fretBoxH() * mags);
             _numericHigth = bbox().height();
+            staff()->set_numericHeight(_numericHigth);
             }
       else {
             SymId nh = noteHead();

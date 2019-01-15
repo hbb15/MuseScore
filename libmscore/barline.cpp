@@ -321,6 +321,39 @@ void BarLine::getY() const
       qreal d  = st1->lineDistance().val() * spatium1;
       qreal yy = measure->staffLines(staffIdx1)->y1() - yp;
       qreal lw = score()->styleS(Sid::staffLineWidth).val() * spatium1 * .5;
+
+      if(staff()->isNumericStaff(tick)){
+
+            int staffIdx0      = staffIdx1;
+            bool spanStavesEnd     = false;
+            for (int i2 = staffIdx1 - 1; i2 >= 0; --i2)  {
+                  Staff* s = score()->staff(i2);
+                  if (s && !s->invisible() && s->part()->show() && measure->visible(i2)) {
+                        BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
+                        if(nbl && nbl->spanStaff())
+                        spanStavesEnd = true;
+                        staffIdx0  = i2;
+                        break;
+                        }
+                  }
+            if (spanStaves){
+                  y1 = 0.0;
+
+                  y2 = measure->staffLines(staffIdx2)->y1() - yp - to;
+                  }
+            else if (spanStavesEnd){
+
+                  y1 = -1.0;
+
+                  y2 = 0.0;
+                  }
+            else {
+
+                  y1 = -staff()->get_numericHeight() * score()->styleD(Sid::numericBarlineLength);
+                  y2 = staff()->get_numericHeight() * score()->styleD(Sid::numericBarlineLength);
+                  }
+            return;
+            }
       y1       = yy + from * d * .5 - lw;
       if (spanStaves)
             y2 = measure->staffLines(staffIdx2)->y1() - yp - to * d * .5;

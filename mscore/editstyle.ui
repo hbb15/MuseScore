@@ -11068,7 +11068,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>5</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="page_3">
            <layout class="QGridLayout" name="gridLayout_58">
@@ -11080,6 +11080,19 @@
               <layout class="QGridLayout" name="gridLayout_64">
                <item row="0" column="0">
                 <layout class="QGridLayout" name="gridLayout_48">
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="numericStaffDistans">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="maximum">
+                    <double>1000.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
                  <item row="0" column="0">
                   <widget class="QLabel" name="label_213">
                    <property name="sizePolicy">
@@ -11093,19 +11106,6 @@
                    </property>
                    <property name="buddy">
                     <cstring>systemHeaderTimeSigDistance</cstring>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="numericStaffDistans">
-                   <property name="suffix">
-                    <string extracomment="spatium unit">sp</string>
-                   </property>
-                   <property name="maximum">
-                    <double>1000.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>0.100000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -11123,6 +11123,43 @@
                    <property name="icon">
                     <iconset resource="musescore.qrc">
                      <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="numericBarlineLength">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="maximum">
+                    <double>1000.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QToolButton" name="resetNumericBarlineLength">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'System header to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_223">
+                   <property name="text">
+                    <string>Tacktstrichlänge</string>
                    </property>
                   </widget>
                  </item>

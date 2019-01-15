@@ -1071,6 +1071,7 @@ enum class Sid {
       numericKeySigSize,
       numericKeySigHorizontalShift,
       numericKeySigHigth,
+      numericBarlineLength,
 
       STYLES
       };

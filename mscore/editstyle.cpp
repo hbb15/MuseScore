@@ -414,6 +414,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::numericKeySigSize,                false, numericKeySigSize,                  resetNumericKeySigSize              },
       { Sid::numericKeySigHorizontalShift,     false, numericKeySigHorizontalShift,       resetNumericKeySigHorizontalShift   },
       { Sid::numericKeySigHigth,               false, numericKeySigHigth,                 resetNumericKeySigHigth             },
+      { Sid::numericBarlineLength,             false, numericBarlineLength,               resetNumericBarlineLength           },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {
