@@ -234,6 +234,7 @@ const std::list<const char*> MuseScore::_allFileOperationEntries {
             "file-new",
             "file-open",
             "file-save",
+            "file-save-online",
             "print",
             "undo",
             "redo"
@@ -1251,9 +1252,6 @@ MuseScore::MuseScore()
       menuFile = mb->addMenu("");
       menuFile->setObjectName("File");
 
-      a = getAction("startcenter");
-      a->setCheckable(true);
-      menuFile->addAction(a);
       menuFile->addAction(getAction("file-new"));
       menuFile->addAction(getAction("file-open"));
 
@@ -1350,6 +1348,10 @@ MuseScore::MuseScore()
 
       menuView = mb->addMenu("");
       menuView->setObjectName("View");
+
+      a = getAction("startcenter");
+      a->setCheckable(true);
+      menuView->addAction(a);
 
       a = getAction("toggle-palette");
       a->setCheckable(true);
