@@ -4287,7 +4287,7 @@ void MuseScore::readSettings()
       int w = 1024;
       int h = 768;
       QScreen* screen      = QGuiApplication::primaryScreen();
-      const QSize screenSize = screen->availableVirtualSize();
+      const QSize screenSize = screen->availableSize();
       if (screenSize.width() - margin > w)
             w = screenSize.width() - margin;
       else
@@ -4489,16 +4489,18 @@ AboutBoxDialog::AboutBoxDialog()
       revisionLabel->setText(tr("Revision: %1").arg(revision));
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-      copyrightLabel->setText(QString("<span style=\"font-size:10pt;\">%1</span>")
-                              .arg(tr(   "Visit %1www.musescore.org%2 for new versions and more information.\n"
-                                         "Support MuseScore with your %3donation%4.\n\n"
-                                         "Copyright &copy; 1999-2019 Werner Schweer and Others.\n"
-                                         "Published under the GNU General Public License.")
-                                   .arg("<a href=\"http://www.musescore.org/\">")
-                                   .arg("</a>")
-                                   .arg("<a href=\"http://www.musescore.org/donate\">")
-                                   .arg("</a>")
-                                   .replace("\n","<br/>")));
+      QString visitAndDonateString;
+#if !defined(FOR_WINSTORE)
+      visitAndDonateString = tr("Visit %1www.musescore.org%2 for new versions and more information.\nSupport MuseScore with your %3donation%4.")
+                                     .arg("<a href=\"https://www.musescore.org/\">")
+                                     .arg("</a>")
+                                     .arg("<a href=\"https://www.musescore.org/donate\">")
+                                     .arg("</a>");
+      visitAndDonateString += "\n\n";
+#endif
+      QString finalString = visitAndDonateString + tr("Copyright &copy; 1999-2019 Werner Schweer and Others.\nPublished under the GNU General Public License.");
+      finalString.replace("\n", "<br/>");
+      copyrightLabel->setText(QString("<span style=\"font-size:10pt;\">%1</span>").arg(finalString));
       connect(copyRevisionButton, SIGNAL(clicked()), this, SLOT(copyRevisionToClipboard()));
       }
 
@@ -7515,7 +7517,7 @@ bool MuseScore::exportPartsPdfsToJSON(const QString& inFilePath, const QString& 
       }
       score->switchToPageMode();
 
-      jsonForPdfs["scoreBin"] = mscore->exportPdfAsJSON(score);
+      jsonForPdfs["scoreBin"] = QString::fromLatin1(mscore->exportPdfAsJSON(score));
 
       //save extended score+parts and separate parts pdfs
       //if no parts, generate parts from existing instruments
@@ -7539,7 +7541,7 @@ bool MuseScore::exportPartsPdfsToJSON(const QString& inFilePath, const QString& 
             scores.append(e->partScore());
             QJsonValue partNameVal(e->title());
             partsNamesArray.append(partNameVal);
-            QJsonValue partVal(exportPdfAsJSON(e->partScore()));
+            QJsonValue partVal(QString::fromLatin1(exportPdfAsJSON(e->partScore())));
             partsArray.append(partVal);
       }
       jsonForPdfs["parts"] = partsNamesArray;
