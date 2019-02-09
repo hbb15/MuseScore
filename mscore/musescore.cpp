@@ -11,7 +11,7 @@
 //=============================================================================
 
 #include <fenv.h>
-#include "loginmanager.h"
+#include "network/loginmanager.h"
 #include "uploadscoredialog.h"
 #include <QStyleFactory>
 #include "palettebox.h"
@@ -78,8 +78,9 @@
 #endif
 #include "shortcut.h"
 #ifdef SCRIPT_INTERFACE
-#include "pluginCreator.h"
-#include "pluginManager.h"
+#include "plugin/pluginCreator.h"
+#include "plugin/pluginManager.h"
+#include "plugin/qmlpluginengine.h"
 #endif
 #include "helpBrowser.h"
 #include "drumtools.h"
@@ -110,7 +111,7 @@
 #include "synthesizer/synthesizergui.h"
 #include "synthesizer/msynthesizer.h"
 #include "fluid/fluid.h"
-#include "qmlplugin.h"
+#include "plugin/qmlplugin.h"
 #include "accessibletoolbutton.h"
 #include "toolbuttonmenu.h"
 #include "searchComboBox.h"
@@ -5986,16 +5987,26 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             setPlayRepeats(a->isChecked());
       else if (cmd == "pan")
             MScore::panPlayback = !MScore::panPlayback;
-      else if (cmd == "show-invisible")
+      else if (cmd == "show-invisible") {
             cs->setShowInvisible(a->isChecked());
-      else if (cmd == "show-unprintable")
+            cs->update();
+            }
+      else if (cmd == "show-unprintable") {
             cs->setShowUnprintable(a->isChecked());
-      else if (cmd == "show-frames")
+            cs->update();
+            }
+      else if (cmd == "show-frames") {
             cs->setShowFrames(a->isChecked());
-      else if (cmd == "show-pageborders")
+            cs->update();
+            }
+      else if (cmd == "show-pageborders") {
             cs->setShowPageborders(a->isChecked());
-      else if (cmd == "mark-irregular")
+            cs->update();
+            }
+      else if (cmd == "mark-irregular") {
             cs->setMarkIrregularMeasures(a->isChecked());
+            cs->update();
+            }
       else if (cmd == "tempo")
             addTempo();
       else if (cmd == "loop") {
@@ -6883,6 +6894,9 @@ int main(int argc, char* av[])
 #endif
 
       QApplication::setDesktopSettingsAware(true);
+#ifdef Q_OS_LINUX
+      QGuiApplication::setDesktopFileName("mscore");
+#endif
       QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
       QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #if defined(QT_DEBUG) && defined(Q_OS_WIN)
@@ -7222,10 +7236,6 @@ int main(int argc, char* av[])
             }
 #endif
 
-#ifdef SCRIPT_INTERFACE
-      if (-1 == qmlRegisterType<QmlPlugin>  ("MuseScore", 3, 0, "MuseScore"))
-            qDebug("qmlRegisterType failed: MuseScore");
-#endif
       if (MScore::debugMode) {
             qDebug("DPI %f", DPI);
 
@@ -7429,8 +7439,10 @@ int main(int argc, char* av[])
             }
 
       errorMessage = new QErrorMessage(mscore);
+#ifdef SCRIPT_INTERFACE
       mscore->getPluginManager()->readPluginList();
       mscore->loadPlugins();
+#endif
       mscore->writeSessionFile(false);
 
 #ifdef Q_OS_MAC
@@ -7569,3 +7581,16 @@ bool MuseScore::exportPartsPdfsToJSON(const QString& inFilePath, const QString& 
       delete score;
       return res;
       }
+
+//---------------------------------------------------------
+//   getPluginEngine
+//---------------------------------------------------------
+
+#ifdef SCRIPT_INTERFACE
+QmlPluginEngine* MuseScore::getPluginEngine()
+      {
+      if (!_qmlEngine)
+            _qmlEngine = new QmlPluginEngine(this);
+      return _qmlEngine;
+      }
+#endif

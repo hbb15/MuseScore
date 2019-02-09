@@ -1698,7 +1698,7 @@ void Score::deleteItem(Element* el)
                   BarLine* bl = toBarLine(el);
                   Segment* s = bl->segment();
                   Measure* m = s->measure();
-                  if (s->isBeginBarLineType()) {
+                  if (s->isBeginBarLineType() || s->isBarLineType()) {
                         undoRemoveElement(el);
                         }
                   else {
@@ -3435,6 +3435,15 @@ void Score::undoChangeStyleVal(Sid idx, const QVariant& v)
       }
 
 //---------------------------------------------------------
+//   undoChangePageNumberOffset
+//---------------------------------------------------------
+
+void Score::undoChangePageNumberOffset(int po)
+      {
+      undo(new ChangePageNumberOffset(this, po));
+      }
+
+//---------------------------------------------------------
 //   undoChangeElement
 //---------------------------------------------------------
 
@@ -4269,7 +4278,9 @@ void Score::undoAddElement(Element* element)
                         Segment* segment = toSegment(element->parent());
                         int tick         = segment->tick();
                         Measure* m       = score->tick2measure(tick);
-                        Segment* seg     = m->undoGetSegment(SegmentType::ChordRest, tick);
+                        if ((segment->segmentType() == SegmentType::EndBarLine) && (m->tick() == tick))
+                              m = m->prevMeasure();
+                        Segment* seg     = m->undoGetSegment(segment->segmentType(), tick);
                         ne->setTrack(ntrack);
                         ne->setParent(seg);
                         undo(new AddElement(ne));

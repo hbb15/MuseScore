@@ -1860,6 +1860,8 @@ void Score::cmdResetBeamMode()
                         }
                   }
             }
+      if (noSelection)
+            deselectAll();
       }
 
 //---------------------------------------------------------
@@ -1877,7 +1879,8 @@ void Score::cmdResetStyle()
 
 void Score::cmdResetNoteAndRestGroupings()
       {
-      if (selection().isNone())
+      bool noSelection = selection().isNone();
+      if (noSelection)
             cmdSelectAll();
       else if (!selection().isRange()) {
             qDebug("no system or staff selected");
@@ -1900,6 +1903,8 @@ void Score::cmdResetNoteAndRestGroupings()
                   }
             }
       endCmd();
+      if (noSelection)
+            deselectAll();
       }
 
 //---------------------------------------------------------
@@ -2610,6 +2615,7 @@ void Score::cmdImplode()
       Measure* endMeasure = endSegment ? endSegment->measure() : lastMeasure();
       int startTick       = startSegment->tick();
       int endTick         = endSegment ? endSegment->tick() : lastMeasure()->endTick();
+      Q_ASSERT(startMeasure && endMeasure);
 
       // if single staff selected, combine voices
       // otherwise combine staves
@@ -2692,12 +2698,13 @@ void Score::cmdImplode()
             // identify tracks to combine, storing the source track numbers in tracks[]
             // first four non-empty tracks to win
             for (int track = startTrack; track < endTrack && full < VOICES; ++track) {
-                  for (Measure* m = startMeasure; m && m != endMeasure; m = m->nextMeasure()) {
+                  Measure* m = startMeasure;
+                  do {
                         if (m->hasVoice(track) && !m->isOnlyRests(track)) {
                               tracks[full++] = track;
                               break;
                               }
-                        }
+                        } while ((m != endMeasure) && (m = m->nextMeasure()));
                   }
 
             // clone source tracks into destination

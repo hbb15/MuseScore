@@ -634,7 +634,7 @@ inline int Note::concertPitchIdx() const
 
 void Note::setPitch(int val)
       {
-      Q_ASSERT(val >= 0 && val <= 127);
+      Q_ASSERT(pitchIsValid(val));
       if (_pitch != val) {
             _pitch = val;
             score()->setPlaylistDirty();
@@ -648,15 +648,6 @@ void Note::setPitch(int pitch, int tpc1, int tpc2)
       _tpc[0] = tpc1;
       _tpc[1] = tpc2;
       setPitch(pitch);
-      }
-
-//---------------------------------------------------------
-//   undoSetPitch
-//---------------------------------------------------------
-
-void Note::undoSetPitch(int p)
-      {
-      undoChangeProperty(Pid::PITCH, p);
       }
 
 //---------------------------------------------------------
@@ -1024,9 +1015,9 @@ void Note::add(Element* e)
             case ElementType::NOTEDOT:
                   _dots.append(toNoteDot(e));
                   break;
+            case ElementType::FINGERING:
             case ElementType::SYMBOL:
             case ElementType::IMAGE:
-            case ElementType::FINGERING:
             case ElementType::TEXT:
             case ElementType::BEND:
                   _el.push_back(e);
@@ -1495,6 +1486,12 @@ void Note::readAddConnector(ConnectorInfoReader* info, bool pasteMode)
                                     toChord(parent())->setEndsGlissando(true);
                               addSpannerBack(sp);
                               }
+
+                        // As spanners get added after being fully read, they
+                        // do not get cloned with the note when pasting to
+                        // linked staves. So add this spanner explicilty.
+                        if (pasteMode)
+                              score()->undoAddElement(sp);
                         }
                   }
             default:
@@ -2344,8 +2341,17 @@ void Note::layout2()
                         e->rxpos() -= symWidth(SymId::noteheadParenthesisLeft);
                         }
                   }
-            else
+            else if (e->isFingering()) {
+                  Fingering* f = toFingering(e);
+                  f->calculatePlacement();
+                  // layout fingerings that are placed relative to notehead
+                  // fingerings placed relative to chord will be laid out later
+                  if (f->layoutType() == ElementType::NOTE)
+                        f->layout();
+                  }
+            else {
                   e->layout();
+                  }
             }
       }
 
@@ -2953,120 +2959,12 @@ QString Note::propertyUserValue(Pid pid) const
       }
 
 //---------------------------------------------------------
-//   undoSetFret
-//---------------------------------------------------------
-
-void Note::undoSetFret(int val)
-      {
-      undoChangeProperty(Pid::FRET, val);
-      }
-
-//---------------------------------------------------------
-//   undoSetString
-//---------------------------------------------------------
-
-void Note::undoSetString(int val)
-      {
-      undoChangeProperty(Pid::STRING, val);
-      }
-
-//---------------------------------------------------------
-//   undoSetGhost
-//---------------------------------------------------------
-
-void Note::undoSetGhost(bool val)
-      {
-      undoChangeProperty(Pid::GHOST, val);
-      }
-
-//---------------------------------------------------------
-//   undoSetSmall
-//---------------------------------------------------------
-
-void Note::undoSetSmall(bool val)
-      {
-      undoChangeProperty(Pid::SMALL, val);
-      }
-
-//---------------------------------------------------------
-//   undoSetPlay
-//---------------------------------------------------------
-
-void Note::undoSetPlay(bool val)
-      {
-      undoChangeProperty(Pid::PLAY, val);
-      }
-
-//---------------------------------------------------------
-//   undoSetTuning
-//---------------------------------------------------------
-
-void Note::undoSetTuning(qreal val)
-      {
-      undoChangeProperty(Pid::TUNING, val);
-      }
-
-//---------------------------------------------------------
-//   undoSetVeloType
-//---------------------------------------------------------
-
-void Note::undoSetVeloType(ValueType val)
-      {
-      undoChangeProperty(Pid::VELO_TYPE, int(val));
-      }
-
-//---------------------------------------------------------
-//   undoSetVeloOffset
-//---------------------------------------------------------
-
-void Note::undoSetVeloOffset(int val)
-      {
-      undoChangeProperty(Pid::VELO_OFFSET, val);
-      }
-
-//---------------------------------------------------------
-//   undoSetUserMirror
-//---------------------------------------------------------
-
-void Note::undoSetUserMirror(MScore::DirectionH val)
-      {
-      undoChangeProperty(Pid::MIRROR_HEAD, int(val));
-      }
-
-//---------------------------------------------------------
-//   undoSetUserDotPosition
-//---------------------------------------------------------
-
-void Note::undoSetUserDotPosition(Direction val)
-      {
-      undoChangeProperty(Pid::DOT_POSITION, QVariant::fromValue<Direction>(val));
-      }
-
-//---------------------------------------------------------
-//   undoSetHeadGroup
-//---------------------------------------------------------
-
-void Note::undoSetHeadGroup(NoteHead::Group val)
-      {
-      undoChangeProperty(Pid::HEAD_GROUP, int(val));
-      }
-
-//---------------------------------------------------------
 //   setHeadType
 //---------------------------------------------------------
 
 void Note::setHeadType(NoteHead::Type t)
       {
       _headType = t;
-      }
-
-//---------------------------------------------------------
-//   undoSetHeadType
-//---------------------------------------------------------
-
-void Note::undoSetHeadType(NoteHead::Type val)
-      {
-      undoChangeProperty(Pid::HEAD_TYPE, int(val));
       }
 
 //---------------------------------------------------------
@@ -3541,8 +3439,10 @@ Shape Note::shape() const
             shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()));
       if (_accidental)
             shape.add(_accidental->bbox().translated(_accidental->pos()));
-      for (auto e : _el)
-            shape.add(e->bbox().translated(e->pos()));
+      for (auto e : _el) {
+            if (e->autoplace() && e->visible())
+                  shape.add(e->bbox().translated(e->pos()));
+            }
 #endif
       return shape;
       }

@@ -65,7 +65,6 @@
 #include "bracket.h"
 #include "audio.h"
 #include "instrtemplate.h"
-#include "cursor.h"
 #include "sym.h"
 #include "rehearsalmark.h"
 #include "breath.h"
@@ -264,7 +263,7 @@ Score::Score()
       accInfo = "No selection";
       }
 
-Score::Score(MasterScore* parent)
+Score::Score(MasterScore* parent, bool forcePartStyle /* = true */)
    : Score{}
       {
       Score::validScores.insert(this);
@@ -292,10 +291,12 @@ Score::Score(MasterScore* parent)
             for (auto i : styles)
                   _style.set(i, MScore::defaultStyle().value(i));
             // and force some style settings that just make sense for parts
-            style().set(Sid::concertPitch, false);
-            style().set(Sid::createMultiMeasureRests, true);
-            style().set(Sid::dividerLeft, false);
-            style().set(Sid::dividerRight, false);
+            if (forcePartStyle) {
+                  style().set(Sid::concertPitch, false);
+                  style().set(Sid::createMultiMeasureRests, true);
+                  style().set(Sid::dividerLeft, false);
+                  style().set(Sid::dividerRight, false);
+                  }
             }
       _synthesizerState = parent->_synthesizerState;
       _mscVersion = parent->_mscVersion;
@@ -3531,39 +3532,6 @@ void Score::appendMeasures(int n)
             insertMeasure(ElementType::MEASURE, 0, false);
       }
 
-#ifdef SCRIPT_INTERFACE
-//---------------------------------------------------------
-//   addText
-//---------------------------------------------------------
-
-void Score::addText(const QString& type, const QString& txt)
-      {
-      MeasureBase* measure = first();
-      if (measure == 0 || measure->type() != ElementType::VBOX) {
-            insertMeasure(ElementType::VBOX, measure);
-            measure = first();
-            }
-      Tid tid = Tid::DEFAULT;
-      if (type == "title")
-            tid = Tid::TITLE;
-      else if (type == "subtitle")
-            tid = Tid::SUBTITLE;
-      Text* text = new Text(this, tid);
-      text->setParent(measure);
-      text->setXmlText(txt);
-      undoAddElement(text);
-      }
-
-//---------------------------------------------------------
-//   newCursor
-//---------------------------------------------------------
-
-Cursor* Score::newCursor()
-      {
-      return new Cursor(this);
-      }
-#endif
-
 //---------------------------------------------------------
 //   addSpanner
 //---------------------------------------------------------
@@ -3780,10 +3748,10 @@ void Score::setImportedFilePath(const QString& filePath)
 //   nmeasure
 //---------------------------------------------------------
 
-int Score::nmeasures()
+int Score::nmeasures() const
       {
       int n = 0;
-      for (Measure* m = firstMeasure(); m; m = m->nextMeasure())
+      for (const Measure* m = firstMeasure(); m; m = m->nextMeasure())
             n++;
       return n;
       }

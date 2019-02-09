@@ -50,6 +50,7 @@ static const int MAX_DOTS = 4;
 //---------------------------------------------------------
 
 class NoteHead final : public Symbol {
+      Q_GADGET
    public:
       enum class Group : signed char {
             HEAD_NORMAL = 0,
@@ -131,6 +132,9 @@ class NoteHead final : public Symbol {
             HEAD_TYPES
             };
 
+      Q_ENUM(Group)
+      Q_ENUM(Type)
+
       NoteHead(Score* s = 0) : Symbol(s) {}
       NoteHead &operator=(const NoteHead&) = delete;
       virtual NoteHead* clone() const override    { return new NoteHead(*this); }
@@ -200,8 +204,10 @@ static const int INVALID_LINE = -10000;
 //---------------------------------------------------------------------------------------
 
 class Note final : public Element {
+      Q_GADGET
    public:
       enum class ValueType : char { OFFSET_VAL, USER_VAL };
+      Q_ENUM(ValueType)
 
    private:
       bool _ghost         { false };      ///< ghost note (guitar: death note)
@@ -318,7 +324,6 @@ class Note final : public Element {
       virtual QString subtypeName() const override;
 
       void setPitch(int val);
-      void undoSetPitch(int val);
       void setPitch(int pitch, int tpc1, int tpc2);
       int pitch() const                   { return _pitch;    }
       int ppitch() const;           ///< playback pitch
@@ -457,22 +462,6 @@ class Note final : public Element {
 
       void transposeDiatonic(int interval, bool keepAlterations, bool useDoubleAccidentals);
 
-      void undoSetFret(int);
-      void undoSetString(int);
-      void undoSetGhost(bool);
-      void undoSetMirror(bool);
-      void undoSetSmall(bool);
-      void undoSetPlay(bool);
-      void undoSetTuning(qreal);
-      void undoSetVeloType(ValueType);
-      void undoSetVeloOffset(int);
-      void undoSetOnTimeUserOffset(int);
-      void undoSetOffTimeUserOffset(int);
-      void undoSetUserMirror(MScore::DirectionH);
-      void undoSetUserDotPosition(Direction);
-      void undoSetHeadGroup(NoteHead::Group);
-      void undoSetHeadType(NoteHead::Type);
-
       virtual QVariant getProperty(Pid propertyId) const override;
       QString getNumericString(int numkro);
       int setAccidentalTypeBack(int defaultdirection) ;
@@ -516,10 +505,4 @@ class Note final : public Element {
       };
 
 }     // namespace Ms
-
-Q_DECLARE_METATYPE(Ms::NoteHead::Group);
-Q_DECLARE_METATYPE(Ms::NoteHead::Type);
-Q_DECLARE_METATYPE(Ms::Note::ValueType);
-
 #endif
-

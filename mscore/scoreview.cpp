@@ -2037,6 +2037,10 @@ void ScoreView::cmd(const char* s)
                   cmdGotoElement(score()->lastElement());
             }
       else if (cmd == "next-element") {
+            if (editMode()) {
+                  textTab(false);
+                  return;
+                  }
             Element* el = score()->selection().element();
             if (!el && !score()->selection().elements().isEmpty() )
                 el = score()->selection().elements().first();
@@ -2047,6 +2051,10 @@ void ScoreView::cmd(const char* s)
                   cmdGotoElement(score()->firstElement());
             }
       else if (cmd == "prev-element") {
+            if (editMode()) {
+                  textTab(true);
+                  return;
+                  }
             Element* el = score()->selection().element();
             if (!el && !score()->selection().elements().isEmpty())
                 el = score()->selection().elements().last();
@@ -2313,6 +2321,105 @@ void ScoreView::cmd(const char* s)
             }
       if (_score->processMidiInput())
             mscore->endCmd();
+      }
+
+//---------------------------------------------------------
+//   textTab
+//---------------------------------------------------------
+
+void ScoreView::textTab(bool back)
+      {
+      if (!editMode())
+            return;
+      Element* oe = editData.element;
+      if (!oe || !oe->isTextBase())
+            return;
+
+      if (oe->isHarmony()) {
+            harmonyBeatsTab(true, back);
+            return;
+            }
+      else if (oe->isFiguredBass()) {
+            figuredBassTab(false, back);
+            return;
+            }
+      else if (oe->isLyrics()) {
+            // not actually hit, left/right handled elsewhere
+            lyricsTab(back, false, true);
+            return;
+            }
+
+      Element* op = oe->parent();
+      if (!(op->isSegment() || op->isNote()))
+            return;
+
+      TextBase* ot = toTextBase(oe);
+      Tid tid = ot->tid();
+      ElementType type = ot->type();
+
+      // get prev/next element, as current element may be deleted if empty
+      Element* el = back ? score()->prevElement() : score()->nextElement();
+      // end edit mode
+      changeState(ViewState::NORMAL);
+
+      // find new note to add text to
+      while (el) {
+            if (el->isNote()) {
+                  if (op->isNote() || op->isSegment())
+                        break;
+                  }
+            // get prev/next note
+            score()->select(el);
+            el = back ? score()->prevElement() : score()->nextElement();
+            }
+      if (!el || !el->isNote())
+            return;
+      Note* nn = toNote(el);
+
+      // go to note
+      cmdGotoElement(nn);
+
+      // get existing text to edit
+      el = nullptr;
+      if (op->isNote()) {
+            // check element list of new note
+            for (Element* e : nn->el()) {
+                  if (e->type() != type)
+                        continue;
+                  TextBase* nt = toTextBase(e);
+                  if (nt->tid() == tid) {
+                        el = e;
+                        break;
+                        }
+                  }
+            }
+      else if (op->isSegment()) {
+            // check annotation list of new segment
+            Segment* ns = nn->chord()->segment();
+            for (Element* e : ns->annotations()) {
+                  if (e->type() != type)
+                        continue;
+                  TextBase* nt = toTextBase(e);
+                  if (nt->tid() == tid) {
+                        el = e;
+                        break;
+                        }
+                  }
+            }
+
+      if (el) {
+            // edit existing text
+            score()->select(el);
+            startEditMode(el);
+            }
+      else {
+            // add new text if no existing element to edit
+            // TODO: for tempo text, mscore->addTempo() could be called
+            // but it pre-fills the text
+            // would be better to create empty tempo element
+            if (type != ElementType::TEMPO_TEXT)
+                  cmdAddText(tid);
+            }
       }
 
 //---------------------------------------------------------
@@ -3579,7 +3686,7 @@ void ScoreView::cmdTuplet(int n)
 
 void ScoreView::midiNoteReceived(int pitch, bool chord, int velocity)
       {
-      qDebug("midiNoteReceived %d chord %d", pitch, chord);
+      qDebug("midiNoteReceived: pitch %d, chord %d, velocity %d", pitch, chord, velocity);
 
       MidiInputEvent ev;
       ev.pitch = pitch;
@@ -3818,6 +3925,9 @@ void ScoreView::cmdAddText(Tid tid)
                   }
                   break;
             case Tid::FINGERING:
+            case Tid::LH_GUITAR_FINGERING:
+            case Tid::RH_GUITAR_FINGERING:
+            case Tid::STRING_NUMBER:
                   {
                   Element* e = _score->getSelectedElement();
                   if (!e || !e->isNote())
@@ -3826,7 +3936,7 @@ void ScoreView::cmdAddText(Tid tid)
                   bool tabFingering = e->staff()->staffType(e->tick())->showTabFingering();
                   if (isTablature && !tabFingering)
                         break;
-                  s = new Fingering(_score);
+                  s = new Fingering(_score, tid);
                   s->setTrack(e->track());
                   s->setParent(e);
                   _score->undoAddElement(s);
@@ -4181,6 +4291,8 @@ static bool elementLower(const Element* e1, const Element* e2)
       {
       if (!e1->selectable())
             return false;
+      if (!e2->selectable())
+            return true;
       if (e1->z() == e2->z()) {
             if (e1->type() == e2->type()) {
                   if (e1->type() == ElementType::NOTEDOT) {

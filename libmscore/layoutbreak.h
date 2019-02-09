@@ -27,13 +27,13 @@ namespace Ms {
 //---------------------------------------------------------
 
 class LayoutBreak final : public Element {
+      Q_GADGET
    public:
       enum Type {
             PAGE, LINE, SECTION, NOBREAK
             };
    private:
-      Q_PROPERTY(Ms::LayoutBreak::Type layoutBreakType READ layoutBreakType WRITE undoSetLayoutBreakType)
-      Q_ENUMS(Type)
+      Q_ENUM(Type)
 
       qreal lw;
       QPainterPath path;
@@ -56,7 +56,6 @@ class LayoutBreak final : public Element {
 
       void setLayoutBreakType(Type);
       Type layoutBreakType() const  { return _layoutBreakType; }
-      void undoSetLayoutBreakType(Type);
 
       virtual bool acceptDrop(EditData&) const override;
       virtual Element* drop(EditData&) override;
@@ -83,7 +82,5 @@ class LayoutBreak final : public Element {
 
 
 }     // namespace Ms
-
-Q_DECLARE_METATYPE(Ms::LayoutBreak::Type);
 
 #endif

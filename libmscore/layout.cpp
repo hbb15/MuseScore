@@ -2562,12 +2562,6 @@ void Score::getNextMeasure(LayoutContext& lc)
       Measure* measure = toMeasure(lc.curMeasure);
       measure->moveTicks(lc.tick - measure->tick());
 
-      //
-      //  implement section break rest
-      //
-      if (measure->sectionBreak() && measure->pause() != 0.0)
-            setPause(measure->endTick(), measure->pause());
-
       connectTremolo(measure);
 
       //
@@ -2653,8 +2647,10 @@ void Score::getNextMeasure(LayoutContext& lc)
                                           if (l)
                                                 l->layout();
                                           }
-                                    if (cr->isChord())
-                                          toChord(cr)->layoutArticulations();
+                                    if (cr->isChord()) {
+                                          Chord* c = toChord(cr);
+                                          c->layoutArticulations();
+                                          }
                                     }
                               }
                         }
@@ -2663,9 +2659,30 @@ void Score::getNextMeasure(LayoutContext& lc)
 
       measure->computeTicks();
 
-      // Reset tempo to set correct time stretch for fermata.
-      if (isMaster())
-            resetTempoRange(measure->tick(), measure->endTick());
+      if (isMaster()) {
+            // Reset tempo to set correct time stretch for fermata.
+            const int startTick = measure->tick();
+            resetTempoRange(startTick, measure->endTick());
+
+            // Implement section break rest
+            for (MeasureBase* mb = measure->prev(); mb && mb->endTick() == startTick; mb = mb->prev()) {
+                  if (mb->pause())
+                        setPause(startTick, mb->pause());
+                  }
+
+            // Add pauses from the end of the previous measure (at measure->tick()):
+            for (Segment* s = measure->first()->prev1(); s && s->tick() == startTick; s = s->prev1()) {
+                  if (!s->isBreathType())
+                        continue;
+                  qreal length = 0.0;
+                  for (Element* e : s->elist()) {
+                        if (e && e->isBreath())
+                              length = qMax(length, toBreath(e)->pause());
+                        }
+                  if (length != 0.0)
+                        setPause(startTick, length);
+                  }
+            }
 
       for (Segment& segment : measure->segments()) {
             if (segment.isBreathType()) {
@@ -3470,9 +3487,8 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             Measure* m = toMeasure(mb);
             m->layoutMeasureNumber();
             for (Segment* s = m->first(); s; s = s->next()) {
-                  if (!s->isChordRestType())
-                        continue;
-                  sl.push_back(s);
+                  if (s->isChordRestType() || !s->annotations().empty())
+                        sl.push_back(s);
                   }
             }
 
@@ -3503,7 +3519,32 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
                               int strack = staffIdx * VOICES;
                               int etrack = strack + VOICES;
                               for (Element* e : s.elist()) {
-                                    if (!e || !e->visible())
+                                    if (!e)
+                                          continue;
+                                    // clear layout for chord-based fingerings
+                                    if (e->isChord()) {
+                                          Chord* c = toChord(e);
+                                          std::list<Note*> notes;
+                                          for (auto gc : c->graceNotes()) {
+                                                for (auto n : gc->notes())
+                                                      notes.push_back(n);
+                                                }
+                                          for (auto n : c->notes())
+                                                notes.push_back(n);
+                                          std::list<Fingering*> fingerings;
+                                          for (Note* note : notes) {
+                                                for (Element* e : note->el()) {
+                                                      if (e->isFingering()) {
+                                                            Fingering* f = toFingering(e);
+                                                            if (f->layoutType() == ElementType::CHORD) {
+                                                                  f->setPos(QPointF());
+                                                                  f->setbbox(QRectF());
+                                                                  }
+                                                            }
+                                                      }
+                                                }
+                                          }
+                                    if (!e->visible())
                                           continue;
                                     int effectiveTrack = e->vStaffIdx() * VOICES + e->voice();
                                     if (effectiveTrack >= strack && effectiveTrack < etrack)
@@ -3531,20 +3572,43 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
                   if (!e || !e->isChordRest() || !score()->staff(e->staffIdx())->show())
                         continue;
                   ChordRest* cr = toChordRest(e);
+
+                  // layout beam
                   if (isTopBeam(cr)) {
                         cr->beam()->layout();
                         cr->beam()->addSkyline(system->staff(cr->beam()->staffIdx())->skyline());
+                        }
 
-                       // layout fingering a second time (first layout called in note->layout2())
-                       // to finally place fingerings above or below a beam
-
-                        if (e->isChord()) {
-                              Chord* c = toChord(e);
-                              for (Note* note : c->notes()) {
-                                    for (Element* el : note->el()) {
-                                          if (el->isFingering())
-                                                el->layout();
+                  // layout chord-based fingerings
+                  if (e->isChord()) {
+                        Chord* c = toChord(e);
+                        std::list<Note*> notes;
+                        for (auto gc : c->graceNotes()) {
+                              for (auto n : gc->notes())
+                                    notes.push_back(n);
+                              }
+                        for (auto n : c->notes())
+                              notes.push_back(n);
+                        std::list<Fingering*> fingerings;
+                        for (Note* note : notes) {
+                              for (Element* el : note->el()) {
+                                    if (el->isFingering()) {
+                                          Fingering* f = toFingering(el);
+                                          if (f->layoutType() == ElementType::CHORD) {
+                                                if (f->placeAbove())
+                                                      fingerings.push_back(f);
+                                                else
+                                                      fingerings.push_front(f);
+                                                }
                                           }
+                                    }
+                              }
+                        for (Fingering* f : fingerings) {
+                              f->layout();
+                              if (f->autoplace() && f->visible()) {
+                                    Note* n = f->note();
+                                    QRectF r = f->bbox().translated(f->pos() + n->pos() + n->chord()->pos() + s->pos() + s->measure()->pos());
+                                    system->staff(f->note()->chord()->vStaffIdx())->skyline().add(r);
                                     }
                               }
                         }
@@ -3571,7 +3635,8 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
                   while (de->tuplet() && de->tuplet()->elements().front() == de) {
                         Tuplet* t = de->tuplet();
                         t->layout();
-                        system->staff(t->staffIdx())->skyline().add(t->shape().translated(t->pos() + t->measure()->pos()));
+                        if (t->autoplace() && t->visible())
+                              system->staff(t->staffIdx())->skyline().add(t->shape().translated(t->pos() + t->measure()->pos()));
                         de = t;
                         }
                   }

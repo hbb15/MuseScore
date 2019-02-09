@@ -79,6 +79,8 @@ bool Score::read(XmlReader& e)
                   _currentLayer = e.readInt();
             else if (tag == "Synthesizer")
                   _synthesizerState.read(e);
+            else if (tag == "page-offset")
+                  _pageNumberOffset = e.readInt();
             else if (tag == "Division")
                   _fileDivision = e.readInt();
             else if (tag == "showInvisible")
@@ -164,7 +166,7 @@ bool Score::read(XmlReader& e)
                   else {
                         e.tracks().clear();     // ???
                         MasterScore* m = masterScore();
-                        Score* s       = new Score(m);
+                        Score* s       = new Score(m, false);
                         Excerpt* ex    = new Excerpt(m);
 
                         ex->setPartScore(s);

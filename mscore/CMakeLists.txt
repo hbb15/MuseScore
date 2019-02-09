@@ -49,8 +49,23 @@ include_directories(
       )
 
 if (SCRIPT_INTERFACE)
-      set (SCRIPT_FILES mscorePlugins pluginCreator.cpp qmledit.cpp pluginManager.cpp)
-      set (SCRIPT_UI   pluginCreator.ui pluginManager.ui)
+      set (SCRIPT_FILES
+            plugin/pluginCreator.h plugin/pluginManager.h plugin/qmledit.h
+            plugin/qmlplugin.h plugin/qmlpluginengine.h
+            plugin/api/qmlpluginapi.h plugin/api/cursor.h plugin/api/scoreelement.h plugin/api/elements.h
+            plugin/api/score.h
+            plugin/api/fraction.h
+
+            plugin/api/enums.cpp
+            plugin/mscorePlugins.cpp plugin/pluginCreator.cpp plugin/pluginManager.cpp plugin/qmledit.cpp
+            plugin/qmlplugin.cpp plugin/qmlpluginengine.cpp
+            plugin/api/qmlpluginapi.cpp plugin/api/cursor.cpp plugin/api/scoreelement.cpp plugin/api/elements.cpp
+            plugin/api/score.cpp
+            )
+
+      set (SCRIPT_UI
+            plugin/pluginCreator.ui plugin/pluginManager.ui
+            )
 endif (SCRIPT_INTERFACE)
 
 QT5_WRAP_UI (ui_headers
@@ -303,16 +318,17 @@ add_executable ( ${ExecutableName}
       harmonycanvas.h harmonyedit.h help.h helpBrowser.h icons.h importgtp.h importmxml.h
       importmxmllogger.h importmxmlnoteduration.h importmxmlnotepitch.h importmxmlpass1.h
       importmxmlpass2.h importptb.h importxmlfirstpass.h instrdialog.h instrwidget.h jackaudio.h
-      keycanvas.h keyedit.h layer.h licence.h logindialog.h loginmanager.h magbox.h masterpalette.h
+      keycanvas.h keyedit.h layer.h licence.h
+      logindialog.h network/loginmanager.h network/loginmanager_p.h
+      magbox.h masterpalette.h
       measureproperties.h mediadialog.h metaedit.h miconengine.h mididriver.h
       mixer.h mixertrack.h mixertrackchannel.h mixertrackgroup.h mixertrackitem.h mixertrackpart.h mixerdetails.h musedata.h
       musescore.h musicxml.h musicxmlfonthandler.h musicxmlsupport.h navigator.h newwizard.h noteGroups.h
       omrpanel.h ove.h pa.h pagesettings.h palette.h palettebox.h paletteBoxButton.h partedit.h parteditbase.h
       pathlistdialog.h piano.h pianolevels.h pianolevelschooser.h  pianolevelsfilter.h
       pianokeyboard.h pianoroll.h pianoruler.h pianotools.h pianoview.h
-      playpanel.h pluginCreator.h
-      pluginManager.h pm.h preferences.h preferenceslistwidget.h prefsdialog.h qmledit.h
-      qmlplugin.h recordbutton.h resourceManager.h revision.h ruler.h scoreaccessibility.h
+      playpanel.h pm.h preferences.h preferenceslistwidget.h prefsdialog.h
+      recordbutton.h resourceManager.h revision.h ruler.h scoreaccessibility.h
       scoreBrowser.h scoreInfo.h scorePreview.h scoretab.h scoreview.h searchComboBox.h
       sectionbreakprop.h selectdialog.h selectionwindow.h selectnotedialog.h selinstrument.h
       seq.h shortcut.h shortcutcapturedialog.h simplebutton.h splitstaff.h stafftextproperties.h
@@ -408,7 +424,6 @@ add_executable ( ${ExecutableName}
       inspector/resetButton.cpp
       enableplayforwidget.cpp
       editelement.cpp
-      qmlplugin.cpp
       editlyrics.cpp
       musicxmlfonthandler.cpp
       musicxmlsupport.cpp
@@ -442,7 +457,8 @@ add_executable ( ${ExecutableName}
       resourceManager.cpp downloadUtils.cpp
       textcursor.cpp continuouspanel.cpp accessibletoolbutton.cpp scoreaccessibility.cpp
       startcenter.cpp scoreBrowser.cpp scorePreview.cpp scoreInfo.cpp templateBrowser.cpp
-      logindialog.cpp loginmanager.cpp uploadscoredialog.cpp breaksdialog.cpp searchComboBox.cpp
+      logindialog.cpp network/loginmanager.cpp uploadscoredialog.cpp
+      breaksdialog.cpp searchComboBox.cpp
       help.cpp help.h
       toolbarEditor.cpp toolbarEditor.h
       abstractdialog.cpp abstractdialog.h
