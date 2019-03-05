@@ -258,6 +258,7 @@ void Ottava::write(XmlWriter& xml) const
       xml.stag(this);
       xml.tag("subtype", ottavaDefault[int(ottavaType())].name);
       writeProperty(xml, Pid::PLACEMENT);
+      writeProperty(xml, Pid::NUMBERS_ONLY);
 //      for (const StyledProperty& spp : *styledProperties())
 //            writeProperty(xml, spp.pid);
       TextLineBase::writeProperties(xml);
@@ -357,12 +358,12 @@ bool Ottava::setProperty(Pid propertyId, const QVariant& val)
                   break;
 
             case Pid::SPANNER_TICKS:
-                  setTicks(val.toInt());
+                  setTicks(val.value<Fraction>());
                   staff()->updateOttava();
                   break;
 
             case Pid::SPANNER_TICK:
-                  setTick(val.toInt());
+                  setTick(val.value<Fraction>());
                   staff()->updateOttava();
                   break;
 

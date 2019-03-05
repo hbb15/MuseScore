@@ -116,6 +116,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::lyricsPosBelow,          false, lyricsPosBelow,          resetLyricsPosBelow          },
       { Sid::lyricsMinTopDistance,    false, lyricsMinTopDistance,    resetLyricsMinTopDistance    },
       { Sid::lyricsMinBottomDistance, false, lyricsMinBottomDistance, resetLyricsMinBottomDistance },
+      { Sid::lyricsMinDistance,       false, lyricsMinDistance,       resetLyricsMinDistance       },
       { Sid::lyricsLineHeight,        true,  lyricsLineHeight,        resetLyricsLineHeight        },
       { Sid::lyricsDashMinLength,     false, lyricsDashMinLength,     resetLyricsDashMinLength     },
       { Sid::lyricsDashMaxLength,     false, lyricsDashMaxLength,     resetLyricsDashMaxLength     },
@@ -547,6 +548,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       connect(swingEighth,         SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
       connect(swingSixteenth,      SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
 
+      connect(concertPitch,        SIGNAL(toggled(bool)),             SLOT(concertPitchToggled(bool)));
       connect(hideEmptyStaves,     SIGNAL(clicked(bool)), dontHideStavesInFirstSystem, SLOT(setEnabled(bool)));
       connect(lyricsDashMinLength, SIGNAL(valueChanged(double)),      SLOT(lyricsDashMinLengthValueChanged(double)));
       connect(lyricsDashMaxLength, SIGNAL(valueChanged(double)),      SLOT(lyricsDashMaxLengthValueChanged(double)));
@@ -1101,6 +1103,15 @@ void EditStyle::setSwingParams(bool checked)
             }
       cs->undo(new ChangeStyleVal(cs, Sid::swingUnit, val));
       cs->update();
+      }
+
+//---------------------------------------------------------
+//   concertPitchToggled
+//---------------------------------------------------------
+
+void EditStyle::concertPitchToggled(bool checked)
+      {
+      cs->cmdConcertPitchChanged(checked, true);
       }
 
 //---------------------------------------------------------

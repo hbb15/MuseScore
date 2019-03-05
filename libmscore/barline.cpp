@@ -33,7 +33,7 @@ namespace Ms {
 //   undoChangeBarLineType
 //---------------------------------------------------------
 
-static void undoChangeBarLineType(BarLine* bl, BarLineType barType)
+static void undoChangeBarLineType(BarLine* bl, BarLineType barType, bool allStaves)
       {
       Measure* m = bl->measure();
 
@@ -65,7 +65,8 @@ static void undoChangeBarLineType(BarLine* bl, BarLineType barType)
                   SegmentType segmentType = segment->segmentType();
                   if (segmentType == SegmentType::EndBarLine) {
                         m->undoChangeProperty(Pid::REPEAT_END, false);
-                        for (Element* e : segment->elist()) {
+                        const std::vector<Element*>& elist = allStaves ? segment->elist() : std::vector<Element*> { bl };
+                        for (Element* e : elist) {
                               if (e) {
                                     for (ScoreElement* ee : e->linkList()) {
                                           ee->score()->undo(new ChangeProperty(ee, Pid::BARLINE_TYPE, QVariant::fromValue(barType), PropertyFlags::NOSTYLE));
@@ -75,7 +76,7 @@ static void undoChangeBarLineType(BarLine* bl, BarLineType barType)
                               }
                         }
                   else if (segmentType == SegmentType::BeginBarLine) {
-                        Segment* segment1 = m->undoGetSegmentR(SegmentType::BeginBarLine, 0);
+                        Segment* segment1 = m->undoGetSegmentR(SegmentType::BeginBarLine, Fraction(0, 1));
                         for (Element* e : segment1->elist()) {
                               if (e) {
                                     e->score()->undo(new ChangeProperty(e, Pid::BARLINE_TYPE, QVariant::fromValue(barType), PropertyFlags::NOSTYLE));
@@ -305,7 +306,7 @@ void BarLine::getY() const
       // after skipping ones with hideSystemBarLine set
       // and accounting for staves that are shown but have invisible measures
 
-      int tick             = segment()->measure()->tick();
+      Fraction tick        = segment()->measure()->tick();
       const StaffType* st1 = staff1->staffType(tick);
 
       int from    = _spanFrom;
@@ -382,8 +383,7 @@ void BarLine::drawDots(QPainter* painter, qreal x) const
             y2l = 2.5 * _spatium;
             }
       else {
-            Staff* staff        = score()->staff(staffIdx());
-            const StaffType* st = staff->staffType(tick());
+            const StaffType* st = staffType();
 
             //workaround to make new Bravura font work correctly with repeatDots
             qreal offset = score()->scoreFont()->name() == "Bravura" ? 0 : 0.5 * score()->spatium() * mag();
@@ -551,7 +551,7 @@ void BarLine::draw(QPainter* painter) const
                   QFont f("FreeSerif");
                   f.setPointSizeF(12 * spatium() * MScore::pixelRatio / SPATIUM20);
                   f.setBold(true);
-                  QString str = m->len() > m->timesig() ? "+" : "-";
+                  QString str = m->ticks() > m->timesig() ? "+" : "-";
                   QRectF r = QFontMetricsF(f, MScore::paintDevice()).boundingRect(str);
                   painter->setFont(f);
                   painter->drawText(-r.width(), 0.0, str);
@@ -686,10 +686,10 @@ Element* BarLine::drop(EditData& data)
                         }
                   // if drop refers to subtype, update this bar line subtype
                   else
-                        undoChangeBarLineType(this, st);
+                        undoChangeBarLineType(this, st, false);
                   }
             else
-                  undoChangeBarLineType(this, st);
+                  undoChangeBarLineType(this, st, true);
             delete e;
             }
       else if (e->isArticulation()) {
@@ -1277,7 +1277,7 @@ void BarLine::undoChangeProperty(Pid id, const QVariant& v, PropertyFlags ps)
                         bl = 0;
                   }
             if (bl)
-                  undoChangeBarLineType(const_cast<BarLine*>(bl), v.value<BarLineType>());
+                  undoChangeBarLineType(const_cast<BarLine*>(bl), v.value<BarLineType>(), true);
             }
       else
             ScoreElement::undoChangeProperty(id, v, ps);
@@ -1390,9 +1390,9 @@ QString BarLine::accessibleExtraInfo() const
                   }
             }
 
-      int tick = seg->tick();
+      Fraction tick = seg->tick();
 
-      auto spanners = score()->spannerMap().findOverlapping(tick, tick);
+      auto spanners = score()->spannerMap().findOverlapping(tick.ticks(), tick.ticks());
       for (auto interval : spanners) {
             Spanner* s = interval.value;
             if (!score()->selectionFilter().canSelect(s))

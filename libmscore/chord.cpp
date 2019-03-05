@@ -437,7 +437,7 @@ void Chord::setTremolo(Tremolo* tr)
       if (_tremolo) {
             if (_tremolo->twoNotes()) {
                   TDuration d;
-                  const Fraction f = duration();
+                  const Fraction f = ticks();
                   if (f.numerator() > 0)
                         d = TDuration(f);
                   else {
@@ -700,14 +700,14 @@ void Chord::addLedgerLines()
       bool staffVisible  = true;
 
       if (segment()) { //not palette
-            int tick     = segment()->tick();
-            int idx      = staffIdx() + staffMove();
-            track        = staff2track(idx);
-            Staff* st    = score()->staff(idx);
-            lineBelow    = (st->lines(tick) - 1) * 2;
-            lineDistance = st->lineDistance(tick);
-            mag         = staff()->mag(tick);
-            staffVisible = !staff()->invisible();
+            Fraction tick = segment()->tick();
+            int idx       = staffIdx() + staffMove();
+            track         = staff2track(idx);
+            Staff* st     = score()->staff(idx);
+            lineBelow     = (st->lines(tick) - 1) * 2;
+            lineDistance  = st->lineDistance(tick);
+            mag           = staff()->mag(tick);
+            staffVisible  = !staff()->invisible();
             }
 
       // need ledger lines?
@@ -1978,7 +1978,7 @@ void Chord::layoutPitched()
 
       // allocate enough room for glissandi
       if (_endsGlissando) {
-            if (rtick()                                     // if not at beginning of measure
+            if (!rtick().isZero()                           // if not at beginning of measure
                         || graceNotesBefore.size() > 0)     // or there are graces before
                   lll += _spatium * 0.5 + minTieLength;
             // special case of system-initial glissando final note is handled in Glissando::layout() itself
@@ -2209,6 +2209,8 @@ void Chord::layoutTablature()
                   score()->undo(new RemoveElement(_stem));
             if (_hook)
                   score()->undo(new RemoveElement(_hook));
+            if (_beam)
+                  score()->undo(new RemoveElement(_beam));
             }
       // if stem is required but missing, add it;
       // set stem position (stem length is set in Chord:layoutStem() )
@@ -2309,7 +2311,7 @@ void Chord::layoutTablature()
 
       // allocate enough room for glissandi
       if (_endsGlissando) {
-            if (rtick())                        // if not at beginning of measure
+            if (!rtick().isZero())                        // if not at beginning of measure
                   lll += (0.5 + score()->styleS(Sid::MinTieLength).val()) * _spatium;
             // special case of system-initial glissando final note is handled in Glissando::layout() itself
             }
@@ -2853,7 +2855,7 @@ Element* Chord::drop(EditData& data)
                               return 0;
                               }
                         Chord* ch2 = toChord(s->element(track()));
-                        if (ch2->duration() != duration()) {
+                        if (ch2->ticks() != ticks()) {
                               qDebug("no matching chord for second note of tremolo found");
                               delete e;
                               return 0;
@@ -3523,6 +3525,9 @@ Shape Chord::shape() const
 
 void Chord::layoutArticulations()
       {
+      for (Chord* gc : graceNotes())
+            gc->layoutArticulations();
+
       if (_articulations.empty())
             return;
       const Staff* st = staff();
@@ -3539,11 +3544,13 @@ void Chord::layoutArticulations()
       Articulation* prevArticulation = nullptr;
       for (Articulation* a : _articulations) {
             if (a->anchor() == ArticulationAnchor::CHORD) {
-			if (measure()->hasVoices(a->staffIdx()))
-				a->setUp(up()); // if there are voices place articulation at stem
-			else if (a->symId() >= SymId::articMarcatoAbove && a->symId() <= SymId::articMarcatoTenutoBelow)
-				a->setUp(true); // Gould, p. 117: strong accents above staff
-			else
+                  if (measure()->hasVoices(a->staffIdx()))
+                        a->setUp(up()); // if there are voices place articulation at stem
+                  else if (a->symId() >= SymId::articMarcatoAbove && a->symId() <= SymId::articMarcatoTenutoBelow)
+                        a->setUp(true); // Gould, p. 117: strong accents above staff
+                  else if (isGrace() && up() && !a->layoutCloseToNote() && downNote()->line() < 6)
+                        a->setUp(true); // keep articulation close to grace note
+                  else
                         a->setUp(!up()); // place articulation at note head
                   }
             else
@@ -3633,6 +3640,9 @@ void Chord::layoutArticulations()
 
 void Chord::layoutArticulations2()
       {
+      for (Chord* gc : graceNotes())
+            gc->layoutArticulations2();
+
       if (_articulations.empty())
             return;
       qreal _spatium  = spatium();

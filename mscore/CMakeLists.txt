@@ -53,14 +53,17 @@ if (SCRIPT_INTERFACE)
             plugin/pluginCreator.h plugin/pluginManager.h plugin/qmledit.h
             plugin/qmlplugin.h plugin/qmlpluginengine.h
             plugin/api/qmlpluginapi.h plugin/api/cursor.h plugin/api/scoreelement.h plugin/api/elements.h
+            plugin/api/part.h
             plugin/api/score.h
             plugin/api/fraction.h
+            plugin/api/excerpt.h
 
             plugin/api/enums.cpp
             plugin/mscorePlugins.cpp plugin/pluginCreator.cpp plugin/pluginManager.cpp plugin/qmledit.cpp
             plugin/qmlplugin.cpp plugin/qmlpluginengine.cpp
             plugin/api/qmlpluginapi.cpp plugin/api/cursor.cpp plugin/api/scoreelement.cpp plugin/api/elements.cpp
             plugin/api/score.cpp
+            plugin/api/excerpt.cpp
             )
 
       set (SCRIPT_UI
@@ -503,6 +506,10 @@ target_link_libraries(mscore
       kqoauth
       )
 
+if (BUILD_CRASH_REPORTER)
+      target_link_libraries(mscore crashreporter-handler)
+endif (BUILD_CRASH_REPORTER)
+
 add_dependencies(mscore workspaces)
 
 if (USE_SYSTEM_FREETYPE)
@@ -601,7 +608,7 @@ if (MINGW)
       )
 
    if (OMR)
-      target_link_libraries(mscore omr poppler)
+      target_link_libraries(mscore omr poppler-qt5)
       if (OCR)
             target_link_libraries(mscore tesseract_api)
       endif (OCR)
@@ -749,7 +756,7 @@ else (MINGW)
          )
 
       if (OMR)
-         target_link_libraries(mscore omr poppler)
+         target_link_libraries(mscore omr poppler-qt5)
          if (OCR)
                target_link_libraries(mscore tesseract_api)
          endif (OCR)
@@ -836,21 +843,21 @@ else (MINGW)
       endforeach()
 
       # Windows: Add /SUBSYSTEM:WINDOWS to LINK_FLAGS to avoid a console window in release
-      if(CMAKE_BUILD_TYPE MATCHES "RELEASE")
+      if(CMAKE_BUILD_TYPE MATCHES "REL*")
         set_target_properties( mscore
            PROPERTIES
               COMPILE_FLAGS "${PCH_INCLUDE} ${QT_DEFINITIONS} -DQT_SVG_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB"
               LINK_FLAGS    "/LIBPATH:${QT_INSTALL_LIBS} ${all_library_paths}"
               LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
            )
-      else(CMAKE_BUILD_TYPE MATCHES "RELEASE")
+      else(CMAKE_BUILD_TYPE MATCHES "REL*")
         set_target_properties( mscore
            PROPERTIES
               COMPILE_FLAGS "${PCH_INCLUDE} ${QT_DEFINITIONS} /DQT_SVG_LIB /DQT_GUI_LIB /DQT_XML_LIB /DQT_CORE_LIB"
               LINK_FLAGS    "/LIBPATH:${QT_INSTALL_LIBS} ${all_library_paths}"
               LINK_FLAGS "/SUBSYSTEM:CONSOLE"
            )
-      endif(CMAKE_BUILD_TYPE MATCHES "RELEASE")
+      endif(CMAKE_BUILD_TYPE MATCHES "REL*")
 
       include(FindStaticLibrary)
       target_link_libraries(mscore
@@ -862,7 +869,7 @@ else (MINGW)
          )
 
       if (OMR)
-         target_link_libraries(mscore omr poppler)
+         target_link_libraries(mscore omr poppler-qt5)
          if (OCR)
                target_link_libraries(mscore tesseract_api)
          endif (OCR)
@@ -1079,3 +1086,11 @@ endif (NOT MSVC)
 
 target_link_libraries (inspectorplugin ${QT_LIBRARIES})
 set_target_properties(inspectorplugin PROPERTIES EXCLUDE_FROM_ALL 1)
+
+if (MSCORE_OUTPUT_NAME)
+      set (MSCORE_EXECUTABLE_NAME ${MSCORE_OUTPUT_NAME})
+else (MSCORE_OUTPUT_NAME)
+      set (MSCORE_EXECUTABLE_NAME ${ExecutableName})
+endif (MSCORE_OUTPUT_NAME)
+# Export the executable name to the global context
+set (MSCORE_EXECUTABLE_NAME "${MSCORE_EXECUTABLE_NAME}" PARENT_SCOPE)

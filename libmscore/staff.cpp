@@ -279,27 +279,12 @@ QString Staff::partName() const
       }
 
 //---------------------------------------------------------
-//   ~Staff
-//---------------------------------------------------------
-
-Staff::~Staff()
-      {
-#if 0
-      if (_linkedStaves) {
-            _linkedStaves->remove(this);
-            if (_linkedStaves->empty())
-                  delete _linkedStaves;
-            }
-#endif
-      }
-
-//---------------------------------------------------------
 //   Staff::clefType
 //---------------------------------------------------------
 
-ClefTypeList Staff::clefType(int tick) const
+ClefTypeList Staff::clefType(const Fraction& tick) const
       {
-      ClefTypeList ct = clefs.clef(tick);
+      ClefTypeList ct = clefs.clef(tick.ticks());
       if (ct._concertClef == ClefType::INVALID) {
             switch (staffType(tick)->group()) {
                   case StaffGroup::TAB:
@@ -324,7 +309,7 @@ ClefTypeList Staff::clefType(int tick) const
 //   Staff::clef
 //---------------------------------------------------------
 
-ClefType Staff::clef(int tick) const
+ClefType Staff::clef(const Fraction& tick) const
       {
       ClefTypeList c = clefType(tick);
       return score()->styleB(Sid::concertPitch) ? c._concertClef : c._transposingClef;
@@ -337,10 +322,10 @@ ClefType Staff::clef(int tick) const
 //    return last tick of score if not found
 //---------------------------------------------------------
 
-int Staff::nextClefTick(int tick) const
+Fraction Staff::nextClefTick(const Fraction& tick) const
       {
-      int t = clefs.nextClefTick(tick);
-      return t != -1 ? t : score()->endTick();
+      Fraction t = Fraction::fromTicks(clefs.nextClefTick(tick.ticks()));
+      return t != Fraction(-1,1) ? t : score()->endTick();
       }
 
 
@@ -388,17 +373,18 @@ void Staff::dumpTimeSigs(const char* title) const
 
 void Staff::setClef(Clef* clef)
       {
-//      qDebug("Staff::setClef generated %d", clef->generated());
       if (clef->generated())
             return;
-      int tick = clef->segment()->tick();
-      for (Segment* s = clef->segment()->next(); s && s->tick() == tick; s = s->next()) {
-            if (s->segmentType() == SegmentType::Clef && s->element(clef->track())) {
+      Fraction tick = clef->segment()->tick();
+      for (Segment* s = clef->segment()->next1(); s && s->tick() == tick; s = s->next1()) {
+            if ((s->segmentType() == SegmentType::Clef || s->segmentType() == SegmentType::HeaderClef)
+                && s->element(clef->track())
+                && !s->element(clef->track())->generated()) {
                   // adding this clef has no effect on the clefs list
                   return;
                   }
             }
-      clefs.setClef(clef->segment()->tick(), clef->clefTypeList());
+      clefs.setClef(clef->segment()->tick().ticks(), clef->clefTypeList());
       DUMP_CLEFS("setClef");
       }
 
@@ -406,25 +392,26 @@ void Staff::setClef(Clef* clef)
 //   removeClef
 //---------------------------------------------------------
 
-void Staff::removeClef(Clef* clef)
+void Staff::removeClef(const Clef* clef)
       {
-//      qDebug("Staff::removeClef generated %d", clef->generated());
       if (clef->generated())
             return;
-      int tick = clef->segment()->tick();
-      for (Segment* s = clef->segment()->next(); s && s->tick() == tick; s = s->next()) {
-            if (s->segmentType() == SegmentType::Clef && s->element(clef->track())) {
+      Fraction tick = clef->segment()->tick();
+      for (Segment* s = clef->segment()->next1(); s && s->tick() == tick; s = s->next1()) {
+            if ((s->segmentType() == SegmentType::Clef || s->segmentType() == SegmentType::HeaderClef)
+                && s->element(clef->track())
+                && !s->element(clef->track())->generated()) {
                   // removal of this clef has no effect on the clefs list
                   return;
                   }
             }
-      clefs.erase(clef->segment()->tick());
-      for (Segment* s = clef->segment()->prev(); s && s->tick() == tick; s = s->prev()) {
-            if (s->segmentType() == SegmentType::Clef
+      clefs.erase(clef->segment()->tick().ticks());
+      for (Segment* s = clef->segment()->prev1(); s && s->tick() == tick; s = s->prev1()) {
+            if ((s->segmentType() == SegmentType::Clef || s->segmentType() == SegmentType::HeaderClef)
                && s->element(clef->track())
                && !s->element(clef->track())->generated()) {
                   // a previous clef at the same tick position gets valid
-                  clefs.setClef(tick, toClef(s->element(clef->track()))->clefTypeList());
+                  clefs.setClef(tick.ticks(), toClef(s->element(clef->track()))->clefTypeList());
                   break;
                   }
             }
@@ -435,7 +422,7 @@ void Staff::removeClef(Clef* clef)
 //   timeStretch
 //---------------------------------------------------------
 
-Fraction Staff::timeStretch(int tick) const
+Fraction Staff::timeStretch(const Fraction& tick) const
       {
       TimeSig* timesig = timeSig(tick);
       return timesig ? timesig->stretch() : Fraction(1,1);
@@ -446,14 +433,14 @@ Fraction Staff::timeStretch(int tick) const
 //    lookup time signature before or at tick
 //---------------------------------------------------------
 
-TimeSig* Staff::timeSig(int tick) const
+TimeSig* Staff::timeSig(const Fraction& tick) const
       {
-      auto i = timesigs.upper_bound(tick);
+      auto i = timesigs.upper_bound(tick.ticks());
       if (i != timesigs.begin())
             --i;
       if (i == timesigs.end())
             return 0;
-      else if (tick < i->first)
+      else if (tick < Fraction::fromTicks(i->first))
             return 0;
       return i->second;
       }
@@ -463,9 +450,9 @@ TimeSig* Staff::timeSig(int tick) const
 //    lookup time signature at tick or after
 //---------------------------------------------------------
 
-TimeSig* Staff::nextTimeSig(int tick) const
+TimeSig* Staff::nextTimeSig(const Fraction& tick) const
       {
-      auto i = timesigs.lower_bound(tick);
+      auto i = timesigs.lower_bound(tick.ticks());
       return (i == timesigs.end()) ? 0 : i->second;
       }
 
@@ -473,7 +460,7 @@ TimeSig* Staff::nextTimeSig(int tick) const
 //   group
 //---------------------------------------------------------
 
-const Groups& Staff::group(int tick) const
+const Groups& Staff::group(const Fraction& tick) const
       {
       TimeSig* ts = timeSig(tick);
       if (ts) {
@@ -492,7 +479,7 @@ const Groups& Staff::group(int tick) const
 void Staff::addTimeSig(TimeSig* timesig)
       {
       if (timesig->segment()->segmentType() == SegmentType::TimeSig)
-            timesigs[timesig->segment()->tick()] = timesig;
+            timesigs[timesig->segment()->tick().ticks()] = timesig;
 //      dumpTimeSigs("after addTimeSig");
       }
 
@@ -503,7 +490,7 @@ void Staff::addTimeSig(TimeSig* timesig)
 void Staff::removeTimeSig(TimeSig* timesig)
       {
       if (timesig->segment()->segmentType() == SegmentType::TimeSig)
-            timesigs.erase(timesig->segment()->tick());
+            timesigs.erase(timesig->segment()->tick().ticks());
 //      dumpTimeSigs("after removeTimeSig");
       }
 
@@ -522,38 +509,36 @@ void Staff::clearTimeSig()
 //    locates the key sig currently in effect at tick
 //---------------------------------------------------------
 
-KeySigEvent Staff::keySigEvent(int tick) const
+KeySigEvent Staff::keySigEvent(const Fraction& tick) const
       {
-      return _keys.key(tick);
+      return _keys.key(tick.ticks());
       }
 
 //---------------------------------------------------------
 //   setKey
 //---------------------------------------------------------
 
-void Staff::setKey(int tick, KeySigEvent k)
+void Staff::setKey(const Fraction& tick, KeySigEvent k)
       {
-      _keys.setKey(tick, k);
-//    dumpKeys("setKey");
+      _keys.setKey(tick.ticks(), k);
       }
 
 //---------------------------------------------------------
 //   removeKey
 //---------------------------------------------------------
 
-void Staff::removeKey(int tick)
+void Staff::removeKey(const Fraction& tick)
       {
-      _keys.erase(tick);
-//    dumpKeys("removeKey");
+      _keys.erase(tick.ticks());
       }
 
 //---------------------------------------------------------
 //   prevkey
 //---------------------------------------------------------
 
-KeySigEvent Staff::prevKey(int tick) const
+KeySigEvent Staff::prevKey(const Fraction& tick) const
       {
-      return _keys.prevKey(tick);
+      return _keys.prevKey(tick.ticks());
       }
 
 //---------------------------------------------------------
@@ -563,10 +548,10 @@ KeySigEvent Staff::prevKey(int tick) const
 //    return 0, if no such a key sig
 //---------------------------------------------------------
 
-int Staff::nextKeyTick(int tick) const
+Fraction Staff::nextKeyTick(const Fraction& tick) const
       {
-      int t = _keys.nextKeyTick(tick);
-      return t != -1 ? t : score()->endTick();
+      Fraction t = Fraction::fromTicks(_keys.nextKeyTick(tick.ticks()));
+      return t != Fraction(-1,1) ? t : score()->endTick();
       }
 
 //---------------------------------------------------------
@@ -577,9 +562,9 @@ int Staff::nextKeyTick(int tick) const
 //    return 0, if no such a key sig
 //---------------------------------------------------------
 
-int Staff::currentKeyTick(int tick) const
+Fraction Staff::currentKeyTick(const Fraction& tick) const
       {
-      return _keys.currentKeyTick(tick);
+      return Fraction::fromTicks(_keys.currentKeyTick(tick.ticks()));
       }
 
 //---------------------------------------------------------
@@ -608,7 +593,7 @@ void Staff::write(XmlWriter& xml) const
                   xml.tag("transposeChromatic", v.chromatic);
             }
 
-      staffType(0)->write(xml);
+      staffType(Fraction(0,1))->write(xml);
       ClefTypeList ct = _defaultClefType;
       if (ct._concertClef == ct._transposingClef) {
             if (ct._concertClef != ClefType::G)
@@ -672,7 +657,7 @@ bool Staff::readProperties(XmlReader& e)
       if (tag == "StaffType") {
             StaffType st;
             st.read(e);
-            setStaffType(0, st);
+            setStaffType(Fraction(0,1), st);
             }
       else if (tag == "defaultClef") {           // sets both default transposing and concert clef
             QString val(e.readElementText());
@@ -688,7 +673,7 @@ bool Staff::readProperties(XmlReader& e)
             setDefaultClefType(ClefTypeList(defaultClefType()._concertClef, Clef::clefType(val)));
             }
       else if (tag == "small")                  // obsolete
-            setSmall(0, e.readInt());
+            setSmall(Fraction(0,1), e.readInt());
       else if (tag == "invisible")
             setInvisible(e.readInt());
       else if (tag == "hideWhenEmpty")
@@ -764,7 +749,7 @@ bool Staff::readProperties(XmlReader& e)
 
 qreal Staff::height() const
       {
-      int tick = 0;     // TODO
+      Fraction tick = Fraction(0,1);     // TODO
 //      return (lines(tick) == 1 ? 2 : lines(tick)-1) * spatium(tick) * staffType(tick)->lineDistance().val();
       return (lines(tick)-1) * spatium(tick) * staffType(tick)->lineDistance().val();
       }
@@ -773,7 +758,7 @@ qreal Staff::height() const
 //   spatium
 //---------------------------------------------------------
 
-qreal Staff::spatium(int tick) const
+qreal Staff::spatium(const Fraction& tick) const
       {
       return score()->spatium() * mag(tick);
       }
@@ -782,7 +767,7 @@ qreal Staff::spatium(int tick) const
 //   mag
 //---------------------------------------------------------
 
-qreal Staff::mag(int tick) const
+qreal Staff::mag(const Fraction& tick) const
       {
       return (small(tick) ? score()->styleD(Sid::smallStaffMag) : 1.0) * userMag(tick);
       }
@@ -791,7 +776,7 @@ qreal Staff::mag(int tick) const
 //   userMag
 //---------------------------------------------------------
 
-qreal Staff::userMag(int tick) const
+qreal Staff::userMag(const Fraction& tick) const
       {
       return staffType(tick)->userMag();
       }
@@ -800,7 +785,7 @@ qreal Staff::userMag(int tick) const
 //   setUserMag
 //---------------------------------------------------------
 
-void Staff::setUserMag(int tick, qreal m)
+void Staff::setUserMag(const Fraction& tick, qreal m)
       {
       staffType(tick)->setUserMag(m);
       }
@@ -809,7 +794,7 @@ void Staff::setUserMag(int tick, qreal m)
 //   small
 //---------------------------------------------------------
 
-bool Staff::small(int tick) const
+bool Staff::small(const Fraction& tick) const
       {
       return staffType(tick)->small();
       }
@@ -818,7 +803,7 @@ bool Staff::small(int tick) const
 //   setSmall
 //---------------------------------------------------------
 
-void Staff::setSmall(int tick, bool val)
+void Staff::setSmall(const Fraction& tick, bool val)
       {
       staffType(tick)->setSmall(val);
       }
@@ -827,7 +812,7 @@ void Staff::setSmall(int tick, bool val)
 //   swing
 //---------------------------------------------------------
 
-SwingParameters Staff::swing(int tick) const
+SwingParameters Staff::swing(const Fraction& tick) const
       {
       SwingParameters sp;
       int swingUnit = 0;
@@ -844,7 +829,7 @@ SwingParameters Staff::swing(int tick) const
       sp.swingUnit = swingUnit;
       if (_swingList.empty())
             return sp;
-      QMap<int, SwingParameters>::const_iterator i = _swingList.upperBound(tick);
+      QMap<int, SwingParameters>::const_iterator i = _swingList.upperBound(tick.ticks());
       if (i == _swingList.begin())
             return sp;
       --i;
@@ -855,11 +840,11 @@ SwingParameters Staff::swing(int tick) const
 //   capo
 //---------------------------------------------------------
 
-int Staff::capo(int tick) const
+int Staff::capo(const Fraction& tick) const
       {
       if (_capoList.empty())
             return 0;
-      QMap<int, int>::const_iterator i = _capoList.upperBound(tick);
+      QMap<int, int>::const_iterator i = _capoList.upperBound(tick.ticks());
       if (i == _capoList.begin())
             return 0;
       --i;
@@ -870,11 +855,11 @@ int Staff::capo(int tick) const
 //   channel
 //---------------------------------------------------------
 
-int Staff::channel(int tick,  int voice) const
+int Staff::channel(const Fraction& tick,  int voice) const
       {
       if (_channelList[voice].empty())
             return 0;
-      QMap<int, int>::const_iterator i = _channelList[voice].upperBound(tick);
+      QMap<int, int>::const_iterator i = _channelList[voice].upperBound(tick.ticks());
       if (i == _channelList[voice].begin())
             return 0;
       --i;
@@ -886,7 +871,7 @@ int Staff::channel(int tick,  int voice) const
 //    returns logical line number of middle staff line
 //---------------------------------------------------------
 
-int Staff::middleLine(int tick) const
+int Staff::middleLine(const Fraction& tick) const
       {
       return lines(tick) - 1;
       }
@@ -896,7 +881,7 @@ int Staff::middleLine(int tick) const
 //    returns logical line number of bottom staff line
 //---------------------------------------------------------
 
-int Staff::bottomLine(int tick) const
+int Staff::bottomLine(const Fraction& tick) const
       {
       return (lines(tick) - 1) * 2;
       }
@@ -905,7 +890,7 @@ int Staff::bottomLine(int tick) const
 //   slashStyle
 //---------------------------------------------------------
 
-bool Staff::slashStyle(int tick) const
+bool Staff::slashStyle(const Fraction& tick) const
       {
       return staffType(tick)->slashStyle();
       }
@@ -914,7 +899,7 @@ bool Staff::slashStyle(int tick) const
 //   setSlashStyle
 //---------------------------------------------------------
 
-void Staff::setSlashStyle(int tick, bool val)
+void Staff::setSlashStyle(const Fraction& tick, bool val)
       {
       staffType(tick)->setSlashStyle(val);
       }
@@ -937,7 +922,7 @@ bool Staff::primaryStaff() const
             Staff* staff = toStaff(e);
             if (staff->score() == score()) {
                   s.append(staff);
-                  if (!staff->isTabStaff(0))
+                  if (!staff->isTabStaff(Fraction(0,1)))
                         ss.append(staff);
                   }
             }
@@ -951,17 +936,17 @@ bool Staff::primaryStaff() const
 //   staffType
 //---------------------------------------------------------
 
-const StaffType* Staff::staffType(int tick) const
+const StaffType* Staff::staffType(const Fraction& tick) const
       {
       return &_staffTypeList.staffType(tick);
       }
 
-const StaffType* Staff::constStaffType(int tick) const
+const StaffType* Staff::constStaffType(const Fraction& tick) const
       {
       return &_staffTypeList.staffType(tick);
       }
 
-StaffType* Staff::staffType(int tick)
+StaffType* Staff::staffType(const Fraction& tick)
       {
       return &_staffTypeList.staffType(tick);
       }
@@ -972,13 +957,13 @@ StaffType* Staff::staffType(int tick)
 //    position tick. Update layout range.
 //---------------------------------------------------------
 
-void Staff::staffTypeListChanged(int tick)
+void Staff::staffTypeListChanged(const Fraction& tick)
       {
       score()->setLayout(tick);
-      auto i = _staffTypeList.find(tick);
+      auto i = _staffTypeList.find(tick.ticks());
       ++i;
       if (i != _staffTypeList.end())
-            score()->setLayout(i->first);
+            score()->setLayout(Fraction::fromTicks(i->first));
       else
             score()->setLayout(score()->lastMeasure()->endTick());
       }
@@ -987,16 +972,8 @@ void Staff::staffTypeListChanged(int tick)
 //   setStaffType
 //---------------------------------------------------------
 
-StaffType* Staff::setStaffType(int tick, const StaffType& nst)
+StaffType* Staff::setStaffType(const Fraction& tick, const StaffType& nst)
       {
-#if 0
-#ifndef NDEBUG
-      auto i = _staffTypeList.find(tick);
-      if (i != _staffTypeList.end()) {
-            qDebug("there is already a type at %d", tick);
-            }
-#endif
-#endif
       return _staffTypeList.setStaffType(tick, nst);
       }
 
@@ -1011,12 +988,12 @@ void Staff::init(const InstrumentTemplate* t, const StaffType* staffType, int ci
       if (!pst)
             pst = StaffType::getDefaultPreset(t->staffGroup);
 
-      setStaffType(0, *pst);
+      setStaffType(Fraction(0,1), *pst);
       if (cidx >= MAX_STAVES) {
-            setSmall(0, false);
+            setSmall(Fraction(0,1), false);
             }
       else {
-            setSmall(0,       t->smallStaff[cidx]);
+            setSmall(Fraction(0,1),       t->smallStaff[cidx]);
             setBracketType(0, t->bracket[cidx]);
             setBracketSpan(0, t->bracketSpan[cidx]);
             setBarLineSpan(t->barlineSpan[cidx]);
@@ -1061,7 +1038,7 @@ void Staff::initFromStaffType(const StaffType* staffType)
             staffType = StaffType::getDefaultPreset(StaffGroup::STANDARD);
 
       // use selected staff type
-      setStaffType(0, *staffType);
+      setStaffType(Fraction(0,1), *staffType);
       }
 
 //---------------------------------------------------------
@@ -1088,17 +1065,17 @@ bool Staff::show() const
 
 bool Staff::genKeySig()
       {
-      if (constStaffType(0)->group() == StaffGroup::TAB)
+      if (constStaffType(Fraction(0,1))->group() == StaffGroup::TAB)
             return false;
       else
-            return constStaffType(0)->genKeysig();
+            return constStaffType(Fraction(0,1))->genKeysig();
       }
 
 //---------------------------------------------------------
 //   showLedgerLines
 //---------------------------------------------------------
 
-bool Staff::showLedgerLines(int tick) const
+bool Staff::showLedgerLines(const Fraction& tick) const
       {
       return staffType(tick)->showLedgerLines();
       }
@@ -1115,8 +1092,8 @@ void Staff::updateOttava()
             const Spanner* s = i.second;
             if (s->type() == ElementType::OTTAVA && s->staffIdx() == staffIdx) {
                   const Ottava* o = static_cast<const Ottava*>(s);
-                  _pitchOffsets.setPitchOffset(o->tick(), o->pitchShift());
-                  _pitchOffsets.setPitchOffset(o->tick2(), 0);
+                  _pitchOffsets.setPitchOffset(o->tick().ticks(), o->pitchShift());
+                  _pitchOffsets.setPitchOffset(o->tick2().ticks(), 0);
                   }
             }
       }
@@ -1134,25 +1111,25 @@ void Staff::undoSetColor(const QColor& /*val*/)
 //   insertTime
 //---------------------------------------------------------
 
-void Staff::insertTime(int tick, int len)
+void Staff::insertTime(const Fraction& tick, const Fraction& len)
       {
-      if (len == 0)
+      if (len.isZero())
             return;
 
       // move all keys and clefs >= tick
 
-      if (len < 0) {
+      if (len < Fraction(0,1)) {
             // remove entries between tickpos >= tick and tickpos < (tick+len)
-            _keys.erase(_keys.lower_bound(tick), _keys.lower_bound(tick-len));
-            clefs.erase(clefs.lower_bound(tick), clefs.lower_bound(tick-len));
+            _keys.erase(_keys.lower_bound(tick.ticks()), _keys.lower_bound((tick - len).ticks()));
+            clefs.erase(clefs.lower_bound(tick.ticks()), clefs.lower_bound((tick - len).ticks()));
             }
 
       KeyList kl2;
-      for (auto i = _keys.lower_bound(tick); i != _keys.end();) {
+      for (auto i = _keys.lower_bound(tick.ticks()); i != _keys.end();) {
             KeySigEvent kse = i->second;
-            int t = i->first;
+            Fraction t = Fraction::fromTicks(i->first);
             _keys.erase(i++);
-            kl2[t + len] = kse;
+            kl2[(t + len).ticks()] = kse;
             }
       _keys.insert(kl2.begin(), kl2.end());
 
@@ -1170,15 +1147,15 @@ void Staff::insertTime(int tick, int len)
             }
 
       ClefList cl2;
-      for (auto i = clefs.lower_bound(tick); i != clefs.end();) {
+      for (auto i = clefs.lower_bound(tick.ticks()); i != clefs.end();) {
             ClefTypeList ctl = i->second;
-            int t = i->first;
+            Fraction t = Fraction::fromTicks(i->first);
             if (clef && tick == t) {
                   ++i;
                   continue;
                   }
             clefs.erase(i++);
-            cl2.setClef(t + len, ctl);
+            cl2.setClef((t + len).ticks(), ctl);
             }
       clefs.insert(cl2.begin(), cl2.end());
 
@@ -1236,9 +1213,9 @@ QVariant Staff::getProperty(Pid id) const
       {
       switch (id) {
             case Pid::SMALL:
-                  return small(0);
+                  return small(Fraction(0,1));
             case Pid::MAG:
-                  return userMag(0);
+                  return userMag(Fraction(0,1));
             case Pid::COLOR:
                   return color();
             case Pid::PLAYBACK_VOICE1:
@@ -1273,12 +1250,12 @@ bool Staff::setProperty(Pid id, const QVariant& v)
       {
       switch (id) {
             case Pid::SMALL:
-                  setSmall(0, v.toBool());
+                  setSmall(Fraction(0,1), v.toBool());
                   break;
             case Pid::MAG: {
-                  qreal _spatium = spatium(0);
-                  setUserMag(0, v.toReal());
-                  score()->spatiumChanged(_spatium, spatium(0));
+                  qreal _spatium = spatium(Fraction(0,1));
+                  setUserMag(Fraction(0,1), v.toReal());
+                  score()->spatiumChanged(_spatium, spatium(Fraction(0,1)));
                   }
                   break;
             case Pid::COLOR:
@@ -1377,7 +1354,7 @@ void Staff::scaleChanged(double oldVal, double newVal)
 //   isPitchedStaff
 //---------------------------------------------------------
 
-bool Staff::isPitchedStaff(int tick) const
+bool Staff::isPitchedStaff(const Fraction& tick) const
       {
       return staffType(tick)->group() == StaffGroup::STANDARD;
       }
@@ -1386,7 +1363,7 @@ bool Staff::isPitchedStaff(int tick) const
 //   isTabStaff
 //---------------------------------------------------------
 
-bool Staff::isTabStaff(int tick) const
+bool Staff::isTabStaff(const Fraction& tick) const
       {
       return staffType(tick)->group() == StaffGroup::TAB;
       }
@@ -1405,7 +1382,7 @@ bool Staff::isNumericStaff(int tick) const
 //   isDrumStaff
 //---------------------------------------------------------
 
-bool Staff::isDrumStaff(int tick) const
+bool Staff::isDrumStaff(const Fraction& tick) const
       {
       return staffType(tick)->group() == StaffGroup::PERCUSSION;
       }
@@ -1414,7 +1391,7 @@ bool Staff::isDrumStaff(int tick) const
 //   lines
 //---------------------------------------------------------
 
-int Staff::lines(int tick) const
+int Staff::lines(const Fraction& tick) const
       {
       return staffType(tick)->lines();
       }
@@ -1423,7 +1400,7 @@ int Staff::lines(int tick) const
 //   setLines
 //---------------------------------------------------------
 
-void Staff::setLines(int tick, int val)
+void Staff::setLines(const Fraction& tick, int val)
       {
       staffType(tick)->setLines(val);
       }
@@ -1433,7 +1410,7 @@ void Staff::setLines(int tick, int val)
 //    distance between staff lines
 //---------------------------------------------------------
 
-qreal Staff::lineDistance(int tick) const
+qreal Staff::lineDistance(const Fraction& tick) const
       {
       return staffType(tick)->lineDistance().val();
       }

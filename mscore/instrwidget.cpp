@@ -246,7 +246,7 @@ void StaffListItem::staffTypeChanged(int idx)
       PartListItem* pli = static_cast<PartListItem*>(QTreeWidgetItem::parent());
       pli->updateClefs();
 
-      if (_staff && _staff->staffType(0)->name() != stfType->name()) {
+      if (_staff && _staff->staffType(Fraction(0,1))->name() != stfType->name()) {
             if (_op != ListItemOp::I_DELETE && _op != ListItemOp::ADD)
                   _op = ListItemOp::UPDATE;
             }
@@ -458,7 +458,7 @@ void InstrumentsWidget::genPartList(Score* cs)
             for (Staff* s : *p->staves()) {
                   StaffListItem* sli = new StaffListItem(pli);
                   sli->setStaff(s);
-                  sli->setClefType(s->clefType(0));
+                  sli->setClefType(s->clefType(Fraction(0,1)));
                   sli->setDefaultClefType(s->defaultClefType());
                   sli->setPartIdx(s->rstaff());
                   const LinkedElements* ls = s->links();
@@ -473,7 +473,7 @@ void InstrumentsWidget::genPartList(Score* cs)
                               }
                         }
                   sli->setLinked(bLinked);
-                  sli->setStaffType(s->staffType(0));    // TODO
+                  sli->setStaffType(s->staffType(Fraction(0,1)));    // TODO
                   }
             pli->updateClefs();
             partiturList->setItemExpanded(pli, true);
@@ -560,7 +560,7 @@ void InstrumentsWidget::on_instrumentList_itemActivated(QTreeWidgetItem* item, i
 
 void InstrumentsWidget::on_addButton_clicked()
       {
-      foreach(QTreeWidgetItem* i, instrumentList->selectedItems()) {
+      for (QTreeWidgetItem* i : instrumentList->selectedItems()) {
             InstrumentTemplateListItem* item = static_cast<InstrumentTemplateListItem*>(i);
             const InstrumentTemplate* it     = item->instrumentTemplate();
             if (it == 0)

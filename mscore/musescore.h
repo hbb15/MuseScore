@@ -238,6 +238,8 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       static const std::list<const char*> _allPlaybackControlEntries;
       std::list<const char*> _playbackControlEntries { _allPlaybackControlEntries };
 
+      bool _playPartOnly = true; // play part only vs. full score
+
       QVBoxLayout* layout;    // main window layout
       QSplitter* splitter;
       ScoreTab* tab1;
@@ -555,13 +557,13 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void onLongOperationFinished();
 
       virtual QMenu* createPopupMenu() override;
-      
+
       QByteArray exportPdfAsJSON(Score*);
 
    public slots:
       virtual void cmd(QAction* a);
       void dirtyChanged(Score*);
-      void setPos(int tick);
+      void setPos(const Fraction& tick);
       void pluginTriggered(int);
       void handleMessage(const QString& message);
       void setCurrentScoreView(ScoreView*);
@@ -617,6 +619,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void showPluginManager();
 
 //      void updateTabNames();
+      void updatePaletteBeamMode(bool unselect = false);
       QProgressBar* showProgressBar();
       void hideProgressBar();
       void addRecentScore(Score*);
@@ -705,6 +708,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void exportFile();
       bool exportParts();
       virtual bool saveAs(Score*, bool saveCopy, const QString& path, const QString& ext);
+      QString saveFilename(QString fn);
       bool savePdf(const QString& saveName);
       bool savePdf(Score* cs, const QString& saveName);
       bool savePdf(QList<Score*> cs, const QString& saveName);
@@ -738,13 +742,13 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       bool exportMp3AsJSON(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
       bool exportPartsPdfsToJSON(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
       /////////////////////////////////////////////////
-      
+
       virtual void closeScore(Score* score);
 
       void addTempo();
       void addMetronome();
 
-      SynthesizerState synthesizerState();
+      SynthesizerState synthesizerState() const;
 
       Q_INVOKABLE QString getLocaleISOCode() const;
       Navigator* navigator() const;
@@ -847,6 +851,9 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void setPlaybackControlEntries(std::list<const char*> l)       { _playbackControlEntries = l; }
       void populatePlaybackControls();
 
+      bool playPartOnly() const { return _playPartOnly; }
+      void setPlayPartOnly(bool val);
+
       static void updateUiStyleAndTheme();
 
       void showError();
@@ -876,6 +883,7 @@ extern void loadTranslation(QString fileName, QString localeName);
 extern void setMscoreLocale(QString localeName);
 extern bool saveMxl(Score*, const QString& name);
 extern bool saveMxl(Score*, QIODevice*);
+extern bool saveXml(Score*, QIODevice*);
 extern bool saveXml(Score*, const QString& name);
 
 struct PluginDescription;

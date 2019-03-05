@@ -142,6 +142,11 @@ static QString createDefaultFileName(QString fn)
       return fn;
       }
 
+QString MuseScore::saveFilename(QString fn)
+      {
+      return createDefaultFileName(fn);
+      }
+
 //---------------------------------------------------------
 //   readScoreError
 //    if "ask" is true, ask to ignore; returns true if
@@ -579,6 +584,7 @@ MasterScore* MuseScore::getNewFile()
             }
       score->setCreated(true);
       score->fileInfo()->setFile(createDefaultName());
+      score->updateExpressive(synti);
 
       if (!score->style().chordList()->loaded()) {
             if (score->styleB(Sid::chordsXmlFile))
@@ -590,34 +596,34 @@ MasterScore* MuseScore::getNewFile()
 
       score->sigmap()->add(0, timesig);
 
-      int firstMeasureTicks = pickupMeasure ? Fraction(pickupTimesigZ, pickupTimesigN).ticks() : timesig.ticks();
+      Fraction firstMeasureTicks = pickupMeasure ? Fraction(pickupTimesigZ, pickupTimesigN) : timesig;
 
       for (int i = 0; i < measures; ++i) {
-            int tick = firstMeasureTicks + timesig.ticks() * (i - 1);
+            Fraction tick = firstMeasureTicks + timesig * (i - 1);
             if (i == 0)
-                  tick = 0;
+                  tick = Fraction(0,1);
             QList<Rest*> puRests;
             for (Score* _score : score->scoreList()) {
                   Rest* rest = 0;
                   Measure* measure = new Measure(_score);
                   measure->setTimesig(timesig);
-                  measure->setLen(timesig);
+                  measure->setTicks(timesig);
                   measure->setTick(tick);
 
-                  if (pickupMeasure && tick == 0) {
+                  if (pickupMeasure && tick.isZero()) {
                         measure->setIrregular(true);        // don’t count pickup measure
-                        measure->setLen(Fraction(pickupTimesigZ, pickupTimesigN));
+                        measure->setTicks(Fraction(pickupTimesigZ, pickupTimesigN));
                         }
                   _score->measures()->add(measure);
 
                   for (Staff* staff : _score->staves()) {
                         int staffIdx = staff->idx();
-                        if (tick == 0) {
+                        if (tick.isZero()) {
                               TimeSig* ts = new TimeSig(_score);
                               ts->setTrack(staffIdx * VOICES);
                               ts->setSig(timesig, timesigType);
                               Measure* m = _score->firstMeasure();
-                              Segment* s = m->getSegment(SegmentType::TimeSig, 0);
+                              Segment* s = m->getSegment(SegmentType::TimeSig, Fraction(0,1));
                               s->add(ts);
                               Part* part = staff->part();
                               if (!part->instrument()->useDrumset()) {
@@ -631,11 +637,11 @@ MasterScore* MuseScore::getNewFile()
                                           }
                                     // do not create empty keysig unless custom or atonal
                                     if (nKey.custom() || nKey.isAtonal() || nKey.key() != Key::C) {
-                                          staff->setKey(0, nKey);
+                                          staff->setKey(Fraction(0,1), nKey);
                                           KeySig* keysig = new KeySig(score);
                                           keysig->setTrack(staffIdx * VOICES);
                                           keysig->setKeySigEvent(nKey);
-                                          Segment* ss = measure->getSegment(SegmentType::KeySig, 0);
+                                          Segment* ss = measure->getSegment(SegmentType::KeySig, Fraction(0,1));
                                           ss->add(keysig);
                                           }
                                     }
@@ -643,12 +649,12 @@ MasterScore* MuseScore::getNewFile()
 
                         // determined if this staff is linked to previous so we can reuse rests
                         bool linkedToPrevious = staffIdx && staff->isLinked(_score->staff(staffIdx - 1));
-                        if (measure->timesig() != measure->len()) {
+                        if (measure->timesig() != measure->ticks()) {
                               if (!linkedToPrevious)
                                     puRests.clear();
-                              std::vector<TDuration> dList = toDurationList(measure->len(), false);
+                              std::vector<TDuration> dList = toDurationList(measure->ticks(), false);
                               if (!dList.empty()) {
-                                    int ltick = tick;
+                                    Fraction ltick = tick;
                                     int k = 0;
                                     foreach (TDuration d, dList) {
                                           if (k < puRests.count())
@@ -658,7 +664,7 @@ MasterScore* MuseScore::getNewFile()
                                                 puRests.append(rest);
                                                 }
                                           rest->setScore(_score);
-                                          rest->setDuration(d.fraction());
+                                          rest->setTicks(d.fraction());
                                           rest->setTrack(staffIdx * VOICES);
                                           Segment* seg = measure->getSegment(SegmentType::ChordRest, ltick);
                                           seg->add(rest);
@@ -673,7 +679,7 @@ MasterScore* MuseScore::getNewFile()
                               else
                                     rest = new Rest(score, TDuration(TDuration::DurationType::V_MEASURE));
                               rest->setScore(_score);
-                              rest->setDuration(measure->len());
+                              rest->setTicks(measure->ticks());
                               rest->setTrack(staffIdx * VOICES);
                               Segment* seg = measure->getSegment(SegmentType::ChordRest, tick);
                               seg->add(rest);
@@ -706,7 +712,7 @@ MasterScore* MuseScore::getNewFile()
             MeasureBase* measure = score->measures()->first();
             if (measure->type() != ElementType::VBOX) {
                   MeasureBase* nm = nvb ? nvb : new VBox(score);
-                  nm->setTick(0);
+                  nm->setTick(Fraction(0,1));
                   nm->setNext(measure);
                   score->measures()->add(nm);
                   measure = nm;
@@ -2022,13 +2028,13 @@ bool MuseScore::saveAs(Score* cs_, bool saveCopy, const QString& path, const QSt
 bool MuseScore::saveMidi(Score* score, const QString& name)
       {
       ExportMidi em(score);
-      return em.write(name, preferences.getBool(PREF_IO_MIDI_EXPANDREPEATS), preferences.getBool(PREF_IO_MIDI_EXPORTRPNS));
+      return em.write(name, preferences.getBool(PREF_IO_MIDI_EXPANDREPEATS), preferences.getBool(PREF_IO_MIDI_EXPORTRPNS), synthesizerState());
       }
 
 bool MuseScore::saveMidi(Score* score, QIODevice* device)
       {
       ExportMidi em(score);
-      return em.write(device, preferences.getBool(PREF_IO_MIDI_EXPANDREPEATS), preferences.getBool(PREF_IO_MIDI_EXPORTRPNS));
+      return em.write(device, preferences.getBool(PREF_IO_MIDI_EXPANDREPEATS), preferences.getBool(PREF_IO_MIDI_EXPORTRPNS), synthesizerState());
       }
 
 //---------------------------------------------------------
@@ -2327,6 +2333,7 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
             s->setLayoutAll();
             }
       score->updateChannel();
+      score->updateExpressive(synti);
       score->setSaved(false);
       score->update();
 
@@ -2998,6 +3005,30 @@ bool MuseScore::saveMetadataJSON(Score* score, const QString& name)
       return true;
       }
 
+//---------------------------------------------------------
+//   findTextByType
+//    @data must contain std::pair<Tid, QStringList*>*
+//          Tid specifies text style
+//          QStringList* specifies the container to keep found text
+//
+//    For usage with Score::scanElements().
+//    Finds all text elements with specified style.
+//---------------------------------------------------------
+static void findTextByType(void* data, Element* element)
+      {
+      if (!element->isTextBase())
+            return;
+      TextBase* text = toTextBase(element);
+      auto* typeStringsData = static_cast<std::pair<Tid, QStringList*>*>(data);
+      if (text->tid() == typeStringsData->first) {
+            // or if score->getTextStyleUserName().contains("Title") ???
+            // That is bad since it may be localized
+            QStringList* titleStrings = typeStringsData->second;
+            Q_ASSERT(titleStrings);
+            titleStrings->append(text->plainText());
+            }
+      }
+      
 QJsonObject MuseScore::saveMetadataJSON(Score* score)
       {
       auto boolToString = [](bool b) { return b ? "true" : "false"; };
@@ -3115,7 +3146,26 @@ QJsonObject MuseScore::saveMetadataJSON(Score* score)
       jsonPageformat.insert("width", round(score->styleD(Sid::pageWidth) * INCH));
       jsonPageformat.insert("twosided", boolToString(score->styleB(Sid::pageTwosided)));
       json.insert("pageFormat", jsonPageformat);
-
+      
+      //text frames metadata
+      QJsonObject jsonTypeData;
+      static std::vector<std::pair<QString, Tid>> namesTypesList {
+            {"titles", Tid::TITLE},
+            {"subtitles", Tid::SUBTITLE},
+            {"composers", Tid::COMPOSER},
+            {"poets", Tid::POET}
+            };
+      for (auto nameType : namesTypesList) {
+            QJsonArray typeData;
+            QStringList typeTextStrings;
+            std::pair<Tid, QStringList*> extendedTitleData = std::make_pair(nameType.second, &typeTextStrings);
+            score->scanElements(&extendedTitleData, findTextByType);
+            for (auto typeStr : typeTextStrings)
+                  typeData.append(typeStr);
+            jsonTypeData.insert(nameType.first, typeData);
+            }
+      json.insert("textFramesData", jsonTypeData);
+      
       return json;
       }
 

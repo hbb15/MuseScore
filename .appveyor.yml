@@ -13,6 +13,7 @@ branches:
 # build cache to preserve files/folders between builds
 cache:
   - dependencies.7z
+  # - qt-5.12.1-msvc.7z # if not using AppVeyor's built-in Qt in before_build.bat
   - C:\Qt\Tools\mingw530_32\lib
   - C:\Qt\Tools\mingw530_32\i686-w64-mingw32
   - C:\Program Files (x86)\Jack
@@ -21,7 +22,9 @@ cache:
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
 platform:
-  - x86
+#use for releases only
+#  - x86
+  - x64
 
 #environment:
 
@@ -31,7 +34,13 @@ configuration: Release
 # Stop Appveyor from "Discovering Tests"
 test: off
 
+matrix:
+  fast_finish: true # stop all jobs if any job fails
+  #allow_failures: # list jobs allowed to fail without stopping the rest
+
 install:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - git submodule update --init --recursive
   - IF DEFINED ENCRYPT_SECRET_SSH (
     nuget install secure-file -ExcludeVersion &&
     secure-file\tools\secure-file -decrypt C:\MuseScore\build\appveyor\resources\osuosl_nighlies_rsa_nopp.enc -secret %ENCRYPT_SECRET_SSH%
@@ -52,8 +61,10 @@ after_build:
   - cmd: C:\MuseScore\build\appveyor\after_build.bat
 
 artifacts:
-#  - path: $(ARTIFACT_NAME)
-#    name: musescore-binary
+  - path: $(ARTIFACT_NAME)
+    name: musescore-binary
+  - path: $(DEBUG_SYMS_FILE)
+    name: musescore-dbg-info.sym
   - path: update_win_nightly.xml
     name: update_win_nightly.xml
   - path: appcast.xml
@@ -81,4 +92,3 @@ deploy:
 #    region: us-east-1
 #    set_public: true
 #    artifact: appcast.xml
-

@@ -163,7 +163,10 @@ enum class Pid {
       HAIRPIN_HEIGHT,
       HAIRPIN_CONT_HEIGHT,
       VELO_CHANGE,
+      VELO_CHANGE_METHOD,
+      VELO_CHANGE_SPEED,
       DYNAMIC_RANGE,
+      SINGLE_NOTE_DYNAMICS,
       PLACEMENT,
       VELOCITY,
       JUMP_TO,
@@ -185,7 +188,6 @@ enum class Pid {
       DIAGONAL,
       GROUPS,
       LINE_STYLE,
-      LINE_COLOR,
       LINE_WIDTH,
       LASSO_POS,
       LASSO_SIZE,
@@ -220,16 +222,11 @@ enum class Pid {
       LINE_VISIBLE,
       MAG,
       USE_DRUMSET,
-      PART_VOLUME,
-      PART_MUTE,
-      PART_PAN,
-      PART_REVERB,
-
-      PART_CHORUS,
       DURATION,
       DURATION_TYPE,
       ROLE,
       TRACK,
+
       GLISSANDO_STYLE,
       FRET_STRINGS,
       FRET_FRETS,
@@ -370,6 +367,8 @@ enum class P_TYPE : char {
       FONT,
       SUB_STYLE,
       ALIGN,
+      CHANGE_METHOD,    // enum class VeloChangeMethod (for single notedynamics)
+      CHANGE_SPEED      // enum class Dynamic::Speed
       };
 
 extern QVariant readProperty(Pid type, XmlReader& e);

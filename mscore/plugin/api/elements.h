@@ -21,6 +21,7 @@
 #include "libmscore/note.h"
 #include "libmscore/notedot.h"
 #include "libmscore/segment.h"
+#include "libmscore/accidental.h"
 
 namespace Ms {
 namespace PluginAPI {
@@ -142,6 +143,9 @@ class Element : public Ms::PluginAPI::ScoreElement {
       API_PROPERTY( hairpinHeight,           HAIRPIN_HEIGHT            )
       API_PROPERTY( hairpinContHeight,       HAIRPIN_CONT_HEIGHT       )
       API_PROPERTY( veloChange,              VELO_CHANGE               )
+      API_PROPERTY( singleNoteDynamics,      SINGLE_NOTE_DYNAMICS      )
+      API_PROPERTY( veloChangeMethod,        VELO_CHANGE_METHOD        )
+      API_PROPERTY( veloChangeSpeed,         VELO_CHANGE_SPEED         )
       API_PROPERTY( dynamicRange,            DYNAMIC_RANGE             )
       API_PROPERTY( placement,               PLACEMENT                 )
       API_PROPERTY( velocity,                VELOCITY                  )
@@ -159,7 +163,7 @@ class Element : public Ms::PluginAPI::ScoreElement {
       API_PROPERTY( diagonal,                DIAGONAL                  )
       API_PROPERTY( groups,                  GROUPS                    )
       API_PROPERTY( lineStyle,               LINE_STYLE                )
-      API_PROPERTY( lineColor,               LINE_COLOR                )
+      API_PROPERTY( lineColor,               COLOR                     )
       API_PROPERTY( lineWidth,               LINE_WIDTH                )
       API_PROPERTY( lassoPos,                LASSO_POS                 )
       API_PROPERTY( lassoSize,               LASSO_SIZE                )
@@ -191,11 +195,6 @@ class Element : public Ms::PluginAPI::ScoreElement {
       API_PROPERTY( lineVisible,             LINE_VISIBLE              )
       API_PROPERTY( mag,                     MAG                       )
       API_PROPERTY( useDrumset,              USE_DRUMSET               )
-      API_PROPERTY( partVolume,              PART_VOLUME               )
-      API_PROPERTY( partMute,                PART_MUTE                 )
-      API_PROPERTY( partPan,                 PART_PAN                  )
-      API_PROPERTY( partReverb,              PART_REVERB               )
-      API_PROPERTY( partChorus,              PART_CHORUS               )
       API_PROPERTY( duration,                DURATION                  )
       API_PROPERTY( durationType,            DURATION_TYPE             )
       API_PROPERTY( role,                    ROLE                      )
@@ -306,8 +305,8 @@ class Element : public Ms::PluginAPI::ScoreElement {
 
 class Note : public Element {
       Q_OBJECT
-//       Q_PROPERTY(Ms::Accidental*                accidental        READ accidental)
-//       Q_PROPERTY(int                            accidentalType    READ qmlAccidentalType  WRITE qmlSetAccidentalType)
+      Q_PROPERTY(Ms::PluginAPI::Element*          accidental        READ accidental)
+      Q_PROPERTY(Ms::AccidentalType               accidentalType    READ accidentalType  WRITE setAccidentalType)
       Q_PROPERTY(QQmlListProperty<Ms::PluginAPI::Element>  dots              READ dots)
 //       Q_PROPERTY(int                            dotsCount         READ qmlDotsCount)
       Q_PROPERTY(QQmlListProperty<Ms::PluginAPI::Element>  elements          READ elements)
@@ -347,6 +346,11 @@ class Note : public Element {
 
       QQmlListProperty<Element> dots()     { return wrapContainerProperty<Element>(this, note()->dots()); }
       QQmlListProperty<Element> elements() { return wrapContainerProperty<Element>(this, note()->el());   }
+
+      Element* accidental() { return wrap<Element>(note()->accidental()); }
+
+      Ms::AccidentalType accidentalType() { return note()->accidentalType(); }
+      void setAccidentalType(Ms::AccidentalType t) { note()->setAccidentalType(t); }
       };
 
 //---------------------------------------------------------
@@ -380,7 +384,7 @@ class Chord : public Element {
 class Segment : public Element {
       Q_OBJECT
       // TODO
-//       Q_PROPERTY(QQmlListProperty<Ms::Element> annotations READ qmlAnnotations)
+      Q_PROPERTY(QQmlListProperty<Ms::PluginAPI::Element> annotations READ annotations)
       Q_PROPERTY(Ms::PluginAPI::Segment*       next              READ nextInScore)
       Q_PROPERTY(Ms::PluginAPI::Segment*       nextInMeasure     READ nextInMeasure)
       Q_PROPERTY(Ms::PluginAPI::Segment*       prev              READ prevInScore)
@@ -400,12 +404,13 @@ class Segment : public Element {
       //@ returns the element at track 'track' (null if none)
       Q_INVOKABLE Ms::PluginAPI::Element* elementAt(int track);
 
-      int tick() const { return segment()->tick(); }
+      int tick() const { return segment()->tick().ticks(); }
 
       Segment* nextInScore() { return wrap<Segment>(segment()->next1()); }
       Segment* nextInMeasure() { return wrap<Segment>(segment()->next()); }
       Segment* prevInScore() { return wrap<Segment>(segment()->prev1()); }
       Segment* prevInMeasure() { return wrap<Segment>(segment()->prev()); }
+      QQmlListProperty<Element> annotations() { return wrapContainerProperty<Element>(this, segment()->annotations()); }
       };
 
 //---------------------------------------------------------

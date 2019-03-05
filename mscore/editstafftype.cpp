@@ -59,7 +59,7 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
       setupUi(this);
 
       staff     = st;
-      staffType = *staff->staffType(0);
+      staffType = *staff->staffType(Fraction(0,1));
       Instrument* instr = staff->part()->instrument();
 
       // template combo
@@ -545,7 +545,7 @@ void EditStaffType::updatePreview()
       else if (staffType.group() == StaffGroup::STANDARD)
              preview = standardPreview;
       if (preview) {
-            preview->score()->staff(0)->setStaffType(0, staffType);
+            preview->score()->staff(0)->setStaffType(Fraction(0,1), staffType);
             preview->score()->doLayout();
             preview->updateAll();
             preview->update();

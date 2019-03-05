@@ -132,6 +132,7 @@ option(SOUNDFONT3    "Ogg Vorbis compressed fonts" ON)         # Enable Ogg Vorb
 option(HAS_AUDIOFILE "Enable audio export" ON)                 # Requires libsndfile
 option(USE_SYSTEM_QTSINGLEAPPLICATION "Use system QtSingleApplication" OFF)
 option(USE_SYSTEM_FREETYPE "Use system FreeType" OFF)          # requires freetype >= 2.5.2, does not work on win
+option(USE_SYSTEM_POPPLER  "Use system Poppler for OMR" OFF)
 option(BUILD_LAME    "Enable MP3 export" ON)                   # Requires libmp3lame, call CMake with -DBUILD_LAME="OFF" to disable
 option(DOWNLOAD_SOUNDFONT "Download the latest soundfont version as part of the build process" ON)
 
@@ -150,6 +151,8 @@ option(BUILD_FOR_WINSTORE "Build for the Windows Store." OFF)
 option(COVERAGE "Build with instrumentation to record code coverage." OFF)
 option(BUILD_64 "Build 64 bit version of editor" ON)
 option(BUILD_AUTOUPDATE "Build with autoupdate support" OFF)
+option(BUILD_CRASH_REPORTER "Build with crash reporter" OFF)
+set(CRASH_REPORT_URL "http://127.0.0.1:1127/post" CACHE STRING "URL where to send crash reports (valid if BUILD_CRASH_REPORTER is set to ON)")
 
 if (APPLE)
       set (CMAKE_CXX_COMPILER   clang++)
@@ -245,13 +248,18 @@ else (APPLE)
    # Set compiler options for VS2017 toolchain.
    # Note: /D_CRT_SECURE_NO WARNINGS disables warnings when using "non-secure" library functions like sscanf...
       set(CMAKE_CXX_FLAGS                "/MP /DWIN32 /D_WINDOWS /GR /EHsc /D_UNICODE /DUNICODE /D_CRT_SECURE_NO_WARNINGS /execution-charset:utf-8 /source-charset:utf-8")
+      set(CMAKE_C_FLAGS                  "/MP /DWIN32 /D_WINDOWS")
       if (USE_SSE)
          # If USE_SSE is set, enable use of SSE instructions to compiler.
          set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /arch:SSE")
+         set(CMAKE_C_FLAGS    "${CMAKE_C_FLAGS} /arch:SSE")
       endif (USE_SSE)
       set(CMAKE_CXX_FLAGS_DEBUG          "/MT /permissive- /std:c++14 /W4 /Zi /Ob0 /Od /RTC1")
       set(CMAKE_CXX_FLAGS_RELEASE        "/MT /permissive- /std:c++14 /W4 /O2 /Ob2 /DNDEBUG /DQT_NO_DEBUG /DQT_NO_DEBUG_OUTPUT")
-      set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /permissive- /std:c++14 /W4 /Zi /O2 /Ob1 /DNDEBUG /DQT_NO_DEBUG")
+      set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /permissive- /std:c++14 /W4 /Zi /O2 /Ob1 /DNDEBUG /DQT_NO_DEBUG /DQT_NO_DEBUG_OUTPUT")
+      set(CMAKE_C_FLAGS_DEBUG            "/MT /W4 /Zi /Ob0 /Od /RTC1")
+      set(CMAKE_C_FLAGS_RELEASE          "/MT /W4 /O2 /Ob2 /DNDEBUG")
+      set(CMAKE_C_FLAGS_RELWITHDEBINFO   "/MT /W4 /Zi /O2 /Ob1 /DNDEBUG")
       set(CMAKE_EXE_LINKER_FLAGS         "/DYNAMICBASE:NO")
    else (MSVC)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
@@ -612,14 +620,6 @@ else(USE_SYSTEM_QTSINGLEAPPLICATION)
       set(QTSINGLEAPPLICATION_LIBRARIES qtsingleapp)
 endif(USE_SYSTEM_QTSINGLEAPPLICATION)
 
-##
-## produce config.h file
-##
-configure_file (
-      ${PROJECT_SOURCE_DIR}/build/config.h.in
-      ${PROJECT_BINARY_DIR}/config.h
-      )
-
 if (NOT MINGW AND NOT MSVC AND NOT APPLE)
     #### PACKAGING for Linux and BSD based systems (more in mscore/CMakeLists.txt) ####
     #
@@ -746,10 +746,15 @@ endif (NOT MSVC)
 ## Add subdirs
 ##
 subdirs(
-      mscore awl bww2mxml share midi audiofile fluid libmscore synthesizer
+      awl bww2mxml share midi audiofile fluid libmscore synthesizer
       effects thirdparty/rtf2html thirdparty/beatroot
       thirdparty/qzip thirdparty/kQOAuth
       )
+
+if (BUILD_CRASH_REPORTER)
+      set(ENABLE_CRASH_REPORTER OFF CACHE BOOL "Disable libcrashreporter-qt GUI component")
+      add_subdirectory(thirdparty/libcrashreporter-qt)
+endif (BUILD_CRASH_REPORTER)
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE)
 if (APPLE AND CMAKE_BUILD_TYPE MATCHES "DEBUG")
@@ -778,7 +783,10 @@ if (ZERBERUS)
 endif (ZERBERUS)
 
 if (OMR)
-      subdirs (omr thirdparty/poppler)
+      subdirs (omr)
+      if (NOT USE_SYSTEM_POPPLER)
+            subdirs (thirdparty/poppler)
+      endif (NOT USE_SYSTEM_POPPLER)
 endif (OMR)
 
 if (OSC)
@@ -821,9 +829,32 @@ else (USE_SYSTEM_FREETYPE)
 endif (USE_SYSTEM_FREETYPE)
 
 if (OMR)
+ if (NOT USE_SYSTEM_POPPLER)
    include_directories(${PROJECT_SOURCE_DIR}/thirdparty/poppler)
    include_directories(${PROJECT_SOURCE_DIR}/thirdparty/poppler/poppler)
+ else (NOT USE_SYSTEM_POPPLER)
+   include_directories(/usr/include/poppler)
+   include_directories(/usr/include/poppler/qt5)
+ endif (NOT USE_SYSTEM_POPPLER)
 endif (OMR)
+
+add_subdirectory(mscore)
+
+if (BUILD_CRASH_REPORTER)
+      set (CRASHREPORTER_EXECUTABLE_NAME "${MSCORE_EXECUTABLE_NAME}-crash-reporter")
+      add_subdirectory(crashreporter)
+      add_dependencies(mscore mscore-crash-reporter)
+      set (CRASHREPORTER_EXECUTABLE "${CRASHREPORTER_EXECUTABLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
+      set (MSCORE_EXECUTABLE "${MSCORE_EXECUTABLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
+endif (BUILD_CRASH_REPORTER)
+
+##
+## produce config.h file
+##
+configure_file (
+      ${PROJECT_SOURCE_DIR}/build/config.h.in
+      ${PROJECT_BINARY_DIR}/config.h
+      )
 
 ##
 ##  Include packaging

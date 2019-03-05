@@ -133,18 +133,18 @@ void Clef::layout()
 
       // check clef visibility and type compatibility
       if (clefSeg && staff()) {
-            int tick             = clefSeg->tick();
-            const StaffType* staffType = staff()->constStaffType(tick);
-            bool show            = staffType->genClef();        // check staff type allows clef display
+            Fraction tick = clefSeg->tick();
+            StaffType* st = staffType();
+            bool show     = st->genClef();        // check staff type allows clef display
 
             // check clef is compatible with staff type group:
-            if (ClefInfo::staffGroup(clefType()) != staffType->group()) {
-                  if (tick > 0 && !generated()) // if clef is not generated, hide it
+            if (ClefInfo::staffGroup(clefType()) != st->group()) {
+                  if (tick > Fraction(0,1) && !generated()) // if clef is not generated, hide it
                         show = false;
                   else                          // if generated, replace with initial clef type
                         // TODO : instead of initial staff clef (which is assumed to be compatible)
                         // use the last compatible clef previously found in staff
-                        _clefTypes = staff()->clefType(0);
+                        _clefTypes = staff()->clefType(Fraction(0,1));
                   }
 
             Measure* meas = clefSeg->measure();
@@ -159,12 +159,12 @@ void Clef::layout()
             if (!show) {
                   setbbox(QRectF());
                   qDebug("Clef::layout(): invisible clef at tick %d(%d) staff %d",
-                     segment()->tick(), segment()->tick()/1920, staffIdx());
+                     segment()->tick().ticks(), segment()->tick().ticks()/1920, staffIdx());
                   return;
                   }
-            lines      = staffType->lines();         // init values from staff type
-            lineDist   = staffType->lineDistance().val();
-            stepOffset = staffType->stepOffset();
+            lines      = st->lines();         // init values from staff type
+            lineDist   = st->lineDistance().val();
+            stepOffset = st->stepOffset();
             }
       else {
             lines      = 5;
@@ -253,7 +253,7 @@ Element* Clef::drop(EditData& data)
             Clef* clef = toClef(e);
             ClefType stype  = clef->clefType();
             if (clefType() != stype) {
-                  score()->undoChangeClef(staff(), segment(), stype);
+                  score()->undoChangeClef(staff(), this, stype);
                   c = this;
                   }
             }
@@ -320,15 +320,6 @@ void Clef::write(XmlWriter& xml) const
             xml.tag("showCourtesyClef", _showCourtesy);
       Element::writeProperties(xml);
       xml.etag();
-      }
-
-//---------------------------------------------------------
-//   tick
-//---------------------------------------------------------
-
-int Clef::tick() const
-      {
-      return segment() ? segment()->tick() : 0;
       }
 
 //---------------------------------------------------------
@@ -442,12 +433,12 @@ Clef* Clef::otherClef()
       if (!parent() || !parent()->isSegment())
             return nullptr;
       Segment* segm = toSegment(parent());
-      int segmTick = segm->tick();
       if (!segm->parent() || !segm->parent()->isMeasure())
-            return nullptr;
+            return 0;
       Measure* meas = toMeasure(segm->parent());
       Measure* otherMeas = nullptr;
       Segment* otherSegm = nullptr;
+      Fraction segmTick  = segm->tick();
       if (segmTick == meas->tick())                         // if clef segm is measure-initial
             otherMeas = meas->prevMeasure();                // look for a previous measure
       else if (segmTick == meas->tick() + meas->ticks())    // if clef segm is measure-final

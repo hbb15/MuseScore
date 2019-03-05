@@ -68,6 +68,7 @@ class EditStyle : public QDialog, private Ui::EditStyleBase {
       void toggleFooterOddEven(bool);
       void buttonClicked(QAbstractButton*);
       void setSwingParams(bool);
+      void concertPitchToggled(bool);
       void lyricsDashMinLengthValueChanged(double);
       void lyricsDashMaxLengthValueChanged(double);
       void systemMinDistanceValueChanged(double);
@@ -84,7 +85,7 @@ class EditStyle : public QDialog, private Ui::EditStyleBase {
       void resetUserStyleName();
 
 public:
-      static const int PAGE_NOTE = 6;
+      static const int PAGE_NOTE = 10;
       EditStyle(Score*, QWidget*);
       void setPage(int no);
       };

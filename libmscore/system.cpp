@@ -306,14 +306,14 @@ void System::layoutSystem(qreal xo1)
                   continue;
                   }
             ++nVisible;
-            qreal staffMag = staff->mag(0);     // ??? TODO
-            int staffLines = staff->lines(0);
+            qreal staffMag = staff->mag(Fraction(0,1));     // ??? TODO
+            int staffLines = staff->lines(Fraction(0,1));
             if (staffLines == 1) {
-                  qreal h = staff->lineDistance(0) * staffMag * spatium();
+                  qreal h = staff->lineDistance(Fraction(0,1)) * staffMag * spatium();
                   s->bbox().setRect(_leftMargin + xo1, -h, 0.0, 2 * h);
                   }
             else {
-                  qreal h = (staffLines - 1) * staff->lineDistance(0);
+                  qreal h = (staffLines - 1) * staff->lineDistance(Fraction(0,1));
                   h = h * staffMag * spatium();
                   s->bbox().setRect(_leftMargin + xo1, 0.0, 0.0, h);
                   }
@@ -484,6 +484,17 @@ void System::layout2()
             Staff* staff2  = score()->staff(si2);
             qreal dist     = h;
 
+#if 1
+            if (staff->part() == staff2->part()) {
+                  Measure* m = firstMeasure();
+                  qreal mag = m ? staff->mag(m->tick()) : 1.0;
+                  dist += akkoladeDistance * mag;
+                  }
+            else {
+                  dist += staffDistance;
+                  }
+#else
+            // TODO: provide style setting or brace property to allow braces to also define a grand staff
             switch (staff2->innerBracket()) {
                   case BracketType::BRACE:
                         dist += akkoladeDistance;
@@ -495,6 +506,7 @@ void System::layout2()
                         dist += staffDistance;
                         break;
                   }
+#endif
             dist += staff2->userDist();
 #if 0
             for (MeasureBase* mb : ml) {
@@ -538,7 +550,7 @@ void System::layout2()
                         }
                   sp = m->vspacerUp(si2);
                   if (sp)
-                        dist = qMax(dist, sp->gap());
+                        dist = qMax(dist, sp->gap() + h);
                   }
             if (!fixedSpace) {
                   qreal d = score()->lineMode() ? 0.0 : ss->skyline().minDistance(System::staff(si2)->skyline());
@@ -668,7 +680,7 @@ void System::layout2()
 //   setInstrumentNames
 //---------------------------------------------------------
 
-void System::setInstrumentNames(bool longName, int tick)
+void System::setInstrumentNames(bool longName, Fraction tick)
       {
       //
       // remark: add/remove instrument names is not undo/redoable
@@ -907,26 +919,26 @@ void System::change(Element* o, Element* n)
 //   snap
 //---------------------------------------------------------
 
-int System::snap(int tick, const QPointF p) const
+Fraction System::snap(const Fraction& tick, const QPointF p) const
       {
-      foreach(const MeasureBase* m, ml) {
+      for (const MeasureBase* m : ml) {
             if (p.x() < m->x() + m->width())
-                  return ((Measure*)m)->snap(tick, p - m->pos()); //TODO: MeasureBase
+                  return toMeasure(m)->snap(tick, p - m->pos()); //TODO: MeasureBase
             }
-      return ((Measure*)ml.back())->snap(tick, p-pos());          //TODO: MeasureBase
+      return toMeasure(ml.back())->snap(tick, p-pos());          //TODO: MeasureBase
       }
 
 //---------------------------------------------------------
 //   snap
 //---------------------------------------------------------
 
-int System::snapNote(int tick, const QPointF p, int staff) const
+Fraction System::snapNote(const Fraction& tick, const QPointF p, int staff) const
       {
-      foreach(const MeasureBase* m, ml) {
+      for (const MeasureBase* m : ml) {
             if (p.x() < m->x() + m->width())
-                  return ((Measure*)m)->snapNote(tick, p - m->pos(), staff);  //TODO: MeasureBase
+                  return toMeasure(m)->snapNote(tick, p - m->pos(), staff);  //TODO: MeasureBase
             }
-      return ((Measure*)ml.back())->snap(tick, p-pos());          // TODO: MeasureBase
+      return toMeasure(ml.back())->snap(tick, p-pos());          // TODO: MeasureBase
       }
 
 //---------------------------------------------------------
@@ -1142,11 +1154,11 @@ qreal System::minDistance(System* s2) const
       int lastStaff;
 
       for (firstStaff = 0; firstStaff < _staves.size()-1; ++firstStaff) {
-            if (s2->staff(firstStaff)->show())
+            if (score()->staff(firstStaff)->show() && s2->staff(firstStaff)->show())
                   break;
             }
       for (lastStaff = _staves.size() -1; lastStaff > 0; --lastStaff) {
-            if (staff(lastStaff)->show())
+            if (score()->staff(lastStaff)->show() && staff(lastStaff)->show())
                   break;
             }
 
@@ -1261,11 +1273,40 @@ qreal System::minTop() const
 qreal System::minBottom() const
       {
       if (vbox())
-            return vbox()->height() + vbox()->bottomGap();
+            return vbox()->bottomGap();
       SysStaff* s = lastVisibleSysStaff();
       if (s)
-            return s->skyline().south().max();
+            return s->skyline().south().max() - s->bbox().height();
       return 0.0;
+      }
+
+//---------------------------------------------------------
+//   spacerDistance
+//    Return the distance needed due to spacers
+//---------------------------------------------------------
+
+qreal System::spacerDistance(bool up) const
+      {
+      SysStaff* ss = up ? firstVisibleSysStaff() : lastVisibleSysStaff();
+      if (!ss)
+            return 0.0;
+      qreal dist = 0.0;
+      int staff = ss->idx;
+      for (MeasureBase* mb : measures()) {
+            if (mb->isMeasure()) {
+                  Measure* m = toMeasure(mb);
+                  Spacer* sp = up ? m->vspacerUp(staff) : m->vspacerDown(staff);
+                  if (sp) {
+                        if (sp->spacerType() == SpacerType::FIXED) {
+                              dist = sp->gap();
+                              break;
+                              }
+                        else
+                              dist = qMax(dist, sp->gap());
+                        }
+                  }
+            }
+      return dist;
       }
 
 //---------------------------------------------------------
@@ -1298,7 +1339,7 @@ bool System::pageBreak() const
 //   endTick
 //---------------------------------------------------------
 
-int System::endTick() const
+Fraction System::endTick() const
       {
       return measures().back()->endTick();
       }
