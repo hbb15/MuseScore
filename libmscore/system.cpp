@@ -423,7 +423,7 @@ void System::layout2()
       int numericAnzalStaff=0;
       Staff* numericFirstStaff  = 0;
       TimeSig* numericTimesig = 0;
-      int tickk =nextSegmentElement()->tick();
+      Fraction tickk =nextSegmentElement()->tick();
 
 
       if (visibleStaves.empty()) {
@@ -450,18 +450,18 @@ void System::layout2()
                               TimeSig* sig = staff->nextTimeSig(tickk);
                               while (sig) {
                                     sig->set_numericVisible(false);
-                                    sig = staff->nextTimeSig(sig->tick()+1);
+                                    sig = staff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
                                     }
                               }
                         }
                   if(numericTimesig){
                         numericTimesig->set_numericVisible(true);
                         numericTimesig->rypos() =(y - numerictimesigStart)/2;
-                        TimeSig* sig = numericFirstStaff->nextTimeSig(tickk+1);
+                        TimeSig* sig = numericFirstStaff->nextTimeSig(tickk + Fraction::fromTicks(1));
                         while (sig) {
                               sig->set_numericVisible(true);
                               sig->rypos() =(y - numerictimesigStart)/2;
-                              sig = numericFirstStaff->nextTimeSig(sig->tick()+1);
+                              sig = numericFirstStaff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
                               }
                         }
 

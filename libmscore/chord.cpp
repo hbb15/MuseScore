@@ -2607,7 +2607,7 @@ void Chord::layoutNumeric()
 
       // allocate enough room for glissandi
       if (_endsGlissando) {
-            if (rtick())                        // if not at beginning of measure
+            if (!rtick().isZero())                        // if not at beginning of measure
                   lll += (0.5 + score()->styleS(Sid::MinTieLength).val()) * _spatium;
             // special case of system-initial glissando final note is handled in Glissando::layout() itself
             }

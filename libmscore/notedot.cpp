@@ -36,10 +36,9 @@ NoteDot::NoteDot(Score* s)
 
 void NoteDot::draw(QPainter* p) const
       {
-    int tick = note() ? note()->chord()->tick() : rest()->tick();
+    Fraction tick = note() ? note()->chord()->tick() : rest()->tick();
       if(staff()->isNumericStaff(tick))
             return;
-      Fraction tick = note() ? note()->chord()->tick() : rest()->tick();
       if (!staff()->isTabStaff(tick) || staff()->staffType(tick)->stemThrough()) {
             p->setPen(curColor());
             drawSymbol(SymId::augmentationDot, p);

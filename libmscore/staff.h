@@ -204,7 +204,7 @@ class Staff final : public ScoreElement {
       StaffType* setStaffType(const Fraction&, const StaffType&);
       void staffTypeListChanged(const Fraction&);
 
-      bool isNumericStaff(int tick) const;
+      bool isNumericStaff(const Fraction&) const;
       bool isPitchedStaff(const Fraction&) const;
       bool isTabStaff(const Fraction&) const;
       bool isDrumStaff(const Fraction&) const;

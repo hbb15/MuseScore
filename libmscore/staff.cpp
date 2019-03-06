@@ -1372,7 +1372,7 @@ bool Staff::isTabStaff(const Fraction& tick) const
 //   isNumericStaff
 //---------------------------------------------------------
 
-bool Staff::isNumericStaff(int tick) const
+bool Staff::isNumericStaff(const Fraction& tick) const
       {
       return staffType(tick)->group() == StaffGroup::NUMERIC;
       }

@@ -39,7 +39,7 @@ class KeySig final : public Element {
       qreal _numericXpos;
       bool _numericEnable;
       bool _keyListSave = false;
-      int _keyListSaveTick = 0;
+      Fraction _keyListSaveFraction = Fraction();
       KeySigEvent _keyListSaveSig;
 
    public:
@@ -73,9 +73,6 @@ class KeySig final : public Element {
       bool operator==(const KeySig&) const;
       void changeKeySigEvent(const KeySigEvent&);
       void setKeySigEvent(const KeySigEvent& e)      { _sig = e; }
-      int tick() const;
-      void setKeyList(int tick, KeySigEvent k);
-
       bool showCourtesy() const           { return _showCourtesy; }
       void setShowCourtesy(bool v)        { _showCourtesy = v;    }
       void undoSetShowCourtesy(bool v);

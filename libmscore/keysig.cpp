@@ -113,7 +113,7 @@ void KeySig::layout()
       {
       if(_keyListSave){
             _keyListSave = false;
-            setKeyList(_keyListSaveTick,_keyListSaveSig);
+            staff()->setKey(_keyListSaveFraction,_keyListSaveSig);
             }
       qreal _spatium = spatium();
       setbbox(QRectF());
@@ -231,7 +231,7 @@ void KeySig::layout()
 
       if (staff() && staff()->isNumericStaff( tick())) {
             rxpos() = 0.0;
-            if((tick()==0 || staff()->key(tick()-1) != _sig.key()) && staff() && (staff()->idx())<1){
+            if((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx())<1){
                   _numericEnable= enabled();
                   setEnabled(false);
                   addLayout(SymId::accidentalSharp, 0,lines[0]);
@@ -372,7 +372,7 @@ Shape KeySig::shape() const
 void KeySig::draw(QPainter* p) const
       {
     if (staff() && staff()->isNumericStaff( tick())) {
-        if((tick()==0 || staff()->key(tick()-1) != _sig.key()) && staff() && (staff()->idx())<1){
+        if((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx())<1){
                     StaffType* numeric = staff()->staffType(tick());
 
                     QFont font;
@@ -630,15 +630,6 @@ void KeySig::changeKeySigEvent(const KeySigEvent& t)
       }
 
 //---------------------------------------------------------
-//   setKeyList
-//---------------------------------------------------------
-void KeySig::setKeyList(int tick, KeySigEvent k)
-      {
-
-      staff()->setKey(tick,k);
-
-      }
-//---------------------------------------------------------
 //   undoSetShowCourtesy
 //---------------------------------------------------------
 
@@ -681,7 +672,7 @@ bool KeySig::setProperty(Pid propertyId, const QVariant& v)
                   _sig.setMode(KeyMode((v.toInt())+1));
                   _keyListSave = true;
                   _keyListSaveSig = _sig;
-                  _keyListSaveTick = tick();
+                  _keyListSaveFraction = tick();
                   break;
             default:
                   if (!Element::setProperty(propertyId, v))
