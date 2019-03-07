@@ -1113,6 +1113,8 @@ static const StyleType styleTypes[] {
       { Sid::fermataPosBelow,               "fermataPosBelow",               QPointF(.0, 1.0)  },
       { Sid::fermataMinDistance,            "fermataMinDistance",            Spatium(0.4)  },
 
+      { Sid::fingeringPlacement,            "fingeringPlacement",            int(Placement::ABOVE) },
+
       { Sid::numericHeightDisplacement,     "numericHeightDisplacement",     0.5 },
       { Sid::numericDistanceOctave,         "numericDistanceOctave",         0.5 },
       { Sid::numericHeigthLine,             "numericHeigthLine",             0.2},

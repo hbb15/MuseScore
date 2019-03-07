@@ -420,9 +420,42 @@ bool Score::rewriteMeasures(Measure* fm, Measure* lm, const Fraction& ns, int st
             }
       int measures = 1;
       bool fmr     = true;
+
+      // Format: chord 1 tick, chord 2 tick, tremolo, track
+      std::vector<std::tuple<Fraction, Fraction, Tremolo*, int>> tremoloChordTicks;
+
+      int strack, etrack;
+      if (staffIdx < 0) {
+            strack = 0;
+            etrack = ntracks();
+            }
+      else {
+            strack = staffIdx * VOICES;
+            etrack = strack + VOICES;
+            }
+
       for (Measure* m = fm; m; m = m->nextMeasure()) {
             if (!m->isFullMeasureRest())
                   fmr = false;
+
+            for (Segment* s = m->first(SegmentType::ChordRest); s; s = s->next(SegmentType::ChordRest)) {
+                  for (int track = strack; track < etrack; ++track) {
+                        ChordRest* cr = toChordRest(s->element(track));
+                        if (cr && cr->isChord()) {
+                              Chord* chord = toChord(cr);
+                              if (chord->tremolo() && chord->tremolo()->twoNotes()) {
+                                    Tremolo* trem = chord->tremolo();
+
+                                    // Don't add same chord twice
+                                    if (trem->chord2() == chord)
+                                          continue;
+                                    auto newP = std::tuple<Fraction, Fraction, Tremolo*, int>(cr->tick(), trem->chord2()->segment()->tick(), trem, track);
+                                    tremoloChordTicks.push_back(newP);
+                                    }
+                              }
+                        }
+                  }
+
             if (m == lm)
                   break;
             ++measures;
@@ -501,6 +534,16 @@ bool Score::rewriteMeasures(Measure* fm, Measure* lm, const Fraction& ns, int st
       if (!range.write(masterScore(), fm->tick()))
             return false;
       connectTies(true);
+
+      // Attempt to move tremolos to correct chords
+      for (auto tremPair : tremoloChordTicks) {
+            Fraction chord1Tick = std::get<0>(tremPair);
+            Fraction chord2Tick = std::get<1>(tremPair);
+            Tremolo* trem       = std::get<2>(tremPair);
+            int      track      = std::get<3>(tremPair);
+
+            undo(new MoveTremolo(trem->score(), chord1Tick, chord2Tick, trem, track));
+            }
 
       if (noteEntryMode()) {
             // set input cursor to possibly re-written segment
@@ -1428,6 +1471,7 @@ void Score::cmdFlip()
                   }
             else if (e->isTempoText()
                || e->isStaffText()
+               || e->isFingering()
                || e->isDynamic()
                || e->isHairpin()
                || e->isHairpinSegment()
@@ -4775,6 +4819,7 @@ void Score::undoInsertTime(const Fraction& tick, const Fraction& len)
 
 void Score::undoRemoveMeasures(Measure* m1, Measure* m2)
       {
+      Q_ASSERT(m1 && m2);
       //
       //  handle ties which start before m1 and end in (m1-m2)
       //
