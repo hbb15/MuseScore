@@ -1657,6 +1657,7 @@ MuseScore::MuseScore()
       menuTools->addAction(getAction("pitch-spell"));
       menuTools->addAction(getAction("reset-groupings"));
       menuTools->addAction(getAction("resequence-rehearsal-marks"));
+      menuTools->addAction(getAction("unroll-repeats"));
       menuTools->addSeparator();
 
       menuTools->addAction(getAction("copy-lyrics-to-clipboard"));
@@ -3140,6 +3141,9 @@ void MuseScore::removeTab(int i)
 
 bool MuseScore::runTestScripts(const QStringList& scriptFiles)
       {
+      setDefaultPalette();
+      showInspector(true);
+
       ScriptContext ctx(this);
       bool allPassed = true;
       int passed = 0;
@@ -3311,6 +3315,7 @@ static void loadScores(const QStringList& argv)
 
                               MasterScore* score = mscore->readScore(startScore);
                               if (startScore.startsWith(":/") && score) {
+                                    score->setStyle(MScore::defaultStyle());
                                     score->setName(mscore->createDefaultName());
                                     // TODO score->setPageFormat(*MScore::defaultStyle().pageFormat());
                                     score->doLayout();
@@ -3319,6 +3324,7 @@ static void loadScores(const QStringList& argv)
                               if (score == 0) {
                                     score = mscore->readScore(":/data/My_First_Score.mscx");
                                     if (score) {
+                                          score->setStyle(MScore::defaultStyle());
                                           score->setName(mscore->createDefaultName());
                                           // TODO score->setPageFormat(*MScore::defaultStyle().pageFormat());
                                           score->doLayout();
@@ -4170,7 +4176,7 @@ void MuseScore::changeState(ScoreState val)
                         val = STATE_NOTE_ENTRY_METHOD_REALTIME_MANUAL;
                         }
                   else if (getAction("note-input-timewise")->isChecked()) {
-                        showModeText(tr("Timewise input mode"));
+                        showModeText(tr("Insert mode"));
                         cs->setNoteEntryMethod(NoteEntryMethod::TIMEWISE);
                         val = STATE_NOTE_ENTRY_METHOD_TIMEWISE;
                         }
@@ -5873,8 +5879,8 @@ ScoreTab* MuseScore::createScoreTab()
 
 void MuseScore::cmd(QAction* a, const QString& cmd)
       {
-      if (scriptRecorder)
-            scriptRecorder->recordCommand(cmd);
+      if (ScriptRecorder* rec = getScriptRecorder())
+            rec->recordCommand(cmd);
 
       if (cmd == "instruments") {
             editInstrList();
@@ -5930,6 +5936,8 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             saveAs(cs, true);
       else if (cmd == "file-new")
             newFile();
+      else if (cmd == "unroll-repeats")
+            scoreUnrolled(cs->masterScore());
       else if (cmd == "quit")
             close();
       else if (cmd == "masterpalette")
@@ -6289,6 +6297,19 @@ Timeline* MuseScore::timeline() const
             }
       return 0;
       }
+
+//---------------------------------------------------------
+//   getScriptRecorder
+//---------------------------------------------------------
+
+#ifdef MSCORE_UNSTABLE
+ScriptRecorder* MuseScore::getScriptRecorder()
+      {
+      if (scriptRecorder)
+            return &scriptRecorder->scriptRecorder();
+      return nullptr;
+      }
+#endif
 
 //---------------------------------------------------------
 //   getSearchDialog
@@ -7719,3 +7740,14 @@ QmlPluginEngine* MuseScore::getPluginEngine()
       return _qmlEngine;
       }
 #endif
+
+//---------------------------------------------------------
+//   scoreUnrolled
+//    create a version of the given score with repeats unrolled
+//---------------------------------------------------------
+
+void MuseScore::scoreUnrolled(MasterScore * original)
+      {
+      MasterScore * score = original->unrollRepeats();
+      setCurrentScoreView(appendScore(score));
+      }

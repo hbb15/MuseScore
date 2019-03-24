@@ -407,7 +407,7 @@ void ScoreView::measurePopup(QContextMenuEvent* ev, Measure* obj)
       menuAdd->addAction(getAction("insert-vbox"));
       menuAdd->addAction(getAction("insert-textframe"));
 
-      a = popup->addAction(tr("Delete Selected Measures"));
+      a = popup->addAction(tr("Remove Selected Measures"));
       a->setData("delete-selected-measures");
 
       popup->addSeparator();
@@ -548,7 +548,7 @@ void ScoreView::moveCursor(const Fraction& tick)
             qreal x2;
             Fraction t2;
             Segment* ns = s->next(SegmentType::ChordRest);
-            if (ns) {
+            if (ns && ns->visible()) {
                   t2 = ns->tick();
                   x2 = ns->canvasPos().x();
                   }
@@ -556,7 +556,7 @@ void ScoreView::moveCursor(const Fraction& tick)
                   t2 = measure->endTick();
                   // measure->width is not good enough because of courtesy keysig, timesig
                   Segment* seg = measure->findSegment(SegmentType::EndBarLine, measure->tick() + measure->ticks());
-                  if(seg)
+                  if (seg)
                         x2 = seg->canvasPos().x();
                   else
                         x2 = measure->canvasPos().x() + measure->width(); //safety, should not happen
@@ -4592,8 +4592,11 @@ Element* ScoreView::getEditElement()
 
 void ScoreView::onElementDestruction(Element* e)
       {
-      if (editData.element == e)
+      if (editData.element == e) {
             editData.element = nullptr;
+            if (editMode())
+                  changeState(ViewState::NORMAL);
+            }
       }
 
 //---------------------------------------------------------

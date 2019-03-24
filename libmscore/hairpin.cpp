@@ -621,6 +621,7 @@ QString Hairpin::veloChangeMethodToName(VeloChangeMethod method)
                   return i.name;
             }
       qFatal("Unrecognised velo change method!");
+      return "none"; // silence a compiler warning
       }
 
 //---------------------------------------------------------
@@ -835,6 +836,17 @@ QVariant Hairpin::propertyDefault(Pid id) const
             default:
                   return TextLineBase::propertyDefault(id);
             }
+      }
+
+//---------------------------------------------------------
+//   Hairpin::propertyId
+//---------------------------------------------------------
+
+Pid Hairpin::propertyId(const QStringRef& name) const
+      {
+      if (name == "subtype")
+            return Pid::HAIRPIN_TYPE;
+      return TextLineBase::propertyId(name);
       }
 
 //---------------------------------------------------------

@@ -341,7 +341,7 @@ MasterScore* MuseScore::readScore(const QString& name)
       if (name.isEmpty())
             return 0;
 
-      MasterScore* score = new MasterScore(MScore::defaultStyle());
+      MasterScore* score = new MasterScore(MScore::baseStyle());
       setMidiReopenInProgress(name);
       Score::FileError rv = Ms::readScore(score, name, false);
       if (rv == Score::FileError::FILE_TOO_OLD || rv == Score::FileError::FILE_TOO_NEW || rv == Score::FileError::FILE_CORRUPTED) {
@@ -352,7 +352,7 @@ MasterScore* MuseScore::readScore(const QString& name)
                         delete score;
                         score = new MasterScore();
                         score->setMovements(new Movements());
-                        score->setStyle(MScore::defaultStyle());
+                        score->setStyle(MScore::baseStyle());
                         rv = Ms::readScore(score, name, true);
                         }
                   else
@@ -2159,13 +2159,13 @@ bool MuseScore::savePdf(QList<Score*> cs_, const QString& saveName)
             s->setPrinting(true);
             MScore::pdfPrinting = true;
 
-            QSizeF size(s->styleD(Sid::pageWidth), s->styleD(Sid::pageHeight));
-            QPageSize ps(QPageSize::id(size, QPageSize::Inch));
-            pdfWriter.setPageSize(ps);
-            pdfWriter.setPageOrientation(size.width() > size.height() ? QPageLayout::Landscape : QPageLayout::Portrait);
-            p.setViewport(QRect(0.0, 0.0, size.width() * pdfWriter.logicalDpiX(),
-               size.height() * pdfWriter.logicalDpiY()));
-            p.setWindow(QRect(0.0, 0.0, size.width() * DPI, size.height() * DPI));
+            QSizeF size1(s->styleD(Sid::pageWidth), s->styleD(Sid::pageHeight));
+            QPageSize ps1(QPageSize::id(size1, QPageSize::Inch));
+            pdfWriter.setPageSize(ps1);
+            pdfWriter.setPageOrientation(size1.width() > size1.height() ? QPageLayout::Landscape : QPageLayout::Portrait);
+            p.setViewport(QRect(0.0, 0.0, size1.width() * pdfWriter.logicalDpiX(),
+               size1.height() * pdfWriter.logicalDpiY()));
+            p.setWindow(QRect(0.0, 0.0, size1.width() * DPI, size1.height() * DPI));
 
             MScore::pixelRatio = DPI / pdfWriter.logicalDpiX();
             const QList<Page*> pl = s->pages();

@@ -36,6 +36,7 @@
 #include "system.h"
 #include "xml.h"
 #include "undo.h"
+#include "harmony.h"
 
 namespace Ms {
 
@@ -190,6 +191,7 @@ Segment::~Segment()
                   e->staff()->removeTimeSig(toTimeSig(e));
             delete e;
             }
+      qDeleteAll(_annotations);
       }
 
 //---------------------------------------------------------
@@ -1844,6 +1846,7 @@ QString Segment::accessibleExtraInfo() const
 
 void Segment::createShapes()
       {
+      setVisible(false);
       for (int staffIdx = 0; staffIdx < score()->nstaves(); ++staffIdx)
             createShape(staffIdx);
       }
@@ -1858,6 +1861,7 @@ void Segment::createShape(int staffIdx)
       s.clear();
 
       if (segmentType() & (SegmentType::BarLine | SegmentType::EndBarLine | SegmentType::StartRepeatBarLine | SegmentType::BeginBarLine)) {
+            setVisible(true);
             BarLine* bl = toBarLine(element(0));
             if (bl) {
                   qreal w = BarLine::layoutWidth(score(), bl->barLineType());
@@ -1878,19 +1882,39 @@ void Segment::createShape(int staffIdx)
                   s.add(e->shape().translated(e->pos()));
             }
 #endif
+
+      if (!score()->staff(staffIdx)->show())
+            return;
+
       int strack = staffIdx * VOICES;
       int etrack = strack + VOICES;
       for (Element* e : _elist) {
             if (!e)
                   continue;
             int effectiveTrack = e->vStaffIdx() * VOICES + e->voice();
-            if (effectiveTrack >= strack && effectiveTrack < etrack)
-                  s.add(e->shape().translated(e->pos()));
+            if (effectiveTrack >= strack && effectiveTrack < etrack) {
+                  setVisible(true);
+                  if (e->autoplace())
+                        s.add(e->shape().translated(e->pos()));
+                  }
             }
 
       for (Element* e : _annotations) {
-            if (e->staffIdx() == staffIdx             // whats left?
-               && !e->isRehearsalMark()
+            if (!e || e->staffIdx() != staffIdx)
+                  continue;
+            setVisible(true);
+            if (!e->autoplace())
+                  continue;
+
+            if (e->isHarmony()) {
+                  // use same spacing calculation as for chordrest
+                  toHarmony(e)->layout1();
+                  const qreal margin = styleP(Sid::minHarmonyDistance) * 0.5;
+                  qreal x1 = e->bbox().x() - margin + e->pos().x();
+                  qreal x2 = e->bbox().x() + e->bbox().width() + margin + e->pos().x();
+                  s.addHorizontalSpacing(Shape::SPACING_HARMONY, x1, x2);
+                  }
+            else if (!e->isRehearsalMark()
                && !e->isFretDiagram()
                && !e->isHarmony()
                && !e->isTempoText()
@@ -1902,8 +1926,11 @@ void Segment::createShape(int staffIdx)
                && !e->isInstrumentChange()
                && !e->isArticulation()
                && !e->isFermata()
-               && !e->isStaffText())
+               && !e->isStaffText()) {
+                  // annotations added here are candidates for collision detection
+                  // lyrics, ...
                   s.add(e->shape().translated(e->pos()));
+                  }
             }
       }
 

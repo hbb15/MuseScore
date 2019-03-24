@@ -645,6 +645,7 @@ void KeySig::undoSetShowCourtesy(bool v)
 QVariant KeySig::getProperty(Pid propertyId) const
       {
       switch (propertyId) {
+            case Pid::KEY:           return int(key());
             case Pid::SHOW_COURTESY: return int(showCourtesy());
             case Pid::SET_KEY_TYPE:
                   if(int(_sig.mode()) < 1 || int(_sig.mode()) > 2)
@@ -662,6 +663,11 @@ QVariant KeySig::getProperty(Pid propertyId) const
 bool KeySig::setProperty(Pid propertyId, const QVariant& v)
       {
       switch (propertyId) {
+            case Pid::KEY:
+                  if (generated())
+                        return false;
+                  setKey(Key(v.toInt()));
+                  break;
             case Pid::SHOW_COURTESY:
                   if (generated())
                         return false;
@@ -693,6 +699,7 @@ bool KeySig::setProperty(Pid propertyId, const QVariant& v)
 QVariant KeySig::propertyDefault(Pid id) const
       {
       switch (id) {
+            case Pid::KEY:               return int(Key::INVALID);
             case Pid::SHOW_COURTESY:     return true;
             case Pid::SET_KEY_TYPE:     return 0;
             default:

@@ -492,7 +492,6 @@ static void collectMeasureEventsSimple(EventMap* events, Measure* m, Staff* staf
 
       for (Segment* seg = m->first(st); seg; seg = seg->next(st)) {
             int tick = seg->tick().ticks();
-            int tick2 = seg->tick().ticks() + seg->ticks().ticks() - 1;
             for (int track = strack; track < etrack; ++track) {
                   // skip linked staves, except primary
                   if (!m->score()->staff(track / VOICES)->primaryStaff()) {
@@ -777,7 +776,7 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
 
                         // Check if there is a fortepiano / similar dynamic
                         bool hasChangingDynamic = false;
-                        Dynamic* changingDyn;
+                        Dynamic* changingDyn = nullptr;
                         if (chord != 0) {
                               for (Element* e : seg->annotations()) {
                                     if (!e)
@@ -819,6 +818,16 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
                                     singleNoteDynamics = false;
                               else if (h->isDecrescendo() && hairpinStartVel < velocityEnd)
                                     singleNoteDynamics = false;
+                              }
+                        else {
+                              if (velocityMiddle != -1 && velocityEnd > velocityMiddle) {
+                                    // HACK
+                                    // On the fly, update the staff velocity so that we have the
+                                    // correct start velocity for the next segment
+                                    // We reach this point when a changing dynamic lasts longer than this chord's segment
+                                    staff->velocities().setVelo(etick.ticks(), velocityMiddle);
+                                    velocityEnd = velocityMiddle;
+                                    }
                               }
 
                         // Check for articulations
@@ -956,7 +965,7 @@ static void collectMeasureEvents(EventMap* events, Measure* m, Staff* staff, int
                   collectMeasureEventsDefault(events, m, staff, tickOffset, method, cc);
                   break;
             default:
-                  qWarning("Unrecognized dynamics method: %d", method);
+                  qWarning("Unrecognized dynamics method: %d", int(method));
                   break;
             }
       
@@ -1176,7 +1185,7 @@ void Score::updateVelo()
                                           for (int i = partStaff; i < partStaff+partStaves; ++i) {
                                                 staff(i)->velocities().setVelo(tick.ticks(), v);
                                                 if (v2 > 0)
-                                                      velo.setVelo(tick2.ticks(), v2);
+                                                      staff(i)->velocities().setVelo(tick2.ticks(), v2);
                                                 }
                                           }
                                     break;
@@ -1184,7 +1193,7 @@ void Score::updateVelo()
                                     for (int i = 0; i < nstaves(); ++i) {
                                           staff(i)->velocities().setVelo(tick.ticks(), v);
                                           if (v2 > 0)
-                                                velo.setVelo(tick2.ticks(), v2);
+                                                staff(i)->velocities().setVelo(tick2.ticks(), v2);
                                           }
                                     break;
                               }

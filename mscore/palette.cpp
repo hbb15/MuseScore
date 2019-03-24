@@ -46,6 +46,7 @@
 #include "palettebox.h"
 #include "shortcut.h"
 #include "tourhandler.h"
+#include "script/recorderwidget.h"
 
 namespace Ms {
 
@@ -443,7 +444,7 @@ static void applyDrop(Score* score, ScoreView* viewer, Element* target, Element*
             dropData.dropElement->styleChanged();   // update to local style
 
             Element* el = target->drop(dropData);
-            if (el)
+            if (el && !viewer->noteEntryMode())
                   score->select(el, SelectType::SINGLE, 0);
             dropData.dropElement = 0;
             }
@@ -470,6 +471,13 @@ void Palette::applyPaletteElement(PaletteCell* cell, Qt::KeyboardModifiers modif
       
       if (element->isSpanner())
             TourHandler::startTour("spanner-drop-apply");
+
+#ifdef MSCORE_UNSTABLE
+      if (ScriptRecorder* rec = mscore->getScriptRecorder()) {
+            if (modifiers == 0)
+                  rec->recordPaletteElement(element);
+            }
+#endif
 
       ScoreView* viewer = mscore->currentScoreView();
       if (viewer->mscoreState() != STATE_EDIT
@@ -538,7 +546,6 @@ void Palette::applyPaletteElement(PaletteCell* cell, Qt::KeyboardModifiers modif
             else {
                   for (Element* e : sel.elements())
                         applyDrop(score, viewer, e, element, modifiers);
-                  selectedIdx = currentIdx;
                   }
             }
       else if (sel.isRange()) {
@@ -565,7 +572,6 @@ void Palette::applyPaletteElement(PaletteCell* cell, Qt::KeyboardModifiers modif
                         applyDrop(score, viewer, m, element, modifiers, pt);
                         if (m == last)
                               break;
-                        selectedIdx = currentIdx;
                         }
                   }
             else if (element->type() == ElementType::LAYOUT_BREAK) {

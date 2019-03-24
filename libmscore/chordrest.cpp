@@ -109,6 +109,8 @@ ChordRest::~ChordRest()
       qDeleteAll(_lyrics);
       qDeleteAll(_el);
       delete _tabDur;
+      if (_beam && _beam->contains(this))
+            delete _beam; // Beam destructor removes references to the deleted object
       }
 
 //---------------------------------------------------------
@@ -1209,12 +1211,8 @@ Shape ChordRest::shape() const
                   continue;
             if (e->isHarmony() && e->staffIdx() == staffIdx()) {
                   Harmony* h = toHarmony(e);
-                  // this layout is needed just to calculate the correct bbox
-                  // so only do it if necessary, as it will reset position to default
-                  // and there might not be an autoplace after this
-                  // since ChordRest::shape() can be called at several points
-                  if (h->isLayoutInvalid())
-                        h->layout();
+                  // calculate bbox only (do not reset position)
+                  h->layout1();
                   const qreal margin = styleP(Sid::minHarmonyDistance) * 0.5;
                   x1 = qMin(x1, e->bbox().x() - margin + e->pos().x());
                   x2 = qMax(x2, e->bbox().x() + e->bbox().width() + margin + e->pos().x());

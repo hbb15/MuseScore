@@ -3086,6 +3086,7 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                               if (ks->links()->size() == 1)
                                     e.linkIds().remove(ks->links()->lid());
                               }
+                        delete ks;
                         }
                   else {
                         // if key sig not at beginning of measure => courtesy key sig
@@ -3771,7 +3772,7 @@ static bool readScore(Score* score, XmlReader& e)
                   else {
                         e.tracks().clear();
                         MasterScore* m = score->masterScore();
-                        Score* s = new Score(m, MScore::defaultStyle());
+                        Score* s = new Score(m, MScore::baseStyle());
                         Excerpt* ex = new Excerpt(m);
 
                         ex->setPartScore(s);
