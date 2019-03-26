@@ -264,7 +264,9 @@ class Note final : public Element {
       QString _fretString;
       qreal _fretStringYShift;
       qreal _numericWidth;
+      qreal _numericWidth2;
       qreal _numericHigth;
+      qreal _trackthick=1.0;
       QPointF _numericaccidentalPos;
       QPointF _numericTextPos;
       int _numericLedgerline;
@@ -338,6 +340,7 @@ class Note final : public Element {
       void setFixedLine(int v)            { _fixedLine = v;    }
       qreal fretStringYShift() const                { return _fretStringYShift;   }
       qreal get_numericWidth()                      { return _numericWidth;   }
+      qreal get_numericWidth2()                      { return _numericWidth2;   }
       qreal get_numericHigth()                      { return _numericHigth;   }
       int get_numericLedgerline()                      { return _numericLedgerline;   }
       int get_numericGroundPitch();

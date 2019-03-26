@@ -79,8 +79,10 @@ static void undoChangeBarLineType(BarLine* bl, BarLineType barType, bool allStav
                         Segment* segment1 = m->undoGetSegmentR(SegmentType::BeginBarLine, Fraction(0, 1));
                         for (Element* e : segment1->elist()) {
                               if (e) {
-                                    e->score()->undo(new ChangeProperty(e, Pid::BARLINE_TYPE, QVariant::fromValue(barType), PropertyFlags::NOSTYLE));
-                                    e->score()->undo(new ChangeProperty(e, Pid::GENERATED, false, PropertyFlags::NOSTYLE));
+                                    for (ScoreElement* ee : e->linkList()) {
+                                          ee->score()->undo(new ChangeProperty(ee, Pid::BARLINE_TYPE, QVariant::fromValue(barType), PropertyFlags::NOSTYLE));
+                                          ee->score()->undo(new ChangeProperty(ee, Pid::GENERATED, false, PropertyFlags::NOSTYLE));
+                                          }
                                     }
                               else {
                                     auto score = bl->score();
@@ -335,6 +337,17 @@ void BarLine::getY() const
                         if(nbl && nbl->spanStaff()){
                               spanStavesbefor = true;
                               staffbefor=i2;
+                              }
+                        break;
+                        }
+                  }
+            for (int i2 = staffIdx1 + 1; i2 < nstaves; ++i2)  {
+                  Staff* s = score()->staff(i2);
+                  if (s && !s->invisible() && s->part()->show() && measure->visible(i2)) {
+                        BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
+                        if(nbl && nbl->spanStaff()){
+                              spanStaves = true;
+                              staffIdx2=i2;
                               }
                         break;
                         }

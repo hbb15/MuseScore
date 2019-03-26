@@ -318,8 +318,8 @@ void TimeSig::layout()
             _numericHigth =  numeric->fretBoxH() * magS() * score()->styleD(Sid::numericTimeSigSize);
             qreal wn = numericGetWidth(numeric, _numeric_ns);
             qreal wd = numericGetWidth(numeric, _numeric_ds);
-            QRectF numRect = QRectF(px, 0.0, wn, _numericHigth * magS());
-            QRectF denRect = QRectF(px, 0.0, wd, _numericHigth * magS());
+            QRectF numRect = QRectF(px, 0.0, wn, _numericHigth);
+            QRectF denRect = QRectF(px, 0.0, wd, _numericHigth);
             qreal displ = numRect.height()*score()->styleD(Sid::numericTimeSigLineThick)*1.5;
 
             //align on the wider

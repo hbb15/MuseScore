@@ -2616,11 +2616,16 @@ void Chord::layoutNumeric()
             }
 
       if (_hook) {
-            if (numOfNotes>0){
 
-                  Note* note = _notes.at(0);
+            Note* note = _notes.at(0);
+            if (numOfNotes>0){
                   _hook->setNumericHookDimension(note->get_numericWidth(),note->get_numericHigth());
                   }
+            QPointF p(0,0);
+            p.ry() = note->pos().y();
+            p.rx() = note->get_numericWidth2()/2 - note->get_numericWidth()/2 + note->pos().x();
+
+            _hook->setPos(p);
             _hook->layout();
 
             }
