@@ -23,7 +23,7 @@ set SRC=mmrest-1,bravura-mmrest,gonville-mmrest,mmrest-2,mmrest-4,mmrest-5,mmres
  chord-layout-1,chord-layout-2,chord-layout-3,chord-layout-4,chord-layout-5, ^
  chord-layout-6,chord-layout-7,chord-layout-8,chord-layout-9,chord-layout-10, ^
  chord-layout-11,chord-layout-12,chord-layout-13,chord-layout-14,chord-layout-15,chord-layout-16,chord-layout-17, ^
- cross-1,cross-2, ^
+ cross-1,cross-2,cross-3,cross-4, ^
  accidental-1,accidental-2,accidental-3,accidental-4,accidental-5, ^
  accidental-6,accidental-7,accidental-8,accidental-9,accidental-10, accidental-mirror, ^
  tie-1,tie-2,tie-3,grace-1,grace-2,grace-3,grace-4, ^
@@ -35,7 +35,9 @@ set SRC=mmrest-1,bravura-mmrest,gonville-mmrest,mmrest-2,mmrest-4,mmrest-5,mmres
  user-offset-1,user-offset-2,chord-space-1,chord-space-2,tablature-1,image-1, ^
  lyrics-1,lyrics-2,lyrics-3,lyrics-4,lyrics-5,lyrics-6,lyrics-7,voice-1,voice-2,slash-1,slash-2, ^
  system-1,system-2,system-3,system-4,system-5,system-6,system-7,hide-1,small-1,tremolo-1, ^
- staff-1,staff-2, ^
+ staff-1,staff-2,layout-1,layout-2,layout-3,layout-4,layout-5,layout-6,layout-7,layout-8,layout-9, ^
+ articulation-1, ^
+ percussion-grace, ^
  slashed_chord-layout-12, slashed_chord-layout-7, slashed_grace-3, slashed_noteheadposition-1, ^
  drumset-custom-1, read-206-custom-drumset-1, ^
  layout-sequence-1, layout-sequence-2, layout-sequence-3, layout-sequence-4, ^
