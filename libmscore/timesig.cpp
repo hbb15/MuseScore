@@ -20,6 +20,7 @@
 #include "stafftype.h"
 #include "segment.h"
 #include "utils.h"
+#include "measure.h"
 
 namespace Ms {
 
@@ -306,6 +307,7 @@ void TimeSig::layout()
                   return;
                   }
             setEnabled(false);
+
             StaffType* numeric = staff()->staffType(tick());
             _numeric_ds = _numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString;//toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
             _numeric_ns = _denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString;//toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
@@ -314,7 +316,6 @@ void TimeSig::layout()
             ds = toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
 
             qreal px =-0.0;
-            QSizeF mag(magS() * _scale);
             _numericHigth =  numeric->fretBoxH() * magS() * score()->styleD(Sid::numericTimeSigSize);
             qreal wn = numericGetWidth(numeric, _numeric_ns);
             qreal wd = numericGetWidth(numeric, _numeric_ds);
@@ -335,7 +336,7 @@ void TimeSig::layout()
                   // denominator: horiz: centred around centre of numerator | vert: one space below centre line
                   pn = QPointF((numRect.width() - denRect.width())*.5+px, pnY);
                   numericLineWidht = numRect.width();
-                  px +=(numRect.width() - denRect.width())*.5;
+                  //px +=(numRect.width() - denRect.width())*.5;
                   boxwidth = numRect.width();
                   }
             else {
@@ -344,7 +345,7 @@ void TimeSig::layout()
                   // denominator: horiz: centred around centre of numerator | vert: one space below centre line
                   pn = QPointF(px, pnY);
                   numericLineWidht = denRect.width();
-                  px +=(numRect.width() - denRect.width())*.5;
+                  //px +=(numRect.width() - denRect.width())*.5;
                   boxwidth = denRect.width();
                   }
             px -= numericLineWidht * (score()->styleD(Sid::numericTimeSigLineSize) - 1.0) * 0.5;
@@ -414,7 +415,15 @@ void TimeSig::layout2(){
             if(segment()->isTimeSigAnnounceType()){
                   return;
                   }
-            rxpos()=get_numericXpos()-bbox().width() - _numericHigth*score()->styleD(Sid::numericTimeSigDistance);
+            _numericBegin = measure()->first()->isBeginBarLineType();
+            if(_numericBegin) rxpos()= get_numericXpos()-bbox().width() - _numericHigth*score()->styleD(Sid::numericTimeSigDistance);
+            else {
+
+                  qreal x = bbox().width() + _numericHigth*score()->styleD(Sid::numericTimeSigDistance);
+                  numericBarLine = QLineF(x, -_numericBarLinelenght / 2, x,_numericBarLinelenght / 2);
+                  qreal lw = score()->styleP(Sid::barWidth) * mag();
+                  addbbox(QRect(x, -_numericBarLinelenght / 2,lw, _numericBarLinelenght));
+                  }
             setEnabled(true);
             }
 
@@ -463,8 +472,12 @@ void TimeSig::draw(QPainter* painter) const
                 painter->drawText(pn,_numeric_ds);
                 painter->setPen(QPen(curColor(),_numericlinethick));
                 painter->drawLine(numericLine);
-
-                    }
+                if(!_numericBegin){
+                      qreal lw = score()->styleP(Sid::barWidth) * mag();
+                      painter->setPen(QPen(curColor(), lw, Qt::SolidLine, Qt::FlatCap));
+                      painter->drawLine(numericBarLine);
+                        }
+                }
           return;
               }
       painter->setPen(curColor());

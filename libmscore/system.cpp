@@ -458,10 +458,12 @@ void System::layout2()
                   if(numericTimesig){
                         numericTimesig->set_numericVisible(true);
                         numericTimesig->rypos() =(y - numerictimesigStart)/2;
+                        numericTimesig->set_numericBarLinelength(y - numerictimesigStart);
                         TimeSig* sig = numericFirstStaff->nextTimeSig(tickk + Fraction::fromTicks(1));
                         while (sig) {
                               sig->set_numericVisible(true);
                               sig->rypos() =(y - numerictimesigStart)/2;
+                              sig->set_numericBarLinelength(y - numerictimesigStart);
                               sig = numericFirstStaff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
                               }
                         }

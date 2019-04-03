@@ -47,7 +47,9 @@ class TimeSig final : public Element {
       qreal _numericlinethick;
       qreal _numericXpos;
       qreal _numericHigth;
+      qreal _numericBarLinelenght;
       bool _numericVisible;
+      bool _numericBegin;
 
 
       std::vector<SymId> ns;
@@ -58,6 +60,7 @@ class TimeSig final : public Element {
       QPointF pointLargeLeftParen;
       QPointF pointLargeRightParen;
       QLineF numericLine;
+      QLineF numericBarLine;
       Fraction _sig;
       Fraction _stretch;      // localSig / globalSig
       Groups _groups;
@@ -123,6 +126,8 @@ class TimeSig final : public Element {
       bool get_numericVisible() const  { return _numericVisible; }
       void set_numericXpos(qreal s)      { _numericXpos = s; }
       qreal get_numericXpos() const  { return _numericXpos; }
+      void set_numericBarLinelength(qreal length)      { _numericBarLinelenght = length; }
+
 
       void setFrom(const TimeSig*);
 
