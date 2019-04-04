@@ -11142,7 +11142,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>5</number>
           </property>
           <widget class="QWidget" name="page_3">
            <layout class="QGridLayout" name="gridLayout_58">
@@ -12590,8 +12590,65 @@
               <layout class="QGridLayout" name="gridLayout_53">
                <item row="0" column="0">
                 <layout class="QGridLayout" name="gridLayout_49">
-                 <item row="0" column="2">
-                  <widget class="QToolButton" name="resetNumericKeySigSize">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_221">
+                   <property name="text">
+                    <string>größe</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="numericKeySigHigth">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="minimum">
+                    <double>-10.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QToolButton" name="resetNumericKeySigHigth">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_222">
+                   <property name="text">
+                    <string>Horizontal verschibung</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="numericKeySigSize">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="minimum">
+                    <double>-10.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="2">
+                  <widget class="QToolButton" name="resetNumericKeysigNoteDistancReigth">
                    <property name="toolTip">
                     <string>Reset to default</string>
                    </property>
@@ -12620,15 +12677,8 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_222">
-                   <property name="text">
-                    <string>Horizontal verschibung</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="numericKeySigSize">
+                 <item row="4" column="1">
+                  <widget class="QDoubleSpinBox" name="numericKeysigNoteDistancReigth">
                    <property name="suffix">
                     <string extracomment="spatium unit">sp</string>
                    </property>
@@ -12640,8 +12690,25 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="1">
-                  <widget class="QDoubleSpinBox" name="numericKeySigHigth">
+                 <item row="0" column="2">
+                  <widget class="QToolButton" name="resetNumericKeySigSize">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QDoubleSpinBox" name="numericKeysigNoteDistancLeft">
                    <property name="suffix">
                     <string extracomment="spatium unit">sp</string>
                    </property>
@@ -12649,7 +12716,24 @@
                     <double>-10.000000000000000</double>
                    </property>
                    <property name="singleStep">
-                    <double>0.100000000000000</double>
+                    <double>0.010000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="2">
+                  <widget class="QToolButton" name="resetNumericKeysigNoteDistancLeft">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
                    </property>
                   </widget>
                  </item>
@@ -12677,27 +12761,17 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_221">
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="label_229">
                    <property name="text">
-                    <string>größe</string>
+                    <string>Ziffer Abstand Links</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="2">
-                  <widget class="QToolButton" name="resetNumericKeySigHigth">
-                   <property name="toolTip">
-                    <string>Reset to default</string>
-                   </property>
-                   <property name="accessibleName">
-                    <string>Reset 'Clef to time signature distance' value</string>
-                   </property>
+                 <item row="4" column="0">
+                  <widget class="QLabel" name="label_228">
                    <property name="text">
-                    <string notr="true"/>
-                   </property>
-                   <property name="icon">
-                    <iconset resource="musescore.qrc">
-                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                    <string>Ziffer Abstand Rechts</string>
                    </property>
                   </widget>
                  </item>

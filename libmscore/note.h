@@ -338,6 +338,7 @@ class Note final : public Element {
       void setFixed(bool v)               { _fixed = v;        }
       int fixedLine() const               { return _fixedLine; }
       void setFixedLine(int v)            { _fixedLine = v;    }
+      void numeric_setKeysigNote(KeySig* sig);
       qreal fretStringYShift() const                { return _fretStringYShift;   }
       qreal get_numericWidth()                      { return _numericWidth;   }
       qreal get_numericWidth2()                      { return _numericWidth2;   }

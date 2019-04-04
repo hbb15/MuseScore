@@ -55,6 +55,7 @@
 #include "bagpembell.h"
 #include "hairpin.h"
 #include "textline.h"
+#include "keysig.h"
 
 namespace Ms {
 
@@ -2000,7 +2001,38 @@ void Note::setDotY(Direction pos)
             dot->rypos() = y;
             }
       }
+//---------------------------------------------------------
+//   numeric_setKeysigNote
+//---------------------------------------------------------
 
+void Note::numeric_setKeysigNote(KeySig* sig)
+      {
+      if(staff()->key(tick()) != staff()->key(tick() - Fraction::fromTicks(1)) && track() % 4 == 0){
+            bool drawFlatTemp=_drawFlat;
+            bool drawSharpTemp=_drawSharp;
+
+            _drawFlat = false;
+            _drawSharp = false;
+            int numtransposeInterval=part()->instrument(chord()->tick())->transpose().chromatic;
+            int clefshift=getNumericOktave();
+            int grundtonverschibung=getNumericTrans(staff()->key(tick() - Fraction::fromTicks(1)));
+            int zifferkomatik=((_pitch+grundtonverschibung+numtransposeInterval)%12)+1;
+            QString fretString = getNumericString(zifferkomatik);
+            qreal fretStringYShift=((_pitch+grundtonverschibung+numtransposeInterval)/12-5-clefshift)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
+            int accid = 0;
+            if(_drawFlat){
+                  accid--;
+                  }
+            if(_drawSharp){
+                  accid++;
+                  }
+
+            sig->set_numericNote(fretString+")",accid,fretStringYShift);
+            _drawFlat = drawFlatTemp;
+            _drawSharp = drawSharpTemp;
+            }
+
+      }
 //---------------------------------------------------------
 //   getNumeric
 //---------------------------------------------------------

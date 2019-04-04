@@ -1123,6 +1123,8 @@ enum class Sid {
       numericKeySigSize,
       numericKeySigHorizontalShift,
       numericKeySigHigth,
+      numericKeysigNoteDistancLeft,
+      numericKeysigNoteDistancReigth,
       numericBarlineLength,
 
       STYLES

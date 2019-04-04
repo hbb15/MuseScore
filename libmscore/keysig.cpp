@@ -20,6 +20,8 @@
 #include "system.h"
 #include "undo.h"
 #include "xml.h"
+#include "note.h"
+#include "chord.h"
 
 namespace Ms {
 
@@ -111,6 +113,7 @@ void KeySig::addLayout(SymId sym, qreal x, int line)
 
 void KeySig::layout()
       {
+      _numericLeftAdjust = 0.0;
       if(_keyListSave){
             _keyListSave = false;
             staff()->setKey(_keyListSaveFraction,_keyListSaveSig);
@@ -230,28 +233,109 @@ void KeySig::layout()
       // add prefixed naturals, if any
 
       if (staff() && staff()->isNumericStaff( tick())) {
-            rxpos() = 0.0;
-            if((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx())<1){
-                  _numericEnable= enabled();
-                  setEnabled(false);
-                  addLayout(SymId::accidentalSharp, 0,lines[0]);
+            qreal wds =0.0;
+            StaffType* numeric = staff()->staffType(tick());
+            _numericHigth = numeric->fretBoxH() * magS() * score()->styleD(Sid::numericKeySigSize);
+            if(!segment()->isKeySigAnnounceType()){
 
+                  //rxpos() = 0.0;
+                  if((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx())<1){
+                        _numericEnable= enabled();
+                        setEnabled(false);
+                        addLayout(SymId::accidentalSharp, 0,lines[0]);
+
+                        int sigMode =int(_sig.mode())-1;
+                        if(sigMode < 0 || sigMode > 2)
+                              sigMode =0;
+                        _numericString = NumericString[int(_sig.key())+7][sigMode];
+                        _numericLeftAdjust = _numericHigth*-score()->styleD(Sid::numericKeySigHorizontalShift);
+                        _numericPoint = QPointF(_numericLeftAdjust, _numericHigth * -score()->styleD(Sid::numericKeySigHigth));
+                        wds = numericGetWidth(numeric, _numericString);
+                        QRectF denRect = QRectF(_numericPoint.x(), _numericPoint.y()-_numericHigth, wds, _numericHigth);
+                        setbbox(denRect);
+                        }
+                  else {
+
+                        setbbox(QRectF());
+                        }
+                  }
+            _numericDrawNote = true;
+            if( measure()&&measure()->first()){
+                  if( measure()->first()->isBeginBarLineType()) {
+                        _numericDrawNote = false;
+                        _numericNoteString = "";
+                        }
+                  }
+            if(_numericDrawNote&&segment()->isKeySigType()){
+                  Segment* seg = segment()->next();
+                  while (seg && !seg->isChordRestType()) {
+                        seg = seg->next();
+                        }
+                  if(seg && seg->element(track())->isChord()) {
+                        Chord* cd=toChord(seg->element(track()));
+                        if(cd && cd->upNote()){
+                              cd->upNote()->numeric_setKeysigNote(this);
+                              }
+                        }
+                  }
+            if(segment()->isKeySigAnnounceType()){
+
+                  if( measure()&&measure()->nextMeasure()){
+                        Segment* seg = measure()->nextMeasure()->first();
+                        while (seg && !seg->isChordRestType()) {
+                              seg = seg->next();
+                              }
+                        if(seg && seg->element(track())->isChord()) {
+                              Chord* cd=toChord(seg->element(track()));
+                              if(cd){
+                                    cd->upNote()->numeric_setKeysigNote(this);
+                                    }
+                              }
+                        }
+                  }
+            if(_numericNoteString!=""){
                   StaffType* numeric = staff()->staffType(tick());
-                  int sigMode =int(_sig.mode())-1;
-                  if(sigMode < 0 || sigMode > 2)
-                        sigMode =0;
-                  qreal heigth = numeric->fretBoxH() * magS() * score()->styleD(Sid::numericKeySigSize);
-                  _numericString = NumericString[int(_sig.key())+7][sigMode];
-                  _numericPoint = QPointF(0 * score()->styleD(Sid::numericKeySigHorizontalShift),
-                                          heigth * -score()->styleD(Sid::numericKeySigHigth));
-                  qreal wd = numericGetWidth(numeric, _numericString);
-                  QRectF denRect = QRectF(_numericPoint.x(), _numericPoint.y()-heigth, wd, heigth);
-                  setbbox(denRect);
+
+                  _numericNotePoint = QPointF(0.0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement) -_numericNoteShift);
+                  _numericNoteRecht = QRectF(_numericNotePoint.x(), _numericNotePoint.y()-_numericHigth, numericGetWidth(numeric, _numericNoteString), _numericHigth);
+                  addbbox(_numericNoteRecht);
+                  qreal wd = numericGetWidth(numeric,"(");
+                  if (_numericAccidentalShift!=0){
+                        if (_numericAccidentalShift==1){
+                              _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*magS(),
+                                                              (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)) * magS() -_numericNoteShift);
+                              addbbox(symBbox(SymId::accidentalSharp).translated(_numericAccidentalPoint));
+                              }
+                        if (_numericAccidentalShift==-1){
+                              _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*magS(),
+                                                              (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)) * magS() -_numericNoteShift);
+                              addbbox(symBbox(SymId::accidentalSharp).translated(_numericAccidentalPoint));
+                              }
+                        _numericNoteKlammerPoint = QPointF(_numericAccidentalPoint.x()-wd,_numericNotePoint.y());
+                        }
+                  else {
+                        _numericNoteKlammerPoint = QPointF(_numericNotePoint.x()-wd,_numericNotePoint.y());
+
+                        }
+                  _numericNoteKlammerRecht = QRectF(_numericNoteKlammerPoint.x(), _numericNoteKlammerPoint.y()-_numericHigth, wd, _numericHigth);
+                  addbbox(_numericNoteKlammerRecht);
+                  _numericShape = QRectF(_numericNoteKlammerPoint.x()-_numericHigth*score()->styleD(Sid::numericKeysigNoteDistancLeft),
+                                         _numericNoteKlammerPoint.y()-_numericHigth,
+                                         _numericNotePoint.x() - _numericNoteKlammerPoint.x()+_numericNoteRecht.width()+
+                                         _numericHigth*score()->styleD(Sid::numericKeysigNoteDistancLeft)+
+                                         _numericHigth*score()->styleD(Sid::numericKeysigNoteDistancReigth), _numericHigth);
+                  _numericReigthAdjust =wds - _numericShape.width();
+                  addbbox(_numericShape);
+                  if (_numericReigthAdjust<0.0){
+                        _numericReigthAdjust=0.0;
+                        }
                   }
             else {
-
-                  setbbox(QRectF());
+                  _numericShape = QRectF();
+                  _numericReigthAdjust = wds;
+                        //rxpos()=get_numericXpos() + _numericHigth*-score()->styleD(Sid::numericKeySigHorizontalShift);
                   }
+
             return;
             }
       else{
@@ -336,10 +420,10 @@ void KeySig::layout()
 void KeySig::layout2(){
 
       if (staff() && staff()->isNumericStaff( tick())) {
-            rxpos()=get_numericXpos();
+            rypos()=0.0;
             setEnabled(_numericEnable);
-            }
 
+            }
       }
 
 //---------------------------------------------------------
@@ -372,16 +456,41 @@ Shape KeySig::shape() const
 void KeySig::draw(QPainter* p) const
       {
     if (staff() && staff()->isNumericStaff( tick())) {
-        if((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx())<1){
-                    StaffType* numeric = staff()->staffType(tick());
 
-                    QFont font;
-                    font.setFamily(score()->styleSt(Sid::numericKeySigFont));
-                    font.setPointSizeF(numeric->fretFontSize() * spatium() * score()->styleD(Sid::numericKeySigSize) * MScore::pixelRatio / SPATIUM20);
-                    QColor c(curColor());
-                    p->setFont(font);
-                    p->setPen(c);
-                    p->drawText(_numericPoint,_numericString);
+
+               if(!segment()->isKeySigAnnounceType()){
+
+                     if((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx())<1){
+                          StaffType* numeric = staff()->staffType(tick());
+
+                          QFont font;
+                          font.setFamily(score()->styleSt(Sid::numericKeySigFont));
+                          font.setPointSizeF(numeric->fretFontSize() * spatium() * score()->styleD(Sid::numericKeySigSize) * MScore::pixelRatio / SPATIUM20);
+                          QColor c(curColor());
+                          p->setFont(font);
+                          p->setPen(c);
+                          p->drawText(_numericPoint,_numericString);
+                          }
+                     }
+            if(_numericNoteString!=""){
+
+                  StaffType* tab = staff()->staffType(tick());
+                  QFont font;
+                  font.setFamily(score()->styleSt(Sid::numericFont));
+                  font.setPointSizeF((tab->fretFontSize() * spatium() * MScore::pixelRatio / SPATIUM20));
+                  p->setFont(font);
+                  p->setPen(curColor());
+                  p->drawText(_numericNotePoint, _numericNoteString);
+                  p->drawText(_numericNoteKlammerPoint, "(");
+                  if (_numericAccidentalShift!=0){
+                        if (_numericAccidentalShift==1){
+                              score()->scoreFont()->draw(SymId::accidentalSharp, p,( magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth), _numericAccidentalPoint);
+                              }
+                        if (_numericAccidentalShift==-1){
+                              score()->scoreFont()->draw(SymId::accidentalFlat, p,( magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth),_numericAccidentalPoint);
+                              }
+                        }
+
                   }
             }
 

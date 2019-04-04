@@ -1147,6 +1147,8 @@ static const StyleType styleTypes[] {
       { Sid::numericKeySigSize,             "numericKeySigSize",             0.95 },
       { Sid::numericKeySigHorizontalShift,  "numericKeySigHorizontalShift",  1.0 },
       { Sid::numericKeySigHigth,            "numericKeySigHigth",            2.5 },
+      { Sid::numericKeysigNoteDistancLeft,  "numericKeysigNoteDistancLeft",  0.5 },
+      { Sid::numericKeysigNoteDistancReigth,"numericKeysigNoteDistancReigth",1.0 },
       { Sid::numericBarlineLength,          "numericBarlineLength",          1.0 },
       };
 
