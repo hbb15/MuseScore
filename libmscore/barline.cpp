@@ -346,7 +346,7 @@ void BarLine::getY() const
                   if (s && !s->invisible() && s->part()->show() && measure->visible(i2)) {
                         BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
                         if(nbl && nbl->spanStaff()){
-                              spanStaves = true;
+                              //spanStaves = true;
                               staffIdx2=i2;
                               }
                         break;
@@ -355,14 +355,14 @@ void BarLine::getY() const
             if (spanStaves){
                   y1 = 0.0;
                   if (spanStavesbefor){
-                        y1 = -(yp - measure->staffLines(staffbefor)->y1())*0.6  - from;
+                        y1 = -(yp - measure->staffLines(staffbefor)->y1())*0.5;
                         }
 
-                  y2 = (measure->staffLines(staffIdx2)->y1() - yp)*0.6 - to;
+                  y2 = (measure->staffLines(staffIdx2)->y1() - yp)*0.5;
                   }
             else if (spanStavesbefor){
 
-                  y1 = -(yp - measure->staffLines(staffbefor)->y1())*0.6  - from;
+                  y1 = -(yp - measure->staffLines(staffbefor)->y1())*0.5;
 
                   y2 = 0.0;
                   }
