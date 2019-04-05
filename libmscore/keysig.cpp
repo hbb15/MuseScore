@@ -304,12 +304,12 @@ void KeySig::layout()
                         if (_numericAccidentalShift==1){
                               _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*magS(),
                                                               (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)) * magS() -_numericNoteShift);
-                              addbbox(symBbox(SymId::accidentalSharp).translated(_numericAccidentalPoint));
+                              addbbox(symBbox(SymId::numericAccidentalSharp).translated(_numericAccidentalPoint));
                               }
                         if (_numericAccidentalShift==-1){
                               _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*magS(),
                                                               (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)) * magS() -_numericNoteShift);
-                              addbbox(symBbox(SymId::accidentalSharp).translated(_numericAccidentalPoint));
+                              addbbox(symBbox(SymId::numericAccidentalFlat).translated(_numericAccidentalPoint));
                               }
                         _numericNoteKlammerPoint = QPointF(_numericAccidentalPoint.x()-wd,_numericNotePoint.y());
                         }
@@ -484,10 +484,10 @@ void KeySig::draw(QPainter* p) const
                   p->drawText(_numericNoteKlammerPoint, "(");
                   if (_numericAccidentalShift!=0){
                         if (_numericAccidentalShift==1){
-                              score()->scoreFont()->draw(SymId::accidentalSharp, p,( magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth), _numericAccidentalPoint);
+                              score()->scoreFont()->draw(SymId::numericAccidentalSharp, p,( magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth), _numericAccidentalPoint);
                               }
                         if (_numericAccidentalShift==-1){
-                              score()->scoreFont()->draw(SymId::accidentalFlat, p,( magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth),_numericAccidentalPoint);
+                              score()->scoreFont()->draw(SymId::numericAccidentalFlat, p,( magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth),_numericAccidentalPoint);
                               }
                         }
 

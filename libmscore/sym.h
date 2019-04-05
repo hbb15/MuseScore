@@ -1860,6 +1860,8 @@ enum class SymId {
       noteheadXOrnate,
       noteheadXOrnateEllipse,
       noteheadXWhole,
+      numericAccidentalFlat,
+      numericAccidentalSharp,
       octaveBaselineA,
       octaveBaselineB,
       octaveBaselineM,

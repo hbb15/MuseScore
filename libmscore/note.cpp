@@ -1158,10 +1158,10 @@ void Note::draw(QPainter* painter) const
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        score()->scoreFont()->draw(SymId::accidentalSharp, painter,( magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)*(_trackthick+0.1), _numericaccidentalPos);
+                        score()->scoreFont()->draw(SymId::numericAccidentalSharp, painter,( magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)*(_trackthick+0.1), _numericaccidentalPos);
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        score()->scoreFont()->draw(SymId::accidentalFlat, painter,( magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)*(_trackthick+0.1),_numericaccidentalPos);
+                        score()->scoreFont()->draw(SymId::numericAccidentalFlat, painter,( magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)*(_trackthick+0.1),_numericaccidentalPos);
                         }
                   }
             }
@@ -2303,12 +2303,12 @@ void Note::layout2()
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
                         _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*magS(),
                                                         (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)) * magS());
-                        addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
+                        addbbox(symBbox(SymId::numericAccidentalSharp).translated(_numericaccidentalPos));
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
                         _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*magS(),
                                                         (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)) * magS());
-                        addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
+                        addbbox(symBbox(SymId::numericAccidentalFlat).translated(_numericaccidentalPos));
                         }
                   }
             if(_trackthick!=1.0){
@@ -2321,7 +2321,7 @@ void Note::layout2()
                         if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
                               _numericaccidentalPos = QPointF(_numericHigth*score()->styleD(Sid::numericDistanceSignFlat)*magS()+10,
                                                               (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)) * magS());
-                              addbbox(symBbox(SymId::accidentalSharp).translated(_numericaccidentalPos));
+                              addbbox(symBbox(SymId::numericAccidentalSharp).translated(_numericaccidentalPos));
                               }
                         }
 

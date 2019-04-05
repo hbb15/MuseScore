@@ -1878,6 +1878,8 @@ const std::array<const char*, int(SymId::lastSym)+1> Sym::symNames = { {
       "noteheadXOrnate",
       "noteheadXOrnateEllipse",
       "noteheadXWhole",
+      "numericAccidentalFlat",
+      "numericAccidentalSharp",
       "octaveBaselineA",
       "octaveBaselineB",
       "octaveBaselineM",
