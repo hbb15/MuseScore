@@ -3281,6 +3281,156 @@ Shortcut Shortcut::_sc[] = {
          QT_TRANSLATE_NOOP("action","Fret 14 (TAB)"),
          QT_TRANSLATE_NOOP("action","Add fret 14 on current string (TAB only)")
          },
+			 // NUMERIC-specific actions
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "pad-note-increase-TAB",
+		 QT_TRANSLATE_NOOP("action","Increase Active Duration (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Increase active duration (NUMERIC)")
+			 },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "pad-note-decrease-TAB",
+		 QT_TRANSLATE_NOOP("action","Decrease Active Duration (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Decrease active duration (NUMERIC)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "rest-TAB",
+		 QT_TRANSLATE_NOOP("action","Rest (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Enter rest (NUMERIC)"),
+		 0,
+		 Icons::quartrest_ICON
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "pad-rest-TAB",
+		 QT_TRANSLATE_NOOP("action","Rest (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Note input: Rest (NUMERIC)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "string-above",
+		 QT_TRANSLATE_NOOP("action","String Above (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Select string above (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "string-below",
+		 QT_TRANSLATE_NOOP("action","String Below (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Select string below (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-0",
+		 QT_TRANSLATE_NOOP("action","Fret 0 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 0 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-1",
+		 QT_TRANSLATE_NOOP("action","Fret 1 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 1 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-2",
+		 QT_TRANSLATE_NOOP("action","Fret 2 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 2 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-3",
+		 QT_TRANSLATE_NOOP("action","Fret 3 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 3 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-4",
+		 QT_TRANSLATE_NOOP("action","Fret 4 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 4 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-5",
+		 QT_TRANSLATE_NOOP("action","Fret 5 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 5 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-6",
+		 QT_TRANSLATE_NOOP("action","Fret 6 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 6 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-7",
+		 QT_TRANSLATE_NOOP("action","Fret 7 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 7 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-8",
+		 QT_TRANSLATE_NOOP("action","Fret 8 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 8 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-9",
+		 QT_TRANSLATE_NOOP("action","Fret 9 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 9 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-10",
+		 QT_TRANSLATE_NOOP("action","Fret 10 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 10 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-11",
+		 QT_TRANSLATE_NOOP("action","Fret 11 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 11 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-12",
+		 QT_TRANSLATE_NOOP("action","Fret 12 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 12 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-13",
+		 QT_TRANSLATE_NOOP("action","Fret 13 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 13 on current string (NUMERIC only)")
+	  },
+	  {
+		 MsWidget::SCORE_TAB,
+		 STATE_NOTE_ENTRY_STAFF_NUMERIC,
+		 "fret-14",
+		 QT_TRANSLATE_NOOP("action","Fret 14 (NUMERIC)"),
+		 QT_TRANSLATE_NOOP("action","Add fret 14 on current string (NUMERIC only)")
+	  },
 
       // HARMONY / FIGURED BASS specific actions
 
