@@ -302,13 +302,13 @@ void KeySig::layout()
                   qreal wd = numericGetWidth(numeric,"(");
                   if (_numericAccidentalShift!=0){
                         if (_numericAccidentalShift==1){
-                              _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*magS(),
-                                                              (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)) * magS() -_numericNoteShift);
+                              _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*0.7,
+                                                              (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp))  -_numericNoteShift);
                               addbbox(symBbox(SymId::numericAccidentalSharp).translated(_numericAccidentalPoint));
                               }
                         if (_numericAccidentalShift==-1){
-                              _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*magS(),
-                                                              (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)) * magS() -_numericNoteShift);
+                              _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*0.7,
+                                                              (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)) -_numericNoteShift);
                               addbbox(symBbox(SymId::numericAccidentalFlat).translated(_numericAccidentalPoint));
                               }
                         _numericNoteKlammerPoint = QPointF(_numericAccidentalPoint.x()-wd,_numericNotePoint.y());

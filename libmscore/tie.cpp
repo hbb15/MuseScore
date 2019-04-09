@@ -474,7 +474,7 @@ void Tie::slurPos(SlurPos* sp)
       bool shortStart = false;
       if(note1->staff() && note1->staff()->isNumericStaff(note1->tick())){
             _numericWidth=note1->get_numericWidth();
-            sp->p1.rx() +=note1->get_numericWidth()*0.5-note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
+            sp->p1.rx() +=-note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
             sp->p1.ry() = note1->y() + note1->get_numericHigth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
 
             }

@@ -274,6 +274,7 @@ class Note final : public Element {
       qreal _trackthick=1.0;
       QPointF _numericaccidentalPos;
       QPointF _numericTextPos;
+      QPointF _numericKlammerPos;
       int _numericLedgerline;
       bool _fretHidden = false;
       bool _drawFlat = false;
