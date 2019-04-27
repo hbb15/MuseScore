@@ -2591,9 +2591,11 @@ void ScoreView::startNoteEntry()
       switch (staff->staffType(is.tick())->group()) {
             case StaffGroup::STANDARD:
                   break;
-            case StaffGroup::TAB:
-            case StaffGroup::NUMERIC: {
-                  int strg = 0;                 // assume topmost string as current string
+            case StaffGroup::NUMERIC:
+                  //break;
+            case StaffGroup::TAB: {
+                  int strg = 0;
+                  // assume topmost string as current string
                   // if entering note entry with a note selected and the note has a string
                   // set InputState::_string to note physical string
                   if (el->type() == ElementType::NOTE) {

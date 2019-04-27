@@ -4061,8 +4061,8 @@ void MuseScore::changeState(ScoreState val)
       "pad-note-8-TAB", "pad-note-16-TAB", "pad-note-32-TAB", "pad-note-64-TAB", "pad-note-128-TAB", "pad-rest-TAB", "rest-TAB"};
       bool intoTAB = (_sstate != STATE_NOTE_ENTRY_STAFF_TAB) && (val == STATE_NOTE_ENTRY_STAFF_TAB);
       bool fromTAB = (_sstate == STATE_NOTE_ENTRY_STAFF_TAB) && (val != STATE_NOTE_ENTRY_STAFF_TAB);
-	  bool intoNUMERIC = (_sstate != STATE_NOTE_ENTRY_STAFF_NUMERIC) && (val == STATE_NOTE_ENTRY_STAFF_NUMERIC);
-	  bool fromNUMERIC = (_sstate == STATE_NOTE_ENTRY_STAFF_NUMERIC) && (val != STATE_NOTE_ENTRY_STAFF_NUMERIC);
+      //bool intoNUMERIC = (_sstate != STATE_NOTE_ENTRY_STAFF_NUMERIC) && (val == STATE_NOTE_ENTRY_STAFF_NUMERIC);
+      //bool fromNUMERIC = (_sstate == STATE_NOTE_ENTRY_STAFF_NUMERIC) && (val != STATE_NOTE_ENTRY_STAFF_NUMERIC);
       // if activating TAB note entry, swap "pad-note-...-TAB" shorctuts into "pad-note-..." actions
       if (intoTAB) {
             for (unsigned i = 0; i < sizeof(stdNames)/sizeof(char*); ++i) {
@@ -4079,7 +4079,7 @@ void MuseScore::changeState(ScoreState val)
                   act->setShortcuts(srt->keys());
                   }
             }
-
+/*
 	  if (intoNUMERIC) {
 		  for (unsigned i = 0; i < sizeof(stdNames) / sizeof(char*); ++i) {
 			  QAction* act = getAction(stdNames[i]);
@@ -4095,7 +4095,7 @@ void MuseScore::changeState(ScoreState val)
 			  act->setShortcuts(srt->keys());
 		  }
 	  }
-
+*/
       bool enable = (val != STATE_DISABLED) && (val != STATE_LOCK);
 
       for (const Shortcut* s : Shortcut::shortcuts()) {
@@ -4175,6 +4175,9 @@ void MuseScore::changeState(ScoreState val)
                   if (cv && !cv->noteEntryMode())
                         cv->cmd("note-input");
                   // fall through
+            case STATE_NOTE_ENTRY_STAFF_NUMERIC:
+                  showModeText(tr("NUMERIC input mode"));
+                  break;
             case STATE_NOTE_ENTRY_STAFF_PITCHED:
                   if (getAction("note-input-repitch")->isChecked()) {
                         showModeText(tr("Repitch input mode"));
@@ -4221,9 +4224,9 @@ void MuseScore::changeState(ScoreState val)
             case STATE_NOTE_ENTRY_STAFF_TAB:
                   showModeText(tr("TAB input mode"));
                   break;
-			case STATE_NOTE_ENTRY_STAFF_NUMERIC:
-				  showModeText(tr("NUMERIC input mode"));
-				  break;
+            case STATE_NOTE_ENTRY_STAFF_NUMERIC:
+                  showModeText(tr("NUMERIC input mode"));
+                  break;
             case STATE_EDIT:
                   showModeText(tr("Edit mode"));
                   break;

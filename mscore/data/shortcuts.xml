@@ -1346,87 +1346,87 @@
     </SC>
   <SC>
     <key>numeric-1</key>
-    <seq>NumPad+End</seq>
+    <seq>Shift+1</seq>
     </SC>
   <SC>
     <key>numeric-2</key>
-    <seq>NumPad+Down</seq>
+    <seq>Shift+2</seq>
     </SC>
   <SC>
     <key>numeric-3</key>
-    <seq>NumPad+PgDown</seq>
+    <seq>Shift+3</seq>
     </SC>
   <SC>
     <key>numeric-4</key>
-    <seq>NumPad+Left</seq>
+    <seq>Shift+4</seq>
     </SC>
   <SC>
     <key>numeric-5</key>
-    <seq>NumPad+Clear</seq>
+    <seq>Shift+5</seq>
     </SC>
   <SC>
     <key>numeric-6</key>
-    <seq>NumPad+Right</seq>
+    <seq>Shift+6</seq>
     </SC>
   <SC>
     <key>numeric-7</key>
-    <seq>NumPad+Home</seq>
+    <seq>Shift+7</seq>
     </SC>
   <SC>
     <key>numchord-1</key>
-    <seq>NumPad+Ctrl+End</seq>
+    <seq>Ctrl+Shift+1</seq>
     </SC>
   <SC>
     <key>numchord-2</key>
-    <seq>NumPad+Ctrl+Down</seq>
+    <seq>Ctrl+Shift+2</seq>
     </SC>
   <SC>
     <key>numchord-3</key>
-    <seq>NumPad+Ctrl+PgDown</seq>
+    <seq>Ctrl+Shift+3</seq>
     </SC>
   <SC>
     <key>numchord-4</key>
-    <seq>NumPad+Ctrl+Left</seq>
+    <seq>Ctrl+Shift+4</seq>
     </SC>
   <SC>
     <key>numchord-5</key>
-    <seq>NumPad+Ctrl+Clear</seq>
+    <seq>Ctrl+Shift+5</seq>
     </SC>
   <SC>
     <key>numchord-6</key>
-    <seq>NumPad+Ctrl+Right</seq>
+    <seq>Ctrl+Shift+6</seq>
     </SC>
   <SC>
     <key>numchord-7</key>
-    <seq>NumPad+Ctrl+Home</seq>
+    <seq>Ctrl+Shift+7</seq>
     </SC>
   <SC>
     <key>numinsert-1</key>
-    <seq>NumPad+Ctrl+Alt+1</seq>
+    <seq>Alt+Shift+1</seq>
     </SC>
   <SC>
     <key>numinsert-2</key>
-    <seq>NumPad+Ctrl+Alt+2</seq>
+    <seq>Alt+Shift+2</seq>
     </SC>
   <SC>
     <key>numinsert-3</key>
-    <seq>NumPad+Ctrl+Alt+3</seq>
+    <seq>Alt+Shift+3</seq>
     </SC>
   <SC>
     <key>numinsert-4</key>
-    <seq>NumPad+Ctrl+Alt+4</seq>
+    <seq>Alt+Shift+4</seq>
     </SC>
   <SC>
     <key>numinsert-5</key>
-    <seq>NumPad+Ctrl+Alt+5</seq>
+    <seq>Alt+Shift+5</seq>
     </SC>
   <SC>
     <key>numinsert-6</key>
-    <seq>NumPad+Ctrl+Alt+6</seq>
+    <seq>Alt+Shift+6</seq>
     </SC>
   <SC>
     <key>numinsert-7</key>
-    <seq>NumPad+Ctrl+Alt+7</seq>
+    <seq>Alt+Shift+7</seq>
     </SC>
   <SC>
     <key>advance-longa</key>

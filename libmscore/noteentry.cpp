@@ -63,7 +63,7 @@ NoteVal Score::noteValForPosition(Position pos, bool &error)
                   break;
                   }
             case StaffGroup::TAB:
-            case StaffGroup::NUMERIC: {
+            {
                   if (_is.rest()) {
                         error = true;
                         return nval;
@@ -91,7 +91,7 @@ NoteVal Score::noteValForPosition(Position pos, bool &error)
                   nval.pitch = stringData->getPitch(line, nval.fret, st, tick);
                   break;
                   }
-
+            case StaffGroup::NUMERIC:
             case StaffGroup::STANDARD: {
                   AccidentalVal acci = s->measure()->findAccidental(s, staffIdx, line, error);
                   if (error)

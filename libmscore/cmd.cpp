@@ -3425,6 +3425,7 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
                                           Clef* clef = toClef(p);
                                           // check if it's an actual change or just a courtesy
                                           ClefType ctb = staff->clef(clef->tick() - Fraction::fromTicks(1));
+                                          // switch ClefType if it is Numeric
                                           if (ctb != clef->clefType() || clef->tick().isZero()) {
                                                 curPitch = line2pitch(4, clef->clefType(), Key::C); // C 72 for treble clef
                                                 break;
@@ -3462,6 +3463,8 @@ void Score::cmdAddPitch(int step, bool addFlag, bool insert)
                   Segment* seg  = chord->segment();
                   pos.segment   = seg;
                   pos.staffIdx  = selectedNote->track() / VOICES;
+
+                  //TODO: switch clefType for numeric
                   ClefType clef = staff(pos.staffIdx)->clef(seg->tick());
                   pos.line      = relStep(step, clef);
                   bool error;
@@ -3475,6 +3478,8 @@ void Score::cmdAddPitch(int step, bool addFlag, bool insert)
 
       pos.segment   = inputState().segment();
       pos.staffIdx  = inputState().track() / VOICES;
+
+      // TODO: switch ClefType for Numeric
       ClefType clef = staff(pos.staffIdx)->clef(pos.segment->tick());
       pos.line      = relStep(step, clef);
 
