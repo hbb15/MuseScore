@@ -4175,9 +4175,6 @@ void MuseScore::changeState(ScoreState val)
                   if (cv && !cv->noteEntryMode())
                         cv->cmd("note-input");
                   // fall through
-            case STATE_NOTE_ENTRY_STAFF_NUMERIC:
-                  showModeText(tr("NUMERIC input mode"));
-                  break;
             case STATE_NOTE_ENTRY_STAFF_PITCHED:
                   if (getAction("note-input-repitch")->isChecked()) {
                         showModeText(tr("Repitch input mode"));
