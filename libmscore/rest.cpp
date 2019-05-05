@@ -1014,6 +1014,8 @@ bool Rest::setProperty(Pid propertyId, const QVariant& v)
                   setOffset(v.toPointF());
                   layout();
                   score()->addRefresh(canvasBoundingRect());
+                  if (measure() && durationType().type() == TDuration::DurationType::V_MEASURE)
+                         measure()->triggerLayout();
                   score()->setLayout(tick());
                   break;
             default:
@@ -1072,7 +1074,7 @@ Shape Rest::shape() const
                   shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()));
             }
       for (Element* e : el()) {
-            if (e->autoplace() && e->visible())
+            if (e->addToSkyline())
                   shape.add(e->shape().translated(e->pos()));
             }
       return shape;

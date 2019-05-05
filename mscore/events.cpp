@@ -478,7 +478,7 @@ void ScoreView::mousePressEvent(QMouseEvent* ev)
                         if (e->isNote())
                               e = e->parent();
                         ChordRest* cr = toChordRest(e);
-                        seq->seek(seq->score()->repeatList()->tick2utick(cr->tick().ticks()));
+                        seq->seek(seq->score()->repeatList().tick2utick(cr->tick().ticks()));
                         }
                   }
                   break;
@@ -550,7 +550,7 @@ void ScoreView::mouseMoveEvent(QMouseEvent* me)
                   break;
 
             case ViewState::PLAY:
-                  if (drag && !editData.element)
+                  if (drag)
                         dragScoreView(me);
                   break;
 

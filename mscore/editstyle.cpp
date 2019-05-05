@@ -43,6 +43,15 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       setObjectName("EditStyle");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+      QRect scr = QGuiApplication::primaryScreen()->availableGeometry();
+      QRect dlg = this->frameGeometry();
+      isTooWide = dlg.width() > scr.width();
+      isTooHigh = dlg.height() > scr.height();
+      if (isTooWide || isTooHigh)
+            this->setMinimumSize(scr.width() / 2, scr.height() / 2);
+      hasShown = false;
+
       cs = s;
       buttonApplyToAllParts = buttonBox->addButton(tr("Apply to all Parts"), QDialogButtonBox::ApplyRole);
       buttonApplyToAllParts->setEnabled(!cs->isMaster());
@@ -98,6 +107,9 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       //   idx                --- showPercent      --- widget          --- resetButton
       { Sid::figuredBassAlignment,    false, fbAlign,                 0                    },
       { Sid::figuredBassStyle,        false, fbStyle,                 0                    },
+      { Sid::figuredBassFontSize,     false, doubleSpinFBSize,        0                    },
+      { Sid::figuredBassYOffset,      false, doubleSpinFBVertPos,     0                    },
+      { Sid::figuredBassLineHeight,   true,  spinFBLineHeight,        0                    },
       { Sid::tabClef,                 false, ctg,                     0                    },
       { Sid::keySigNaturals,          false, ksng,                    0                    },
       { Sid::voltaLineStyle,          false, voltaLineStyle,          resetVoltaLineStyle  },
@@ -274,29 +286,6 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::measureNumberInterval,    false, intervalMeasureNumber,        0 },
       { Sid::measureNumberSystem,      false, showEverySystemMeasureNumber, 0 },
       { Sid::measureNumberAllStaffs,   false, showAllStaffsMeasureNumber,   0 },
-      { Sid::measureNumberFontFace,    false, measureNumberFontFace,        resetMeasureNumberFontFace },
-      { Sid::measureNumberFontSize,    false, measureNumberFontSize,        resetMeasureNumberFontSize },
-      { Sid::measureNumberFontStyle,   false, measureNumberFontStyle,       resetMeasureNumberFontStyle },
-      { Sid::measureNumberAlign,       false, measureNumberAlign,           resetMeasureNumberAlign },
-      { Sid::measureNumberOffset,      false, measureNumberOffset,          resetMeasureNumberOffset },
-
-      { Sid::shortInstrumentFontFace,  false, shortInstrumentFontFace,      resetShortInstrumentFontFace },
-      { Sid::shortInstrumentFontSize,  false, shortInstrumentFontSize,      resetShortInstrumentFontSize },
-      { Sid::shortInstrumentFontStyle, false, shortInstrumentFontStyle,     resetShortInstrumentFontStyle },
-      { Sid::shortInstrumentAlign,     false, shortInstrumentAlign,         resetShortInstrumentAlign },
-
-      { Sid::longInstrumentFontFace,   false, longInstrumentFontFace,        resetLongInstrumentFontFace },
-      { Sid::longInstrumentFontSize,   false, longInstrumentFontSize,        resetLongInstrumentFontSize },
-      { Sid::longInstrumentFontStyle,  false, longInstrumentFontStyle,       resetLongInstrumentFontStyle },
-      { Sid::longInstrumentAlign,      false, longInstrumentAlign,           resetLongInstrumentAlign },
-
-      { Sid::headerFontFace,           false, headerFontFace,        resetHeaderFontFace },
-      { Sid::headerFontSize,           false, headerFontSize,        resetHeaderFontSize },
-      { Sid::headerFontStyle,          false, headerFontStyle,       resetHeaderFontStyle },
-
-      { Sid::footerFontFace,           false, footerFontFace,        resetFooterFontFace },
-      { Sid::footerFontSize,           false, footerFontSize,        resetFooterFontSize },
-      { Sid::footerFontStyle,          false, footerFontStyle,       resetFooterFontStyle },
 
       { Sid::beamDistance,             true,  beamDistance,                 0 },
       { Sid::beamNoSlope,              false, beamNoSlope,                  0 },
@@ -377,9 +366,6 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::staffTextPosBelow,       false, staffTextPosBelow,     resetStaffTextPosBelow    },
       { Sid::staffTextMinDistance,    false, staffTextMinDistance,  resetStaffTextMinDistance },
 
-      { Sid::bendFontFace,      false, bendFontFace,      resetBendFontFace      },
-      { Sid::bendFontSize,      false, bendFontSize,      resetBendFontSize      },
-      { Sid::bendFontStyle,     false, bendFontStyle,     resetBendFontStyle     },
       { Sid::bendLineWidth,     false, bendLineWidth,     resetBendLineWidth     },
       { Sid::bendArrowWidth,    false, bendArrowWidth,    resetBendArrowWidth    },
 
@@ -620,9 +606,9 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
             }
 
       textStyleFrameType->clear();
-      textStyleFrameType->addItem(tr("No frame"), int(FrameType::NO_FRAME));
-      textStyleFrameType->addItem(tr("Square"),   int(FrameType::SQUARE));
-      textStyleFrameType->addItem(tr("Circle"),   int(FrameType::CIRCLE));
+      textStyleFrameType->addItem(tr("None"), int(FrameType::NO_FRAME));
+      textStyleFrameType->addItem(tr("Square"), int(FrameType::SQUARE));
+      textStyleFrameType->addItem(tr("Circle"), int(FrameType::CIRCLE));
 
       resetTextStyleName->setIcon(*icons[int(Icons::reset_ICON)]);
       connect(resetTextStyleName, &QToolButton::clicked, [=](){ resetUserStyleName(); });
@@ -726,6 +712,22 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       }
 
 //---------------------------------------------------------
+//   showEvent
+//---------------------------------------------------------
+
+void EditStyle::showEvent(QShowEvent* ev)
+      {
+      if (!hasShown && (isTooWide || isTooHigh)) {
+            // Add scroll bars to pageStack - this cannot be in the constructor
+            // or the Header, Footer text input boxes size themselves too large.
+            QScrollArea* scrollArea = new QScrollArea(splitter);
+            scrollArea->setWidget(pageStack);
+            }
+      hasShown = true; // so it only happens once
+      QWidget::showEvent(ev);
+      }
+
+//---------------------------------------------------------
 //   hideEvent
 //---------------------------------------------------------
 
@@ -778,18 +780,21 @@ void EditStyle::on_comboFBFont_currentIndexChanged(int index)
 
 void EditStyle::on_buttonTogglePagelist_clicked()
       {
-
       if (pageList->isVisible()) {
             pageList->setVisible(false);
-            setMaximumWidth(pageStack->minimumWidth() + 15);
-            setMinimumWidth(pageStack->minimumWidth() + 15);
-            move(pos().x() + (pageList->minimumWidth() + 5), pos().y());
+            if (!isTooWide) {
+                  setMaximumWidth(pageStack->minimumWidth() + 15);
+                  setMinimumWidth(pageStack->minimumWidth() + 15);
+                  move(pos().x() + (pageList->minimumWidth() + 5), pos().y());
+                  }
             buttonTogglePagelist->setIcon(QIcon(*icons[int(Icons::goPrevious_ICON)]));
             }
       else {
-            setMaximumWidth((pageList->minimumWidth() + 5) + pageStack->minimumWidth() + 15);
-            setMinimumWidth((pageList->minimumWidth() + 5) + pageStack->minimumWidth() + 15);
-            move(pos().x() - (pageList->minimumWidth() + 5), pos().y());
+            if (!isTooWide) {
+                  setMaximumWidth((pageList->minimumWidth() + 5) + pageStack->minimumWidth() + 15);
+                  setMinimumWidth((pageList->minimumWidth() + 5) + pageStack->minimumWidth() + 15);
+                  move(pos().x() - (pageList->minimumWidth() + 5), pos().y());
+                  }
             pageList->setVisible(true);
             buttonTogglePagelist->setIcon(QIcon(*icons[int(Icons::goNext_ICON)]));
             }
@@ -1380,6 +1385,7 @@ void EditStyle::textStyleChanged(int row)
                   case Pid::FRAME_TYPE:
                         textStyleFrameType->setCurrentIndex(cs->styleV(a.sid).toInt());
                         resetTextStyleFrameType->setEnabled(cs->styleV(a.sid) != MScore::defaultStyle().value(a.sid));
+                        frameWidget->setEnabled(cs->styleV(a.sid).toInt() != 0); // disable if no frame
                         break;
 
                   case Pid::FRAME_PADDING:
@@ -1419,7 +1425,7 @@ void EditStyle::textStyleChanged(int row)
       styleName->setText(cs->getTextStyleUserName(tid));
       styleName->setEnabled(int(tid) >= int(Tid::USER1));
       resetTextStyleName->setEnabled(styleName->text() != textStyleUserName(tid));
-     }
+      }
 
 //---------------------------------------------------------
 //   textStyleValueChanged

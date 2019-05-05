@@ -1506,7 +1506,8 @@ void Score::deleteItem(Element* el)
       {
       if (!el)
             return;
-      if (el->generated() && !(el->isBracket() || el->isBarLine()))          // cannot remove generated elements
+      // cannot remove generated elements
+      if (el->generated() && !(el->isBracket() || el->isBarLine() || el->isClef()))
             return;
 //      qDebug("%s", el->name());
 
@@ -1724,12 +1725,25 @@ void Score::deleteItem(Element* el)
                         undoRemoveElement(el);
                         }
                   else {
-                        if (bl->barLineType() == BarLineType::START_REPEAT)
-                              m->undoChangeProperty(Pid::REPEAT_START, false);
-                        else if (bl->barLineType() == BarLineType::END_REPEAT)
-                              m->undoChangeProperty(Pid::REPEAT_END, false);
-                        else
+                        if (bl->barLineType() == BarLineType::START_REPEAT) {
+                              Measure* m2 = m->isMMRest() ? m->mmRestFirst() : m;
+                              for (Score* lscore : score()->scoreList()) {
+                                    Measure* lmeasure = lscore->tick2measure(m2->tick());
+                                    if (lmeasure)
+                                          lmeasure->undoChangeProperty(Pid::REPEAT_START, false);
+                                    }
+                              }
+                        else if (bl->barLineType() == BarLineType::END_REPEAT) {
+                              Measure* m2 = m->isMMRest() ? m->mmRestLast() : m;
+                              for (Score* lscore : score()->scoreList()) {
+                                    Measure* lmeasure = lscore->tick2measure(m2->tick());
+                                    if (lmeasure)
+                                          lmeasure->undoChangeProperty(Pid::REPEAT_END, false);
+                                    }
+                              }
+                        else {
                               bl->undoChangeProperty(Pid::BARLINE_TYPE, QVariant::fromValue(BarLineType::NORMAL));
+                              }
                         }
                   }
                   break;
@@ -2815,7 +2829,7 @@ void Score::insertMeasure(ElementType type, MeasureBase* measure, bool createEmp
                                     if (!s->enabled())
                                           continue;
                                     Element* e = s->element(staffIdx * VOICES);
-                                    if (!e)
+                                    if (!e || e->generated())
                                           continue;
                                     Element* ee = 0;
                                     if (e->isKeySig()) {
@@ -3741,8 +3755,15 @@ static Element* findLinkedVoiceElement(Element* e, Staff* nstaff)
 
       if (de) {
             QList<int> l = de->tracks().values(strack);
-            if (l.isEmpty())
+            if (l.isEmpty()) {
+                  // simply return the first linked element whose staff is equal to nstaff
+                  for (ScoreElement* ee : e->linkList()) {
+                        Element* el = toElement(ee);
+                        if (el->staff() == nstaff)
+                              return el;
+                        }
                   return 0;
+                  }
             for (int i : l) {
                   if (nstaff->idx() * VOICES <= i && (nstaff->idx() + 1) * VOICES > i) {
                         dtrack = i;
@@ -3775,8 +3796,15 @@ static Chord* findLinkedChord(Chord* c, Staff* nstaff)
 
       if (de) {
             QList<int> l = de->tracks().values(strack);
-            if (l.isEmpty())
+            if (l.isEmpty()) {
+                  // simply return the first linked chord whose staff is equal to nstaff
+                  for (ScoreElement* ee : c->linkList()) {
+                        Chord* ch = toChord(ee);
+                        if (ch->staff() == nstaff)
+                              return ch;
+                        }
                   return 0;
+                  }
             for (int i : l) {
                   if (nstaff->idx() * VOICES <= i && (nstaff->idx() + 1) * VOICES > i) {
                         dtrack = i;
@@ -4123,11 +4151,9 @@ void Score::undoAddElement(Element* element)
             const LinkedElements* links = parent->links();
             // don't link part name
             if (et == ElementType::TEXT) {
-#if 0 // TODO-ws
                   Text* t = toText(element);
-                  if (t->subStyle() == ElementStyle::INSTRUMENT_EXCERPT)
+                  if (t->tid() == Tid::INSTRUMENT_EXCERPT)
                         links = 0;
-#endif
                   }
             if (links == 0) {
                   undo(new AddElement(element));

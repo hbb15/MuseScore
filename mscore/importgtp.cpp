@@ -1308,15 +1308,15 @@ void GuitarPro::readChord(Segment* seg, int track, int numStrings, QString name,
                   if (i > numStrings - 1) {
                         }
                   else if (currentFret > 0) {
-                        fret->setDot(numStrings - 1 - i, currentFret-firstFret+1);
+                        fret->setDot(numStrings - 1 - i, currentFret - firstFret + 1, true);
                         }
                   else if (currentFret == 0) {
-                        fret->setDot(numStrings - 1 - i, 0);
-                        fret->setMarker(numStrings - 1 - i, '0');
+                        fret->setDot(numStrings - 1 - i, 0, true);
+                        fret->setMarker(numStrings - 1 - i, FretMarkerType::CIRCLE);
                         }
                   else if (currentFret == -1) {
-                        fret->setDot(numStrings - 1 - i, 0);
-                        fret->setMarker(numStrings - 1 - i, 'X');
+                        fret->setDot(numStrings - 1 - i, 0, true);
+                        fret->setMarker(numStrings - 1 - i, FretMarkerType::CROSS);
                         }
                   }
             seg->add(fret);
@@ -2829,8 +2829,7 @@ Score::FileError importGTP(MasterScore* score, const QString& name)
 
       for (Measure* m1 = score->firstMeasure(); m1; m1 = m1->nextMeasure(), ++idx) {
             const GpBar& bar = gp->bars[idx];
-            //TODO            if (bar.barLine != BarLineType::NORMAL && bar.barLine != BarLineType::END_REPEAT && bar.barLine != BarLineType::START_REPEAT && bar.barLine != BarLineType::END_START_REPEAT)
-            if (bar.barLine != BarLineType::NORMAL && bar.barLine != BarLineType::END_REPEAT && bar.barLine != BarLineType::START_REPEAT)
+            if (bar.barLine != BarLineType::NORMAL && bar.barLine != BarLineType::END_REPEAT && bar.barLine != BarLineType::START_REPEAT && bar.barLine != BarLineType::END_START_REPEAT)
                   m1->setEndBarLineType(bar.barLine, 0);
             }
       if (score->lastMeasure() && score->lastMeasure()->endBarLineType() != BarLineType::NORMAL)

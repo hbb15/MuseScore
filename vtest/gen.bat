@@ -3,7 +3,7 @@
 rem "magick compare" - image magick compare program
 
 set SRC=mmrest-1,bravura-mmrest,gonville-mmrest,mmrest-2,mmrest-4,mmrest-5,mmrest-6,mmrest-7,mmrest-8,mmrest-9, ^
- mmrest-10,mmrest-11,fmrest-1,fmrest-2,fmrest-3,fmrest-4,fmrest-5,fmrest-6,measure-repeat-1, ^
+ mmrest-10,mmrest-11,mmrest-12,fmrest-1,fmrest-2,fmrest-3,fmrest-4,fmrest-5,fmrest-6,measure-repeat-1, ^
  noteheadposition-1,valign-1,valign-2,valign-3, ^
  emmentaler-1,bravura-1,gonville-1, musejazz-1, ^
  emmentaler-2,bravura-2,gonville-2, musejazz-2, ^
@@ -33,7 +33,7 @@ set SRC=mmrest-1,bravura-mmrest,gonville-mmrest,mmrest-2,mmrest-4,mmrest-5,mmres
  beams-1,beams-2,beams-3,beams-4,beams-5,beams-6,beams-7,beams-8,beams-9,beams-10, ^
  beams-11,beams-12,beams-13,beams-14,beams-15,beams-16,beams-17, ^
  user-offset-1,user-offset-2,chord-space-1,chord-space-2,tablature-1,image-1, ^
- lyrics-1,lyrics-2,lyrics-3,lyrics-4,lyrics-5,lyrics-6,lyrics-7,voice-1,voice-2,slash-1,slash-2, ^
+ lyrics-1,lyrics-2,lyrics-3,lyrics-4,lyrics-5,lyrics-6,lyrics-7,lyrics-8,voice-1,voice-2,slash-1,slash-2, ^
  system-1,system-2,system-3,system-4,system-5,system-6,system-7,hide-1,small-1,tremolo-1, ^
  staff-1,staff-2,layout-1,layout-2,layout-3,layout-4,layout-5,layout-6,layout-7,layout-8,layout-9, ^
  articulation-1, ^

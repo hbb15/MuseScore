@@ -61,6 +61,8 @@ class SpannerSegment : public Element {
       SpannerSegment(const SpannerSegment&);
       virtual SpannerSegment* clone() const = 0;
 
+      virtual qreal mag() const override;
+
       Spanner* spanner() const              { return _spanner;            }
       Spanner* setSpanner(Spanner* val)     { return _spanner = val;      }
 
@@ -169,6 +171,8 @@ class Spanner : public Element {
       Spanner(const Spanner&);
       ~Spanner();
 
+      virtual qreal mag() const override;
+
       virtual ElementType type() const = 0;
       virtual void setScore(Score* s) override;
 
@@ -250,6 +254,7 @@ class Spanner : public Element {
 
       virtual void setSelected(bool f) override;
       virtual void setVisible(bool f) override;
+      virtual void setAutoplace(bool f) override;
       virtual void setColor(const QColor& col) override;
       Spanner* nextSpanner(Element* e, int activeStaff);
       Spanner* prevSpanner(Element* e, int activeStaff);

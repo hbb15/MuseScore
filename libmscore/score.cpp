@@ -300,6 +300,8 @@ Score::Score(MasterScore* parent, bool forcePartStyle /* = true */)
                   style().set(Sid::dividerRight, false);
                   }
             }
+      // update style values
+      _style.precomputeValues();
       _synthesizerState = parent->_synthesizerState;
       _mscVersion = parent->_mscVersion;
       }
@@ -798,6 +800,25 @@ bool Score::dirty() const
 ScoreContentState Score::state() const
       {
       return std::make_pair(this, undoStack()->state());
+      }
+
+//---------------------------------------------------------
+//   setPlaylistDirty
+//---------------------------------------------------------
+
+void Score::setPlaylistDirty()
+      {
+      _playlistDirty = true;
+      }
+
+//---------------------------------------------------------
+//   setPlaylistDirty
+//---------------------------------------------------------
+
+void MasterScore::setPlaylistDirty()
+      {
+      Score::setPlaylistDirty();
+      _repeatList->setScoreChanged();
       }
 
 //---------------------------------------------------------
@@ -1481,6 +1502,12 @@ void Score::removeElement(Element* element)
             MeasureBase* mb = toMeasureBase(element);
             measures()->remove(mb);
             System* system = mb->system();
+
+            if (!system) { // vertical boxes are not shown in continuous view so no system
+                  Q_ASSERT(lineMode() && (element->isVBox() || element->isTBox()));
+                  return;
+                  }
+
             Page* page = system->page();
             if (element->isBox() && system->measures().size() == 1) {
                   auto i = std::find(page->systems().begin(), page->systems().end(), system);
@@ -1771,7 +1798,7 @@ Segment* Score::lastSegment() const
 
 qreal Score::utick2utime(int tick) const
       {
-      return repeatList()->utick2utime(tick);
+      return repeatList().utick2utime(tick);
       }
 
 //---------------------------------------------------------
@@ -1780,7 +1807,39 @@ qreal Score::utick2utime(int tick) const
 
 int Score::utime2utick(qreal utime) const
       {
-      return repeatList()->utime2utick(utime);
+      return repeatList().utime2utick(utime);
+      }
+
+//---------------------------------------------------------
+//   setExpandRepeats
+//---------------------------------------------------------
+
+void MasterScore::setExpandRepeats(bool expand)
+      {
+      if (_expandRepeats == expand)
+            return;
+      _expandRepeats = expand;
+      setPlaylistDirty();
+      }
+
+//---------------------------------------------------------
+//   updateRepeatListTempo
+///   needed for usage in Seq::processMessages
+//---------------------------------------------------------
+
+void MasterScore::updateRepeatListTempo()
+      {
+      _repeatList->updateTempo();
+      }
+
+//---------------------------------------------------------
+//   repeatList
+//---------------------------------------------------------
+
+const RepeatList& MasterScore::repeatList() const
+      {
+      _repeatList->update(_expandRepeats);
+      return *_repeatList;
       }
 
 //---------------------------------------------------------
@@ -2781,36 +2840,65 @@ void Score::padToggle(Pad n)
                   }
             }
 
-      if (noteEntryMode() || !selection().isSingle())
+      if (noteEntryMode())
             return;
 
-      //do not allow to add a dot on a full measure rest
-      Element* e = selection().element();
-      if (e && e->isRest()) {
-            Rest* r = toRest(e);
-            if (r->isFullMeasureRest())
-                  _is.setDots(0);
+      std::vector<ChordRest*> crs;
+
+      if (selection().isSingle()) {
+            // do not allow to add a dot on a full measure rest
+            Element* e = selection().element();
+            if (e && e->isRest()) {
+                  Rest* r = toRest(e);
+                  if (r->isFullMeasureRest())
+                        _is.setDots(0);
+                  }
+
+            // on measure rest, select the first actual rest
+            ChordRest* cr = selection().cr();
+            if (cr && cr->isRest() && cr->measure()->isMMRest()) {
+                  Measure* m = cr->measure()->mmRestFirst();
+                  if (m)
+                        cr = m->findChordRest(Fraction(0,1), 0);
+                  }
+
+            crs.push_back(cr);
+            }
+      else {
+            const auto elements = selection().uniqueElements();
+            bool canAdjustLength = true;
+            for (Element* e : elements) {
+                  if (!e)
+                        continue;
+                  if (e->isNote())
+                        e = e->parent();
+                  if (!e->isChordRest() || e->isRepeatMeasure() || (e->isRest() && toRest(e)->measure() && toRest(e)->measure()->isMMRest())) {
+                        canAdjustLength = false;
+                        break;
+                        }
+                  crs.push_back(toChordRest(e));
+                  }
+
+            if (canAdjustLength) {
+                  // Change length from last to first chord/rest
+                  std::sort(crs.begin(), crs.end(), [](const ChordRest* cr1, const ChordRest* cr2) {
+                        return cr2->track() < cr1->track() || cr2->isBefore(cr1);
+                        });
+                  }
+            else
+                  crs.clear();
             }
 
-      // on measure rest, select the first actual rest
-      ChordRest* cr = selection().cr();
-      if (cr && cr->isRest() && cr->measure()->isMMRest()) {
-            Measure* m = cr->measure()->mmRestFirst();
-            if (m)
-                  cr = m->findChordRest(Fraction(0,1), 0);
+      for (ChordRest* cr : crs) {
+            if (cr->isChord() && (toChord(cr)->isGrace())) {
+                  //
+                  // handle appoggiatura and acciaccatura
+                  //
+                  undoChangeChordRestLen(cr, _is.duration());
+                  }
+            else
+                  changeCRlen(cr, _is.duration());
             }
-
-      if (!cr)
-            return;
-
-      if (cr->isChord() && (toChord(cr)->isGrace())) {
-            //
-            // handle appoggiatura and acciaccatura
-            //
-            undoChangeChordRestLen(cr, _is.duration());
-            }
-      else
-            changeCRlen(cr, _is.duration());
       }
 
 //---------------------------------------------------------
@@ -3877,8 +3965,7 @@ int Score::harmonyCount()
 QString Score::extractLyrics()
       {
       QString result;
-      updateRepeatList(true);
-      setPlaylistDirty();
+      masterScore()->setExpandRepeats(true);
       SegmentType st = SegmentType::ChordRest;
       for (int track = 0; track < ntracks(); track += VOICES) {
             bool found = false;
@@ -3887,7 +3974,7 @@ QString Score::extractLyrics()
                   m->setPlaybackCount(0);
                   }
             // follow the repeat segments
-            for (const RepeatSegment* rs : *repeatList()) {
+            for (const RepeatSegment* rs : repeatList()) {
                   Fraction startTick  = Fraction::fromTicks(rs->tick);
                   Fraction endTick    = startTick + Fraction::fromTicks(rs->len());
                   for (Measure* m = tick2measure(startTick); m; m = m->nextMeasure()) {
@@ -3977,11 +4064,11 @@ int Score::keysig()
 
 int Score::duration()
       {
-      updateRepeatList(true);
-      RepeatList* rl = repeatList();
-      if (rl->isEmpty())
+      masterScore()->setExpandRepeats(true);
+      const RepeatList& rl = repeatList();
+      if (rl.empty())
             return 0;
-      RepeatSegment* rs = rl->last();
+      const RepeatSegment* rs = rl.last();
       return lrint(utick2utime(rs->utick + rs->len()));
       }
 
@@ -4573,7 +4660,7 @@ void MasterScore::updateExpressive(MasterSynthesizer* m, bool expressive, bool f
                   if (idVal.id == 4) {
                         int method = idVal.data.toInt();
                         if (expressive == (method == 0))
-                              return; // method and expression change don't match, so don't switch
+                              return; // method and expression change don't match, so don't switch}
                         }
                   }
             }
@@ -4582,9 +4669,27 @@ void MasterScore::updateExpressive(MasterSynthesizer* m, bool expressive, bool f
             const InstrumentList* il = p->instruments();
             for (auto it = il->begin(); it != il->end(); it++) {
                   Instrument* i = it->second;
-                  i->switchExpressive(m, expressive, force);
+                  i->switchExpressive(this, m, expressive, force);
                   }
             }
+
+      }
+
+//---------------------------------------------------------
+//   rebuildAndUpdateExpressive
+//    implicitly rebuild midi mappings as well. Should be preferred over
+//    just updateExpressive, in most cases.
+//---------------------------------------------------------
+
+void MasterScore::rebuildAndUpdateExpressive(MasterSynthesizer* m)
+      {
+      // Rebuild midi mappings to make sure we have playback channels
+      rebuildMidiMapping();
+
+      updateExpressive(m);
+
+      // Rebuild midi mappings again to be safe
+      rebuildMidiMapping();
       }
 
 //---------------------------------------------------------

@@ -282,8 +282,7 @@ enum class Sid {
       fretPlacement,
       fretStrings,
       fretFrets,
-      fretOffset,
-      fretBarre,
+      fretNut,
 
       showPageNumber,
       showPageNumberOne,
@@ -1063,6 +1062,7 @@ enum class Sid {
       letRingFrameRound,
       letRingFrameFgColor,
       letRingFrameBgColor,
+      letRingEndHookType,
 
       palmMuteFontFace,
       palmMuteFontSize,
@@ -1084,12 +1084,28 @@ enum class Sid {
       palmMuteFrameRound,
       palmMuteFrameFgColor,
       palmMuteFrameBgColor,
+      palmMuteEndHookType,
 
       fermataPosAbove,
       fermataPosBelow,
       fermataMinDistance,
 
       fingeringPlacement,
+
+      articulationMinDistance,
+      fingeringMinDistance,
+      hairpinMinDistance,
+      letRingMinDistance,
+      ottavaMinDistance,
+      palmMuteMinDistance,
+      pedalMinDistance,
+      repeatMinDistance,
+      textLineMinDistance,
+      trillMinDistance,
+      vibratoMinDistance,
+      voltaMinDistance,
+
+      autoplaceEnabled,
 
       numericHeightDisplacement,
       numericDistanceOctave,
@@ -1157,6 +1173,7 @@ class MStyle {
       ChordList* chordList()  { return &_chordList; }
       void setChordList(ChordList*, bool custom = true);    // Style gets ownership of ChordList
       void setCustomChordList(bool t) { _customChordList = t; }
+      void checkChordList();
 
       bool load(QFile* qf);
       void load(XmlReader& e);

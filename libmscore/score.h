@@ -96,7 +96,6 @@ enum class Key;
 enum class HairpinType : signed char;
 enum class SegmentType;
 enum class OttavaType : char;
-enum class DynamicsRenderMethod : signed char;
 
 extern bool showRubberBand;
 
@@ -480,6 +479,7 @@ class Score : public QObject, public ScoreElement {
       void cmdMoveLyrics(Lyrics*, Direction);
       void cmdIncDecDuration(int nSteps, bool stepDotted = false);
       void cmdAddBracket();
+      void cmdAddParentheses();
       void resetUserStretch();
 
       bool layoutSystem(qreal& minWidth, qreal w, bool, bool);
@@ -516,11 +516,6 @@ class Score : public QObject, public ScoreElement {
       void collectLinearSystem(LayoutContext& lc);
       void resetTempo();
       void resetTempoRange(const Fraction& tick1, const Fraction& tick2);
-
-      void renderStaff(EventMap* events, Staff*, DynamicsRenderMethod method, int cc);
-      void renderSpanners(EventMap* events);
-      void renderMetronome(EventMap* events, Measure* m, const Fraction& tickOffset);
-      void updateVelo();
 
       void deleteSpannersFromRange(const Fraction& t1, const Fraction& t2, int trackStart, int trackEnd, const SelectionFilter& filter);
       void deleteAnnotationsFromRange(Segment* segStart, Segment* segEnd, int trackStart, int trackEnd, const SelectionFilter& filter);
@@ -727,6 +722,7 @@ class Score : public QObject, public ScoreElement {
       void addRefresh(const QRectF&);
 
       void cmdRelayout();
+      void cmdToggleAutoplace(bool all);
 
       bool playNote() const                 { return _updateState._playNote; }
       void setPlayNote(bool v)              { _updateState._playNote = v;    }
@@ -824,7 +820,7 @@ class Score : public QObject, public ScoreElement {
       void setAutosaveDirty(bool v)  { _autosaveDirty = v;    }
       bool autosaveDirty() const     { return _autosaveDirty; }
       bool playlistDirty()           { return _playlistDirty; }
-      void setPlaylistDirty()        { _playlistDirty = true; }
+      virtual void setPlaylistDirty();
 
       void spell();
       void spell(int startStaff, int endStaff, Segment* startSegment, Segment* endSegment);
@@ -880,8 +876,8 @@ class Score : public QObject, public ScoreElement {
       void spatiumChanged(qreal oldValue, qreal newValue);
       void styleChanged();
 
-      void cmdPaste(const QMimeData* ms, MuseScoreView* view);
-      bool pasteStaff(XmlReader&, Segment* dst, int staffIdx);
+      void cmdPaste(const QMimeData* ms, MuseScoreView* view, Fraction scale = Fraction(1, 1));
+      bool pasteStaff(XmlReader&, Segment* dst, int staffIdx, Fraction scale = Fraction(1, 1));
       void readAddConnector(ConnectorInfoReader* info, bool pasteMode) override;
       void pasteSymbols(XmlReader& e, ChordRest* dst);
       void renderMidi(EventMap* events, const SynthesizerState& synthState);
@@ -895,9 +891,10 @@ class Score : public QObject, public ScoreElement {
       void addLyrics(const Fraction& tick, int staffIdx, const QString&);
 
       void updateSwing();
-      void createPlayEvents();
+      void createPlayEvents(Measure* start = nullptr, Measure* end = nullptr);
 
       void updateCapo();
+      void updateVelo();
 
       void cmdConcertPitchChanged(bool, bool /*useSharpsFlats*/);
 
@@ -937,10 +934,9 @@ class Score : public QObject, public ScoreElement {
 
       Measure* searchLabel(const QString& s, Measure* startMeasure = nullptr, Measure* endMeasure = nullptr);
       Measure* searchLabelWithinSectionFirst(const QString& s, Measure* sectionStartMeasure, Measure* sectionEndMeasure);
-      virtual inline RepeatList* repeatList() const;
+      virtual inline const RepeatList& repeatList() const;
       qreal utick2utime(int tick) const;
       int utime2utick(qreal utime) const;
-      void updateRepeatList(bool expandRepeats);
 
       void nextInputPos(ChordRest* cr, bool);
       void cmdMirrorNoteHead();
@@ -1208,6 +1204,7 @@ class MasterScore : public Score {
       TimeSigMap* _sigmap;
       TempoMap* _tempomap;
       RepeatList* _repeatList;
+      bool _expandRepeats = true;
       QList<Excerpt*> _excerpts;
       std::vector<PartChannelSettingsLink> _playbackSettingsLinks;
       Score* _playbackScore = nullptr;
@@ -1257,7 +1254,12 @@ class MasterScore : public Score {
       virtual UndoStack* undoStack() const override                   { return _movements->undo(); }
       virtual TimeSigMap* sigmap() const override                     { return _sigmap;     }
       virtual TempoMap* tempomap() const override                     { return _tempomap;   }
-      virtual RepeatList* repeatList()  const override                { return _repeatList; }
+
+      void setExpandRepeats(bool expandRepeats);
+      void updateRepeatListTempo();
+      virtual const RepeatList& repeatList() const override;
+      void setPlaylistDirty() override;
+
       virtual QList<Excerpt*>& excerpts() override                    { return _excerpts;   }
       virtual const QList<Excerpt*>& excerpts() const override        { return _excerpts;   }
       virtual QQueue<MidiInputEvent>* midiInputQueue() override       { return &_midiInputQueue;    }
@@ -1319,6 +1321,7 @@ class MasterScore : public Score {
       int getNextFreeDrumMidiMapping();
       void enqueueMidiEvent(MidiInputEvent ev) { _midiInputQueue.enqueue(ev); }
       void updateChannel();
+      void rebuildAndUpdateExpressive(MasterSynthesizer* m);
       void updateExpressive(MasterSynthesizer* m);
       void updateExpressive(MasterSynthesizer* m, bool expressive, bool force = false);
       void setSoloMute();
@@ -1366,7 +1369,7 @@ class ScoreLoad {
       };
 
 inline UndoStack* Score::undoStack() const             { return _masterScore->undoStack();      }
-inline RepeatList* Score::repeatList()  const          { return _masterScore->repeatList();     }
+inline const RepeatList& Score::repeatList()  const    { return _masterScore->repeatList();     }
 inline TempoMap* Score::tempomap() const               { return _masterScore->tempomap();       }
 inline TimeSigMap* Score::sigmap() const               { return _masterScore->sigmap();         }
 inline QList<Excerpt*>& Score::excerpts()              { return _masterScore->excerpts();       }

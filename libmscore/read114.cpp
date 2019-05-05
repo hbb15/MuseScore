@@ -81,7 +81,7 @@ static const StyleVal2 style114[] = {
       { Sid::lyricsDashForce,              QVariant(false) },
       { Sid::frameSystemDistance,          Spatium(1.0) },
       { Sid::minMeasureWidth,              Spatium(4.0) },
-      { Sid::endBarDistance,               Spatium(0.30) },
+//      { Sid::endBarDistance,               Spatium(0.30) },
 
       { Sid::repeatBarTips,                QVariant(false) },
       { Sid::startBarlineSingle,           QVariant(false) },
@@ -1589,7 +1589,7 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                                           t = BarLineType::BEGIN;
                                           break;
                                     case 7:
-                                          // TODO t = BarLineType::END_START_REPEAT;
+                                          t = BarLineType::END_START_REPEAT;
                                           break;
                                     }
                               barLine->setBarLineType(t);
@@ -2780,11 +2780,8 @@ static void readStyle(MStyle* style, XmlReader& e)
             }
 
       // make sure we have a chordlist
-      if (!style->chordList()->loaded() && !chordListTag) {
-            if (style->value(Sid::chordsXmlFile).toBool())
-                  style->chordList()->read("chords.xml");
-            style->chordList()->read(newChordDescriptionFile);
-            }
+      if (!chordListTag)
+            style->checkChordList();
 #if 0 // TODO
       //
       //  Compatibility with old scores/styles:

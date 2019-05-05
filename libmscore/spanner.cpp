@@ -20,6 +20,7 @@
 #include "measure.h"
 #include "undo.h"
 #include "staff.h"
+#include "lyrics.h"
 #include "musescoreCore.h"
 
 namespace Ms {
@@ -63,6 +64,17 @@ SpannerSegment::SpannerSegment(const SpannerSegment& s)
       _spannerSegmentType = s._spannerSegmentType;
       _p2                 = s._p2;
       _offset2            = s._offset2;
+      }
+
+//---------------------------------------------------------
+//   mag
+//---------------------------------------------------------
+
+qreal SpannerSegment::mag() const
+      {
+      if (spanner()->systemFlag())
+            return 1.0;
+      return staff() ? staff()->mag(spanner()->tick()) : 1.0;
       }
 
 //---------------------------------------------------------
@@ -327,6 +339,17 @@ Spanner::~Spanner()
       }
 
 //---------------------------------------------------------
+//   mag
+//---------------------------------------------------------
+
+qreal Spanner::mag() const
+      {
+      if (systemFlag())
+            return 1.0;
+      return staff() ? staff()->mag(tick()) : 1.0;
+      }
+
+//---------------------------------------------------------
 //   add
 //---------------------------------------------------------
 
@@ -574,13 +597,35 @@ void Spanner::computeEndElement()
                         setTrack2(track());
                   if (ticks().isZero() && isTextLine() && parent())   // special case palette
                         setTicks(score()->lastSegment()->tick() - _tick);
-                  // find last cr on this staff that ends before tick2
 
-                  _endElement = score()->findCRinStaff(tick2(), track2() / VOICES);
+                  if (isLyricsLine()) {
+                        // lyrics endTick should already indicate the segment we want
+                        // except for TEMP_MELISMA_TICKS case
+                        Lyrics* l = toLyricsLine(this)->lyrics();
+                        Fraction tick = (l->ticks().ticks() == Lyrics::TEMP_MELISMA_TICKS) ? l->tick() : l->endTick();
+                        Segment* s = score()->tick2segment(tick, true, SegmentType::ChordRest);
+                        if (!s) {
+                              qDebug("%s no end segment for tick %d", name(), tick.ticks());
+                              return;
+                              }
+                        int t = trackZeroVoice(track2());
+                        // take the first chordrest we can find;
+                        // linePos will substitute one in current voice if available
+                        for (int v = 0; v < VOICES; ++v) {
+                              _endElement = s->element(t + v);
+                              if (_endElement)
+                                    break;
+                              }
+                        }
+                  else {
+                        // find last cr on this staff that ends before tick2
+                        _endElement = score()->findCRinStaff(tick2(), track2() / VOICES);
+                        }
                   if (!_endElement) {
                         qDebug("%s no end element for tick %d", name(), tick2().ticks());
                         return;
                         }
+
                   if (!endCR()->measure()->isMMRest()) {
                         ChordRest* cr = endCR();
                         Fraction nticks = cr->tick() + cr->actualTicks() - _tick;
@@ -747,7 +792,8 @@ ChordRest* Spanner::endCR()
       Q_ASSERT(_anchor == Anchor::SEGMENT || _anchor == Anchor::CHORD);
       if ((!_endElement || _endElement->score() != score())) {
             Segment* s  = score()->tick2segmentMM(tick2(), false, SegmentType::ChordRest);
-            _endElement = s ? toChordRest(s->element(track2())) : 0;
+            const int tr2 = (track2() == -1) ? track() : track2();
+            _endElement = s ? toChordRest(s->element(tr2)) : nullptr;
             }
       return toChordRest(_endElement);
       }
@@ -809,6 +855,17 @@ void Spanner::setVisible(bool f)
       for (SpannerSegment* ss : spannerSegments())
             ss->Element::setVisible(f);
       Element::setVisible(f);
+      }
+
+//---------------------------------------------------------
+//   setAutoplace
+//---------------------------------------------------------
+
+void Spanner::setAutoplace(bool f)
+      {
+      for (SpannerSegment* ss : spannerSegments())
+            ss->Element::setAutoplace(f);
+      Element::setAutoplace(f);
       }
 
 //---------------------------------------------------------
@@ -1295,7 +1352,9 @@ void SpannerSegment::autoplaceSpannerSegment(qreal minDistance)
       if (spanner()->anchor() == Spanner::Anchor::NOTE)
             return;
 
-      if (visible() && autoplace()) {
+      if (autoplace()) {
+            if (!systemFlag() && !spanner()->systemFlag())
+                  minDistance *= staff()->mag(spanner()->tick());
             SkylineLine sl(!spanner()->placeAbove());
             sl.add(shape().translated(pos()));
             if (spanner()->placeAbove()) {

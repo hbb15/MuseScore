@@ -21,9 +21,9 @@
 #include "part.h"
 #include "score.h"
 #include "synthesizer/msynthesizer.h"
+#include "synthesizer/synthesizer.h"
 #include "synthesizer/midipatch.h"
 
-#include <QList>
 namespace Ms {
 
 Instrument InstrumentList::defaultInstrument;
@@ -804,6 +804,16 @@ void Channel::switchExpressive(MasterSynthesizer* m, bool expressive, bool force
       if ((_userBankController && !force) || !m)
             return;
 
+      // Check that we're actually changing the MuseScore General soundfont
+      const auto fontsInfo = m->synthesizer("Fluid")->soundFontsInfo();
+      if (fontsInfo.empty())
+            return;
+      const auto& info = fontsInfo.front();
+      if (!info.fontName.contains("MuseScore_General")) {
+            qDebug().nospace() << "Soundfont '" << info.fontName << "' is not MuseScore General, cannot update expressive";
+            return;
+            }
+
       // Work out where the new expressive patch will be
       // All expressive instruments are +1 bank higher than the
       // normal counterparts, except on bank 0, where they are placed on bank 17
@@ -831,23 +841,10 @@ void Channel::switchExpressive(MasterSynthesizer* m, bool expressive, bool force
 
       // Floor bank num to multiple of 129 and add new num to get bank num of new patch
       searchBankNum = (bank() / 129) * 129 + newBankNum;
-
       const auto& pl = m->getPatchInfo();
-      QString containString;
-      if (expressive)
-            containString = QString("Expr.");
-      else {
-            for (const MidiPatch* p : pl) {
-                  if (p->bank == bank() && p->prog == program() && p->synti == synti()) {
-                        containString = QString(p->name).replace("Expr.", "").trimmed();
-                        break;
-                        }
-                  }
-            }
-
       for (const MidiPatch* p : pl) {
             if (p->synti == "Fluid") {
-                  if (searchBankNum == p->bank && program() == p->prog && p->name.contains(containString)) {
+                  if (searchBankNum == p->bank && program() == p->prog) {
                         setBank(p->bank);
                         return;
                         }
@@ -1118,7 +1115,7 @@ void Instrument::updateGateTime(int* gateTime, int /*channelIdx*/, const QString
 //   updateGateTime
 //---------------------------------------------------------
 
-void Instrument::switchExpressive(MasterSynthesizer* m, bool expressive, bool force /* = false */)
+void Instrument::switchExpressive(MasterScore* score, MasterSynthesizer* m, bool expressive, bool force /* = false */)
       {
       // Only switch to expressive where necessary
       if (!m || (expressive && !singleNoteDynamics()))
@@ -1126,6 +1123,8 @@ void Instrument::switchExpressive(MasterSynthesizer* m, bool expressive, bool fo
 
       for (Channel* c : channel()) {
             c->switchExpressive(m, expressive, force);
+            if (score->playbackChannel(c))
+                  score->playbackChannel(c)->switchExpressive(m, expressive, force);
             }
       }
 

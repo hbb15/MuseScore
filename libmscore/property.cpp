@@ -207,7 +207,7 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::VERSE,                   true,  "no",                    P_TYPE::ZERO_INT,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "verse")            },
 
       { Pid::SYLLABIC,                true,  "syllabic",              P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "syllabic")         },
-      { Pid::LYRIC_TICKS,             true,  "ticks",                 P_TYPE::FRACTION,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "ticks")            },
+      { Pid::LYRIC_TICKS,             true,  "ticks_f",               P_TYPE::FRACTION,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "ticks")            },
       { Pid::VOLTA_ENDING,            true,  "endings",               P_TYPE::INT_LIST,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "endings")          },
       { Pid::LINE_VISIBLE,            true,  "lineVisible",           P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "visible line")     },
       { Pid::MAG,                     false, "mag",                   P_TYPE::REAL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "mag")              },
@@ -218,10 +218,10 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::TRACK,                   false, 0,                       P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "track")            },
 
       { Pid::GLISSANDO_STYLE,         true,  "glissandoStyle",        P_TYPE::GLISSANDO_STYLE,     DUMMY_QT_TRANSLATE_NOOP("propertyName", "glissando style")  },
-      { Pid::FRET_STRINGS,            false, "strings",               P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "strings")          },
-      { Pid::FRET_FRETS,              false, "frets",                 P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "frets")            },
-      { Pid::FRET_BARRE,              false, "barre",                 P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "barre")            },
-      { Pid::FRET_OFFSET,             false, "fretOffset",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "fret offset")      },
+      { Pid::FRET_STRINGS,            true,  "strings",               P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "strings")          },
+      { Pid::FRET_FRETS,              true,  "frets",                 P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "frets")            },
+      { Pid::FRET_NUT,                true,  "showNut",               P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "show nut")         },
+      { Pid::FRET_OFFSET,             true,  "fretOffset",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "fret offset")      },
 
       { Pid::FRET_NUM_POS,            false, "fretNumPos",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "fret number position") },
       { Pid::SYSTEM_BRACKET,          false, "type",                  P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "type")             },

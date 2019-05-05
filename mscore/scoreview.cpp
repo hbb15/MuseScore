@@ -548,7 +548,9 @@ void ScoreView::moveCursor(const Fraction& tick)
             qreal x2;
             Fraction t2;
             Segment* ns = s->next(SegmentType::ChordRest);
-            if (ns && ns->visible()) {
+            while (ns && !ns->visible())
+                  ns = ns->next(SegmentType::ChordRest);
+            if (ns) {
                   t2 = ns->tick();
                   x2 = ns->canvasPos().x();
                   }
@@ -1206,6 +1208,13 @@ void ScoreView::paint(const QRect& r, QPainter& p)
             if (!ss)
                   return;
 
+            if (!ss->enabled())
+                  ss = ss->next1MMenabled();
+            if (es && !es->enabled())
+                  es = es->next1MMenabled();
+            if (es && ss->tick() > es->tick())  // start after end?
+                  return;
+
             if (!ss->measure()->system()) {
                   // segment is in a measure that has not been laid out yet
                   // this can happen in mmrests
@@ -1258,7 +1267,7 @@ void ScoreView::paint(const QRect& r, QPainter& p)
             double x1;
 
             for (Segment* s = ss; s && (s != es); ) {
-                  Segment* ns = s->next1MM();
+                  Segment* ns = s->next1MMenabled();
                   system1  = system2;
                   system2  = s->measure()->system();
                   if (!system2) {
@@ -1713,11 +1722,11 @@ void ScoreView::normalSwap()
 //   normalPaste
 //---------------------------------------------------------
 
-bool ScoreView::normalPaste()
+bool ScoreView::normalPaste(Fraction scale)
       {
       _score->startCmd();
       const QMimeData* ms = QApplication::clipboard()->mimeData();
-      _score->cmdPaste(ms, this);
+      _score->cmdPaste(ms, this, scale);
       bool rv = MScore::_error == MS_NO_ERROR;
       _score->endCmd();
       return rv;
@@ -1796,6 +1805,21 @@ void ScoreView::cmd(const char* s)
                   normalPaste();
             else if (state == ViewState::EDIT)
                   editPaste();
+            }
+      else if (cmd == "paste-half") {
+            normalPaste(Fraction(1, 2));
+            }
+      else if (cmd == "paste-double") {
+            normalPaste(Fraction(2, 1));
+            }
+      else if (cmd == "paste-special") {
+            Fraction scale = Fraction(1, 1);
+            Fraction duration = _score->inputState().duration().fraction();
+            if (duration.isValid() && !duration.isZero()) {
+                  scale = duration * 4;
+                  scale.reduce();
+                  }
+            normalPaste(scale);
             }
       else if (cmd == "swap") {
             if (state == ViewState::NORMAL)
@@ -3064,10 +3088,10 @@ void ScoreView::adjustCanvasPosition(const Element* el, bool playBack, int staff
       else {
             // attempt to find measure
             Element* e = el->parent();
-            while (e && e->type() != ElementType::MEASURE)
+            while (e && !e->isMeasureBase())
                   e = e->parent();
             if (e)
-                  m = static_cast<Measure*>(e);
+                  m = toMeasureBase(e);
             else
                   return;
             }
@@ -3116,8 +3140,9 @@ void ScoreView::adjustCanvasPosition(const Element* el, bool playBack, int staff
 */
       // canvas is not as wide as measure, track note instead
       if (r.width() < showRect.width()) {
-            showRect.setX(p.x());
-            showRect.setWidth(el->width());
+            QRectF eRect(el->canvasBoundingRect());
+            showRect.setX(eRect.x());
+            showRect.setWidth(eRect.width());
             }
 
       // canvas is not as tall as system
@@ -3614,8 +3639,8 @@ void ScoreView::cmdTuplet(int n, ChordRest* cr)
       f.reduce();       //measure duration might not be reduced
       Fraction ratio(n, f.numerator());
       Fraction fr(1, f.denominator());
-      while (ratio.numerator() >= ratio.denominator()*2) {
-            ratio *= Fraction(1,2);
+      while (ratio.numerator() >= ratio.denominator() * 2) {
+            ratio.setDenominator(ratio.denominator() * 2);  // operator*= reduces, we don't want that here
             fr    *= Fraction(1,2);
             }
 
@@ -3915,7 +3940,6 @@ void ScoreView::cmdAddText(Tid tid)
                         }
                   s = new Text(_score, tid);
                   s->setParent(measure);
-                  adjustCanvasPosition(measure, false);
                   _score->undoAddElement(s);
                   }
                   break;
@@ -4003,6 +4027,7 @@ void ScoreView::cmdAddText(Tid tid)
                               }
                         }
                   }
+            adjustCanvasPosition(s, false);
             startEditMode(s);
             }
       else
