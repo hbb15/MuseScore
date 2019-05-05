@@ -275,7 +275,6 @@ void SlurSegment::computeBezier(QPointF p6o)
       QPointF p3(c1, -shoulderH);
       QPointF p4(c2, -shoulderH);
 
-      qreal w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
       if (staff())
             w *= staff()->mag(slur()->tick());
       if ((c2 - c1) <= _spatium)

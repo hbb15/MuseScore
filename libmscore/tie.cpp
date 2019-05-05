@@ -261,7 +261,6 @@ void TieSegment::computeBezier(QPointF p6o)
       QPointF p3(c1, -shoulderH);
       QPointF p4(c2, -shoulderH);
 
-      qreal w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
       if (staff())
             w *= staff()->mag(tie()->tick());
       QPointF th(0.0, w);    // thickness of slur
