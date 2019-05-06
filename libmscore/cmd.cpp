@@ -3394,6 +3394,20 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
 
             // if adding notes, add above the upNote of the current chord
             Element* el = selection().element();
+
+			Staff* tmpStaff = Score::staff(is.track() / VOICES);
+			Segment* tmpSeg = is.segment()->prev1(SegmentType::ChordRest | SegmentType::Clef | SegmentType::HeaderClef);
+			Fraction tick = tmpSeg->measure()->tick();
+			
+			if (tmpSeg->isChordRestType() && tmpStaff->isNumericStaff(tick)){
+
+				Position pos;
+				pos.segment = inputState().segment();
+				pos.staffIdx = inputState().track() / VOICES;
+
+				ClefType clef = staff(pos.staffIdx)->clef(pos.segment->tick());
+			}
+
             if (addFlag && el && el->isNote()) {
                   Chord* chord = toNote(el)->chord();
                   Note* n      = chord->upNote();
@@ -3425,7 +3439,6 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
                                           Clef* clef = toClef(p);
                                           // check if it's an actual change or just a courtesy
                                           ClefType ctb = staff->clef(clef->tick() - Fraction::fromTicks(1));
-                                          // switch ClefType if it is Numeric
                                           if (ctb != clef->clefType() || clef->tick().isZero()) {
                                                 curPitch = line2pitch(4, clef->clefType(), Key::C); // C 72 for treble clef
                                                 break;
@@ -3479,7 +3492,6 @@ void Score::cmdAddPitch(int step, bool addFlag, bool insert)
       pos.segment   = inputState().segment();
       pos.staffIdx  = inputState().track() / VOICES;
 
-      // TODO: switch ClefType for Numeric
       ClefType clef = staff(pos.staffIdx)->clef(pos.segment->tick());
       pos.line      = relStep(step, clef);
 
