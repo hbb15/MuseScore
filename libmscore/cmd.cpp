@@ -3423,13 +3423,52 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
 			Segment* tmpSeg = is.segment()->prev1(SegmentType::ChordRest | SegmentType::Clef | SegmentType::HeaderClef);
 			Fraction tick = tmpSeg->measure()->tick();
 			
-			if (tmpSeg->isChordRestType() && tmpStaff->isNumericStaff(tick)){
+			if ((tmpSeg->isClefType() || tmpSeg->isHeaderClefType() || tmpSeg->isChordRestType()) && tmpStaff->isNumericStaff(tick)){
 
 				Position pos;
 				pos.segment = inputState().segment();
 				pos.staffIdx = inputState().track() / VOICES;
 
 				ClefType clef = staff(pos.staffIdx)->clef(pos.segment->tick());
+				Key key = tmpStaff->key(pos.segment->tick());
+				switch (key)
+				{
+				case Ms::Key::C_B:
+				case Ms::Key::C:
+				case Ms::Key::C_S:
+					break;
+				case Ms::Key::G_B:
+				case Ms::Key::G:
+					note = note + 4;
+					break;
+				case Ms::Key::D_B:
+				case Ms::Key::D:
+					note = note + 1;
+					break;
+				case Ms::Key::A_B:
+				case Ms::Key::A:
+					note = note + 5;
+					break;
+				case Ms::Key::E:
+				case Ms::Key::E_B:
+					note = note + 2;
+					break;
+				case Ms::Key::B:
+				case Ms::Key::B_B:
+					note = note + 6;
+					break;
+				case Ms::Key::F_S:
+				case Ms::Key::F:
+					note = note + 3;
+					break;
+				default:
+					break;
+				}
+
+				if (note > 6)
+				{
+					note = note - 7;
+				}
 			}
 
             if (addFlag && el && el->isNote()) {
