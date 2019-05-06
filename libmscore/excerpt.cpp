@@ -211,12 +211,11 @@ void Excerpt::createExcerpt(Excerpt* excerpt)
       if (!partLabel.isEmpty()) {
             Text* txt = new Text(score, Tid::INSTRUMENT_EXCERPT);
             txt->setPlainText(partLabel);
-            txt->setTrack(0);
             measure->add(txt);
             score->setMetaTag("partName", partLabel);
             }
 
-      // layout score
+      // initial layout of score
       score->addLayoutFlags(LayoutFlag::FIX_PITCH_VELO);
       score->doLayout();
 
@@ -273,7 +272,13 @@ void Excerpt::createExcerpt(Excerpt* excerpt)
                   }
             }
 
-      // layout score
+      // update style values if spatium different for part
+      if (oscore->spatium() != score->spatium()) {
+            //score->spatiumChanged(oscore->spatium(), score->spatium());
+            score->styleChanged();
+            }
+
+      // second layout of score
       score->setPlaylistDirty();
       oscore->rebuildMidiMapping();
       oscore->updateChannel();
@@ -714,7 +719,11 @@ void Excerpt::cloneStaves(Score* oscore, Score* score, const QList<int>& map, QM
                   // layout breaks other than section were skipped above,
                   // but section breaks do need to be cloned & linked
                   // other measure-attached elements (?) are cloned but not linked
-                  if (e->isTextBase() || e->isLayoutBreak()) {
+                  if (e->isText() && toText(e)->tid() == Tid::INSTRUMENT_EXCERPT) {
+                        // skip part name in score
+                        continue;
+                        }
+                  else if (e->isTextBase() || e->isLayoutBreak()) {
                         ne = e->clone();
                         ne->setAutoplace(true);
                         ne->linkTo(e);

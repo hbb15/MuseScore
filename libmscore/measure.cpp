@@ -658,16 +658,12 @@ void Measure::layout2()
                         Chord* c = toChord(cr);
                         for (const Note* note : c->notes()) {
                               Tie* t = note->tieFor();
-                              if (t) {
-                                    TieSegment* ts = t->layoutFor(system());
-                                    //system->staff(ch->staffIdx())->skyline().add(ts->shape().translated(ts->pos()));
-                                    }
+                              if (t)
+                                    t->layoutFor(system());
                               t = note->tieBack();
                               if (t) {
-                                    if (t->startNote()->tick() < stick) {
-                                          TieSegment* ts = t->layoutBack(system());
-                                          //system->staff(ch->staffIdx())->skyline().add(ts->shape().translated(ts->pos()));
-                                          }
+                                    if (t->startNote()->tick() < stick)
+                                          t->layoutBack(system());
                                     }
                               for (Spanner* sp : note->spannerFor())
                                     sp->layout();
@@ -888,6 +884,34 @@ void Measure::add(Element* e)
                   _mmRest = toMeasure(e);
                   break;
 
+            case ElementType::STAFFTYPE_CHANGE:
+                  {
+                  StaffTypeChange* stc = toStaffTypeChange(e);
+                  Staff* staff = stc->staff();
+                  const StaffType* st = stc->staffType();
+                  StaffType* nst;
+                  // st needs to point to the stafftype element within the stafftypelist for the staff
+                  if (st) {
+                        // executed on read, undo/redo, clone
+                        // setStaffType adds a copy to list and returns a pointer to that element within list
+                        // we won't need the original after that
+                        // this requires that st was allocated via new to begin with!
+                        nst = staff->setStaffType(tick(), *st);
+                        delete st;
+                        }
+                  else {
+                        // executed on add from palette
+                        // staffType returns a pointer to the current stafftype element in the list
+                        // setStaffType will make a copy and return a pointer to that element within list
+                        st  = staff->staffType(tick());
+                        nst = staff->setStaffType(tick(), *st);
+                        }
+                  staff->staffTypeListChanged(tick());
+                  stc->setStaffType(nst);
+                  MeasureBase::add(e);
+                  }
+                  break;
+
             default:
                   MeasureBase::add(e);
                   break;
@@ -966,6 +990,21 @@ void Measure::remove(Element* e)
 
             case ElementType::MEASURE:
                   _mmRest = 0;
+                  break;
+
+            case ElementType::STAFFTYPE_CHANGE:
+                  {
+                  StaffTypeChange* stc = toStaffTypeChange(e);
+                  Staff* staff = stc->staff();
+                  if (staff) {
+                        // st currently points to an list element that is about to be removed
+                        // make a copy now to use on undo/redo
+                        StaffType* st = new StaffType(*stc->staffType());
+                        staff->removeStaffType(tick());
+                        stc->setStaffType(st);
+                        }
+                  MeasureBase::remove(e);
+                  }
                   break;
 
             default:
@@ -1128,6 +1167,7 @@ void Measure::cmdAddStaves(int sStaff, int eStaff, bool createRest)
       score()->undo(new InsertStaves(this, sStaff, eStaff));
 
       Segment* ts = findSegment(SegmentType::TimeSig, tick());
+      Segment* bs = findSegmentR(SegmentType::EndBarLine, ticks());
 
       for (int i = sStaff; i < eStaff; ++i) {
             Staff* staff = score()->staff(i);
@@ -1191,6 +1231,25 @@ void Measure::cmdAddStaves(int sStaff, int eStaff, bool createRest)
                         score()->undoAddElement(timesig);
                         if (constructed)
                               delete ots;
+                        }
+                  }
+
+            // replicate barline
+            if (bs) {
+                  BarLine* obl = nullptr;
+                  for (unsigned track = 0; track < _mstaves.size() * VOICES; ++track) {
+                        Element* e = bs->element(track);
+                        if (e && !e->generated()) {
+                              obl = toBarLine(e);
+                              break;
+                              }
+                        }
+                  if (obl) {
+                        BarLine* barline = new BarLine(*obl);
+                        barline->setTrack(staffIdx * VOICES);
+                        barline->setParent(bs);
+                        barline->setGenerated(false);
+                        score()->undoAddElement(barline);
                         }
                   }
             }
@@ -1521,8 +1580,34 @@ Element* Measure::drop(EditData& data)
                         if (cbl)
                               cbl->drop(data);
                         }
-                  else if (bl->barLineType() == BarLineType::START_REPEAT)
-                        undoChangeProperty(Pid::REPEAT_START, true);
+                  else if (bl->barLineType() == BarLineType::START_REPEAT) {
+                        Measure* m2 = isMMRest() ? mmRestFirst() : this;
+                        for (Score* lscore : score()->scoreList()) {
+                              Measure* lmeasure = lscore->tick2measure(m2->tick());
+                              if (lmeasure)
+                                    lmeasure->undoChangeProperty(Pid::REPEAT_START, true);
+                              }
+                        }
+                  else if (bl->barLineType() == BarLineType::END_REPEAT) {
+                        Measure* m2 = isMMRest() ? mmRestLast() : this;
+                        for (Score* lscore : score()->scoreList()) {
+                              Measure* lmeasure = lscore->tick2measure(m2->tick());
+                              if (lmeasure)
+                                    lmeasure->undoChangeProperty(Pid::REPEAT_END, true);
+                              }
+                        }
+                  else if (bl->barLineType() == BarLineType::END_START_REPEAT) {
+                        Measure* m2 = isMMRest() ? mmRestLast() : this;
+                        for (Score* lscore : score()->scoreList()) {
+                              Measure* lmeasure = lscore->tick2measure(m2->tick());
+                              if (lmeasure) {
+                                    lmeasure->undoChangeProperty(Pid::REPEAT_END, true);
+                                    lmeasure = lmeasure->nextMeasure();
+                                    if (lmeasure)
+                                          lmeasure->undoChangeProperty(Pid::REPEAT_START, true);
+                                    }
+                              }
+                        }
                   else {
                         // drop to first end barline
                         seg = findSegmentR(SegmentType::EndBarLine, ticks());
@@ -1569,21 +1654,8 @@ Element* Measure::drop(EditData& data)
 
             case ElementType::STAFFTYPE_CHANGE:
                   {
-                  StaffTypeChange* stc = toStaffTypeChange(e);
                   e->setParent(this);
                   e->setTrack(staffIdx * VOICES);
-                  const StaffType* st = stc->staffType();
-                  StaffType* nst;
-                  if (st) {
-                        nst = staff->setStaffType(tick(), *st);
-                        delete st;
-                        }
-                  else {
-                        // dragged from palette
-                        st  = staff->staffType(tick());
-                        nst = staff->setStaffType(tick(), *st);
-                        }
-                  stc->setStaffType(nst);
                   score()->undoAddElement(e);
                   }
                   break;
@@ -2372,7 +2444,7 @@ bool Measure::visible(int staffIdx) const
             }
       if (system() && (system()->staves()->empty() || !system()->staff(staffIdx)->show()))
             return false;
-      if (score()->staff(staffIdx)->cutaway() && isMeasureRest(staffIdx))
+      if (score()->staff(staffIdx)->cutaway() && isEmpty(staffIdx))
             return false;
       return score()->staff(staffIdx)->show() && _mstaves[staffIdx]->visible();
       }
@@ -2585,13 +2657,13 @@ bool Measure::hasVoice(int track) const
       }
 
 //-------------------------------------------------------------------
-//   isMeasureRest
-///   Check if the measure is filled by a full-measure rest or full
-///   of rests on this staff. If staff is -1, then check for
-///   all staves.
+//   isEmpty
+///   Check if the measure is filled by a full-measure rest, or is
+///   full of rests on this staff, that may have fermatas on them.
+///   If staff is -1, then check for all staves.
 //-------------------------------------------------------------------
 
-bool Measure::isMeasureRest(int staffIdx) const
+bool Measure::isEmpty(int staffIdx) const
       {
       int strack;
       int etrack;
@@ -2610,7 +2682,7 @@ bool Measure::isMeasureRest(int staffIdx) const
                         return false;
                   }
             for (Element* a : s->annotations()) {
-                  if (!a || a->systemFlag() || !a->visible())
+                  if (!a || a->systemFlag() || !a->visible() || a->isFermata())
                         continue;
                   int atrack = a->track();
                   if (atrack >= strack && atrack < etrack)
@@ -3213,11 +3285,11 @@ void Measure::stretchMeasure(qreal targetWidth)
                         Chord* c = toChord(e);
                         c->layout2();
                         if (c->tremolo()) {
-                              Tremolo* t = c->tremolo();
-                              Chord* c1 = t->chord1();
-                              Chord* c2 = t->chord2();
-                              if (!t->twoNotes() || (!c1->staffMove() && !c2->staffMove()))
-                                    t->layout();
+                              Tremolo* tr = c->tremolo();
+                              Chord* c1 = tr->chord1();
+                              Chord* c2 = tr->chord2();
+                              if (!tr->twoNotes() || (c1 && !c1->staffMove() && c2 && !c2->staffMove()))
+                                    tr->layout();
                               }
                         }
                   else if (t == ElementType::BAR_LINE) {
@@ -3525,6 +3597,29 @@ qreal Measure::basicWidth() const
       return w;
       }
 
+//---------------------------------------------------------
+//   layoutWeight
+//---------------------------------------------------------
+
+int Measure::layoutWeight(int maxMMRestLength) const
+      {
+      int w = ticks().ticks();
+      // reduce weight of mmrests
+      // so the nominal width is not directly proportional to duration (still linear, just not 1:1)
+      // and they are not so "greedy" in taking up available space on a system
+      if (isMMRest()) {
+            int timesigTicks = timesig().ticks();
+            // TODO: style setting
+            if (maxMMRestLength) {
+                  int maxW = timesigTicks * maxMMRestLength;
+                  w = qMin(w, maxW);
+                  }
+            w -= timesigTicks;
+            w = timesigTicks + w / 32;
+            }
+      return w;
+      }
+
 //-------------------------------------------------------------------
 //   addSystemHeader
 ///   Add elements to make this measure suitable as the first measure
@@ -3541,6 +3636,55 @@ void Measure::addSystemHeader(bool isFirstSystem)
 
       for (const Staff* staff : score()->staves()) {
             const int track = staffIdx * VOICES;
+
+            if (isFirstSystem || score()->styleB(Sid::genClef)) {
+                  // find the clef type at the previous tick
+                  ClefTypeList cl = staff->clefType(tick() - Fraction::fromTicks(1));
+                  // look for a clef change at the end of the previous measure
+                  if (prevMeasure()) {
+                        Segment* s = prevMeasure()->findSegment(SegmentType::Clef, tick());
+                        if (s) {
+                              Clef* c = toClef(s->element(track));
+                              if (c)
+                                    cl = c->clefTypeList();
+                              }
+                        }
+                  Clef* clef;
+                  if (!cSegment) {
+                        cSegment = new Segment(this, SegmentType::HeaderClef, Fraction(0,1));
+                        cSegment->setHeader(true);
+                        add(cSegment);
+                        clef = 0;
+                        }
+                  else
+                        clef = toClef(cSegment->element(track));
+                  if (staff->staffType(tick())->genClef()) {
+                        if (!clef) {
+                              //
+                              // create missing clef
+                              //
+                              clef = new Clef(score());
+                              clef->setTrack(track);
+                              clef->setGenerated(true);
+                              clef->setParent(cSegment);
+                              cSegment->add(clef);
+                              }
+                        if (clef->generated())
+                              clef->setClefType(cl);
+                        clef->setSmall(false);
+                        clef->layout();
+                        }
+                  else if (clef) {
+                        clef->parent()->remove(clef);
+                        delete clef;
+                        }
+                  cSegment->createShape(staffIdx);
+                  cSegment->setEnabled(true);
+                  }
+            else {
+                  if (cSegment)
+                        cSegment->setEnabled(false);
+                  }
 
             // keep key sigs in TABs: TABs themselves should hide them
             bool needKeysig = isFirstSystem || score()->styleB(Sid::genKeysig);
@@ -3630,54 +3774,6 @@ void Measure::addSystemHeader(bool isFirstSystem)
                         }
                   }
 
-            if (isFirstSystem || score()->styleB(Sid::genClef)) {
-                  // find the clef type at the previous tick
-                  ClefTypeList cl = staff->clefType(tick() - Fraction::fromTicks(1));
-                  // look for a clef change at the end of the previous measure
-                  if (prevMeasure()) {
-                        Segment* s = prevMeasure()->findSegment(SegmentType::Clef, tick());
-                        if (s) {
-                              Clef* c = toClef(s->element(track));
-                              if (c)
-                                    cl = c->clefTypeList();
-                              }
-                        }
-                  Clef* clef;
-                  if (!cSegment) {
-                        cSegment = new Segment(this, SegmentType::HeaderClef, Fraction(0,1));
-                        cSegment->setHeader(true);
-                        add(cSegment);
-                        clef = 0;
-                        }
-                  else
-                        clef = toClef(cSegment->element(track));
-                  if (staff->staffType(tick())->genClef()) {
-                        if (!clef) {
-                              //
-                              // create missing clef
-                              //
-                              clef = new Clef(score());
-                              clef->setTrack(track);
-                              clef->setGenerated(true);
-                              clef->setParent(cSegment);
-                              cSegment->add(clef);
-                              }
-                        if (clef->generated())
-                              clef->setClefType(cl);
-                        clef->setSmall(false);
-                        clef->layout();
-                        }
-                  else if (clef) {
-                        clef->parent()->remove(clef);
-                        delete clef;
-                        }
-                  cSegment->createShape(staffIdx);
-                  cSegment->setEnabled(true);
-                  }
-            else {
-                  if (cSegment)
-                        cSegment->setEnabled(false);
-                  }
             ++staffIdx;
             }
       //
@@ -3887,22 +3983,20 @@ void Measure::checkTrailer()
 
 void Measure::setStretchedWidth(qreal w)
       {
-      qreal minWidth = score()->styleP(Sid::minMeasureWidth);
+      qreal minWidth = isMMRest() ? score()->styleP(Sid::minMMRestWidth) : score()->styleP(Sid::minMeasureWidth);
       if (w < minWidth)
             w = minWidth;
 
-      // multi measure rests are not stretched depending on their
-      // tick length
-
-      if (!isMMRest()) {
-            qreal stretchableWidth = 0.0;
-            for (Segment* s = first(SegmentType::ChordRest); s; s = s->next(SegmentType::ChordRest)) {
-                  if (!s->enabled())
-                        continue;
-                  stretchableWidth += s->width();
-                  }
-            w += stretchableWidth * (basicStretch()-1.0) * ticks().ticks() / 1920.0;
+      qreal stretchableWidth = 0.0;
+      for (Segment* s = first(SegmentType::ChordRest); s; s = s->next(SegmentType::ChordRest)) {
+            if (!s->enabled())
+                  continue;
+            stretchableWidth += s->width();
             }
+      const int maxMMRestLength = 32;     // TODO: style
+      int weight = layoutWeight(maxMMRestLength);
+      w += stretchableWidth * (basicStretch() - 1.0) * weight / 1920.0;
+
       setWidth(w);
       }
 

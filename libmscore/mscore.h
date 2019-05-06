@@ -228,7 +228,8 @@ enum class BarLineType {
       END_REPEAT       = 8,
       BROKEN           = 0x10,
       END              = 0x20,
-      BEGIN            = 0x40,
+      BEGIN            = 0x30,
+      END_START_REPEAT = 0x40,
       DOTTED           = 0x80
       };
 
@@ -375,7 +376,6 @@ class MScore {
       static bool showSystemBoundingRect;
       static bool showCorruptedMeasures;
       static bool useFallbackFont;
-      static bool autoplaceSlurs;
 // #endif
       static bool debugMode;
       static bool testMode;

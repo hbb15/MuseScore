@@ -1253,6 +1253,9 @@ void Timeline::barline_meta(Segment* seg, int* stagger, int pos)
                   case BarLineType::END_REPEAT:
                         repeat_text = QString("End repeat");
                         break;
+                  case BarLineType::END_START_REPEAT:
+                        repeat_text = QString("End-start repeat");
+                        break;
                   case BarLineType::DOUBLE:
                         repeat_text = QString("Double barline");
                         break;

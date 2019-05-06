@@ -2689,6 +2689,52 @@ int Note::ppitch() const
       }
 
 //---------------------------------------------------------
+//   mutePlayback
+//---------------------------------------------------------
+
+bool Note::mutePlayback() const
+      {
+      const MasterScore* ms = masterScore();
+      const Score* playbackScore = ms->playbackScore();
+      if (score() != playbackScore && links()) {
+            for (const ScoreElement* se : *links()) {
+                  if (se->score() == playbackScore)
+                        return toNote(se)->mutePlayback();
+                  }
+            }
+
+      const Staff* st = staff();
+      const Instrument* instr = st->part()->instrument(chord()->tick());
+      const Channel* ch = instr->playbackChannel(subchannel(), ms);
+      if (ch->mute() || ch->soloMute() || !st->playbackVoice(voice()))
+            return true;
+
+      const Selection& sel = score()->selection();
+      if (sel.isRange()) {
+            const int stIdx = staffIdx();
+            if (stIdx < sel.staffStart() || sel.staffEnd() <= stIdx) {
+                  // it may happen that at least some linked staff is selected
+                  bool linkedSelected = false;
+                  if (links()) {
+                        for (const ScoreElement* se : *links()) {
+                              if (se->score() == playbackScore) {
+                                    const int seStaffIdx = toNote(se)->staffIdx();
+                                    if (sel.staffStart() <= seStaffIdx && seStaffIdx < sel.staffEnd()) {
+                                          linkedSelected = true;
+                                          break;
+                                          }
+                                    }
+                              }
+                        }
+                  if (!linkedSelected)
+                        return true;
+                  }
+            }
+
+      return false;
+      }
+
+//---------------------------------------------------------
 //   epitch
 //    effective pitch, i.e. a pitch which is visible in the
 //    currently used written notation.
@@ -2724,7 +2770,12 @@ int Note::customizeVelocity(int velo) const
 void Note::editDrag(EditData& ed)
       {
       Chord* ch = chord();
-      if (ch->notes().size() == 1) {
+      Segment* seg = ch->segment();
+      if (seg) {
+            const Spatium deltaSp = Spatium(ed.delta.x() / spatium());
+            seg->undoChangeProperty(Pid::LEADING_SPACE, seg->extraLeadingSpace() + deltaSp);
+            }
+      else if (ch->notes().size() == 1) {
             // if the chord contains only this note, then move the whole chord
             // including stem, flag etc.
             ch->undoChangeProperty(Pid::OFFSET, ch->offset() + offset() + ed.delta);
@@ -3065,6 +3116,8 @@ void Note::setScore(Score* s)
             _tieFor->setScore(s);
       if (_accidental)
             _accidental->setScore(s);
+      for (NoteDot* dot : _dots)
+            dot->setScore(s);
       for (Element* el : _el)
             el->setScore(s);
       }

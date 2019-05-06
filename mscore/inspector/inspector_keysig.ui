@@ -123,6 +123,9 @@
         <property name="text">
          <string>Key:</string>
         </property>
+        <property name="accessibleName">
+         <string>Reset 'Show courtesy' value</string>
+        </property>
        </widget>
       </item>
      </layout>

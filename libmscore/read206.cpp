@@ -3619,11 +3619,8 @@ static void readStyle(MStyle* style, XmlReader& e)
             }
 
       // make sure we have a chordlist
-      if (!style->chordList()->loaded() && !chordListTag) {
-            if (style->value(Sid::chordsXmlFile).toBool())
-                  style->chordList()->read("chords.xml");
-            style->chordList()->read(newChordDescriptionFile);
-            }
+      if (!chordListTag)
+            style->checkChordList();
       }
 
 //---------------------------------------------------------
@@ -3776,9 +3773,9 @@ static bool readScore(Score* score, XmlReader& e)
                         Excerpt* ex = new Excerpt(m);
 
                         ex->setPartScore(s);
-                        ex->setTracks(e.tracks());
                         e.setLastMeasure(nullptr);
                         readScore(s, e);
+                        ex->setTracks(e.tracks());
                         m->addExcerpt(ex);
                         }
                   }

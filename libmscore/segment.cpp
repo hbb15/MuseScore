@@ -482,6 +482,9 @@ void Segment::add(Element* el)
       Q_ASSERT(track != -1);
       Q_ASSERT(el->score() == score());
       Q_ASSERT(score()->nstaves() * VOICES == int(_elist.size()));
+      // make sure offset is correct for staff
+      if (el->isStyled(Pid::OFFSET))
+            el->setOffset(el->propertyDefault(Pid::OFFSET).toPointF());
 
       switch (el->type()) {
             case ElementType::REPEAT_MEASURE:
@@ -1894,7 +1897,7 @@ void Segment::createShape(int staffIdx)
             int effectiveTrack = e->vStaffIdx() * VOICES + e->voice();
             if (effectiveTrack >= strack && effectiveTrack < etrack) {
                   setVisible(true);
-                  if (e->autoplace())
+                  if (e->addToSkyline())
                         s.add(e->shape().translated(e->pos()));
                   }
             }
@@ -1903,7 +1906,7 @@ void Segment::createShape(int staffIdx)
             if (!e || e->staffIdx() != staffIdx)
                   continue;
             setVisible(true);
-            if (!e->autoplace())
+            if (!e->addToSkyline())
                   continue;
 
             if (e->isHarmony()) {

@@ -215,6 +215,36 @@ Shortcut Shortcut::_sc[] = {
          },
       {
          MsWidget::SCORE_TAB,
+         STATE_NORMAL,
+         "paste-half",
+         QT_TRANSLATE_NOOP("action","Paste Half Duration"),
+         QT_TRANSLATE_NOOP("action","Paste half duration"),
+         0,
+         Icons::paste_ICON,
+         Qt::ApplicationShortcut
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL,
+         "paste-double",
+         QT_TRANSLATE_NOOP("action","Paste Double Duration"),
+         QT_TRANSLATE_NOOP("action","Paste double duration"),
+         0,
+         Icons::paste_ICON,
+         Qt::ApplicationShortcut
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL,
+         "paste-special",
+         QT_TRANSLATE_NOOP("action","Paste Special"),
+         QT_TRANSLATE_NOOP("action","Paste special"),
+         0,
+         Icons::paste_ICON,
+         Qt::ApplicationShortcut
+         },
+      {
+         MsWidget::SCORE_TAB,
          STATE_NORMAL | STATE_NOTE_ENTRY | STATE_EDIT | STATE_TEXT_EDIT | STATE_LYRICS_EDIT
             | STATE_HARMONY_FIGBASS_EDIT,
          "swap",
@@ -3529,8 +3559,8 @@ Shortcut Shortcut::_sc[] = {
          MsWidget::SCORE_TAB,
          STATE_NORMAL | STATE_NOTE_ENTRY,
          "add-brackets",
-         QT_TRANSLATE_NOOP("action","Add Brackets to Element"),
-         QT_TRANSLATE_NOOP("action","Add brackets to element"),
+         QT_TRANSLATE_NOOP("action","Add Brackets to Accidental"),
+         QT_TRANSLATE_NOOP("action","Add brackets to accidental"),
          0,
          Icons::brackets_ICON,
          Qt::WindowShortcut
@@ -3750,6 +3780,23 @@ Shortcut Shortcut::_sc[] = {
          Qt::WindowShortcut
          },
       {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY,
+         "toggle-autoplace",
+         QT_TRANSLATE_NOOP("action","Toggle Automatic Placement"),
+         QT_TRANSLATE_NOOP("action","Toggle 'Automatic Placement' for selected elements")
+         },
+      {
+         MsWidget::MAIN_WINDOW,
+         STATE_ALL,
+         "autoplace-enabled",
+         QT_TRANSLATE_NOOP("action","Toggle Automatic Placement Globally"),
+         QT_TRANSLATE_NOOP("action","Toggle 'Automatic Placement' globally"),
+         0,
+         Icons::Invalid_ICON,
+         Qt::ApplicationShortcut
+         },
+      {
          MsWidget::MAIN_WINDOW,
          STATE_ALL,
          "report-bug",
@@ -3862,16 +3909,6 @@ Shortcut Shortcut::_sc[] = {
          Icons::Invalid_ICON,
          Qt::ApplicationShortcut
          },
-      {
-         MsWidget::MAIN_WINDOW,
-         STATE_ALL,
-         "autoplace-slurs",
-         "Autoplace Slurs",
-         "Autoplace slurs",
-         0,
-         Icons::Invalid_ICON,
-         Qt::ApplicationShortcut
-         }
 #endif
       };
 

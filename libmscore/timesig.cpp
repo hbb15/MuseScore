@@ -439,7 +439,7 @@ Shape TimeSig::shape() const
             return Shape(box);
             }
       const Staff* st = staff();
-      if (st && autoplace() && visible()) {
+      if (st && addToSkyline()) {
             // Extend time signature shape up and down to
             // the first ledger line height to ensure that
             // no notes will be too close to the timesig.

@@ -46,26 +46,27 @@ void TieSegment::draw(QPainter* painter) const
             return;
 
       QPen pen(curColor());
+      qreal mag = staff() ? staff()->mag(tie()->tick()) : 1.0;
       switch (slurTie()->lineType()) {
             case 0:
                   painter->setBrush(QBrush(pen.color()));
                   pen.setCapStyle(Qt::RoundCap);
                   pen.setJoinStyle(Qt::RoundJoin);
-                  pen.setWidthF(score()->styleP(Sid::SlurEndWidth));
+                  pen.setWidthF(score()->styleP(Sid::SlurEndWidth) * mag);
                   break;
             case 1:
                   painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth));
+                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
                   pen.setStyle(Qt::DotLine);
                   break;
             case 2:
                   painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth));
+                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
                   pen.setStyle(Qt::DashLine);
                   break;
             case 3:
                   painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth));
+                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
                   pen.setStyle(Qt::CustomDashLine);
                   QVector<qreal> dashes { 5.0, 5.0 };
                   pen.setDashPattern(dashes);
@@ -260,6 +261,8 @@ void TieSegment::computeBezier(QPointF p6o)
       QPointF p3(c1, -shoulderH);
       QPointF p4(c2, -shoulderH);
 
+      if (staff())
+            w *= staff()->mag(tie()->tick());
       QPointF th(0.0, w);    // thickness of slur
 
       QPointF p3o = p6o + t.map(ups(Grip::BEZIER1).off);
@@ -507,10 +510,13 @@ void Tie::slurPos(SlurPos* sp)
             return;
             }
       sp->p2    = ec->pos() + ec->segment()->pos() + ec->measure()->pos();
-      if ((sc->measure() == sp->system1->lastMeasure()) && (ec->measure() != sc->measure()))
+      if (sp->system1 && (sc->measure() == sp->system1->lastMeasure()) && (ec->measure() != sc->measure()))
             sp->system2 = nullptr;
       else
             sp->system2 = ec->measure()->system();
+
+      // force tie to be horizontal except for cross-staff or if there is a difference of enharmonic spelling
+      bool horizontal = startNote()->tpc() == endNote()->tpc() && sc->vStaffIdx() == ec->vStaffIdx();
 
       if(note1->staff() && note1->staff()->isNumericStaff(note1->tick())){
             sp->p2.rx() +=note2->get_numericWidth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
@@ -520,15 +526,18 @@ void Tie::slurPos(SlurPos* sp)
       hw = endNote()->tabHeadWidth(stt);
       if ((ec->notes().size() > 1) || (ec->stem() && !ec->up() && !_up)) {
             xo = endNote()->x() - hw * 0.12;
-            yo = endNote()->pos().y() + yOffInside;
+            if (!horizontal)
+                  yo = endNote()->pos().y() + yOffInside;
             }
       else if (shortStart) {
             xo = endNote()->x() + hw * 0.15;
-            yo = endNote()->pos().y() + yOffOutside;
+            if (!horizontal)
+                  yo = endNote()->pos().y() + yOffOutside;
             }
       else {
             xo = endNote()->x() + hw * 0.35;
-            yo = endNote()->pos().y() + yOffOutside;
+            if (!horizontal)
+                  yo = endNote()->pos().y() + yOffOutside;
             }
       sp->p2 += QPointF(xo, yo);
 
@@ -710,7 +719,7 @@ TieSegment* Tie::layoutBack(System* system)
       segment->setSystem(system);
 
       qreal x;
-      Segment* seg = endNote()->chord()->segment()->prev();
+      Segment* seg = endNote()->chord()->segment()->prevEnabled();
       if (seg) {
             // find maximum width
             qreal width = 0.0;

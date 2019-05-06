@@ -98,7 +98,6 @@ class Staff final : public ScoreElement {
       VeloList _velocities;         ///< cached value
       PitchList _pitchOffsets;      ///< cached value
 
-      void scaleChanged(double oldValue, double newValue);
       void fillBrackets(int);
       void cleanBrackets();
 
@@ -205,6 +204,7 @@ class Staff final : public ScoreElement {
       const StaffType* constStaffType(const Fraction&) const;
       StaffType* staffType(const Fraction&);
       StaffType* setStaffType(const Fraction&, const StaffType&);
+      void removeStaffType(const Fraction&);
       void staffTypeListChanged(const Fraction&);
 
       bool isNumericStaff(const Fraction&) const;
@@ -241,6 +241,7 @@ class Staff final : public ScoreElement {
       void setUserDist(qreal val)   { _userDist = val;   }
 
       void spatiumChanged(qreal /*oldValue*/, qreal /*newValue*/);
+      void localSpatiumChanged(double oldVal, double newVal, Fraction tick);
       bool genKeySig();
       bool showLedgerLines(const Fraction&) const;
 

@@ -404,8 +404,6 @@ void MuseScore::closeEvent(QCloseEvent* ev)
 
       writeSettings();
 
-      _loginManager->save();
-
       ev->accept();
 
       if (Shortcut::dirty)
@@ -775,6 +773,8 @@ bool MuseScore::importExtension(QString path)
 
                   if (!sfzs.isEmpty())
                         synti->storeState();
+                  
+                  s->gui()->synthesizerChanged();
                   }
 
             // After install: add soundfont to fluid
@@ -783,18 +783,21 @@ bool MuseScore::importExtension(QString path)
                   // get all soundfont files
                   QStringList filters("*.sf2");
                   filters.append("*.sf3");
-                  QDirIterator it(sfzDir.absolutePath(), filters, QDir::Files, QDirIterator::Subdirectories);
-                  Synthesizer* s = synti->synthesizer("Fluid");
+                  QDirIterator it(sfDir.absolutePath(), filters, QDir::Files, QDirIterator::Subdirectories);
                   QStringList sfs;
                   while (it.hasNext()) {
                         it.next();
-                        sfs.append(it.fileName());
+                        sfs.append(it.fileInfo().absoluteFilePath());
                         }
                   sfs.sort();
-                  for (auto sf : sfs)
+                  Synthesizer* s = synti->synthesizer("Fluid");
+                  for (auto sf : sfs) {
                         s->addSoundFont(sf);
+                        }
                   if (!sfs.isEmpty())
                         synti->storeState();
+                  
+                  s->gui()->synthesizerChanged();
                   }
             };
       if (!enableExperimental) {
@@ -843,6 +846,7 @@ bool MuseScore::uninstallExtension(QString extensionId)
                   }
             if (found)
                   synti->storeState();
+            s->gui()->synthesizerChanged();
             }
       // Before install: remove soundfont from fluid
       QDir sfDir(QString("%1/%2/%3/%4").arg(preferences.getString(PREF_APP_PATHS_MYEXTENSIONS)).arg(extensionId).arg(version).arg(Extension::soundfontsDir));
@@ -850,15 +854,17 @@ bool MuseScore::uninstallExtension(QString extensionId)
             // get all soundfont files
             QStringList filters("*.sf2");
             filters.append("*.sf3");
-            QDirIterator it(sfzDir.absolutePath(), filters, QDir::Files, QDirIterator::Subdirectories);
+            QDirIterator it(sfDir.absolutePath(), filters, QDir::Files, QDirIterator::Subdirectories);
             Synthesizer* s = synti->synthesizer("Fluid");
             bool found = it.hasNext();
             while (it.hasNext()) {
                   it.next();
-                  s->removeSoundFont(it.fileInfo().absoluteFilePath());
+                  s->removeSoundFont(it.fileName());
                   }
             if (found)
                   synti->storeState();
+            
+            s->gui()->synthesizerChanged();
             }
       bool refreshWorkspaces = false;
       QDir workspacesDir(QString("%1/%2/%3/%4").arg(preferences.getString(PREF_APP_PATHS_MYEXTENSIONS)).arg(extensionId).arg(version).arg(Extension::workspacesDir));
@@ -880,7 +886,7 @@ bool MuseScore::uninstallExtension(QString extensionId)
       if (refreshWorkspaces) {
             Workspace::refreshWorkspaces();
             paletteBox->updateWorkspaces();
-            paletteBox->selectWorkspace("Basic");
+            paletteBox->selectWorkspace(-1);
             }
       return true;
       }
@@ -1321,6 +1327,8 @@ MuseScore::MuseScore()
       menuEdit->addAction(getAction("cut"));
       menuEdit->addAction(getAction("copy"));
       menuEdit->addAction(getAction("paste"));
+      menuEdit->addAction(getAction("paste-half"));
+      menuEdit->addAction(getAction("paste-double"));
       menuEdit->addAction(getAction("swap"));
       menuEdit->addAction(getAction("delete"));
 
@@ -1719,10 +1727,6 @@ MuseScore::MuseScore()
       a->setChecked(true);
       menuDebug->addAction(a);
       a = getAction("relayout");
-      menuDebug->addAction(a);
-      a = getAction("autoplace-slurs");
-      a->setCheckable(true);
-      a->setChecked(MScore::autoplaceSlurs);
       menuDebug->addAction(a);
       Workspace::addMenuAndString(menuDebug, "menu-debug");
 #endif
@@ -3319,6 +3323,8 @@ static void loadScores(const QStringList& argv)
                               MasterScore* score = mscore->readScore(startScore);
                               if (startScore.startsWith(":/") && score) {
                                     score->setStyle(MScore::defaultStyle());
+                                    score->style().checkChordList();
+                                    score->styleChanged();
                                     score->setName(mscore->createDefaultName());
                                     // TODO score->setPageFormat(*MScore::defaultStyle().pageFormat());
                                     score->doLayout();
@@ -3328,6 +3334,8 @@ static void loadScores(const QStringList& argv)
                                     score = mscore->readScore(":/data/My_First_Score.mscx");
                                     if (score) {
                                           score->setStyle(MScore::defaultStyle());
+                                          score->style().checkChordList();
+                                          score->styleChanged();
                                           score->setName(mscore->createDefaultName());
                                           // TODO score->setPageFormat(*MScore::defaultStyle().pageFormat());
                                           score->doLayout();
@@ -5867,7 +5875,7 @@ void MuseScore::setPlayRepeats(bool repeat)
       preferences.setPreference(PREF_APP_PLAYBACK_PLAYREPEATS, repeat);
       MScore::playRepeats = repeat;
       if (cs) {
-            cs->updateRepeatList(repeat);
+            cs->masterScore()->setExpandRepeats(repeat);
             emit cs->playlistChanged();
             }
       }
@@ -6265,13 +6273,6 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
                   cs->update();
                   }
             }
-      else if (cmd == "autoplace-slurs") {
-            MScore::autoplaceSlurs = a->isChecked();
-            if (cs) {
-                  cs->setLayoutAll();
-                  cs->update();
-                  }
-            }
 #endif
       else {
             if (cv) {
@@ -6326,14 +6327,14 @@ Timeline* MuseScore::timeline() const
 //   getScriptRecorder
 //---------------------------------------------------------
 
-#ifdef MSCORE_UNSTABLE
 ScriptRecorder* MuseScore::getScriptRecorder()
       {
+#ifdef MSCORE_UNSTABLE
       if (scriptRecorder)
             return &scriptRecorder->scriptRecorder();
+#endif
       return nullptr;
       }
-#endif
 
 //---------------------------------------------------------
 //   getSearchDialog
@@ -6729,7 +6730,8 @@ bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled)
       {
 #ifndef USE_LAME
       Q_UNUSED(score);
-      Q_UNUSED(name);
+      Q_UNUSED(device);
+      Q_UNUSED(wasCanceled);
       return false;
 #else
       EventMap events;
@@ -7094,10 +7096,13 @@ int main(int argc, char* av[])
       QCoreApplication::setApplicationVersion(VERSION);
 
 #ifdef BUILD_CRASH_REPORTER
+      {
       static_assert(sizeof(CRASHREPORTER_EXECUTABLE) > 1,
          "CRASHREPORTER_EXECUTABLE should be defined to build with crash reporter"
          );
-      std::unique_ptr<CrashReporter::Handler> crashHandler(new CrashReporter::Handler(QDir::tempPath(), true, CRASHREPORTER_EXECUTABLE));
+      CrashReporter::Handler* crashHandler = new CrashReporter::Handler(QDir::tempPath(), true, CRASHREPORTER_EXECUTABLE);
+      QObject::connect(app, &QCoreApplication::aboutToQuit, [crashHandler]() { delete crashHandler; });
+      }
 #endif
 
       QAccessible::installFactory(AccessibleScoreView::ScoreViewFactory);
@@ -7521,11 +7526,6 @@ int main(int argc, char* av[])
       gscore->setScoreFont(scoreFont);
       gscore->setNoteHeadWidth(scoreFont->width(SymId::noteheadBlack, gscore->spatium()) / SPATIUM20);
 
-      if (!noSeq) {
-            if (!seq->init())
-                  qDebug("sequencer init failed");
-            }
-
       //read languages list
       mscore->readLanguages(mscoreGlobalShare + "locale/languages.xml");
 
@@ -7566,6 +7566,11 @@ int main(int argc, char* av[])
                   QString keyboardLayout = preferences.getString(PREF_APP_KEYBOARDLAYOUT);
                   StartupWizard::autoSelectShortcuts(keyboardLayout);
                   }
+            }
+
+      if (!noSeq) {
+            if (!seq->init())
+                  qDebug("sequencer init failed");
             }
 
       QApplication::instance()->installEventFilter(mscore);

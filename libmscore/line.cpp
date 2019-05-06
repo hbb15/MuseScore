@@ -59,7 +59,7 @@ bool LineSegment::readProperties(XmlReader& e)
       if (tag == "subtype")
             setSpannerSegmentType(SpannerSegmentType(e.readInt()));
       else if (tag == "off2") {
-            setUserOff2(e.readPoint() * spatium());
+            setUserOff2(e.readPoint() * score()->spatium());
             }
 /*      else if (tag == "pos") {
             setOffset(QPointF());
@@ -603,7 +603,8 @@ QPointF SLine::linePos(Grip grip, System** sys) const
                                           // allow lyrics hyphen to extend to barline
                                           // other lines stop 1sp short
                                           qreal gap = (type() == ElementType::LYRICSLINE) ? 0.0 : sp;
-                                          x2 = qMax(x2, seg->x() - gap);
+                                          qreal x3 = seg->enabled() ? seg->x() : seg->measure()->x() + seg->measure()->width();
+                                          x2 = qMax(x2, x3 - gap);
                                           }
                                     x = x2 - endElement()->parent()->x();
                                     }
@@ -820,12 +821,12 @@ SpannerSegment* SLine::layoutSystem(System* system)
 //---------------------------------------------------------
 //   layout
 //    compute segments from tick1 tick2
-//    (obsolete)
+//    (used for palette, edit mode, and layout of note lines and glissandi)
 //---------------------------------------------------------
 
 void SLine::layout()
       {
-      if (score() == gscore || (tick() == Fraction(-1,1)) || (ticks() == Fraction(0,1))) {
+      if (score() == gscore || (tick() == Fraction(-1,1)) || (tick2() == Fraction::fromTicks(1))) {
             //
             // when used in a palette or while dragging from palette,
             // SLine has no parent and
@@ -978,7 +979,8 @@ void SLine::writeProperties(XmlWriter& xml) const
       //
       bool modified = false;
       for (const SpannerSegment* seg : spannerSegments()) {
-            if (!seg->autoplace() || !seg->visible() || (!seg->isStyled(Pid::OFFSET) && !seg->offset().isNull())) {
+            if (!seg->autoplace() || !seg->visible() || 
+               (!seg->isStyled(Pid::OFFSET) && (!seg->offset().isNull() || !seg->userOff2().isNull()))) {
                   modified = true;
                   break;
                   }
@@ -989,7 +991,7 @@ void SLine::writeProperties(XmlWriter& xml) const
       //
       // write user modified layout
       //
-      qreal _spatium = spatium();
+      qreal _spatium = score()->spatium();
       for (const SpannerSegment* seg : spannerSegments()) {
             xml.stag("Segment", seg);
             xml.tag("subtype", int(seg->spannerSegmentType()));

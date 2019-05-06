@@ -572,7 +572,7 @@ void Score::createCRSequence(const Fraction& f, ChordRest* cr, const Fraction& t
             ChordRest* ncr = toChordRest(cr->clone());
             ncr->setDurationType(d);
             ncr->setTicks(d.fraction());
-
+            undoAddCR(ncr, measure, measure->tick() + tick);
             if (cr->isChord() && ocr) {
                   Chord* nc = toChord(ncr);
                   Chord* oc = toChord(ocr);
@@ -588,7 +588,7 @@ void Score::createCRSequence(const Fraction& f, ChordRest* cr, const Fraction& t
                         undoAddElement(tie);
                         }
                   }
-            undoAddCR(ncr, measure, tick);
+            
             tick += ncr->actualTicks();
             ocr = ncr;
             }
@@ -2408,7 +2408,21 @@ void Score::cmdIncDecDuration(int nSteps, bool stepDotted)
 
 void Score::cmdAddBracket()
       {
-      for(Element* el : selection().elements()) {
+      for (Element* el : selection().elements()) {
+            if (el->type() == ElementType::ACCIDENTAL) {
+                  Accidental* acc = toAccidental(el);
+                  acc->undoChangeProperty(Pid::ACCIDENTAL_BRACKET, int(AccidentalBracket::BRACKET));
+                  }
+            }
+      }
+
+//---------------------------------------------------------
+//   cmdAddParentheses
+//---------------------------------------------------------
+
+void Score::cmdAddParentheses()
+      {
+      for (Element* el : selection().elements()) {
             if (el->type() == ElementType::NOTE) {
                   Note* n = toNote(el);
                   n->addParentheses();
@@ -2422,6 +2436,10 @@ void Score::cmdAddBracket()
                   h->setLeftParen(true);
                   h->setRightParen(true);
                   h->render();
+                  }
+            else if (el->type() == ElementType::TIMESIG) {
+                  TimeSig* ts = toTimeSig(el);
+                  ts->setLargeParentheses(true);
                   }
             }
       }
@@ -3257,14 +3275,20 @@ void Score::cmdToggleLayoutBreak(LayoutBreak::Type type)
                         default: {
                               // find measure
                               Measure* measure = toMeasure(el->findMeasure());
+                              // for start repeat, attach break to previous measure
+                              if (measure && el->isBarLine()) {
+                                    BarLine* bl = toBarLine(el);
+                                    if (bl->barLineType() == BarLineType::START_REPEAT)
+                                          measure = measure->prevMeasure();
+                                    }
                               // if measure is mmrest, then propagate to last original measure
                               if (measure)
                                     mb = measure->isMMRest() ? measure->mmRestLast() : measure;
                               }
                         }
                   }
-                  if (mb)
-                        mbl.append(mb);
+            if (mb)
+                  mbl.append(mb);
             }
       // toggle the breaks
       for (MeasureBase* mb: mbl) {
@@ -3515,6 +3539,9 @@ void Score::cmdToggleVisible()
       for (Element* e : selection().elements()) {
             if (e->isBracket())     // ignore
                   continue;
+            if (e->isNoteDot() && selection().elements().contains(e->parent()))
+                  // already handled in Note::setProperty() and Rest::setProperty(); don't toggle twice
+                  continue;
             bool spannerSegment = e->isSpannerSegment();
             if (!spannerSegment || !spanners.contains(toSpannerSegment(e)->spanner()))
                   e->undoChangeProperty(Pid::VISIBLE, !e->getProperty(Pid::VISIBLE).toBool());
@@ -3552,6 +3579,39 @@ void Score::cmdAddFret(int fret)
 void Score::cmdRelayout()
       {
       setLayoutAll();
+      }
+
+//---------------------------------------------------------
+//   cmdToggleAutoplace
+//---------------------------------------------------------
+
+void Score::cmdToggleAutoplace(bool all)
+      {
+      if (all) {
+            bool val = !styleB(Sid::autoplaceEnabled);
+            undoChangeStyleVal(Sid::autoplaceEnabled, val);
+            setLayoutAll();
+            }
+      else {
+            QSet<Element*> spanners;
+            for (Element* e : selection().elements()) {
+                  if (e->isSpannerSegment()) {
+                        if (Element* ee = e->propertyDelegate(Pid::AUTOPLACE))
+                              e = ee;
+                        // spanner segments may each have their own autoplace setting
+                        // but if they delegate to spanner, only toggle once
+                        if (e->isSpanner()) {
+                              if (spanners.contains(e))
+                                    continue;
+                              spanners.insert(e);
+                              }
+                        }
+                  PropertyFlags pf = e->propertyFlags(Pid::AUTOPLACE);
+                  if (pf == PropertyFlags::STYLED)
+                        pf = PropertyFlags::UNSTYLED;
+                  e->undoChangeProperty(Pid::AUTOPLACE, !e->getProperty(Pid::AUTOPLACE).toBool(), pf);
+                  }
+            }
       }
 
 //---------------------------------------------------------
@@ -3694,6 +3754,7 @@ void Score::cmd(const QAction* a, EditData& ed)
             { "select-all",                 [this]{ cmdSelectAll();                                             }},
             { "select-section",             [this]{ cmdSelectSection();                                         }},
             { "add-brackets",               [this]{ cmdAddBracket();                                            }},
+            { "add-parentheses",            [this]{ cmdAddParentheses();                                        }},
             { "acciaccatura",               [this]{ cmdAddGrace(NoteType::ACCIACCATURA, MScore::division / 2);  }},
             { "appoggiatura",               [this]{ cmdAddGrace(NoteType::APPOGGIATURA, MScore::division / 2);  }},
             { "grace4",                     [this]{ cmdAddGrace(NoteType::GRACE4, MScore::division);            }},
@@ -3731,6 +3792,8 @@ void Score::cmd(const QAction* a, EditData& ed)
             { "page-break",                 [this]{ cmdToggleLayoutBreak(LayoutBreak::Type::PAGE);              }},
             { "section-break",              [this]{ cmdToggleLayoutBreak(LayoutBreak::Type::SECTION);           }},
             { "relayout",                   [this]{ cmdRelayout();                                              }},
+            { "toggle-autoplace",           [this]{ cmdToggleAutoplace(false);                                  }},
+            { "autoplace-enabled",          [this]{ cmdToggleAutoplace(true);                                   }},
             { "",                           [this]{                                                             }},
             };
 

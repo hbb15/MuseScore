@@ -35,26 +35,28 @@ QList<SlurOffsets> SlurTie::editUps;
 void SlurSegment::draw(QPainter* painter) const
       {
       QPen pen(curColor());
+      qreal mag = staff() ? staff()->mag(slur()->tick()) : 1.0;
+
       switch (slurTie()->lineType()) {
             case 0:
                   painter->setBrush(QBrush(pen.color()));
                   pen.setCapStyle(Qt::RoundCap);
                   pen.setJoinStyle(Qt::RoundJoin);
-                  pen.setWidthF(score()->styleP(Sid::SlurEndWidth));
+                  pen.setWidthF(score()->styleP(Sid::SlurEndWidth) * mag);
                   break;
             case 1:
                   painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth));
+                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
                   pen.setStyle(Qt::DotLine);
                   break;
             case 2:
                   painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth));
+                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
                   pen.setStyle(Qt::DashLine);
                   break;
             case 3:
                   painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth));
+                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
                   pen.setStyle(Qt::CustomDashLine);
                   QVector<qreal> dashes { 5.0, 5.0 };
                   pen.setDashPattern(dashes);
@@ -273,6 +275,8 @@ void SlurSegment::computeBezier(QPointF p6o)
       QPointF p3(c1, -shoulderH);
       QPointF p4(c2, -shoulderH);
 
+      if (staff())
+            w *= staff()->mag(slur()->tick());
       if ((c2 - c1) <= _spatium)
             w *= .5;
       QPointF th(0.0, w);    // thickness of slur
@@ -373,7 +377,7 @@ void SlurSegment::layoutSegment(const QPointF& p1, const QPointF& p2)
       _extraHeight = 0.0;
       computeBezier();
 
-      if (MScore::autoplaceSlurs && autoplace() && system()) {
+      if (autoplace() && system()) {
             bool up = slur()->up();
             Segment* ls = system()->lastMeasure()->last();
             Segment* fs = system()->firstMeasure()->first();
@@ -384,6 +388,7 @@ void SlurSegment::layoutSegment(const QPointF& p1, const QPointF& p2)
             qreal slurMaxMove = spatium();
             bool intersection = false;
             qreal gdist = 0.0;
+            qreal minDistance = score()->styleS(Sid::SlurMinDistance).val() * spatium();
             for (int tries = 1; true; ++tries) {
                   for (Segment* s = fs; s && s != ls; s = s->next1()) {
                         if (!s->enabled())
@@ -428,7 +433,7 @@ void SlurSegment::layoutSegment(const QPointF& p1, const QPointF& p2)
                   gdist = 0.0;
                   }
             if (intersection && gdist > 0.0) {
-                  qreal min = score()->styleP(Sid::SlurMinDistance) + gdist;
+                  qreal min = minDistance + gdist;
                   rypos() += up ? -min : min;
                   }
             }
@@ -461,7 +466,7 @@ static qreal fixArticulations(qreal yo, Chord* c, qreal _up, bool stemSide = fal
       //
 #if 1
       for (Articulation* a : c->articulations()) {
-            if (!a->layoutCloseToNote() || !a->autoplace() || !a->visible())
+            if (!a->layoutCloseToNote() || !a->addToSkyline())
                   continue;
             // skip if articulation on stem side but slur is not or vice versa
             if ((a->up() == c->up()) != stemSide)

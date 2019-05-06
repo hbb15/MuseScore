@@ -409,8 +409,8 @@ bool MuseScore::saveFile(MasterScore* score)
             if (t)
                   fn = t->plainText();
             QString name = createDefaultFileName(fn);
-            QString f1 = tr("MuseScore File") + " (*.mscz)";
-            QString f2 = tr("Uncompressed MuseScore File") + " (*.mscx)";
+            QString f1 = tr("MuseScore 3 File") + " (*.mscz)";
+            QString f2 = tr("Uncompressed MuseScore 3 File") + " (*.mscx)";     // for debugging purposes
 
             QSettings set;
             if (mscore->lastSaveDirectory.isEmpty())
@@ -584,13 +584,8 @@ MasterScore* MuseScore::getNewFile()
             }
       score->setCreated(true);
       score->fileInfo()->setFile(createDefaultName());
-      score->updateExpressive(synti);
 
-      if (!score->style().chordList()->loaded()) {
-            if (score->styleB(Sid::chordsXmlFile))
-                  score->style().chordList()->read("chords.xml");
-            score->style().chordList()->read(score->styleSt(Sid::chordDescriptionFile));
-            }
+      score->style().checkChordList();
       if (!newWizard->title().isEmpty())
             score->fileInfo()->setFile(newWizard->title());
 
@@ -760,12 +755,16 @@ MasterScore* MuseScore::getNewFile()
             tt->setTrack(0);
             Segment* seg = score->firstMeasure()->first(SegmentType::ChordRest);
             seg->add(tt);
-            score->setTempo(0, tempo);
+            score->setTempo(seg, tempo);
             }
       if (!copyright.isEmpty())
             score->setMetaTag("copyright", copyright);
 
-      score->rebuildMidiMapping();
+      if (synti)
+            score->setSynthesizerState(synti->state());
+
+      // Call this even if synti doesn't exist - we need to rebuild either way
+      score->rebuildAndUpdateExpressive(synti);
 
       {
             ScoreLoad sl;
@@ -1685,7 +1684,7 @@ void MuseScore::exportFile()
       fl.append(tr("Standard MIDI File") + " (*.mid)");
       fl.append(tr("Compressed MusicXML File") + " (*.mxl)");
       fl.append(tr("Uncompressed MusicXML File") + " (*.musicxml)");
-      fl.append(tr("Uncompressed MuseScore File") + " (*.mscx)");
+      fl.append(tr("Uncompressed MuseScore 3 File") + " (*.mscx)");     // for debugging purposes
 
       QString saveDialogTitle = tr("Export");
 
@@ -1764,8 +1763,8 @@ bool MuseScore::exportParts()
       fl.append(tr("Standard MIDI File") + " (*.mid)");
       fl.append(tr("Compressed MusicXML File") + " (*.mxl)");
       fl.append(tr("Uncompressed MusicXML File") + " (*.musicxml)");
-      fl.append(tr("MuseScore File") + " (*.mscz)");
-      fl.append(tr("Uncompressed MuseScore File") + " (*.mscx)");
+      fl.append(tr("MuseScore 3 File") + " (*.mscz)");
+      fl.append(tr("Uncompressed MuseScore 3 File") + " (*.mscx)");     // for debugging purposes
 
       QString saveDialogTitle = tr("Export Parts");
 
@@ -2252,6 +2251,10 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
       score->setName(info.completeBaseName());
       score->setImportedFilePath(name);
 
+      // Set the default synthesizer state before we read
+      if (synti)
+            score->setSynthesizerState(synti->state());
+
       if (suffix == "mscz" || suffix == "mscx") {
             Score::FileError rv = score->loadMsc(name, ignoreVersionError);
             if (score && score->masterScore()->fileInfo()->path().startsWith(":/"))
@@ -2308,9 +2311,7 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
                         score->style().load(&f);
                   }
             else {
-                  if (score->styleB(Sid::chordsXmlFile))
-                        score->style().chordList()->read("chords.xml");
-                  score->style().chordList()->read(score->styleSt(Sid::chordDescriptionFile));
+                  score->style().checkChordList();
                   }
             bool found = false;
             for (auto i : imports) {
@@ -2364,8 +2365,8 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
 bool MuseScore::saveAs(Score* cs_, bool saveCopy)
       {
       QStringList fl;
-      fl.append(tr("MuseScore File") + " (*.mscz)");
-      fl.append(tr("Uncompressed MuseScore File") + " (*.mscx)");     // for debugging purposes
+      fl.append(tr("MuseScore 3 File") + " (*.mscz)");
+      fl.append(tr("Uncompressed MuseScore 3 File") + " (*.mscx)");     // for debugging purposes
       QString saveDialogTitle = saveCopy ? tr("Save a Copy") :
                                            tr("Save As");
 
@@ -2435,7 +2436,8 @@ bool MuseScore::saveSelection(Score* cs_)
             return false;
             }
       QStringList fl;
-      fl.append(tr("MuseScore File") + " (*.mscz)");
+      fl.append(tr("MuseScore 3 File") + " (*.mscz)");
+      fl.append(tr("Uncompressed MuseScore 3 File") + " (*.mscx)");     // for debugging purposes
       QString saveDialogTitle = tr("Save Selection");
 
       QString saveDirectory;

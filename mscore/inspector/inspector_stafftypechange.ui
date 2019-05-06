@@ -106,6 +106,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="accessibleName">
+         <string>Reset 'Show ledger lines' value</string>
+        </property>
        </widget>
       </item>
       <item row="11" column="0" colspan="2">
@@ -122,6 +125,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="accessibleName">
+         <string>Reset 'Notehead scheme' value</string>
         </property>
        </widget>
       </item>
@@ -149,17 +155,8 @@
         <property name="suffix">
          <string>sp</string>
         </property>
-        <property name="decimals">
-         <number>1</number>
-        </property>
-        <property name="minimum">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="maximum">
-         <double>2.000000000000000</double>
-        </property>
         <property name="singleStep">
-         <double>0.500000000000000</double>
+         <double>0.250000000000000</double>
         </property>
        </widget>
       </item>
@@ -177,6 +174,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="accessibleName">
+         <string>Reset 'Generate key signatures' value</string>
         </property>
        </widget>
       </item>
@@ -199,7 +199,7 @@
          </sizepolicy>
         </property>
         <property name="accessibleName">
-         <string>Offset Y</string>
+         <string>Offset</string>
         </property>
         <property name="suffix">
          <string>sp</string>
@@ -229,6 +229,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="accessibleName">
+         <string>Reset 'Small' value</string>
+        </property>
        </widget>
       </item>
       <item row="9" column="2">
@@ -238,6 +241,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="accessibleName">
+         <string>Reset 'Show barlines' value</string>
         </property>
        </widget>
       </item>
@@ -256,7 +262,7 @@
          <number>1</number>
         </property>
         <property name="maximum">
-         <number>8</number>
+         <number>14</number>
         </property>
        </widget>
       </item>
@@ -275,6 +281,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="accessibleName">
+         <string>Reset 'Step offset' value</string>
+        </property>
        </widget>
       </item>
       <item row="11" column="2">
@@ -284,6 +293,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="accessibleName">
+         <string>Reset 'Slash style' value</string>
         </property>
        </widget>
       </item>
@@ -311,6 +323,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="accessibleName">
+         <string>Reset 'Lines' value</string>
         </property>
        </widget>
       </item>
@@ -387,6 +402,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="accessibleName">
+         <string>Reset 'Scale' value</string>
+        </property>
        </widget>
       </item>
       <item row="1" column="2">
@@ -396,6 +414,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="accessibleName">
+         <string>Reset 'Offset' value</string>
         </property>
        </widget>
       </item>
@@ -421,6 +442,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="accessibleName">
+         <string>Reset 'Generate clefs' value</string>
+        </property>
        </widget>
       </item>
       <item row="13" column="0" colspan="2">
@@ -438,6 +462,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="accessibleName">
+         <string>Reset 'Generate time signatures' value</string>
+        </property>
        </widget>
       </item>
       <item row="6" column="2">
@@ -447,6 +474,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="accessibleName">
+         <string>Reset 'Line distance' value</string>
         </property>
        </widget>
       </item>
@@ -496,8 +526,6 @@
   <tabstop>genTimesig</tabstop>
   <tabstop>genKeysig</tabstop>
  </tabstops>
- <resources>
-  <include location="../musescore.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

@@ -487,11 +487,11 @@ add_executable ( ${ExecutableName}
 
 
 
-if (MSVC)
+if (MSVC OR MINGW)
 	target_link_libraries(mscore vorbisfiledll)
-else (MSVC)
+else (MSVC OR MINGW)
 	target_link_libraries(mscore vorbisfile)
-endif (MSVC)
+endif (MSVC OR MINGW)
 
 target_link_libraries(mscore
       awl
@@ -542,19 +542,19 @@ if (AEOLUS)
       target_link_libraries(mscore aeolus)
 endif (AEOLUS)
 if (SOUNDFONT3)
-      if (MSVC)
+      if (MSVC OR MINGW)
           target_link_libraries(mscore vorbisdll oggdll)
-      else (MSVC)
+      else (MSVC OR MINGW)
           target_link_libraries(mscore ${VORBIS_LIB} ${OGG_LIB})
-      endif (MSVC)
+      endif (MSVC OR MINGW)
 endif (SOUNDFONT3)
 
 if (HAS_AUDIOFILE)
-      if (MSVC)
+      if (MSVC OR MINGW)
          target_link_libraries(mscore audiofile sndfiledll)
-      else (MSVC)
+      else (MSVC OR MINGW)
          target_link_libraries(mscore audiofile ${SNDFILE_LIB})
-      endif (MSVC)
+      endif (MSVC OR MINGW)
 endif (HAS_AUDIOFILE)
 
 if (APPLE)
@@ -602,7 +602,7 @@ if (MINGW)
    endif(CMAKE_BUILD_TYPE MATCHES "DEBUG")
 
    target_link_libraries(mscore
-      portaudio
+      portaudiodll
       portmidi
       winmm
       mscore_freetype
@@ -640,32 +640,33 @@ if (MINGW)
          ${MINGW_ROOT}/bin/libgcc_s_seh-1.dll
          DESTINATION bin)
       install( FILES
-         ${MINGW_ROOT}/lib/portaudio.dll RENAME libportaudio-x86_64-w64-mingw32.static.dll
+         ${DEPENDENCIES_DIR}/portaudio.dll RENAME libportaudio-x86_64-w64-mingw32.static.dll
          DESTINATION bin)
    else (BUILD_64)
       install( FILES
          ${MINGW_ROOT}/bin/libgcc_s_dw2-1.dll
-         ${MINGW_ROOT}/lib/portaudio.dll
+         ${DEPENDENCIES_DIR}/portaudio.dll
          DESTINATION bin)
    endif (BUILD_64)
 
    install( FILES
       ${MINGW_ROOT}/bin/libstdc++-6.dll
       ${MINGW_ROOT}/bin/libwinpthread-1.dll
-      ${MINGW_ROOT}/lib/libogg.dll
-      ${MINGW_ROOT}/lib/libsndfile-1.dll
+      ${DEPENDENCIES_DIR}/libogg.dll
+      ${DEPENDENCIES_DIR}/libsndfile-1.dll
       ${MINGW_ROOT}/opt/bin/libeay32.dll
-      ${MINGW_ROOT}/lib/libvorbis.dll
-      ${MINGW_ROOT}/lib/libvorbisfile.dll
+      ${DEPENDENCIES_DIR}/libvorbis.dll
+      ${DEPENDENCIES_DIR}/libvorbisfile.dll
       ${MINGW_ROOT}/opt/bin/ssleay32.dll
       ${QT_INSTALL_BINS}/libEGL.dll
       ${QT_INSTALL_BINS}/libGLESv2.dll
+      ${QT_INSTALL_BINS}/opengl32sw.dll
       ${QtInstallLibraries}
       ${PROJECT_SOURCE_DIR}/build/qt.conf
       DESTINATION bin)
 
    install (FILES
-      ${MINGW_ROOT}/lib/lame_enc.dll
+      ${DEPENDENCIES_DIR}/lame_enc.dll
       DESTINATION bin
       OPTIONAL)
 
@@ -889,7 +890,7 @@ else (MINGW)
                   "${QT_INSTALL_BINS}/Qt5XmlPatterns.dll"
                   "${QT_INSTALL_BINS}/Qt5WebChannel.dll"
                   "${QT_INSTALL_BINS}/Qt5QuickWidgets.dll" "${QT_INSTALL_BINS}/Qt5Positioning.dll"
-                  "${QT_INSTALL_BINS}/libEGL.dll" "${QT_INSTALL_BINS}/libGLESv2.dll"
+                  "${QT_INSTALL_BINS}/libEGL.dll" "${QT_INSTALL_BINS}/libGLESv2.dll" "${QT_INSTALL_BINS}/opengl32sw.dll"
                   )
       if (USE_WEBENGINE)
          list(APPEND dlls_to_copy "${QT_INSTALL_BINS}/Qt5WebEngineWidgets.dll" "${QT_INSTALL_BINS}/Qt5WebEngineCore.dll")
@@ -952,6 +953,7 @@ else (MINGW)
             ${QtInstallLibraries}
             ${QT_INSTALL_BINS}/libEGL.dll
             ${QT_INSTALL_BINS}/libGLESv2.dll
+            ${QT_INSTALL_BINS}/opengl32sw.dll
             ${QT_INSTALL_BINS}/Qt5Positioning.dll
             ${QT_INSTALL_BINS}/Qt5WebChannel.dll
             ${PROJECT_SOURCE_DIR}/build/qt.conf
