@@ -95,11 +95,9 @@ include (CreatePrecompiledHeader)
 
 set(CMAKE_AUTOMOC     TRUE)
 set(MSCORE_UNSTABLE   TRUE)          # Mark as unstable
-
-#set(MSCORE_RELEASE_CHANNEL "devel")
-set(MSCORE_RELEASE_CHANNEL "testing")
+set(MSCORE_RELEASE_CHANNEL "devel")
+#set(MSCORE_RELEASE_CHANNEL "testing")
 #set(MSCORE_RELEASE_CHANNEL "stable")
-
 set(USE_SSE           TRUE)
 
 # Disable components not supported on Windows

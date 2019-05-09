@@ -48,3 +48,5 @@ MuseScore_General_Readme.md
 VERSION
 /mscore/data/mscore.aps
 /msvc.*
+
+\.vscode/

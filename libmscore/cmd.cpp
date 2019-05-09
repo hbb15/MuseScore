@@ -3418,6 +3418,59 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
 
             // if adding notes, add above the upNote of the current chord
             Element* el = selection().element();
+
+			Staff* tmpStaff = Score::staff(is.track() / VOICES);
+			Segment* tmpSeg = is.segment()->prev1(SegmentType::ChordRest | SegmentType::Clef | SegmentType::HeaderClef);
+			Fraction tick = tmpSeg->measure()->tick();
+			
+			if ((tmpSeg->isClefType() || tmpSeg->isHeaderClefType() || tmpSeg->isChordRestType()) && tmpStaff->isNumericStaff(tick)){
+
+				Position pos;
+				pos.segment = inputState().segment();
+				pos.staffIdx = inputState().track() / VOICES;
+
+				ClefType clef = staff(pos.staffIdx)->clef(pos.segment->tick());
+				Key key = tmpStaff->key(pos.segment->tick());
+				switch (key)
+				{
+				case Ms::Key::C_B:
+				case Ms::Key::C:
+				case Ms::Key::C_S:
+					break;
+				case Ms::Key::G_B:
+				case Ms::Key::G:
+					note = note + 4;
+					break;
+				case Ms::Key::D_B:
+				case Ms::Key::D:
+					note = note + 1;
+					break;
+				case Ms::Key::A_B:
+				case Ms::Key::A:
+					note = note + 5;
+					break;
+				case Ms::Key::E:
+				case Ms::Key::E_B:
+					note = note + 2;
+					break;
+				case Ms::Key::B:
+				case Ms::Key::B_B:
+					note = note + 6;
+					break;
+				case Ms::Key::F_S:
+				case Ms::Key::F:
+					note = note + 3;
+					break;
+				default:
+					break;
+				}
+
+				if (note > 6)
+				{
+					note = note - 7;
+				}
+			}
+
             if (addFlag && el && el->isNote()) {
                   Chord* chord = toNote(el)->chord();
                   Note* n      = chord->upNote();
@@ -3486,6 +3539,8 @@ void Score::cmdAddPitch(int step, bool addFlag, bool insert)
                   Segment* seg  = chord->segment();
                   pos.segment   = seg;
                   pos.staffIdx  = selectedNote->track() / VOICES;
+
+                  //TODO: switch clefType for numeric
                   ClefType clef = staff(pos.staffIdx)->clef(seg->tick());
                   pos.line      = relStep(step, clef);
                   bool error;
@@ -3499,6 +3554,7 @@ void Score::cmdAddPitch(int step, bool addFlag, bool insert)
 
       pos.segment   = inputState().segment();
       pos.staffIdx  = inputState().track() / VOICES;
+
       ClefType clef = staff(pos.staffIdx)->clef(pos.segment->tick());
       pos.line      = relStep(step, clef);
 
@@ -3633,6 +3689,27 @@ void Score::cmd(const QAction* a, EditData& ed)
             { "insert-g",                   [this,ed]{ cmdAddPitch(ed, 4, false, true);                         }},
             { "insert-a",                   [this,ed]{ cmdAddPitch(ed, 5, false, true);                         }},
             { "insert-b",                   [this,ed]{ cmdAddPitch(ed, 6, false, true);                         }},
+            { "numeric-1",                  [this,ed]{ cmdAddPitch(ed, 0, false, false);                        }},
+            { "numeric-2",                  [this,ed]{ cmdAddPitch(ed, 1, false, false);                        }},
+            { "numeric-3",                  [this,ed]{ cmdAddPitch(ed, 2, false, false);                        }},
+            { "numeric-4",                  [this,ed]{ cmdAddPitch(ed, 3, false, false);                        }},
+            { "numeric-5",                  [this,ed]{ cmdAddPitch(ed, 4, false, false);                        }},
+            { "numeric-6",                  [this,ed]{ cmdAddPitch(ed, 5, false, false);                        }},
+            { "numeric-7",                  [this,ed]{ cmdAddPitch(ed, 6, false, false);                        }},
+            { "numchord-1",                 [this,ed]{ cmdAddPitch(ed, 0, true, false);                         }},
+            { "numchord-2",                 [this,ed]{ cmdAddPitch(ed, 1, true, false);                         }},
+            { "numchord-3",                 [this,ed]{ cmdAddPitch(ed, 2, true, false);                         }},
+            { "numchord-4",                 [this,ed]{ cmdAddPitch(ed, 3, true, false);                         }},
+            { "numchord-5",                 [this,ed]{ cmdAddPitch(ed, 4, true, false);                         }},
+            { "numchord-6",                 [this,ed]{ cmdAddPitch(ed, 5, true, false);                         }},
+            { "numchord-7",                 [this,ed]{ cmdAddPitch(ed, 6, true, false);                         }},
+            { "numinsert-1",                [this,ed]{ cmdAddPitch(ed, 0, false, true);                         }},
+            { "numinsert-2",                [this,ed]{ cmdAddPitch(ed, 1, false, true);                         }},
+            { "numinsert-3",                [this,ed]{ cmdAddPitch(ed, 2, false, true);                         }},
+            { "numinsert-4",                [this,ed]{ cmdAddPitch(ed, 3, false, true);                         }},
+            { "numinsert-5",                [this,ed]{ cmdAddPitch(ed, 4, false, true);                         }},
+            { "numinsert-6",                [this,ed]{ cmdAddPitch(ed, 5, false, true);                         }},
+            { "numinsert-7",                [this,ed]{ cmdAddPitch(ed, 6, false, true);                         }},
             { "fret-0",                     [this]{ cmdAddFret(0);                                              }},
             { "fret-1",                     [this]{ cmdAddFret(1);                                              }},
             { "fret-2",                     [this]{ cmdAddFret(2);                                              }},
