@@ -92,6 +92,48 @@ NoteVal Score::noteValForPosition(Position pos, bool &error)
                   break;
                   }
             case StaffGroup::NUMERIC:
+                  {
+                  int line = pos.line;
+                  if (line < 0)
+                        line *= -1;
+                  int octave = line/7;
+                  int ton=line%7;
+                  switch (ton) {
+                        case 0:
+
+                              break;
+                        case 1:
+                              ton = 2;
+                              break;
+                        case 2:
+                              ton = 4;
+
+                              break;
+                        case 3:
+                              ton = 5;
+
+                              break;
+                        case 4:
+                              ton = 7;
+
+                              break;
+                        case 5:
+                              ton = 9;
+
+                              break;
+                        case 6:
+                              ton = 11;
+
+                              break;
+                        default:
+                              break;
+                        }
+
+                  Key key = st->key(pos.segment->tick());
+                  ton -= Note().getNumericTrans(key) ;
+                  nval.pitch = octave*12+ton;
+                  break;
+                  }
             case StaffGroup::STANDARD: {
                   AccidentalVal acci = s->measure()->findAccidental(s, staffIdx, line, error);
                   if (error)
