@@ -234,8 +234,8 @@ enum class Pid {
       FRET_FRETS,
       FRET_NUT,
       FRET_OFFSET,
-
       FRET_NUM_POS,
+
       SYSTEM_BRACKET,
       GAP,
       AUTOPLACE,
@@ -331,6 +331,7 @@ enum class Pid {
       CLEF_TYPE_TRANSPOSING,
       KEY,
       ACTION, // for Icon
+      MIN_DISTANCE,
 
       SET_KEY_TYPE,
 

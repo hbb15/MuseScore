@@ -2813,6 +2813,24 @@ void MuseScore::showElementContext(Element* el)
       debugger->setElement(el);
       }
 
+    
+//---------------------------------------------------------
+//   reDisplayDockWidget
+//
+//   Helper function to ensure when un-docked widgets are
+//   re-displayed, they are also re-dockable
+//---------------------------------------------------------
+
+void MuseScore::reDisplayDockWidget(QDockWidget* widget, bool visible)
+     {
+      widget->setVisible(visible);
+      if (widget->isFloating()) {
+            // Ensure the widget is re-dockable if it has been closed and re-opened when un-docked
+            widget->setFloating(false);
+            widget->setFloating(true);
+            }
+     }
+
 //---------------------------------------------------------
 //   showPlayPanel
 //---------------------------------------------------------
@@ -2841,7 +2859,7 @@ void MuseScore::showPlayPanel(bool visible)
             playPanel->setFloating(false);
             }
       else
-            playPanel->setVisible(visible);
+            reDisplayDockWidget(playPanel, visible);
       playId->setChecked(visible);
       }
 
@@ -4396,8 +4414,6 @@ void MuseScore::writeSettings()
       if (synthControl)
             synthControl->writeSettings();
       settings.setValue("synthControlVisible", synthControl && synthControl->isVisible());
-      if (mixer)
-            mixer->writeSettings();
       settings.setValue("mixerVisible", mixer && mixer->isVisible());
       if (seq) {
             seq->exit();
@@ -4445,7 +4461,12 @@ void MuseScore::readSettings()
             }
 
       MuseScore::restoreGeometry(this);
-
+      
+      // grab the visible state before the beginGroup
+      // this awkwardness to ensure state saved before code changes should
+      // still work OK.
+      bool mixerVisibleFlag = settings.value("mixerVisible", "0").toBool();
+          
       settings.beginGroup("MainWindow");
       mainWindow->restoreState(settings.value("debuggerSplitter").toByteArray());
       mainWindow->setOpaqueResize(false);
@@ -4460,7 +4481,8 @@ void MuseScore::readSettings()
       mscore->showInspector(settings.value("showInspector", "1").toBool());
       mscore->showPianoKeyboard(settings.value("showPianoKeyboard", "0").toBool());
       mscore->showSelectionWindow(settings.value("showSelectionWindow", "0").toBool());
-
+      mscore->showMixer(mixerVisibleFlag);
+          
       restoreState(settings.value("state").toByteArray());
       //if we were in full screen mode, go to maximized mode
       if (isFullScreen()) {
@@ -5262,7 +5284,7 @@ void MuseScore::editRaster()
 //   showPianoKeyboard
 //---------------------------------------------------------
 
-void MuseScore::showPianoKeyboard(bool on)
+void MuseScore::showPianoKeyboard(bool visible)
       {
       if (_pianoTools == 0) {
             QAction* a = getAction("toggle-piano");
@@ -5272,8 +5294,8 @@ void MuseScore::showPianoKeyboard(bool on)
             connect(_pianoTools, SIGNAL(keyReleased(int, bool, int)), SLOT(midiNoteReceived(int, bool, int)));
             connect(_pianoTools, SIGNAL(visibilityChanged(bool)), a, SLOT(setChecked(bool)));
             }
-      if (on) {
-            _pianoTools->show();
+      if (visible) {
+            reDisplayDockWidget(_pianoTools, visible);
             if (currentScore())
                   _pianoTools->changeSelection(currentScore()->selection());
             else
@@ -6088,7 +6110,7 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
       else if (cmd == "toggle-piano")
             showPianoKeyboard(a->isChecked());
       else if (cmd == "toggle-scorecmp-tool")
-            scoreCmpTool->setVisible(a->isChecked());
+            reDisplayDockWidget(scoreCmpTool, a->isChecked());
 #ifdef MSCORE_UNSTABLE
       else if (cmd == "toggle-script-recorder")
             scriptRecorder->setVisible(a->isChecked());
@@ -6125,8 +6147,11 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             if (!name.isEmpty()) {
                   cs->startCmd();
                   if (!cs->loadStyle(name)) {
-                        QMessageBox::critical(this,
-                           tr("Load Style"), MScore::lastError);
+                        QMessageBox::StandardButton b = QMessageBox::warning(this, tr("Load Style"),
+                           tr("MuseScore may not be able to load this style file: %1").arg(MScore::lastError),
+                           QMessageBox::Cancel|QMessageBox::Ignore, QMessageBox::Cancel);
+                        if (b == QMessageBox::Ignore)
+                              cs->loadStyle(name, true);
                         }
                   cs->endCmd();
                   }
@@ -6677,6 +6702,15 @@ SynthesizerState MuseScore::synthesizerState() const
       {
       SynthesizerState state;
       return synti ? synti->state() : state;
+      }
+
+//---------------------------------------------------------
+//   synthesizer
+//---------------------------------------------------------
+
+Synthesizer* MuseScore::synthesizer(const QString& name)
+      {
+      return synti ? synti->synthesizer(name) : nullptr;
       }
 
 //---------------------------------------------------------
@@ -7674,8 +7708,6 @@ int main(int argc, char* av[])
       QSettings settings;
       if (settings.value("synthControlVisible", false).toBool())
             mscore->showSynthControl(true);
-      if (settings.value("mixerVisible", false).toBool())
-            mscore->showMixer(true);
 
       return qApp->exec();
       }

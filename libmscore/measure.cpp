@@ -1246,6 +1246,7 @@ void Measure::cmdAddStaves(int sStaff, int eStaff, bool createRest)
                         }
                   if (obl) {
                         BarLine* barline = new BarLine(*obl);
+                        barline->setSpanStaff(score()->staff(staffIdx)->barLineSpan());
                         barline->setTrack(staffIdx * VOICES);
                         barline->setParent(bs);
                         barline->setGenerated(false);
@@ -3294,8 +3295,9 @@ void Measure::stretchMeasure(qreal targetWidth)
                         }
                   else if (t == ElementType::BAR_LINE) {
                         e->rypos() = 0.0;
-                        e->rxpos() = 0.0;
-//                        e->rxpos() = s.isEndBarLineType() ? s.width() * .5 : 0.0;
+                        // for end barlines, x position was set in createEndBarLines
+                        if (s.segmentType() != SegmentType::EndBarLine)
+                              e->rxpos() = 0.0;
                         }
                   }
             }
@@ -3453,6 +3455,7 @@ qreal Measure::createEndBarLines(bool isLastMeasureInSystem)
       int nstaves  = score()->nstaves();
       Segment* seg = findSegmentR(SegmentType::EndBarLine, ticks());
       Measure* nm  = nextMeasure();
+      qreal blw    = 0.0;
 
 #if 0
 #ifndef NDEBUG
@@ -3549,8 +3552,38 @@ qreal Measure::createEndBarLines(bool isLastMeasureInSystem)
                               }
                         }
                   bl->layout();
+                  blw = qMax(blw, bl->width());
+                  }
+            // right align within segment
+            for (int staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
+                  int track   = staffIdx * VOICES;
+                  BarLine* bl = toBarLine(seg->element(track));
+                  if (bl)
+                        bl->rxpos() += blw - bl->width();
                   }
             seg->createShapes();
+            }
+
+      // set relative position of end barline and clef
+      // if end repeat, clef goes after, otherwise clef goes before
+      Segment* clefSeg = findSegmentR(SegmentType::Clef, ticks());
+      if (clefSeg) {
+            if (clefSeg) {
+                  Segment* s1;
+                  Segment* s2;
+                  if (repeatEnd()) {
+                        s1 = seg;
+                        s2 = clefSeg;
+                        }
+                  else {
+                        s1 = clefSeg;
+                        s2 = seg;
+                        }
+                  if (s1->next() != s2) {
+                        _segments.remove(s1);
+                        _segments.insert(s1, s2);
+                        }
+                  }
             }
 
       // fix segment layout
@@ -3678,7 +3711,7 @@ void Measure::addSystemHeader(bool isFirstSystem)
                         clef->parent()->remove(clef);
                         delete clef;
                         }
-                  cSegment->createShape(staffIdx);
+                  //cSegment->createShape(staffIdx);
                   cSegment->setEnabled(true);
                   }
             else {
@@ -3740,7 +3773,7 @@ void Measure::addSystemHeader(bool isFirstSystem)
                         }
                   keysig->setKeySigEvent(keyIdx);
                   keysig->layout();
-                  kSegment->createShape(staffIdx);
+                  //kSegment->createShape(staffIdx);
                   kSegment->setEnabled(true);
                   }
             else {
@@ -3776,6 +3809,11 @@ void Measure::addSystemHeader(bool isFirstSystem)
 
             ++staffIdx;
             }
+      if (cSegment)
+            cSegment->createShapes();
+      if (kSegment)
+            kSegment->createShapes();
+
       //
       // create systemic barline
       //
@@ -3797,9 +3835,9 @@ void Measure::addSystemHeader(bool isFirstSystem)
                         bl->setSpanStaff(true);
                         bl->layout();
                         s->add(bl);
-                        s->createShapes();
                         }
                   }
+            s->createShapes();
             s->setEnabled(true);
             s->setHeader(true);
             setHeader(true);
@@ -3851,8 +3889,9 @@ void Measure::addSystemTrailer(Measure* nm)
                                     }
                               ts->setFrom(nts);
                               ts->layout();
-                              s->createShape(track / VOICES);
+                              //s->createShape(track / VOICES);
                               }
+                        s->createShapes();
                         }
                   }
             }
@@ -3861,7 +3900,7 @@ void Measure::addSystemTrailer(Measure* nm)
             s->setEnabled(false);
             }
 
-      // courtesy key signatures
+      // courtesy key signatures, clefs
 
       int n      = score()->nstaves();
       bool show  = hasCourtesyKeySig();
@@ -3894,7 +3933,7 @@ void Measure::addSystemTrailer(Measure* nm)
                   //      }
                   ks->setKeySigEvent(key2);
                   ks->layout();
-                  s->createShape(track / VOICES);
+                  //s->createShape(track / VOICES);
                   s->setEnabled(true);
                   }
             else {
@@ -3906,11 +3945,16 @@ void Measure::addSystemTrailer(Measure* nm)
                   Clef* clef = toClef(clefSegment->element(track));
                   if (clef) {
                         clef->setSmall(true);
-                        if (!score()->genCourtesyClef() || repeatEnd() || isFinalMeasure || !clef->showCourtesy())
+                        if (!score()->genCourtesyClef() || isFinalMeasure || !clef->showCourtesy())
                               clef->clear();          // make invisible
                         }
                   }
             }
+      if (s)
+            s->createShapes();
+      if (clefSegment)
+            clefSegment->createShapes();
+
       checkTrailer();
       }
 
@@ -4006,7 +4050,11 @@ void Measure::setStretchedWidth(qreal w)
 
 static bool hasAccidental(Segment* s)
       {
+      Score* score = s->score();
       for (int track = 0; track < s->score()->ntracks(); ++track) {
+            Staff* staff = score->staff(track2staff(track));
+            if (!staff->show())
+                  continue;
             Element* e = s->element(track);
             if (!e || !e->isChord())
                   continue;
@@ -4056,6 +4104,10 @@ void Measure::computeMinWidth(Segment* s, qreal x, bool isSystemHeader)
                   continue;
                   }
             Segment* ns = s->nextActive();
+            // end barline might be disabled
+            // but still consider it for spacing of previous segment
+            if (!ns)
+                  ns = s->next(SegmentType::BarLineType);
             qreal w;
 
             if (ns) {

@@ -752,6 +752,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void addMetronome();
 
       SynthesizerState synthesizerState() const;
+      static Synthesizer* synthesizer(const QString& name);
 
       Q_INVOKABLE QString getLocaleISOCode() const;
       Navigator* navigator() const;
@@ -819,6 +820,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void unregisterPlugin(PluginDescription*);
 
       Q_INVOKABLE void showStartcenter(bool);
+      void reDisplayDockWidget(QDockWidget* widget, bool visible);
       void showPlayPanel(bool);
 
       QFileInfoList recentScores() const;

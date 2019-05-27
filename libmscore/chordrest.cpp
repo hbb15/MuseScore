@@ -282,8 +282,11 @@ bool ChordRest::readProperties(XmlReader& e)
             }
       else if (tag == "dots")
             setDots(e.readInt());
-      else if (tag == "staffMove")
+      else if (tag == "staffMove") {
             _staffMove = e.readInt();
+            if (vStaffIdx() < part()->staves()->first()->idx() || vStaffIdx() > part()->staves()->last()->idx())
+                  _staffMove = 0;
+            }
       else if (tag == "Spanner")
             Spanner::readSpanner(e, this, track());
       else if (tag == "Lyrics") {
@@ -742,6 +745,8 @@ void ChordRest::add(Element* e)
                   qDebug("ChordRest::add: unknown element %s", e->name());
                   break;
             case ElementType::LYRICS:
+                  if (e->isStyled(Pid::OFFSET))
+                        e->setOffset(e->propertyDefault(Pid::OFFSET).toPointF());
                   _lyrics.push_back(toLyrics(e));
                   break;
             default:
@@ -797,6 +802,19 @@ void ChordRest::removeDeleteBeam(bool beamed)
 void ChordRest::undoSetBeamMode(Beam::Mode mode)
       {
       undoChangeProperty(Pid::BEAM_MODE, int(mode));
+      }
+
+//---------------------------------------------------------
+//   localSpatiumChanged
+//---------------------------------------------------------
+
+void ChordRest::localSpatiumChanged(qreal oldValue, qreal newValue)
+      {
+      DurationElement::localSpatiumChanged(oldValue, newValue);
+      for (Element* e : lyrics())
+            e->localSpatiumChanged(oldValue, newValue);
+      for (Element* e : el())
+            e->localSpatiumChanged(oldValue, newValue);
       }
 
 //---------------------------------------------------------

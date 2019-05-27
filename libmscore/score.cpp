@@ -803,12 +803,21 @@ ScoreContentState Score::state() const
       }
 
 //---------------------------------------------------------
+//   playlistDirty
+//---------------------------------------------------------
+
+bool Score::playlistDirty() const
+      {
+      return masterScore()->playlistDirty();
+      }
+
+//---------------------------------------------------------
 //   setPlaylistDirty
 //---------------------------------------------------------
 
 void Score::setPlaylistDirty()
       {
-      _playlistDirty = true;
+      masterScore()->setPlaylistDirty();
       }
 
 //---------------------------------------------------------
@@ -817,7 +826,7 @@ void Score::setPlaylistDirty()
 
 void MasterScore::setPlaylistDirty()
       {
-      Score::setPlaylistDirty();
+      _playlistDirty = true;
       _repeatList->setScoreChanged();
       }
 
@@ -1412,13 +1421,13 @@ void Score::addElement(Element* element)
                         }
                   cmdState().layoutFlags |= LayoutFlag::FIX_PITCH_VELO;
                   o->staff()->updateOttava();
-                  _playlistDirty = true;
+                  setPlaylistDirty();
                   }
                   break;
 
             case ElementType::DYNAMIC:
                   cmdState().layoutFlags |= LayoutFlag::FIX_PITCH_VELO;
-                  _playlistDirty = true;
+                  setPlaylistDirty();
                   break;
 
             case ElementType::TEMPO_TEXT:
@@ -1575,13 +1584,13 @@ void Score::removeElement(Element* element)
                   removeSpanner(o);
                   o->staff()->updateOttava();
                   cmdState().layoutFlags |= LayoutFlag::FIX_PITCH_VELO;
-                  _playlistDirty = true;
+                  setPlaylistDirty();
                   }
                   break;
 
             case ElementType::DYNAMIC:
                   cmdState().layoutFlags |= LayoutFlag::FIX_PITCH_VELO;
-                  _playlistDirty = true;
+                  setPlaylistDirty();
                   break;
 
             case ElementType::CHORD:
@@ -2859,10 +2868,11 @@ void Score::padToggle(Pad n)
             if (cr && cr->isRest() && cr->measure()->isMMRest()) {
                   Measure* m = cr->measure()->mmRestFirst();
                   if (m)
-                        cr = m->findChordRest(Fraction(0,1), 0);
+                        cr = m->findChordRest(m->tick(), 0);
                   }
 
-            crs.push_back(cr);
+            if (cr)
+                  crs.push_back(cr);
             }
       else {
             const auto elements = selection().uniqueElements();
@@ -3422,7 +3432,7 @@ void Score::setTempo(Segment* segment, qreal tempo)
 void Score::setTempo(const Fraction& tick, qreal tempo)
       {
       tempomap()->setTempo(tick.ticks(), tempo);
-      _playlistDirty = true;
+      setPlaylistDirty();
       }
 
 //---------------------------------------------------------
@@ -3432,7 +3442,7 @@ void Score::setTempo(const Fraction& tick, qreal tempo)
 void Score::removeTempo(const Fraction& tick)
       {
       tempomap()->delTempo(tick.ticks());
-      _playlistDirty = true;
+      setPlaylistDirty();
       }
 
 //---------------------------------------------------------
@@ -3471,7 +3481,7 @@ void Score::resetTempoRange(const Fraction& tick1, const Fraction& tick2)
 void Score::setPause(const Fraction& tick, qreal seconds)
       {
       tempomap()->setPause(tick.ticks(), seconds);
-      _playlistDirty = true;
+      setPlaylistDirty();
       }
 
 //---------------------------------------------------------
@@ -4630,7 +4640,7 @@ void MasterScore::setLayout(const Fraction& t)
 //    the value of the expressive parameter.
 //---------------------------------------------------------
 
-void MasterScore::updateExpressive(MasterSynthesizer* m)
+void MasterScore::updateExpressive(Synthesizer* synth)
       {
       SynthesizerState s = synthesizerState();
       SynthesizerGroup g = s.group("master");
@@ -4643,13 +4653,13 @@ void MasterScore::updateExpressive(MasterSynthesizer* m)
                   }
             }
 
-      updateExpressive(m, (method != 0));
+      updateExpressive(synth, (method != 0));
       }
 
 
-void MasterScore::updateExpressive(MasterSynthesizer* m, bool expressive, bool force /* = false */)
+void MasterScore::updateExpressive(Synthesizer* synth, bool expressive, bool force /* = false */)
       {
-      if (!m)
+      if (!synth)
             return;
 
       if (!force) {
@@ -4669,7 +4679,7 @@ void MasterScore::updateExpressive(MasterSynthesizer* m, bool expressive, bool f
             const InstrumentList* il = p->instruments();
             for (auto it = il->begin(); it != il->end(); it++) {
                   Instrument* i = it->second;
-                  i->switchExpressive(this, m, expressive, force);
+                  i->switchExpressive(this, synth, expressive, force);
                   }
             }
 
@@ -4681,12 +4691,12 @@ void MasterScore::updateExpressive(MasterSynthesizer* m, bool expressive, bool f
 //    just updateExpressive, in most cases.
 //---------------------------------------------------------
 
-void MasterScore::rebuildAndUpdateExpressive(MasterSynthesizer* m)
+void MasterScore::rebuildAndUpdateExpressive(Synthesizer* synth)
       {
       // Rebuild midi mappings to make sure we have playback channels
       rebuildMidiMapping();
 
-      updateExpressive(m);
+      updateExpressive(synth);
 
       // Rebuild midi mappings again to be safe
       rebuildMidiMapping();

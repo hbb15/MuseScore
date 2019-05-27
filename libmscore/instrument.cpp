@@ -20,7 +20,6 @@
 #include "mscore.h"
 #include "part.h"
 #include "score.h"
-#include "synthesizer/msynthesizer.h"
 #include "synthesizer/synthesizer.h"
 #include "synthesizer/midipatch.h"
 
@@ -656,6 +655,9 @@ void Channel::write(XmlWriter& xml, const Part* part) const
             if (e.type() == ME_INVALID)
                   continue;
             if (e.type() == ME_CONTROLLER) {
+                  // don't write if automatically switched
+                  if ((e.dataA() == CTRL_HBANK || e.dataA() == CTRL_LBANK) &&  !_userBankController)
+                        continue;
                   if (e.dataA() == CTRL_HBANK && e.dataB() == 0)
                         continue;
                   if (e.dataA() == CTRL_LBANK && e.dataB() == 0)
@@ -679,10 +681,6 @@ void Channel::write(XmlWriter& xml, const Part* part) const
             xml.tag("mute", _mute);
       if (_solo)
             xml.tag("solo", _solo);
-
-      // This way we know not to change channel to expr automatically
-      if (_userBankController)
-            xml.tag("userSelectedBank", _userBankController);
 
       if (part && part->masterScore()->exportMidiMapping() && part->score() == part->masterScore()) {
             xml.tag("midiPort",    part->masterScore()->midiMapping(_channel)->port());
@@ -724,9 +722,11 @@ void Channel::read(XmlReader& e, Part* part)
                   switch (ctrl) {
                         case CTRL_HBANK:
                               _bank = (value << 7) + (_bank & 0x7f);
+                              _userBankController = true;
                               break;
                         case CTRL_LBANK:
                               _bank = (_bank & ~0x7f) + (value & 0x7f);
+                              _userBankController = true;
                               break;
                         case CTRL_VOLUME:
                               _volume = value;
@@ -773,8 +773,6 @@ void Channel::read(XmlReader& e, Part* part)
                   _mute = e.readInt();
             else if (tag == "solo")
                   _solo = e.readInt();
-            else if (tag == "userSelectedBank")
-                  _userBankController = e.readBool();
             else if (tag == "midiPort") {
                   midiPort = e.readInt();
                   }
@@ -799,13 +797,13 @@ void Channel::read(XmlReader& e, Part* part)
 //    This works only with MuseScore General soundfont
 //---------------------------------------------------------
 
-void Channel::switchExpressive(MasterSynthesizer* m, bool expressive, bool force /* = false */)
+void Channel::switchExpressive(Synthesizer* synth, bool expressive, bool force /* = false */)
       {
-      if ((_userBankController && !force) || !m)
+      if ((_userBankController && !force) || !synth)
             return;
 
       // Check that we're actually changing the MuseScore General soundfont
-      const auto fontsInfo = m->synthesizer("Fluid")->soundFontsInfo();
+      const auto fontsInfo = synth->soundFontsInfo();
       if (fontsInfo.empty())
             return;
       const auto& info = fontsInfo.front();
@@ -841,7 +839,7 @@ void Channel::switchExpressive(MasterSynthesizer* m, bool expressive, bool force
 
       // Floor bank num to multiple of 129 and add new num to get bank num of new patch
       searchBankNum = (bank() / 129) * 129 + newBankNum;
-      const auto& pl = m->getPatchInfo();
+      const auto& pl = synth->getPatchInfo();
       for (const MidiPatch* p : pl) {
             if (p->synti == "Fluid") {
                   if (searchBankNum == p->bank && program() == p->prog) {
@@ -1115,16 +1113,16 @@ void Instrument::updateGateTime(int* gateTime, int /*channelIdx*/, const QString
 //   updateGateTime
 //---------------------------------------------------------
 
-void Instrument::switchExpressive(MasterScore* score, MasterSynthesizer* m, bool expressive, bool force /* = false */)
+void Instrument::switchExpressive(MasterScore* score, Synthesizer* synth, bool expressive, bool force /* = false */)
       {
       // Only switch to expressive where necessary
-      if (!m || (expressive && !singleNoteDynamics()))
+      if (!synth || (expressive && !singleNoteDynamics()))
             return;
 
       for (Channel* c : channel()) {
-            c->switchExpressive(m, expressive, force);
+            c->switchExpressive(synth, expressive, force);
             if (score->playbackChannel(c))
-                  score->playbackChannel(c)->switchExpressive(m, expressive, force);
+                  score->playbackChannel(c)->switchExpressive(synth, expressive, force);
             }
       }
 

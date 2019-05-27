@@ -1463,26 +1463,13 @@ void Note::readAddConnector(ConnectorInfoReader* info, bool pasteMode)
                               _tieFor = tie;
                               }
                         else {
-                              // DISABLE pasting of glissandi into staves with other lionked staves
-                              // because the glissando is not properly cloned into the linked staves
-                              if (pasteMode && staff() && staff()->links() && !staff()->links()->empty()) {
-                                    // Do nothing. The spanner is no longer needed.
-                                    info->releaseConnector();
-                                    delete sp;
-                                    }
-                              else {
-                                    sp->setAnchor(Spanner::Anchor::NOTE);
-                                    sp->setStartElement(this);
-                                    addSpannerFor(sp);
-                                    sp->setParent(this);
-                                    }
+                              sp->setAnchor(Spanner::Anchor::NOTE);
+                              sp->setStartElement(this);
+                              addSpannerFor(sp);
+                              sp->setParent(this);
                               }
                         }
                   else if (info->isEnd()) {
-                        // We might have deleted a spanner (see "DISABLE pasting
-                        // of glissandi..." note above)
-                        if (!sp)
-                              break;
                         sp->setTrack2(l.track());
                         sp->setTick2(tick());
                         sp->setEndElement(this);
@@ -2640,7 +2627,7 @@ void Note::setSmall(bool val)
 
 int Note::line() const
       {
-      return _fixed ? _fixedLine : _line;
+      return fixed() ? _fixedLine : _line;
       }
 
 //---------------------------------------------------------
@@ -2686,52 +2673,6 @@ int Note::ppitch() const
             capoFretId -= 1;
 
       return _pitch + staff()->pitchOffset(ch->segment()->tick()) + capoFretId;
-      }
-
-//---------------------------------------------------------
-//   mutePlayback
-//---------------------------------------------------------
-
-bool Note::mutePlayback() const
-      {
-      const MasterScore* ms = masterScore();
-      const Score* playbackScore = ms->playbackScore();
-      if (score() != playbackScore && links()) {
-            for (const ScoreElement* se : *links()) {
-                  if (se->score() == playbackScore)
-                        return toNote(se)->mutePlayback();
-                  }
-            }
-
-      const Staff* st = staff();
-      const Instrument* instr = st->part()->instrument(chord()->tick());
-      const Channel* ch = instr->playbackChannel(subchannel(), ms);
-      if (ch->mute() || ch->soloMute() || !st->playbackVoice(voice()))
-            return true;
-
-      const Selection& sel = score()->selection();
-      if (sel.isRange()) {
-            const int stIdx = staffIdx();
-            if (stIdx < sel.staffStart() || sel.staffEnd() <= stIdx) {
-                  // it may happen that at least some linked staff is selected
-                  bool linkedSelected = false;
-                  if (links()) {
-                        for (const ScoreElement* se : *links()) {
-                              if (se->score() == playbackScore) {
-                                    const int seStaffIdx = toNote(se)->staffIdx();
-                                    if (sel.staffStart() <= seStaffIdx && seStaffIdx < sel.staffEnd()) {
-                                          linkedSelected = true;
-                                          break;
-                                          }
-                                    }
-                              }
-                        }
-                  if (!linkedSelected)
-                        return true;
-                  }
-            }
-
-      return false;
       }
 
 //---------------------------------------------------------
@@ -2875,6 +2816,23 @@ void Note::setNval(const NoteVal& nval, Fraction tick)
       }
 
 //---------------------------------------------------------
+//   localSpatiumChanged
+//---------------------------------------------------------
+
+void Note::localSpatiumChanged(qreal oldValue, qreal newValue)
+      {
+      Element::localSpatiumChanged(oldValue, newValue);
+      for (Element* e : dots())
+            e->localSpatiumChanged(oldValue, newValue);
+      for (Element* e : el())
+            e->localSpatiumChanged(oldValue, newValue);
+      for (Spanner* spanner : spannerBack()) {
+            for (auto k : spanner->spannerSegments())
+                  k->localSpatiumChanged(oldValue, newValue);
+            }
+      }
+
+//---------------------------------------------------------
 //   getProperty
 //---------------------------------------------------------
 
@@ -2981,13 +2939,8 @@ bool Note::setProperty(Pid propertyId, const QVariant& v)
                   setVeloType(ValueType(v.toInt()));
                   score()->setPlaylistDirty();
                   break;
-            case Pid::VISIBLE: {                     // Pid::VISIBLE requires reflecting property on dots
+            case Pid::VISIBLE: {
                   setVisible(v.toBool());
-                  int dots = chord()->dots();
-                  for (int i = 0; i < dots; ++i) {
-                        if (_dots[i])
-                              _dots[i]->setVisible(visible());
-                        }
                   if (m)
                         m->checkMultiVoices(chord()->staffIdx());
                   break;
@@ -3009,6 +2962,16 @@ bool Note::setProperty(Pid propertyId, const QVariant& v)
             }
       triggerLayout();
       return true;
+      }
+
+//---------------------------------------------------------
+//   undoChangeDotsVisible
+//---------------------------------------------------------
+
+void Note::undoChangeDotsVisible(bool v)
+      {
+      for (NoteDot* dot : _dots)
+            dot->undoChangeProperty(Pid::VISIBLE, QVariant(v));
       }
 
 //---------------------------------------------------------
@@ -3545,8 +3508,11 @@ Shape Note::shape() const
       if (_accidental)
             shape.add(_accidental->bbox().translated(_accidental->pos()), _accidental->name());
       for (auto e : _el) {
-            if (e->autoplace() && e->visible())
+            if (e->autoplace() && e->visible()) {
+                  if (e->isFingering() && toFingering(e)->layoutType() != ElementType::NOTE)
+                        continue;
                   shape.add(e->bbox().translated(e->pos()), e->name());
+                  }
             }
 #else
       Shape shape(r);
@@ -3555,8 +3521,11 @@ Shape Note::shape() const
       if (_accidental)
             shape.add(_accidental->bbox().translated(_accidental->pos()));
       for (auto e : _el) {
-            if (e->autoplace() && e->visible())
+            if (e->autoplace() && e->visible()) {
+                  if (e->isFingering() && toFingering(e)->layoutType() != ElementType::NOTE)
+                        continue;
                   shape.add(e->bbox().translated(e->pos()));
+                  }
             }
 #endif
       return shape;

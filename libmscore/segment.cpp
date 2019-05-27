@@ -898,6 +898,10 @@ bool Segment::setProperty(Pid propertyId, const QVariant& v)
                   break;
             case Pid::LEADING_SPACE:
                   setExtraLeadingSpace(v.value<Spatium>());
+                  for (Element* e : _elist) {
+                        if(e) 
+                              e->setGenerated(false);
+                        }
                   break;
             default:
                   return Element::setProperty(propertyId, v);
@@ -1865,13 +1869,13 @@ void Segment::createShape(int staffIdx)
 
       if (segmentType() & (SegmentType::BarLine | SegmentType::EndBarLine | SegmentType::StartRepeatBarLine | SegmentType::BeginBarLine)) {
             setVisible(true);
-            BarLine* bl = toBarLine(element(0));
+            BarLine* bl = toBarLine(element(staffIdx * VOICES));
             if (bl) {
-                  qreal w = BarLine::layoutWidth(score(), bl->barLineType());
+                  QRectF r = bl->layoutRect();
 #ifndef NDEBUG
-                  s.add(QRectF(0.0, 0.0, w, spatium() * 4.0).translated(bl->pos()), bl->name());
+                  s.add(r.translated(bl->pos()), bl->name());
 #else
-                  s.add(QRectF(0.0, 0.0, w, spatium() * 4.0).translated(bl->pos()));
+                  s.add(r.translated(bl->pos()));
 #endif
                   }
             s.addHorizontalSpacing(Shape::SPACING_GENERAL, 0, 0);
@@ -2005,14 +2009,12 @@ qreal Segment::minHorizontalCollidingDistance(Segment* ns) const
 
 qreal Segment::minHorizontalDistance(Segment* ns, bool systemHeaderGap) const
       {
-      qreal w = 0.0;
+      qreal ww = -1000000.0;        // can remain negative
       for (unsigned staffIdx = 0; staffIdx < _shapes.size(); ++staffIdx) {
             qreal d = staffShape(staffIdx).minHorizontalDistance(ns->staffShape(staffIdx));
-            //if(_elist[staffIdx * VOICES] && _elist[staffIdx * VOICES]->staff()->isNumericStaff(tick())&&isTimeSigType()
-            //   ||ns->_elist[staffIdx * VOICES] && ns->_elist[staffIdx * VOICES]->staff()->isNumericStaff(tick())&&ns->isTimeSigType())
-            //      d=0.0;
-            w       = qMax(w, d);
+            ww      = qMax(ww, d);
             }
+      qreal w = qMax(ww, 0.0);      // non-negative
 
       SegmentType st  = segmentType();
       SegmentType nst = ns ? ns->segmentType() : SegmentType::Invalid;
@@ -2023,7 +2025,10 @@ qreal Segment::minHorizontalDistance(Segment* ns, bool systemHeaderGap) const
                   w += score()->styleP(Sid::noteBarDistance);
                   }
             else if (nst == SegmentType::Clef) {
-                  w = qMax(w, score()->styleP(Sid::clefLeftMargin));
+                  // clef likely does not exist on all staves
+                  // and can cause very uneven spacing
+                  // so use ww to avoid forcing margin except as necessary
+                  w = ww + score()->styleP(Sid::clefLeftMargin);
                   }
             else {
                   bool isGap = false;
@@ -2056,7 +2061,13 @@ qreal Segment::minHorizontalDistance(Segment* ns, bool systemHeaderGap) const
 //                  qreal d = score()->styleP(Sid::barNoteDistance);
 //                  qreal dd = minRight() + ns->minLeft() + spatium();
 //                  w = qMax(d, dd);
-                  w += score()->styleP(Sid::barNoteDistance);
+                  // not header
+                  if (st == SegmentType::Clef)
+                        w = ww + score()->styleP(Sid::midClefKeyRightMargin);
+                  else if (st == SegmentType::KeySig)
+                        w += score()->styleP(Sid::midClefKeyRightMargin);
+                  else
+                        w += score()->styleP(Sid::barNoteDistance);
 
                   if (st == SegmentType::StartRepeatBarLine) {
                         if (Element* barLine = element(0)) {
@@ -2072,9 +2083,9 @@ qreal Segment::minHorizontalDistance(Segment* ns, bool systemHeaderGap) const
             // w = qMax(w, minRight()) + d;
             }
       else if (st & (SegmentType::Clef | SegmentType::HeaderClef)) {
-            if (nst == SegmentType::KeySig)
+            if (nst == SegmentType::KeySig || nst == SegmentType::KeySigAnnounce)
                   w += score()->styleP(Sid::clefKeyDistance);
-            else if (nst == SegmentType::TimeSig)
+            else if (nst == SegmentType::TimeSig || nst == SegmentType::TimeSigAnnounce)
                   w += score()->styleP(Sid::clefTimesigDistance);
             else if (nst & (SegmentType::EndBarLine | SegmentType::StartRepeatBarLine))
                   w += score()->styleP(Sid::clefBarlineDistance);
@@ -2098,6 +2109,8 @@ qreal Segment::minHorizontalDistance(Segment* ns, bool systemHeaderGap) const
                   w += score()->styleP(Sid::keysigLeftMargin);
             else if (nst == SegmentType::TimeSigAnnounce)
                   w += score()->styleP(Sid::timesigLeftMargin);
+            else if (nst == SegmentType::Clef)
+                  w += score()->styleP(Sid::clefLeftMargin);
             }
       else if (st == SegmentType::TimeSig && nst == SegmentType::StartRepeatBarLine)
             w += score()->styleP(Sid::timesigBarlineDistance);

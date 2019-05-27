@@ -222,8 +222,8 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::FRET_FRETS,              true,  "frets",                 P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "frets")            },
       { Pid::FRET_NUT,                true,  "showNut",               P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "show nut")         },
       { Pid::FRET_OFFSET,             true,  "fretOffset",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "fret offset")      },
+      { Pid::FRET_NUM_POS,            true,  "fretNumPos",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "fret number position") },
 
-      { Pid::FRET_NUM_POS,            false, "fretNumPos",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "fret number position") },
       { Pid::SYSTEM_BRACKET,          false, "type",                  P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "type")             },
       { Pid::GAP,                     false, 0,                       P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "gap")              },
       { Pid::AUTOPLACE,               false, "autoplace",             P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "autoplace")        },
@@ -318,6 +318,7 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::CLEF_TYPE_TRANSPOSING,   true,  "transposingClefType",   P_TYPE::CLEF_TYPE,           DUMMY_QT_TRANSLATE_NOOP("propertyName", "transposing clef type") },
       { Pid::KEY,                     true,  "accidental",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "key")              },
       { Pid::ACTION,                  false, "action",                P_TYPE::STRING,              0                                                           },
+      { Pid::MIN_DISTANCE,            false, "minDistance",           P_TYPE::SPATIUM,             DUMMY_QT_TRANSLATE_NOOP("propertyName", "autoplace minimum distance") },
 
       { Pid::SET_KEY_TYPE,           false,  "set_key_type",          P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "set Key Type")     },
 

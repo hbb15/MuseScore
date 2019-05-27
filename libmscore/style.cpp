@@ -163,6 +163,7 @@ static const StyleType styleTypes[] {
 
       { Sid::timesigLeftMargin,       "timesigLeftMargin",       Spatium(0.5) },
       { Sid::timesigScale,            "timesigScale",            QVariant(QSizeF(1.0, 1.0)) },
+      { Sid::midClefKeyRightMargin,   "midClefKeyRightMargin",   Spatium(1.0) },
       { Sid::clefKeyRightMargin,      "clefKeyRightMargin",      Spatium(0.8) },
       { Sid::clefKeyDistance,         "clefKeyDistance",         Spatium(1.0) },   // gould: 1 - 1.25
       { Sid::clefTimesigDistance,     "clefTimesigDistance",     Spatium(1.0) },
@@ -264,7 +265,7 @@ static const StyleType styleTypes[] {
       { Sid::vibratoPosAbove,         "vibratoPosAbove",         QPointF(.0, -1) },
       { Sid::vibratoPosBelow,         "vibratoPosBelow",         QPointF(.0, 1) },
 
-      { Sid::harmonyFretDist,          "harmonyFretDist",        Spatium(0.5) },
+      { Sid::harmonyFretDist,          "harmonyFretDist",        Spatium(1.0) },
       { Sid::minHarmonyDistance,       "minHarmonyDistance",     Spatium(0.5) },
       { Sid::maxHarmonyBarDistance,    "maxHarmonyBarDistance",  Spatium(3.0) },
       { Sid::harmonyPlacement,         "harmonyPlacement",       int(Placement::ABOVE) },
@@ -311,6 +312,9 @@ static const StyleType styleTypes[] {
       { Sid::fretStrings,             "fretStrings",             6 },
       { Sid::fretFrets,               "fretFrets",               5 },
       { Sid::fretNut,                 "fretNut",                 QVariant(true) },
+      { Sid::fretDotSize,             "fretDotSize",             QVariant(1.0) },
+      { Sid::fretStringSpacing,       "fretStringSpacing",       Spatium(0.7) },
+      { Sid::fretFretSpacing,         "fretFretSpacing",         Spatium(0.8) },
 
       { Sid::showPageNumber,          "showPageNumber",          QVariant(true) },
       { Sid::showPageNumberOne,       "showPageNumberOne",       QVariant(false) },
@@ -507,8 +511,8 @@ static const StyleType styleTypes[] {
       { Sid::autoplaceVerticalAlignRange, "autoplaceVerticalAlignRange",     int(VerticalAlignRange::SYSTEM) },
 
       { Sid::textLinePlacement,         "textLinePlacement",         int(Placement::ABOVE)  },
-      { Sid::textLinePosAbove,          "textLinePosAbove",          QPointF(.0, -3.5) },
-      { Sid::textLinePosBelow,          "textLinePosBelow",          QPointF(.0, 3.5) },
+      { Sid::textLinePosAbove,          "textLinePosAbove",          QPointF(.0, -1.0) },
+      { Sid::textLinePosBelow,          "textLinePosBelow",          QPointF(.0, 1.0) },
       { Sid::textLineFrameType,         "textLineFrameType",          int(FrameType::NO_FRAME) },
       { Sid::textLineFramePadding,      "textLineFramePadding",       0.2 },
       { Sid::textLineFrameWidth,        "textLineFrameWidth",         0.1 },
@@ -939,7 +943,7 @@ static const StyleType styleTypes[] {
       { Sid::footerFontStyle,               "footerFontStyle",              int(FontStyle::Normal) },
       { Sid::footerColor,                   "footerColor",                  QColor(0, 0, 0, 255) },
       { Sid::footerAlign,                   "footerAlign",                  QVariant::fromValue(Align::LEFT) },
-      { Sid::footerOffset,                  "footerOffset",                 QPointF() },
+      { Sid::footerOffset,                  "footerOffset",                 QPointF(0.0, 5.0) },
       { Sid::footerFrameType,               "footerFrameType",              int(FrameType::NO_FRAME) },
       { Sid::footerFramePadding,            "footerFramePadding",           0.2 },
       { Sid::footerFrameWidth,              "footerFrameWidth",             0.1 },
@@ -1075,8 +1079,8 @@ static const StyleType styleTypes[] {
       { Sid::letRingTextAlign,              "letRingTextAlign",             QVariant::fromValue(Align::LEFT | Align::VCENTER) },
       { Sid::letRingHookHeight,             "letRingHookHeight",            Spatium(0.6) },
       { Sid::letRingPlacement,              "letRingPlacement",             int(Placement::BELOW)  },
-      { Sid::letRingPosAbove,               "letRingPosAbove",              QPointF(.0, -4.0) },
-      { Sid::letRingPosBelow,               "letRingPosBelow",              QPointF(.0, 4.0)  },
+      { Sid::letRingPosAbove,               "letRingPosAbove",              QPointF(.0, 0.0) },
+      { Sid::letRingPosBelow,               "letRingPosBelow",              QPointF(.0, 0.0)  },
       { Sid::letRingLineWidth,              "letRingLineWidth",             Spatium(0.15) },
       { Sid::letRingLineStyle,              "letRingLineStyle",             QVariant(int(Qt::DashLine)) },
       { Sid::letRingBeginTextOffset,        "letRingBeginTextOffset",       QPointF(0.0, 0.15) },
@@ -1129,6 +1133,7 @@ static const StyleType styleTypes[] {
       { Sid::trillMinDistance,              "trillMinDistance",              Spatium(1.0)  },
       { Sid::vibratoMinDistance,            "vibratoMinDistance",            Spatium(1.0)  },
       { Sid::voltaMinDistance,              "voltaMinDistance",              Spatium(1.0)  },
+      { Sid::figuredBassMinDistance,        "figuredBassMinDistance",        Spatium(0.5)  },
 
       { Sid::autoplaceEnabled,              "autoplaceEnabled",              true },
 
@@ -2411,7 +2416,7 @@ bool MStyle::readTextStyleValCompat(XmlReader& e)
 //   load
 //---------------------------------------------------------
 
-bool MStyle::load(QFile* qf)
+bool MStyle::load(QFile* qf, bool ignore)
       {
       XmlReader e(qf);
       while (e.readNextStartElement()) {
@@ -2419,7 +2424,7 @@ bool MStyle::load(QFile* qf)
                   QString version = e.attribute("version");
                   QStringList sl  = version.split('.');
                   int mscVersion  = sl[0].toInt() * 100 + sl[1].toInt();
-                  if (mscVersion != MSCVERSION)
+                  if (mscVersion != MSCVERSION && !ignore)
                         return false;
                   while (e.readNextStartElement()) {
                         if (e.name() == "Style")

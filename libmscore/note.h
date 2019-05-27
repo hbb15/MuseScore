@@ -336,7 +336,6 @@ class Note final : public Element {
       int pitch() const                   { return _pitch;    }
       int ppitch() const;           ///< playback pitch
       int epitch() const;           ///< effective pitch
-      bool mutePlayback() const;    ///< whether the note should be muted during the playback
       qreal tuning() const                { return _tuning;   }
       void setTuning(qreal v)             { _tuning = v;      }
       void undoSetTpc(int v);
@@ -473,6 +472,7 @@ class Note final : public Element {
 
       void transposeDiatonic(int interval, bool keepAlterations, bool useDoubleAccidentals);
 
+      virtual void localSpatiumChanged(qreal oldValue, qreal newValue) override;
       virtual QVariant getProperty(Pid propertyId) const override;
       QString getNumericString(int numkro);
       int setAccidentalTypeBack(int defaultdirection) ;
@@ -480,6 +480,7 @@ class Note final : public Element {
       int getNumericTrans(Key key) const;
       int getNumericOktave() const;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      void undoChangeDotsVisible(bool v);
       virtual QVariant propertyDefault(Pid) const override;
       virtual QString propertyUserValue(Pid) const override;
 

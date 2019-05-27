@@ -331,9 +331,9 @@ static void collectNote(EventMap* events, int channel, const Note* note, int vel
                   int pitch = pitchValue.pitch;
 
                   if (pitchIndex == 0 && (pitch == nextPitch.pitch)) {
-                        int midiPitch = midiBendPitch(pitch);
-                        int msb = (midiPitch / 128);
-                        int lsb = (midiPitch % 128);
+                        int midiPitch = (pitch * 16384) / 1200 + 8192;
+                        int msb = midiPitch / 128;
+                        int lsb = midiPitch % 128;
                         NPlayEvent ev(ME_PITCHBEND, channel, lsb, msb);
                         ev.setOriginatingStaff(staffIdx);
                         events->insert(std::pair<int, NPlayEvent>(lastPointTick, ev));
@@ -358,7 +358,7 @@ static void collectNote(EventMap* events, int channel, const Note* note, int vel
                         int p = pitch + dx * pitchDelta / tickDelta;
 
                         // We don't support negative pitch, but Midi does. Let's center by adding 8192.
-                        int midiPitch = midiBendPitch(p);
+                        int midiPitch = (p * 16384) / 1200 + 8192;
                         // Representing pitch as two bytes
                         int msb = midiPitch / 128;
                         int lsb = midiPitch % 128;
@@ -535,7 +535,7 @@ static void collectMeasureEventsSimple(EventMap* events, Measure* m, Staff* staf
 //    since we're adding events, pass ticks as ints rather than fractions
 //---------------------------------------------------------
 
-static void changeCCBetween(std::map<int, NPlayEvent>& tempEvents, int stick, int etick, int startExpr, int endExpr, int channel, int controller, VeloChangeMethod changeMethod, int tickOffset)
+static void changeCCBetween(std::map<int, NPlayEvent>& tempEvents, int stick, int etick, int startExpr, int endExpr, int channel, int controller, VeloChangeMethod changeMethod, int tickOffset, int originatingStaff)
       {
       // Prevent zero-division error, but add single event
       if (startExpr == endExpr || stick == etick) {
@@ -662,7 +662,9 @@ static void changeCCBetween(std::map<int, NPlayEvent>& tempEvents, int stick, in
                   }
 
             lastVal = valueToAdd;
-            tempEvents[i + tickOffset] = NPlayEvent(ME_CONTROLLER, channel, controller, abs(exprVal));
+            NPlayEvent event = NPlayEvent(ME_CONTROLLER, channel, controller, abs(exprVal));
+            event.setOriginatingStaff(originatingStaff);
+            tempEvents[i + tickOffset] = event;
             }
       }
 
@@ -768,8 +770,22 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
                                     continue;
                                     }
 
-                              if (s->isHairpin() && s->staff() == st1) {
+                              if (s->isHairpin()) {
                                     h = toHairpin(s);
+                                    switch (h->dynRange()) {
+                                          case Dynamic::Range::STAFF:
+                                                if (h->staff() != st1)
+                                                      continue;
+                                                break;
+                                          case Dynamic::Range::PART:
+                                                if (h->part() != st1->part())
+                                                      continue;
+                                                break;
+                                          case Dynamic::Range::SYSTEM:
+                                          default:
+                                                break;
+                                          }
+
                                     singleNoteDynamics = h->singleNoteDynamics() || singleNoteDynamics;
                                     if (singleNoteDynamics) {
                                           hairpinStartTick = Fraction::fromTicks(it.start);
@@ -894,12 +910,12 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
 
                                     // First, add an initial accent velocity
                                     // stick is the seg start tick, stickToUse is where we should dim to the rest velocity
-                                    changeCCBetween(renderData.tempPlayEvents, stick.ticks(), stickToUse, startExpr, startExpr, channel, controller, defaultChangeMethod, tickOffset);
+                                    changeCCBetween(renderData.tempPlayEvents, stick.ticks(), stickToUse, startExpr, startExpr, channel, controller, defaultChangeMethod, tickOffset, staffIdx);
 
                                     // Then dimenuendo back down to normal
                                     // eticktouse is the end of the dim back to normal for an accent,
                                     // but etick is the segment end tick.
-                                    changeCCBetween(renderData.tempPlayEvents, stickToUse, etickToUse, startExpr, endExpr, channel, controller, defaultChangeMethod, tickOffset);
+                                    changeCCBetween(renderData.tempPlayEvents, stickToUse, etickToUse, startExpr, endExpr, channel, controller, defaultChangeMethod, tickOffset, staffIdx);
 
                                     // if there's a cresc or dim after the dynamic, apply it
                                     if (singleNoteDynamics && hasHairpin) {
@@ -908,20 +924,20 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
 
                                           stickToUse = qMin(stick.ticks() + accentTicks.ticks() + 1, etick.ticks());
 
-                                          changeCCBetween(renderData.tempPlayEvents, stickToUse, etick.ticks(), startExpr, endExpr, channel, controller, changeMethod, tickOffset);
+                                          changeCCBetween(renderData.tempPlayEvents, stickToUse, etick.ticks(), startExpr, endExpr, channel, controller, changeMethod, tickOffset, staffIdx);
                                           }
                                     }
                               else {
                                     int startExpr = velocityStart;
                                     int endExpr = velocityEnd;
-                                    changeCCBetween(renderData.tempPlayEvents, stick.ticks(), etick.ticks(), startExpr, endExpr, channel, controller, changeMethod, tickOffset);
+                                    changeCCBetween(renderData.tempPlayEvents, stick.ticks(), etick.ticks(), startExpr, endExpr, channel, controller, changeMethod, tickOffset, staffIdx);
                                     }
                               }
                         else if (doAddStaticVel) {
                               // Add a single expression value to match the velocity, since there is no hairpin
                               int exprVal = velocityStart;
                               int staticTick = seg->tick().ticks();
-                              changeCCBetween(renderData.tempPlayEvents, staticTick, staticTick, exprVal, exprVal, channel, controller, defaultChangeMethod, tickOffset);
+                              changeCCBetween(renderData.tempPlayEvents, staticTick, staticTick, exprVal, exprVal, channel, controller, defaultChangeMethod, tickOffset, staffIdx);
                               }
                         } // if instr->singleNoteDynamics()
                   else {
@@ -932,7 +948,7 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
                         // Add a single expression value to match the velocity, since this instrument should
                         // not use single note dynamics.
                         int staticTick = seg->tick().ticks();
-                        changeCCBetween(renderData.tempPlayEvents, staticTick, staticTick, velocity, velocity, channel, controller, defaultChangeMethod, tickOffset);
+                        changeCCBetween(renderData.tempPlayEvents, staticTick, staticTick, velocity, velocity, channel, controller, defaultChangeMethod, tickOffset, staffIdx);
                         }
 
                   //
@@ -999,36 +1015,38 @@ void Score::updateHairpin(Hairpin* h)
       {
       Staff* st = h->staff();
       Fraction tick  = h->tick();
-      Segment* seg   = h->startSegment();
 
       // Find any changing dynamics
       // If there are any, then start the hairpin from after them
-      for (Element* e : seg->annotations()) {
-            if (!e)
-                  continue;
-            if (!e->isDynamic())
-                  continue;
-            Dynamic* d = toDynamic(e);
-            if (d->changeInVelocity() == 0)
-                  continue;
+      Segment* seg   = h->startSegment();
+      if (seg) {
+            for (Element* e : seg->annotations()) {
+                  if (!e)
+                        continue;
+                  if (!e->isDynamic())
+                        continue;
+                  Dynamic* d = toDynamic(e);
+                  if (d->changeInVelocity() == 0)
+                        continue;
 
-            switch (d->dynRange()) {
-                  case Dynamic::Range::STAFF:
-                        if (d->staff()->idx() != st->idx())
-                              continue;
-                        break;
-                  case Dynamic::Range::PART:
-                        if (d->part() != h->part())
-                              continue;
-                        break;
-                  case Dynamic::Range::SYSTEM:
-                  default:
-                        break;
+                  switch (d->dynRange()) {
+                        case Dynamic::Range::STAFF:
+                              if (d->staff()->idx() != st->idx())
+                                    continue;
+                              break;
+                        case Dynamic::Range::PART:
+                              if (d->part() != h->part())
+                                    continue;
+                              break;
+                        case Dynamic::Range::SYSTEM:
+                        default:
+                              break;
+                        }
+
+                  // start hairpin after the dynamic stops
+                  tick = seg->tick() + d->velocityChangeLength();
+                  break;
                   }
-
-            // start hairpin after the dynamic stops
-            tick = seg->tick() + d->velocityChangeLength();
-            break;
             }
 
       int velo  = st->velocities().velo(tick.ticks());
@@ -1650,6 +1668,8 @@ int articulationExcursion(Note *noteL, Note *noteR, int deltastep)
             if (!e || e->type() != ElementType::CHORD)
                   continue;
             Chord* chord = toChord(e);
+            if (chord->vStaffIdx() != chordL->vStaffIdx())
+                  continue;
             for (Note* note : chord->notes()) {
                   if (note->tieBack())
                         continue;
@@ -1666,7 +1686,7 @@ int articulationExcursion(Note *noteL, Note *noteR, int deltastep)
             if (!done) {
                   if (staffL->isPitchedStaff(segment->tick())) {
                         bool error = false;
-                        AccidentalVal acciv2 = measureR->findAccidental(chordR->segment(), chordR->staff()->idx(), lineR2, error);
+                        AccidentalVal acciv2 = measureR->findAccidental(chordR->segment(), chordR->vStaffIdx(), lineR2, error);
                         int acci2 = int(acciv2);
                         // epitch (effective pitch) is a visible pitch so line2pitch returns exactly that.
                         halfsteps = line2pitch(lineL-deltastep, clefL, Key::C) + acci2 - epitchL;

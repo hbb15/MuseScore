@@ -351,6 +351,48 @@ QPointF BarLine::pagePos() const
       }
 
 //---------------------------------------------------------
+//   prevVisiblespannedStaff
+//---------------------------------------------------------
+
+int prevVisibleSpannedStaff(const BarLine* bl)
+      {
+      Score* score = bl->score();
+      int staffIdx = bl->staffIdx();
+      Segment* segment = bl->segment();
+      for (int i = staffIdx - 1; i >= 0; --i)  {
+            BarLine* nbl = toBarLine(segment->element(i * VOICES));
+            if (!nbl || !nbl->spanStaff())
+                  break;
+            Staff* s = score->staff(i);
+            if (s->part()->show() && bl->measure()->visible(i)) {
+                  return i;
+                  }
+            }
+      return staffIdx;
+      }
+
+//---------------------------------------------------------
+//   nextVisiblespannedStaff
+//---------------------------------------------------------
+
+int nextVisibleSpannedStaff(const BarLine* bl)
+      {
+      Score* score = bl->score();
+      int nstaves = score->nstaves();
+      int staffIdx = bl->staffIdx();
+      Segment* segment = bl->segment();
+      for (int i = staffIdx + 1; i < nstaves; ++i)  {
+            Staff* s = score->staff(i);
+            if (s->part()->show() && bl->measure()->visible(i))
+                  return i;
+            BarLine* nbl = toBarLine(segment->element(i * VOICES));
+            if (!nbl || !nbl->spanStaff())
+                  break;
+            }
+      return staffIdx;
+      }
+
+//---------------------------------------------------------
 //   getY
 //---------------------------------------------------------
 
@@ -367,22 +409,10 @@ void BarLine::getY() const
       const Staff* staff1 = score()->staff(staffIdx1);
       int staffIdx2       = staffIdx1;
       int nstaves         = score()->nstaves();
-      bool spanStaves     = false;
 
       Measure* measure = segment()->measure();
-      if (_spanStaff) {
-            for (int i2 = staffIdx1 + 1; i2 < nstaves; ++i2)  {
-                  Staff* s = score()->staff(i2);
-                  if (!s->invisible() && s->part()->show() && measure->visible(i2)) {
-                        spanStaves = true;
-                        staffIdx2  = i2;
-                        break;
-                        }
-                  BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
-                  if (!nbl || !nbl->spanStaff())
-                        break;
-                  }
-            }
+      if (_spanStaff)
+            staffIdx2 = nextVisibleSpannedStaff(this);
 
       System* system = measure->system();
       if (!system)
@@ -439,7 +469,7 @@ void BarLine::getY() const
                         break;
                         }
                   }
-            if (spanStaves){
+            if (_spanStaff){
                   y1 = 0.0;
                   if (spanStavesbefor){
                         y1 = -(yp - measure->staffLines(staffbefor)->y1())*0.5;
@@ -461,7 +491,7 @@ void BarLine::getY() const
             return;
             }
       y1       = yy + from * d * .5 - lw;
-      if (spanStaves)
+      if (staffIdx2 != staffIdx1)
             y2 = measure->staffLines(staffIdx2)->y1() - yp - to * d * .5;
       else
             y2 = yy + (st1->lines() * 2 - 2 + to) * d * .5 + lw;
@@ -520,8 +550,11 @@ void BarLine::drawTips(QPainter* painter, bool reversed, qreal x) const
 
 bool BarLine::isTop() const
       {
-      int i = staffIdx();
-      return i == 0 || !toBarLine(segment()->element((i-1) * VOICES))->spanStaff();
+      int idx = staffIdx();
+      if (idx == 0)
+            return true;
+      else
+            return (prevVisibleSpannedStaff(this) == idx);
       }
 
 //---------------------------------------------------------
@@ -530,11 +563,13 @@ bool BarLine::isTop() const
 
 bool BarLine::isBottom() const
       {
-      int nstaves = score()->nstaves();
-      if (!_spanStaff || staffIdx() == nstaves - 1)
+      if (!_spanStaff)
             return true;
-      // TODO: check if spanned-to staves are visible on this system
-      return false;
+      int idx = staffIdx();
+      if (idx == score()->nstaves() - 1)
+            return true;
+      else
+            return (nextVisibleSpannedStaff(this) == idx);
       }
 
 //---------------------------------------------------------
@@ -1202,6 +1237,55 @@ qreal BarLine::layoutWidth(Score* score, BarLineType type)
                   break;
             }
       return w;
+      }
+
+//---------------------------------------------------------
+//   layoutRect
+//---------------------------------------------------------
+
+QRectF BarLine::layoutRect() const
+      {
+      QRectF bb = bbox();
+      if (staff()) {
+            // actual height may include span to next staff
+            // but this should not be included in shapes or skylines
+            qreal sp = spatium();
+            int span = staff()->lines(tick()) - 1;
+            int sFrom;
+            int sTo;
+            if (span == 0 && _spanTo == 0) {
+                  sFrom = BARLINE_SPAN_1LINESTAFF_FROM;
+                  sTo = _spanStaff ? 0 : BARLINE_SPAN_1LINESTAFF_TO;
+                  }
+            else {
+                  sFrom = _spanFrom;
+                  sTo = _spanStaff ? 0 : _spanTo;
+                  }
+            qreal y = sp * sFrom * 0.5;
+            qreal h = sp * (span + (sTo - sFrom) * 0.5);
+            if (score()->styleB(Sid::repeatBarTips)) {
+                  switch (barLineType()) {
+                        case BarLineType::START_REPEAT:
+                        case BarLineType::END_REPEAT:
+                        case BarLineType::END_START_REPEAT: {
+                              if (isTop()) {
+                                    qreal top = symBbox(SymId::bracketTop).height();
+                                    y -= top;
+                                    h += top;
+                                    }
+                              if (isBottom()) {
+                                    qreal bottom = symBbox(SymId::bracketBottom).height();
+                                    h += bottom;
+                                    }
+                              }
+                        default:
+                              break;
+                        }
+                  }
+            bb.setY(y);
+            bb.setHeight(h);
+            }
+      return bb;
       }
 
 //---------------------------------------------------------

@@ -101,6 +101,7 @@ class Lyrics final : public TextBase {
       virtual QVariant getProperty(Pid propertyId) const override;
       virtual bool setProperty(Pid propertyId, const QVariant&) override;
       virtual QVariant propertyDefault(Pid id) const override;
+      virtual Sid getPropertyStyle(Pid) const override;
       };
 
 //---------------------------------------------------------
@@ -125,6 +126,8 @@ class LyricsLine final : public SLine {
 
       Lyrics* lyrics() const                          { return toLyrics(parent());   }
       Lyrics* nextLyrics() const                      { return _nextLyrics;         }
+      bool isEndMelisma() const                       { return lyrics()->ticks().isNotZero(); }
+      bool isDash() const                             { return !isEndMelisma(); }
       virtual bool setProperty(Pid propertyId, const QVariant& v) override;
       virtual SpannerSegment* layoutSystem(System*) override;
       };

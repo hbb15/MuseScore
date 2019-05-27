@@ -99,6 +99,10 @@ void ScoreView::harmonyTab(bool back)
 void ScoreView::harmonyBeatsTab(bool noterest, bool back)
       {
       Harmony* harmony = toHarmony(editData.element);
+      if (!harmony->parent() || !harmony->parent()->isSegment()) {
+            qDebug("no segment parent");
+            return;
+            }
       int track        = harmony->track();
       Segment* segment = toSegment(harmony->parent());
       if (!segment) {
@@ -198,7 +202,11 @@ void ScoreView::harmonyBeatsTab(bool noterest, bool back)
 void ScoreView::harmonyTicksTab(const Fraction& ticks)
       {
       Harmony* harmony = static_cast<Harmony*>(editData.element);
-      int track         = harmony->track();
+      if (!harmony->parent() || !harmony->parent()->isSegment()) {
+            qDebug("no segment parent");
+            return;
+            }
+      int track        = harmony->track();
       Segment* segment = toSegment(harmony->parent());
       if (!segment) {
             qDebug("no segment");
@@ -217,6 +225,8 @@ void ScoreView::harmonyTicksTab(const Fraction& ticks)
                   }
             }
 
+      changeState(ViewState::NORMAL);
+
       // look for a segment at this tick; if none, create one
       while (segment && segment->tick() < newTick)
             segment = segment->next1(SegmentType::ChordRest);
@@ -226,8 +236,6 @@ void ScoreView::harmonyTicksTab(const Fraction& ticks)
             _score->undoAddElement(segment);
             _score->endCmd();
             }
-
-      changeState(ViewState::NORMAL);
 
       // search for next chord name
       harmony = 0;

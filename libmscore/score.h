@@ -428,7 +428,6 @@ class Score : public QObject, public ScoreElement {
       bool _showInstrumentNames   { true  };
       bool _showVBox              { true  };
       bool _printing              { false };      ///< True if we are drawing to a printer
-      bool _playlistDirty         { true  };
       bool _autosaveDirty         { true  };
       bool _savedCapture          { false };      ///< True if we saved an image capture
       bool _saved                 { false };    ///< True if project was already saved; only on first
@@ -667,8 +666,8 @@ class Score : public QObject, public ScoreElement {
       ChordRest* addClone(ChordRest* cr, const Fraction& tick, const TDuration& d);
       Rest* setRest(const Fraction& tick,  int track, const Fraction&, bool useDots, Tuplet* tuplet, bool useFullMeasureRest = true);
 
-      void upDown(bool up, UpDownMode, bool updateSelection = true);
-      void upDownDelta(int pitchDelta, bool updateSelection);
+      void upDown(bool up, UpDownMode);
+      void upDownDelta(int pitchDelta);
       ChordRest* searchNote(const Fraction& tick, int track) const;
 
       // undo/redo ops
@@ -819,7 +818,7 @@ class Score : public QObject, public ScoreElement {
       void setPrinting(bool val)     { _printing = val;      }
       void setAutosaveDirty(bool v)  { _autosaveDirty = v;    }
       bool autosaveDirty() const     { return _autosaveDirty; }
-      bool playlistDirty()           { return _playlistDirty; }
+      virtual bool playlistDirty() const;
       virtual void setPlaylistDirty();
 
       void spell();
@@ -831,7 +830,7 @@ class Score : public QObject, public ScoreElement {
       virtual const MStyle& style() const  { return _style;                  }
 
       void setStyle(const MStyle& s);
-      bool loadStyle(const QString&);
+      bool loadStyle(const QString&, bool ignore = false);
       bool saveStyle(const QString&);
 
       QVariant styleV(Sid idx) const  { return style().value(idx);   }
@@ -1204,7 +1203,8 @@ class MasterScore : public Score {
       TimeSigMap* _sigmap;
       TempoMap* _tempomap;
       RepeatList* _repeatList;
-      bool _expandRepeats = true;
+      bool _expandRepeats     { true };
+      bool _playlistDirty     { true };
       QList<Excerpt*> _excerpts;
       std::vector<PartChannelSettingsLink> _playbackSettingsLinks;
       Score* _playbackScore = nullptr;
@@ -1255,10 +1255,13 @@ class MasterScore : public Score {
       virtual TimeSigMap* sigmap() const override                     { return _sigmap;     }
       virtual TempoMap* tempomap() const override                     { return _tempomap;   }
 
+      virtual bool playlistDirty() const override                     { return _playlistDirty; }
+      virtual void setPlaylistDirty() override;
+      void setPlaylistClean()                                         { _playlistDirty = false; }
+
       void setExpandRepeats(bool expandRepeats);
       void updateRepeatListTempo();
       virtual const RepeatList& repeatList() const override;
-      void setPlaylistDirty() override;
 
       virtual QList<Excerpt*>& excerpts() override                    { return _excerpts;   }
       virtual const QList<Excerpt*>& excerpts() const override        { return _excerpts;   }
@@ -1321,9 +1324,9 @@ class MasterScore : public Score {
       int getNextFreeDrumMidiMapping();
       void enqueueMidiEvent(MidiInputEvent ev) { _midiInputQueue.enqueue(ev); }
       void updateChannel();
-      void rebuildAndUpdateExpressive(MasterSynthesizer* m);
-      void updateExpressive(MasterSynthesizer* m);
-      void updateExpressive(MasterSynthesizer* m, bool expressive, bool force = false);
+      void rebuildAndUpdateExpressive(Synthesizer* synth);
+      void updateExpressive(Synthesizer* synth);
+      void updateExpressive(Synthesizer* synth, bool expressive, bool force = false);
       void setSoloMute();
 
       void addExcerpt(Excerpt*);

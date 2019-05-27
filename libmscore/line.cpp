@@ -147,6 +147,9 @@ void LineSegment::startEditDrag(EditData& ed)
       ElementEditData* eed = ed.getData(this);
       eed->pushProperty(Pid::OFFSET);
       eed->pushProperty(Pid::OFFSET2);
+      eed->pushProperty(Pid::AUTOPLACE);
+      if (ed.modifiers & Qt::AltModifier)
+            setAutoplace(false);
       }
 
 //---------------------------------------------------------
@@ -342,9 +345,10 @@ void LineSegment::editDrag(EditData& ed)
                   _offset2 += deltaResize;
                   break;
             case Grip::MIDDLE: { // Move the element (middle grip)
-                  // Only for moving, no y limitaion
+                  // Only for moving, no y limitation
                   QPointF deltaMove(ed.delta.x(), ed.delta.y());
                   setOffset(offset() + deltaMove);
+                  setOffsetChanged(true);
                   }
                   break;
             default:
@@ -711,9 +715,10 @@ QPointF SLine::linePos(Grip grip, System** sys) const
                   Element* e = grip == Grip::START ? startElement() : endElement();
                   if (!e)
                         return QPointF();
-                  System* s = toNote(e)->chord()->segment()->system();
+                  Note* n = toNote(e);
+                  System* s = n->chord()->segment()->system();
                   if (s == 0) {
-                        qDebug("no system: %s  start %s chord parent %s\n", name(), e->name(), toNote(e)->chord()->parent()->name());
+                        qDebug("no system: %s  start %s chord parent %s\n", name(), n->name(), n->chord()->parent()->name());
                         return QPointF();
                         }
                   *sys = s;
@@ -721,7 +726,10 @@ QPointF SLine::linePos(Grip grip, System** sys) const
 //                  QPointF     elemPagePos = e->pagePos();                   // DEBUG
 //                  QPointF     systPagePos = s->pagePos();
 //                  qreal       staffYPage  = s->staffYpage(e->staffIdx());
-                  return e->pagePos() - s->pagePos();
+                  QPointF p = n->pagePos() - s->pagePos();
+                  if (!isGlissando())
+                        p.rx() += n->headWidth() * 0.5;
+                  return p;
                   }
 
             case Spanner::Anchor::CHORD:
@@ -995,6 +1003,11 @@ void SLine::writeProperties(XmlWriter& xml) const
       for (const SpannerSegment* seg : spannerSegments()) {
             xml.stag("Segment", seg);
             xml.tag("subtype", int(seg->spannerSegmentType()));
+            // TODO:
+            // NOSTYLE offset written in Element::writeProperties,
+            // so we probably don't need to duplicate it here
+            // see https://musescore.org/en/node/286848
+            //if (seg->propertyFlags(Pid::OFFSET) & PropertyFlags::UNSTYLED)
             xml.tag("offset", seg->offset() / _spatium);
             xml.tag("off2", seg->userOff2() / _spatium);
             seg->Element::writeProperties(xml);

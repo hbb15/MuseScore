@@ -149,7 +149,7 @@ Shape TextLineBaseSegment::shape() const
             shape.add(QRectF(points[2].x(), points[2].y() - lw2,
                points[3].x() - points[2].x(), points[3].y() - points[2].y() + lw));
             }
-      else {
+      else if (textLineBase()->lineVisible()) {
             for (int i = 0; i < npoints; ++i) {
                   shape.add(QRectF(points[i].x() - lw2, points[i].y() - lw2,
                      points[i+1].x() - points[i].x() + lw, points[i+1].y() - points[i].y() + lw));
@@ -223,8 +223,9 @@ void TextLineBaseSegment::layout()
       QPointF pp1;
       QPointF pp2(pos2());
 
-      // diagonal line with no text - just use the basic rectangle for line (ignore hooks)
-      if (_text->empty() && _endText->empty() && pp2.y() != 0) {
+      // diagonal line with no text or hooks - just use the basic rectangle for line
+      if (_text->empty() && _endText->empty() && pp2.y() != 0
+          && textLineBase()->beginHookType() == HookType::NONE && textLineBase()->beginHookType() == HookType::NONE) {
             npoints = 2;
             points[0] = pp1;
             points[1] = pp2;
@@ -232,7 +233,7 @@ void TextLineBaseSegment::layout()
             return;
             }
 
-      // line has text or is not diagonal - calculate reasonable bbox
+      // line has text or hooks or is not diagonal - calculate reasonable bbox
 
       qreal x1 = qMin(0.0, pp2.x());
       qreal x2 = qMax(0.0, pp2.x());

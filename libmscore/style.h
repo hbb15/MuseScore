@@ -136,6 +136,7 @@ enum class Sid {
       timesigLeftMargin,
       timesigScale,
 
+      midClefKeyRightMargin,
       clefKeyRightMargin,
       clefKeyDistance,
       clefTimesigDistance,
@@ -283,6 +284,9 @@ enum class Sid {
       fretStrings,
       fretFrets,
       fretNut,
+      fretDotSize,
+      fretStringSpacing,
+      fretFretSpacing,
 
       showPageNumber,
       showPageNumberOne,
@@ -1104,6 +1108,7 @@ enum class Sid {
       trillMinDistance,
       vibratoMinDistance,
       voltaMinDistance,
+      figuredBassMinDistance,
 
       autoplaceEnabled,
 
@@ -1175,7 +1180,7 @@ class MStyle {
       void setCustomChordList(bool t) { _customChordList = t; }
       void checkChordList();
 
-      bool load(QFile* qf);
+      bool load(QFile* qf, bool ignore = false);
       void load(XmlReader& e);
       void save(XmlWriter& xml, bool optimize);
       bool readProperties(XmlReader&);

@@ -86,7 +86,7 @@ void MuseScore::showInspector(bool visible)
             addDockWidget(Qt::RightDockWidgetArea, _inspector);
             }
       if (_inspector)
-            _inspector->setVisible(visible);
+            reDisplayDockWidget(_inspector, visible);
       if (visible)
             updateInspector();
       }
@@ -955,7 +955,8 @@ void InspectorClef::setElement()
 void InspectorClef::valueChanged(int idx)
       {
       // copy into 'other clef' the ShowCouretsy ser of this clef
-      if (idx == 6 && otherClef)
+      Pid pid = iList[idx].t;
+      if (pid == Pid::SHOW_COURTESY && otherClef)
             otherClef->setShowCourtesy(c.showCourtesy->isChecked());
       InspectorBase::valueChanged(idx);
       }

@@ -965,6 +965,19 @@ void Rest::read(XmlReader& e)
       }
 
 //---------------------------------------------------------
+//   localSpatiumChanged
+//---------------------------------------------------------
+
+void Rest::localSpatiumChanged(qreal oldValue, qreal newValue)
+      {
+      ChordRest::localSpatiumChanged(oldValue, newValue);
+      for (Element* e : _dots)
+            e->localSpatiumChanged(oldValue, newValue);
+      for (Element* e : el())
+            e->localSpatiumChanged(oldValue, newValue);
+      }
+
+//---------------------------------------------------------
 //   getProperty
 //---------------------------------------------------------
 
@@ -1005,8 +1018,6 @@ bool Rest::setProperty(Pid propertyId, const QVariant& v)
                   break;
             case Pid::VISIBLE:
                   setVisible(v.toBool());
-                  for (NoteDot* dot : _dots)
-                        dot->setVisible(visible());
                   score()->setLayout(tick());
                   break;
             case Pid::OFFSET:
@@ -1022,6 +1033,16 @@ bool Rest::setProperty(Pid propertyId, const QVariant& v)
                   return ChordRest::setProperty(propertyId, v);
             }
       return true;
+      }
+
+//---------------------------------------------------------
+//   undoChangeDotsVisible
+//---------------------------------------------------------
+
+void Rest::undoChangeDotsVisible(bool v)
+      {
+      for (NoteDot* dot : _dots)
+            dot->undoChangeProperty(Pid::VISIBLE, QVariant(v));
       }
 
 //---------------------------------------------------------
