@@ -108,8 +108,17 @@ void HairpinSegment::layout()
             const System* sys = system();
             if (isSingleType() || isBeginType()) {
                   Segment* start = hairpin()->startSegment();
-                  if (start && start->system() == sys)
+                  if (start && start->system() == sys) {
                         sd = toDynamic(start->findAnnotation(ElementType::DYNAMIC, _trck, _trck));
+                        if (!sd) {
+                              // Dynamics might have been added to the previous
+                              // segment rather than exactly to hairpin start,
+                              // search in that segment too.
+                              start = start->prev(SegmentType::ChordRest);
+                              if (start && start->system() == sys)
+                                    sd = toDynamic(start->findAnnotation(ElementType::DYNAMIC, _trck, _trck));
+                              }
+                        }
                   if (sd && sd->addToSkyline() && sd->placement() == hairpin()->placement()) {
                         const qreal sdRight = sd->bbox().right() + sd->pos().x()
                                               + sd->segment()->pos().x() + sd->measure()->pos().x();
@@ -131,8 +140,11 @@ void HairpinSegment::layout()
                         const qreal edLeft  = ed->bbox().left() + ed->pos().x()
                                               + ed->segment()->pos().x() + ed->measure()->pos().x();
                         const qreal dist    = edLeft - pos2().x() - pos().x() - minDynamicsDistance;
-                        if (dist < 0.0 || (dist >= 3.0 * _spatium && minDynamicsDistance > 0.0))
-                              rxpos2() += dist;
+                        const qreal extendThreshold = 3.0 * _spatium;   // TODO: style setting
+                        if (dist < 0.0)
+                              rxpos2() += dist;       // always shorten
+                        else if (dist >= extendThreshold && hairpin()->endText().isEmpty() && minDynamicsDistance > 0.0)
+                              rxpos2() += dist;       // lengthen only if appropriate
                         // prepare to align vertically
                         if (hairpin()->placeBelow())
                               dymax = qMax(dymax, ed->pos().y());
@@ -263,10 +275,11 @@ void HairpinSegment::layout()
             qreal sp = spatium();
             qreal md = minDistance().val() * sp;
 
-            SkylineLine sl(!hairpin()->placeAbove());
+            bool above = spanner()->placeAbove();
+            SkylineLine sl(!above);
             Shape sh = shape();
             sl.add(sh.translated(pos()));
-            if (hairpin()->placeAbove()) {
+            if (above) {
                   d  = system()->topDistance(staffIdx(), sl);
                   if (d > -md)
                         ymax -= d + md;
@@ -288,8 +301,8 @@ void HairpinSegment::layout()
                         // user moved element within the skyline
                         // we may need to adjust minDistance, yd, and/or offset
                         qreal adj = pos().y() + rebase;
-                        bool inStaff = spanner()->placeAbove() ? sh.bottom() + adj > 0.0 : sh.top() + adj < staff()->height();
-                        rebaseMinDistance(md, yd, sp, rebase, inStaff);
+                        bool inStaff = above ? sh.bottom() + adj > 0.0 : sh.top() + adj < staff()->height();
+                        rebaseMinDistance(md, yd, sp, rebase, above, inStaff);
                         }
                   rypos() += yd;
                   }

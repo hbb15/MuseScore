@@ -36,26 +36,20 @@ class LedgerLine;
 class AccidentalState;
 
 enum class TremoloChordType : char { TremoloSingle, TremoloFirstNote, TremoloSecondNote };
-enum class PlayEventType : char    {
-      Auto,       // Play events for all notes are calculated by MuseScore.
-      User,       // Some play events are modified by user. The events must be written into the mscx file.
-      InvalidUser // The user modified play events must be replaced by MuseScore generated ones on
-                  // next recalculation. The actual play events must be saved on the undo stack.
-      };
 
 //---------------------------------------------------------
 //   @@ Chord
 ///    Graphic representation of a chord.
 ///    Single notes are handled as degenerated chords.
 //
-//   @P beam        Beam            the beam of the chord if any (read only)
-//   @P graceNotes  array[Chord]    the list of grace note chords (read only)
-//   @P hook        Hook            the hook of the chord if any (read only)
-//   @P lyrics      array[Lyrics]   the list of lyrics (read only)
-//   @P notes       array[Note]     the list of notes (read only)
-//   @P stem        Stem            the stem of the chord if any (read only)
-//   @P stemSlash   StemSlash       the stem slash of the chord (acciaccatura) if any (read only)
-//   @P stemDirection Direction       the stem slash of the chord (acciaccatura) if any (read only)
+//   @P beam          Beam          the beam of the chord, if any (read only)
+//   @P graceNotes    array[Chord]  the list of grace note chords (read only)
+//   @P hook          Hook          the hook of the chord, if any (read only)
+//   @P lyrics        array[Lyrics] the list of lyrics (read only)
+//   @P notes         array[Note]   the list of notes (read only)
+//   @P stem          Stem          the stem of the chord, if any (read only)
+//   @P stemSlash     StemSlash     the stem slash of the chord (acciaccatura), if any (read only)
+//   @P stemDirection Direction     the stem direction of the chord: AUTO, UP, DOWN (read only)
 //---------------------------------------------------------
 
 class Chord final : public ChordRest {
@@ -117,7 +111,8 @@ class Chord final : public ChordRest {
 
       LedgerLine* ledgerLines()                  { return _ledgerLines; }
 
-      qreal defaultStemLength();
+      qreal defaultStemLength() const;
+      qreal minAbsStemLength() const;
 
       virtual void layoutStem1() override;
       void layoutStem();
@@ -195,6 +190,8 @@ class Chord final : public ChordRest {
 
       PlayEventType playEventType() const           { return _playEventType; }
       void setPlayEventType(PlayEventType v)        { _playEventType = v;    }
+      QList<NoteEventList> getNoteEventLists();
+      void setNoteEventLists(QList<NoteEventList>& nel);
 
       TremoloChordType tremoloChordType() const;
 

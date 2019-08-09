@@ -13,6 +13,7 @@
 #include "toolbarEditor.h"
 #include "musescore.h"
 #include "workspace.h"
+#include "icons.h"
 
 namespace Ms {
 
@@ -60,6 +61,11 @@ ToolbarEditor::ToolbarEditor(QWidget* parent)
       connect(up, SIGNAL(clicked()), SLOT(upAction()));
       connect(down, SIGNAL(clicked()), SLOT(downAction()));
       connect(buttonBox, SIGNAL(accepted()), SLOT(accepted()));
+      
+      up->setIcon(*icons[int(Icons::arrowUp_ICON)]);
+      down->setIcon(*icons[int(Icons::arrowDown_ICON)]);
+      add->setIcon(*icons[int(Icons::goPrevious_ICON)]);
+      remove->setIcon(*icons[int(Icons::goNext_ICON)]);
 
       MuseScore::restoreGeometry(this);
       }

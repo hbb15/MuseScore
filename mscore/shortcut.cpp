@@ -277,7 +277,7 @@ Shortcut Shortcut::_sc[] = {
          STATE_NORMAL | STATE_NOTE_ENTRY,
          "note-input-steptime",
          QT_TRANSLATE_NOOP("action","Step-Time (Default)"),
-         QT_TRANSLATE_NOOP("action","Enter notes in step-time"),
+         QT_TRANSLATE_NOOP("action","Enter notes in Step-time"),
          0,
          Icons::noteEntry_ICON, // Icons::noteEntrySteptime_ICON (using normal icon for the time being.)
          Qt::WindowShortcut,
@@ -850,8 +850,8 @@ Shortcut Shortcut::_sc[] = {
          MsWidget::SCORE_TAB,
          STATE_NORMAL | STATE_NOTE_ENTRY,
          "add-sforzato",
-         QT_TRANSLATE_NOOP("action","Sforzato"),
-         QT_TRANSLATE_NOOP("action","Toggle sforzato"),
+         QT_TRANSLATE_NOOP("action","Accent"),
+         QT_TRANSLATE_NOOP("action","Toggle accent"),
          0,
          Icons::Invalid_ICON,
          Qt::WindowShortcut
@@ -2222,6 +2222,13 @@ Shortcut Shortcut::_sc[] = {
          "fingering-text",
          QT_TRANSLATE_NOOP("action","Fingering"),
          QT_TRANSLATE_NOOP("action","Add fingering")
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY,
+         "sticking-text",
+         QT_TRANSLATE_NOOP("action","Sticking"),
+         QT_TRANSLATE_NOOP("action","Add sticking")
          },
       {
          MsWidget::SCORE_TAB,
@@ -3810,7 +3817,7 @@ Shortcut Shortcut::_sc[] = {
          MsWidget::MAIN_WINDOW,
          STATE_ALL,
          "leave-feedback",
-         QT_TRANSLATE_NOOP("action", "Leave Feedback"),
+         QT_TRANSLATE_NOOP("action", "Feedback"),
          QT_TRANSLATE_NOOP("action", "Leave feedback"),
          0,
          Icons::mail_ICON,

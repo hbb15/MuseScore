@@ -21,6 +21,10 @@
 #include "libmscore/mscore.h"
 #include "preferences.h"
 
+#ifdef Q_OS_MAC
+#include "macos/cocoabridge.h"
+#endif
+
 namespace Ms {
 
 Preferences preferences;
@@ -65,6 +69,12 @@ void Preferences::init(bool storeInMemoryOnly)
       defaultUseAlsaAudio = true;
 #elif defined(USE_PORTAUDIO)
       defaultUsePortAudio = true;
+#endif
+
+#if defined(Q_OS_MAC) && !defined(TESTROOT)
+      const MuseScoreStyleType defaultAppGlobalStyle = CocoaBridge::isSystemDarkTheme() ? MuseScoreStyleType::DARK_FUSION : MuseScoreStyleType::LIGHT_FUSION;
+#else
+      const MuseScoreStyleType defaultAppGlobalStyle = MuseScoreStyleType::LIGHT_FUSION;
 #endif
 
       QString wd = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).arg(QCoreApplication::applicationName());
@@ -144,7 +154,7 @@ void Preferences::init(bool storeInMemoryOnly)
             {PREF_SCORE_STYLE_PARTSTYLEFILE,                       new StringPreference("", false)},
             {PREF_UI_CANVAS_BG_USECOLOR,                           new BoolPreference(true, false)},
             {PREF_UI_CANVAS_FG_USECOLOR,                           new BoolPreference(true, false)},
-            {PREF_UI_CANVAS_BG_COLOR,                              new ColorPreference(QColor("#dddddd"), false)},
+            {PREF_UI_CANVAS_BG_COLOR,                              new ColorPreference(QColor("#142433"), false)},
             {PREF_UI_CANVAS_FG_COLOR,                              new ColorPreference(QColor("#f9f9f9"), false)},
             {PREF_UI_CANVAS_BG_WALLPAPER,                          new StringPreference(QFileInfo(QString("%1%2").arg(mscoreGlobalShare).arg("wallpaper/background1.png")).absoluteFilePath(), false)},
             {PREF_UI_CANVAS_FG_WALLPAPER,                          new StringPreference(QFileInfo(QString("%1%2").arg(mscoreGlobalShare).arg("wallpaper/paper5.png")).absoluteFilePath(), false)},
@@ -158,7 +168,7 @@ void Preferences::init(bool storeInMemoryOnly)
             {PREF_UI_APP_STARTUP_SHOWPLAYPANEL,                    new BoolPreference(false, false)},
             {PREF_UI_APP_STARTUP_SHOWSPLASHSCREEN,                 new BoolPreference(true, false)},
             {PREF_UI_APP_STARTUP_SHOWSTARTCENTER,                  new BoolPreference(true, false)},
-            {PREF_UI_APP_GLOBALSTYLE,                              new EnumPreference(QVariant::fromValue(MuseScoreStyleType::LIGHT_FUSION), false)},
+            {PREF_UI_APP_GLOBALSTYLE,                              new EnumPreference(QVariant::fromValue(defaultAppGlobalStyle), false)},
             {PREF_UI_APP_LANGUAGE,                                 new StringPreference("system", false)},
             {PREF_UI_APP_RASTER_HORIZONTAL,                        new IntPreference(2)},
             {PREF_UI_APP_RASTER_VERTICAL,                          new IntPreference(2)},
@@ -167,12 +177,12 @@ void Preferences::init(bool storeInMemoryOnly)
             {PREF_UI_PIANO_HIGHLIGHTCOLOR,                         new ColorPreference(QColor("#1259d0"))},
             {PREF_UI_SCORE_NOTE_DROPCOLOR,                         new ColorPreference(QColor("#1778db"))},
             {PREF_UI_SCORE_DEFAULTCOLOR,                           new ColorPreference(QColor("#000000"))},
-            {PREF_UI_SCORE_FRAMEMARGINCOLOR,                       new ColorPreference(QColor("#5999db"))},
-            {PREF_UI_SCORE_LAYOUTBREAKCOLOR,                       new ColorPreference(QColor("#5999db"))},
-            {PREF_UI_SCORE_VOICE1_COLOR,                           new ColorPreference(QColor("#1259d0"))},    // blue
-            {PREF_UI_SCORE_VOICE2_COLOR,                           new ColorPreference(QColor("#009234"))},    // green
-            {PREF_UI_SCORE_VOICE3_COLOR,                           new ColorPreference(QColor("#c04400"))},    // orange
-            {PREF_UI_SCORE_VOICE4_COLOR,                           new ColorPreference(QColor("#70167a"))},    // purple
+            {PREF_UI_SCORE_FRAMEMARGINCOLOR,                       new ColorPreference(QColor("#A0A0A4"))},
+            {PREF_UI_SCORE_LAYOUTBREAKCOLOR,                       new ColorPreference(QColor("#A0A0A4"))},
+            {PREF_UI_SCORE_VOICE1_COLOR,                           new ColorPreference(QColor("#2E86AB"))},
+            {PREF_UI_SCORE_VOICE2_COLOR,                           new ColorPreference(QColor("#306B34"))},
+            {PREF_UI_SCORE_VOICE3_COLOR,                           new ColorPreference(QColor("#C73E1D"))},
+            {PREF_UI_SCORE_VOICE4_COLOR,                           new ColorPreference(QColor("#8D1E4B"))},
             {PREF_UI_THEME_ICONWIDTH,                              new IntPreference(28, false)},
             {PREF_UI_THEME_ICONHEIGHT,                             new IntPreference(24, false)},
             {PREF_UI_THEME_FONTFAMILY,                             new StringPreference(QApplication::font().family(), false) },
@@ -193,6 +203,14 @@ void Preferences::init(bool storeInMemoryOnly)
             {PREF_UI_PIANOROLL_LIGHT_BG_KEY_BLACK_COLOR,           new ColorPreference(QColor("#e6e6e6"))},
             {PREF_UI_PIANOROLL_LIGHT_BG_GRIDLINE_COLOR,            new ColorPreference(QColor("#a2a2a6"))},
             {PREF_UI_PIANOROLL_LIGHT_BG_TEXT_COLOR,                new ColorPreference(QColor("#111111"))},
+            {PREF_UI_BUTTON_HIGHLIGHT_COLOR_DISABLED_DARK_ON,      new ColorPreference(QColor("#205E78"))},
+            {PREF_UI_BUTTON_HIGHLIGHT_COLOR_DISABLED_DARK_OFF,     new ColorPreference(QColor("#a0a0a0"))},
+            {PREF_UI_BUTTON_HIGHLIGHT_COLOR_DISABLED_LIGHT_ON,     new ColorPreference(QColor("#69A1B9"))},
+            {PREF_UI_BUTTON_HIGHLIGHT_COLOR_DISABLED_LIGHT_OFF,    new ColorPreference(QColor("#a0a0a0"))},
+            {PREF_UI_BUTTON_HIGHLIGHT_COLOR_ENABLED_DARK_ON,       new ColorPreference(QColor("#43C1F7"))},
+            {PREF_UI_BUTTON_HIGHLIGHT_COLOR_ENABLED_DARK_OFF,      new ColorPreference(QColor("#eff0f1"))},
+            {PREF_UI_BUTTON_HIGHLIGHT_COLOR_ENABLED_LIGHT_ON,      new ColorPreference(QColor("#205E78"))},
+            {PREF_UI_BUTTON_HIGHLIGHT_COLOR_ENABLED_LIGHT_OFF,     new ColorPreference(QColor("#3b3f45"))}
       });
 
       _initialized = true;

@@ -507,6 +507,7 @@ void Segment::add(Element* el)
             case ElementType::TAB_DURATION_SYMBOL:
             case ElementType::FIGURED_BASS:
             case ElementType::FERMATA:
+            case ElementType::STICKING:
                   _annotations.push_back(el);
                   break;
 
@@ -583,6 +584,7 @@ void Segment::add(Element* el)
 //                  ChordRest* cr = toChordRest(el);
 //                  if (cr->tuplet() && !cr->tuplet()->elements().empty() && cr->tuplet()->elements().front() == cr && cr->tuplet()->tick() < 0)
 //                        cr->tuplet()->setTick(cr->tick());
+                  score()->setPlaylistDirty();
                   }
                   // fall through
 
@@ -638,6 +640,7 @@ void Segment::remove(Element* el)
                         if (start != s->startElement() || end != s->endElement())
                               score()->undo(new ChangeStartEndSpanner(s, start, end));
                         }
+                  score()->setPlaylistDirty();
                   }
                   break;
 
@@ -660,6 +663,7 @@ void Segment::remove(Element* el)
             case ElementType::TEXT:
             case ElementType::TREMOLOBAR:
             case ElementType::FERMATA:
+            case ElementType::STICKING:
                   removeAnnotation(el);
                   break;
 
@@ -1161,7 +1165,7 @@ Element* Segment::getElement(int staff)
                   }
             }
       else
-            return element(staff);
+            return element(staff * VOICES);
       return 0;
       }
 
@@ -1499,7 +1503,8 @@ Element* Segment::nextElement(int activeStaff)
             case ElementType::TAB_DURATION_SYMBOL:
             case ElementType::FIGURED_BASS:
             case ElementType::STAFF_STATE:
-            case ElementType::INSTRUMENT_CHANGE: {
+            case ElementType::INSTRUMENT_CHANGE:
+            case ElementType::STICKING: {
                   Element* next = nextAnnotation(e);
                   if (next)
                         return next;
@@ -1605,7 +1610,8 @@ Element* Segment::prevElement(int activeStaff)
             case ElementType::TAB_DURATION_SYMBOL:
             case ElementType::FIGURED_BASS:
             case ElementType::STAFF_STATE:
-            case ElementType::INSTRUMENT_CHANGE: {
+            case ElementType::INSTRUMENT_CHANGE:
+            case ElementType::STICKING: {
                   Element* prev = prevAnnotation(e);
                   if (prev)
                         return prev;
@@ -1828,7 +1834,7 @@ QString Segment::accessibleExtraInfo() const
                   }
 
             if (s->tick() == tick())
-                  startSpanners += QObject::tr("Start of ") + s->accessibleInfo();
+                  startSpanners += QObject::tr("Start of %1").arg(s->accessibleInfo());
 
             const Segment* seg = 0;
             switch (s->type()) {
@@ -1842,7 +1848,7 @@ QString Segment::accessibleExtraInfo() const
                   }
 
             if (seg && s->tick2() == seg->tick())
-                  endSpanners += QObject::tr("End of ") + s->accessibleInfo();
+                  endSpanners += QObject::tr("End of %1").arg(s->accessibleInfo());
             }
       return rez + " " + startSpanners + " " + endSpanners;
       }
@@ -2012,6 +2018,10 @@ qreal Segment::minHorizontalDistance(Segment* ns, bool systemHeaderGap) const
       qreal ww = -1000000.0;        // can remain negative
       for (unsigned staffIdx = 0; staffIdx < _shapes.size(); ++staffIdx) {
             qreal d = staffShape(staffIdx).minHorizontalDistance(ns->staffShape(staffIdx));
+            // first chordrest of a staff should clear the widest header for any staff
+            // so make sure segment is as wide as it needs to be
+            if (systemHeaderGap)
+                  d = qMax(d, staffShape(staffIdx).right());
             ww      = qMax(ww, d);
             }
       qreal w = qMax(ww, 0.0);      // non-negative

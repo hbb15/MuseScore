@@ -620,6 +620,7 @@ class Score : public QObject, public ScoreElement {
       void undoAddElement(Element* element);
       void undoAddCR(ChordRest* element, Measure*, const Fraction& tick);
       void undoRemoveElement(Element* element);
+      void undoChangeSpannerElements(Spanner* spanner, Element* startElement, Element* endElement);
       void undoChangeElement(Element* oldElement, Element* newElement);
       void undoChangePitch(Note* note, int pitch, int tpc1, int tpc2);
       void undoChangeFretting(Note* note, int pitch, int string, int fret, int tpc1, int tpc2);
@@ -796,6 +797,7 @@ class Score : public QObject, public ScoreElement {
       Segment* tick2leftSegment(const Fraction& tick) const;
       Segment* tick2rightSegment(const Fraction& tick) const;
       void fixTicks();
+      void rebuildTempoAndTimeSigMaps(Measure* m);
       Element* nextElement();
       Element* prevElement();
 
@@ -830,7 +832,7 @@ class Score : public QObject, public ScoreElement {
       virtual const MStyle& style() const  { return _style;                  }
 
       void setStyle(const MStyle& s);
-      bool loadStyle(const QString&, bool ignore = false);
+      bool loadStyle(const QString&, bool ign = false);
       bool saveStyle(const QString&);
 
       QVariant styleV(Sid idx) const  { return style().value(idx);   }
@@ -894,6 +896,7 @@ class Score : public QObject, public ScoreElement {
 
       void updateCapo();
       void updateVelo();
+      void updateChannel();
 
       void cmdConcertPitchChanged(bool, bool /*useSharpsFlats*/);
 
@@ -1013,7 +1016,7 @@ class Score : public QObject, public ScoreElement {
       MasterScore* masterScore() const    { return _masterScore; }
       void setMasterScore(MasterScore* s) { _masterScore = s;    }
       void createRevision();
-      void writeSegments(XmlWriter& xml, int strack, int etrack, Segment* first, Segment* last, bool, bool);
+      void writeSegments(XmlWriter& xml, int strack, int etrack, Segment* sseg, Segment* eseg, bool, bool);
 
       const QMap<QString, QString>& metaTags() const   { return _metaTags; }
       QMap<QString, QString>& metaTags()               { return _metaTags; }
@@ -1323,7 +1326,6 @@ class MasterScore : public Score {
       int getNextFreeMidiMapping(int p = -1, int ch = -1);
       int getNextFreeDrumMidiMapping();
       void enqueueMidiEvent(MidiInputEvent ev) { _midiInputQueue.enqueue(ev); }
-      void updateChannel();
       void rebuildAndUpdateExpressive(Synthesizer* synth);
       void updateExpressive(Synthesizer* synth);
       void updateExpressive(Synthesizer* synth, bool expressive, bool force = false);

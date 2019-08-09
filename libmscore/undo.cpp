@@ -1900,6 +1900,46 @@ void ChangeNoteEvents::flip(EditData*)
       }
 
 //---------------------------------------------------------
+//   ChangeNoteEventList::flip
+//---------------------------------------------------------
+
+void ChangeNoteEventList::flip(EditData*)
+      {
+      note->score()->setPlaylistDirty();
+      // Get copy of current list.
+      NoteEventList nel = note->playEvents();
+      // Replace current copy with new list.
+      note->setPlayEvents(newEvents);
+      // Save copy of replaced list.
+      newEvents = nel;
+      // Get a copy of the current playEventType.
+      PlayEventType petval = note->chord()->playEventType();
+      // Replace current setting with new setting.
+      note->chord()->setPlayEventType(newPetype);
+      // Save copy of old setting.
+      newPetype = petval;
+      }
+
+//---------------------------------------------------------
+//   ChangeNoteEventList::flip
+//---------------------------------------------------------
+
+void ChangeChordPlayEventType::flip(EditData*)
+      {
+      chord->score()->setPlaylistDirty();
+      // Flips data between NoteEventList's.
+      size_t n = chord->notes().size();
+      for (size_t i = 0; i < n; ++i) {
+            Note* note = chord->notes()[i];
+            note->playEvents().swap(events[int(i)]);
+            }
+      // Flips PlayEventType between chord and undo.
+      PlayEventType curPetype = chord->playEventType();
+      chord->setPlayEventType(petype);
+      petype = curPetype;
+      }
+
+//---------------------------------------------------------
 //   ChangeInstrument::flip
 //---------------------------------------------------------
 
@@ -2113,54 +2153,26 @@ void ChangeSpannerElements::flip(EditData*)
             // be sure new spanner elements are of the right type
             if (!startElement->isNote() || !endElement->isNote())
                   return;
-            Note* newStartNote;
-            Note* newEndNote;
-            Note* oldStartNote;
-            Note* oldEndNote;
-            int   startDeltaTrack   = oldStartElement->track() - startElement->track();
-            int   endDeltaTrack     = oldEndElement->track() - endElement->track();
-            // scan all spanners linked to this one
-            for (ScoreElement* el : spanner->linkList()) {
-                  Spanner*    sp    = static_cast<Spanner*>(el);
-                  newStartNote      = newEndNote = nullptr;
-                  oldStartNote      = toNote(sp->startElement());
-                  oldEndNote        = toNote(sp->endElement());
-                  // if not the current spanner, but one linked to it, determine its new start and end notes
-                  // as modifications 'parallel' to the modifications of the current spanner's start and end notes
-                  if (sp != spanner) {
-                        // determine the track where to expect the 'parallel' start element
-                        int   newTrack    = sp->startElement()->track() + startDeltaTrack;
-                        // look in notes linked to new start note for a note with
-                        // same score as linked spanner and appropriate track
-                        for (ScoreElement* newEl : startElement->linkList())
-                              if (static_cast<Note*>(newEl)->score() == sp->score()
-                                          && static_cast<Note*>(newEl)->track() == newTrack) {
-                                    newStartNote = static_cast<Note*>(newEl);
-                                    break;
-                                    }
-                        // similarly to determine the 'parallel' end element
-                        newTrack    = sp->endElement()->track() + endDeltaTrack;
-                        for (ScoreElement* newEl : endElement->linkList())
-                              if (static_cast<Note*>(newEl)->score() == sp->score()
-                                          && static_cast<Note*>(newEl)->track() == newTrack) {
-                                    newEndNote = static_cast<Note*>(newEl);
-                                    break;
-                                    }
+            Note* oldStartNote = toNote(oldStartElement);
+            Note* oldEndNote = toNote(oldEndElement);
+            Note* newStartNote = toNote(startElement);
+            Note* newEndNote = toNote(endElement);
+            // update spanner's start and end notes
+            if (newStartNote && newEndNote) {
+                  spanner->setNoteSpan(newStartNote, newEndNote);
+                  if (spanner->isTie()) {
+                        Tie* tie = toTie(spanner);
+                        oldStartNote->setTieFor(nullptr);
+                        oldEndNote->setTieBack(nullptr);
+                        newStartNote->setTieFor(tie);
+                        newEndNote->setTieBack(tie);
                         }
-                  // if current spanner, just use stored start and end elements
                   else {
-                        newStartNote = toNote(startElement);
-                        newEndNote   = toNote(endElement);
-                        }
-                  // update spanner's start and end notes
-                  if (newStartNote && newEndNote) {
-                        oldStartNote->removeSpannerFor(sp);
-                        oldEndNote->removeSpannerBack(sp);
-                        sp->setNoteSpan(newStartNote, newEndNote);
-                        newStartNote->addSpannerFor(sp);
-                        newEndNote->addSpannerBack(sp);
-
-                        if (sp->isGlissando())
+                        oldStartNote->removeSpannerFor(spanner);
+                        oldEndNote->removeSpannerBack(spanner);
+                        newStartNote->addSpannerFor(spanner);
+                        newEndNote->addSpannerBack(spanner);
+                        if (spanner->isGlissando())
                               oldEndNote->chord()->updateEndsGlissando();
                         }
                   }
@@ -2171,13 +2183,6 @@ void ChangeSpannerElements::flip(EditData*)
             }
       startElement = oldStartElement;
       endElement   = oldEndElement;
-      if (spanner->isTie()) {
-            Tie* tie = toTie(spanner);
-            toNote(endElement)->setTieBack(0);
-            tie->endNote()->setTieBack(tie);
-            toNote(startElement)->setTieFor(0);
-            tie->startNote()->setTieFor(tie);
-            }
       spanner->score()->setLayout(spanner->tick());
       spanner->score()->setLayout(spanner->tick2());
       }
@@ -2247,9 +2252,12 @@ void ChangeNoteEvent::flip(EditData*)
       NoteEvent e = *oldEvent;
       *oldEvent   = newEvent;
       newEvent    = e;
-
-      // TODO:
-      note->chord()->setPlayEventType(PlayEventType::User);
+      // Get a copy of the current playEventType.
+      PlayEventType petval = note->chord()->playEventType();
+      // Replace current setting with new setting.
+      note->chord()->setPlayEventType(newPetype);
+      // Save copy of old setting.
+      newPetype = petval;
       }
 
 //---------------------------------------------------------

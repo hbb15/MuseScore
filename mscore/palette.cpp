@@ -186,7 +186,7 @@ void Palette::setMoreElements(bool val)
       _moreElements = val;
       if (val && (cells.isEmpty() || cells.back()->tag != "ShowMore")) {
             PaletteCell* cell = new PaletteCell;
-            cell->name      = "Show More";
+            cell->name      = tr("Show More");
             cell->tag       = "ShowMore";
             cells.append(cell);
             }
@@ -873,7 +873,7 @@ void Palette::leaveEvent(QEvent*)
       if (currentIdx != -1) {
             QRect r = idxRect(currentIdx);
             PaletteBox* pb = mscore->getPaletteBox();
-            if (!pb->getKeyboardNavigation())
+            if (!pb->getKeyboardNavigation() && !(QGuiApplication::keyboardModifiers() & Qt::ShiftModifier))
                   currentIdx = -1;
             update(r);
             }
@@ -1195,8 +1195,9 @@ QPixmap Palette::pixmap(int paletteIdx) const
             toIcon(e)->setExtent(w < h ? w : h);
       p.scale(cellMag, cellMag);
 
+      p.translate(-r.topLeft());
       QPointF pos = e->ipos();
-      e->setPos(-r.topLeft());
+      e->setPos(0, 0);
 
       QColor color;
        // show voice colors for notes

@@ -73,6 +73,7 @@
 #include "libmscore/staff.h"
 #include "libmscore/stafftext.h"
 #include "libmscore/stafftype.h"
+#include "libmscore/sticking.h"
 #include "libmscore/stringdata.h"
 #include "libmscore/sym.h"
 #include "libmscore/system.h"
@@ -318,7 +319,9 @@ void ScoreView::objectPopup(const QPoint& pos, Element* obj)
       popup->addAction("Debugger")->setData("list");
 #endif
 
+      popupActive = true;
       a = popup->exec(pos);
+      popupActive = false;
       if (a == 0)
             return;
       const QByteArray& cmd(a->data().toByteArray());
@@ -917,14 +920,15 @@ void ScoreView::paintEvent(QPaintEvent* ev)
       shadowNote->draw(&vp);
 
       if (!dropAnchor.isNull()) {
-            QPen pen(QBrush(QColor(80, 0, 0)), 2.0 / vp.worldTransform().m11(), Qt::DotLine);
+            const auto dropAnchorColor = preferences.getColor(PREF_UI_SCORE_VOICE4_COLOR);
+            QPen pen(QBrush(dropAnchorColor), 2.0 / vp.worldTransform().m11(), Qt::DotLine);
             vp.setPen(pen);
             vp.drawLine(dropAnchor);
 
             qreal d = 4.0 / vp.worldTransform().m11();
             QRectF r(-d, -d, 2 * d, 2 * d);
 
-            vp.setBrush(QBrush(QColor(80, 0, 0)));
+            vp.setBrush(QBrush(dropAnchorColor));
             vp.setPen(Qt::NoPen);
             r.moveCenter(dropAnchor.p1());
             vp.drawEllipse(r);
@@ -1896,10 +1900,12 @@ void ScoreView::cmd(const char* s)
             cmdAddText(Tid::INSTRUMENT_CHANGE);
       else if (cmd == "fingering-text")
             cmdAddText(Tid::FINGERING);
+      else if (cmd == "sticking-text")
+            cmdAddText(Tid::STICKING);
 
       else if (cmd == "edit-element") {
             Element* e = _score->selection().element();
-            if (e && e->isEditable()) {
+            if (e && e->isEditable() && !popupActive) {
                   startEditMode(e);
                   }
             }
@@ -2383,6 +2389,7 @@ void ScoreView::textTab(bool back)
       TextBase* ot = toTextBase(oe);
       Tid tid = ot->tid();
       ElementType type = ot->type();
+      int staffIdx = ot->staffIdx();
 
       // get prev/next element now, as current element may be deleted if empty
       Element* el = back ? score()->prevElement() : score()->nextElement();
@@ -2444,7 +2451,7 @@ void ScoreView::textTab(bool back)
             // check annotation list of new segment
             Segment* ns = nn->chord()->segment();
             for (Element* e : ns->annotations()) {
-                  if (e->type() != type)
+                  if (e->staffIdx() != staffIdx || e->type() != type)
                         continue;
                   TextBase* nt = toTextBase(e);
                   if (nt->tid() == tid) {
@@ -2467,6 +2474,32 @@ void ScoreView::textTab(bool back)
             if (type != ElementType::TEMPO_TEXT)
                   cmdAddText(tid);
             }
+      }
+
+//---------------------------------------------------------
+//   editKeySticking
+//---------------------------------------------------------
+
+bool ScoreView::editKeySticking()
+      {
+      Q_ASSERT(editData.element->isSticking());
+
+      switch (editData.key) {
+            case Qt::Key_Space:
+                  textTab(editData.modifiers & Qt::ShiftModifier);
+                  return true;
+            case Qt::Key_Left:
+                  textTab(true);
+                  return true;
+            case Qt::Key_Right:
+            case Qt::Key_Return:
+                  textTab(false);
+                  return true;
+            default:
+                  break;
+            }
+
+      return false;
       }
 
 //---------------------------------------------------------
@@ -3589,7 +3622,7 @@ void ScoreView::cmdChangeEnharmonic(bool both)
 
 void ScoreView::cloneElement(Element* e)
       {
-      if (e->isMeasure() || e->isNote() || e->isVBox() || e->isSpacer())
+      if (e->isMeasure() || e->isNote() || e->isVBox())
             return;
       QDrag* drag = new QDrag(this);
       QMimeData* mimeData = new QMimeData;
@@ -3990,6 +4023,15 @@ void ScoreView::cmdAddText(Tid tid)
                   cr->undoAddAnnotation(s);
                   }
                   break;
+            case Tid::STICKING:
+                  {
+                  ChordRest* cr = _score->getSelectedChordRest();
+                  if (!cr)
+                        break;
+                  s = new Sticking(_score);
+                  cr->undoAddAnnotation(s);
+                  }
+                  break;
             case Tid::FINGERING:
             case Tid::LH_GUITAR_FINGERING:
             case Tid::RH_GUITAR_FINGERING:
@@ -4185,6 +4227,9 @@ void ScoreView::cmdRepeatSelection()
             qDebug("wrong selection type");
             return;
             }
+
+      if (!checkCopyOrCut())
+            return;
 
       QString mimeType = selection.mimeType();
       if (mimeType.isEmpty()) {

@@ -260,7 +260,7 @@ bool LineSegment::edit(EditData& ed)
                      != note2->chord()->staff()->part()->instrument(note2->chord()->tick()) )
                         return true;
                   if (note1 != oldNote1 || note2 != oldNote2)
-                        spanner()->setNoteSpan(note1, note2);          // set new spanner span
+                        score()->undoChangeSpannerElements(spanner(), note1, note2);
                   }
                   break;
             case Spanner::Anchor::MEASURE:
@@ -368,9 +368,7 @@ void LineSegment::editDrag(EditData& ed)
                         Note* sNote   = toNote(l->startElement());
                         // do not change anchor if new note is before start note
                         if (sNote && sNote->chord() && noteNew->chord() && sNote->chord()->tick() < noteNew->chord()->tick()) {
-                              noteOld->removeSpannerBack(l);
-                              noteNew->addSpannerBack(l);
-                              l->setEndElement(noteNew);
+                              score()->undoChangeSpannerElements(l, sNote, noteNew);
 
                               _offset2 += noteOld->canvasPos() - noteNew->canvasPos();
                               }
@@ -607,7 +605,7 @@ QPointF SLine::linePos(Grip grip, System** sys) const
                                           // allow lyrics hyphen to extend to barline
                                           // other lines stop 1sp short
                                           qreal gap = (type() == ElementType::LYRICSLINE) ? 0.0 : sp;
-                                          qreal x3 = seg->enabled() ? seg->x() : seg->measure()->x() + seg->measure()->width();
+                                          qreal x3 = seg->enabled() ? seg->x() : seg->measure()->width();
                                           x2 = qMax(x2, x3 - gap);
                                           }
                                     x = x2 - endElement()->parent()->x();
@@ -670,15 +668,15 @@ QPointF SLine::linePos(Grip grip, System** sys) const
                         while (seg && seg->segmentType() != SegmentType::EndBarLine)
                               seg = seg->prev();
                         if (!seg || !seg->enabled()) {
-                              // no end bar line; look for BeginBarLine of next measure
+                              // no end bar line; look for BeginBarLine or StartRepeatBarLine of next measure
                               Measure* nm = m->nextMeasure();
                               if (nm->system() == m->system())
-                                    seg = nm->first(SegmentType::BeginBarLine);
+                                    seg = nm->first(SegmentType::BeginBarLine|SegmentType::StartRepeatBarLine);
                               }
-                        qreal mwidth = seg ? seg->x() : m->bbox().right();
+                        qreal mwidth = seg && seg->measure() == m ? seg->x() : m->bbox().right();
                         x = m->pos().x() + mwidth;
                         // align to barline
-                        if (seg && seg->isEndBarLineType()) {
+                        if (seg && (seg->segmentType() & SegmentType::BarLineType)) {
                               Element* e = seg->element(0);
                               if (e && e->type() == ElementType::BAR_LINE) {
                                     BarLineType blt = toBarLine(e)->barLineType();
@@ -987,7 +985,7 @@ void SLine::writeProperties(XmlWriter& xml) const
       //
       bool modified = false;
       for (const SpannerSegment* seg : spannerSegments()) {
-            if (!seg->autoplace() || !seg->visible() || 
+            if (!seg->autoplace() || !seg->visible() ||
                (!seg->isStyled(Pid::OFFSET) && (!seg->offset().isNull() || !seg->userOff2().isNull()))) {
                   modified = true;
                   break;
@@ -997,7 +995,7 @@ void SLine::writeProperties(XmlWriter& xml) const
             return;
 
       //
-      // write user modified layout
+      // write user modified layout and other segment properties
       //
       qreal _spatium = score()->spatium();
       for (const SpannerSegment* seg : spannerSegments()) {
@@ -1010,6 +1008,7 @@ void SLine::writeProperties(XmlWriter& xml) const
             //if (seg->propertyFlags(Pid::OFFSET) & PropertyFlags::UNSTYLED)
             xml.tag("offset", seg->offset() / _spatium);
             xml.tag("off2", seg->userOff2() / _spatium);
+            seg->writeProperty(xml, Pid::MIN_DISTANCE);
             seg->Element::writeProperties(xml);
             xml.etag();
             }

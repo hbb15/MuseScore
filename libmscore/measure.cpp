@@ -555,9 +555,10 @@ void Measure::layout2()
             Spacer* sp = ms->vspacerDown();
             if (sp) {
                   sp->layout();
-                  int n = score()->staff(staffIdx)->lines(tick()) - 1;
+                  Staff* staff = score()->staff(staffIdx);
+                  int n = staff->lines(tick()) - 1;
                   qreal y = system()->staff(staffIdx)->y();
-                  sp->setPos(_spatium * .5, y + n * _spatium);
+                  sp->setPos(_spatium * .5, y + n * _spatium * staff->mag(tick()));
                   }
             sp = ms->vspacerUp();
             if (sp) {
@@ -864,6 +865,7 @@ void Measure::add(Element* e)
                               _mstaves[e->staffIdx()]->setVspacerDown(sp);
                               break;
                         }
+                  sp->setGap(sp->gap());  // trigger relayout
                   }
                   break;
             case ElementType::JUMP:
@@ -2293,6 +2295,7 @@ void Measure::readVoice(XmlReader& e, int staffIdx, bool irregular)
                || tag == "Symbol"
                || tag == "Tempo"
                || tag == "StaffText"
+               || tag == "Sticking"
                || tag == "SystemText"
                || tag == "RehearsalMark"
                || tag == "InstrumentChange"
@@ -2800,6 +2803,27 @@ bool Measure::isOnlyDeletedRests(int track) const
             if (s->segmentType() != st || !s->element(track))
                   continue;
             if (s->element(track)->isRest() ? !toRest(s->element(track))->isGap() : !s->element(track)->isRest())
+                  return false;
+            }
+      return true;
+      }
+
+//---------------------------------------------------------
+//   isOnlyDeletedRests
+//---------------------------------------------------------
+
+bool Measure::isOnlyDeletedRests(int track, const Fraction& stick, const Fraction& etick) const
+      {
+      static const SegmentType st { SegmentType::ChordRest };
+      for (const Segment* s = first(st); s; s = s->next(st)) {
+            if (s->segmentType() != st || !s->element(track))
+                  continue;
+            ChordRest* cr = toChordRest(s->element(track));
+            if (cr->tick() + cr->globalTicks() <= stick)
+                  continue;
+            if (cr->tick() >= etick)
+                  return true;
+            if (!cr->isRest() || !toRest(cr)->isGap())
                   return false;
             }
       return true;
@@ -3673,14 +3697,17 @@ void Measure::addSystemHeader(bool isFirstSystem)
             if (isFirstSystem || score()->styleB(Sid::genClef)) {
                   // find the clef type at the previous tick
                   ClefTypeList cl = staff->clefType(tick() - Fraction::fromTicks(1));
-                  // look for a clef change at the end of the previous measure
-                  if (prevMeasure()) {
-                        Segment* s = prevMeasure()->findSegment(SegmentType::Clef, tick());
-                        if (s) {
-                              Clef* c = toClef(s->element(track));
-                              if (c)
-                                    cl = c->clefTypeList();
-                              }
+                  Segment* s = nullptr;
+                  if (prevMeasure())
+                        // look for a clef change at the end of the previous measure
+                        s = prevMeasure()->findSegment(SegmentType::Clef, tick());
+                  else if (isMMRest())
+                        // look for a header clef at the beginning of the first underlying measure
+                        s = mmRestFirst()->findFirstR(SegmentType::HeaderClef, Fraction(0,1));
+                  if (s) {
+                        Clef* c = toClef(s->element(track));
+                        if (c)
+                              cl = c->clefTypeList();
                         }
                   Clef* clef;
                   if (!cSegment) {
@@ -3791,7 +3818,7 @@ void Measure::addSystemHeader(bool isFirstSystem)
                                     // a transposing instrument using a different key sig.
                                     // To prevent this from making the wrong key sig display, remove any key
                                     // sigs on staves where the key in this measure is C.
-                                    score()->undo(new RemoveElement(e));
+                                    kSegment->remove(e);
                                     }
                               }
 
@@ -3989,7 +4016,7 @@ void Measure::removeSystemTrailer()
             changed = true;
             }
       setTrailer(false);
-      if (changed)
+      if (system() && changed)
             computeMinWidth();
       }
 

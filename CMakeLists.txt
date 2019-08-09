@@ -155,18 +155,10 @@ set(CRASH_REPORT_URL "http://127.0.0.1:1127/post" CACHE STRING "URL where to sen
 if (APPLE)
       set (CMAKE_CXX_COMPILER   clang++)
       set (CMAKE_CXX_COMPILER_ID "Clang")
-      # Currently, just 'ppc', 'i386' or 'ppc i386' are useful architectures,
-      # because the Flash-Player is not yet available as a 64-bit version.
-      # Flash is required for displaying the videos of MuseScore-Connect.
-      # See http://qt.gitorious.org/qt/pages/Qt470KnownIssues
-      # Since 10.6+ only runs on intel, just set it to i386.
       set(CMAKE_OSX_ARCHITECTURES x86_64)
 
-      # Adjust and uncomment this variable, if you target a different version
-      # of MacOSX.
-      #set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk)
+      set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)
 
-      set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)      # Min version required
       set(HAS_AUDIOFILE TRUE)            # Requires libsndfile
       set(MAC_APPCAST_URL "")
 
@@ -201,6 +193,7 @@ if (BUILD_AUTOUPDATE STREQUAL "ON")
              if(SPARKLE_FOUND)
                    set(MAC_SPARKLE_ENABLED 1)
                    set(OsxFrameworks ${OsxFrameworks} ${SPARKLE_LIBRARY})
+                   message("Current OSX version is ${CURRENT_OSX_VERSION}")
                    set(MAC_APPCAST_URL "https://sparkle.musescore.org/${MSCORE_RELEASE_CHANNEL}/3/macos/appcast.xml")
              endif(SPARKLE_FOUND)
       elseif (MSVC)
@@ -284,7 +277,7 @@ set(CMAKE_SKIP_RULE_DEPENDENCY TRUE)
 # The MuseScore version number.
 SET(MUSESCORE_NAME "MuseScore")
 SET(MUSESCORE_VERSION_MAJOR  "3")
-SET(MUSESCORE_VERSION_MINOR  "1")
+SET(MUSESCORE_VERSION_MINOR  "3")
 SET(MUSESCORE_VERSION_PATCH  "0")
 SET(MUSESCORE_VERSION_LABEL  "")
 SET(MUSESCORE_VERSION       "${MUSESCORE_VERSION_MAJOR}.${MUSESCORE_VERSION_MINOR}")

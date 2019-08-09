@@ -1110,7 +1110,7 @@ bool Note::isNoteName() const
 
 void Note::draw(QPainter* painter) const
       {
-      if (_hidden || _fretHidden)
+      if (_hidden)
             return;
 
       QColor c(curColor());
@@ -1121,6 +1121,11 @@ void Note::draw(QPainter* painter) const
       if (tablature) {
             const Staff* st = staff();
             const StaffType* tab = st->staffType(tick());
+            if (tieBack() && !tab->showBackTied()) {
+                  if (chord()->measure()->system() == tieBack()->startNote()->chord()->measure()->system() && el().size() == 0)
+                        // fret should be hidden, so return without drawing it
+                        return;
+                  }
             // draw background, if required (to hide a segment of string line or to show a fretting conflict)
             if (!tab->linesThrough() || fretConflict()) {
                   qreal d  = spatium() * .1;
@@ -2170,13 +2175,9 @@ void Note::layout()
             const StaffType* tab = st->staffType(tick());
             qreal mags = magS();
             bool paren = false;
-            _fretHidden = false;
             if (tieBack() && !tab->showBackTied()) {
-                  _fretHidden = false;
-                  if (el().size() > 0)
+                  if (chord()->measure() != tieBack()->startNote()->chord()->measure() || el().size() > 0)
                         paren = true;
-                  else
-                        _fretHidden = true;
                   }
             // not complete but we need systems to be layouted to add parenthesis
             if (fixed())
@@ -3436,9 +3437,10 @@ std::vector<Note*> Note::tiedNotes() const
 
       notes.push_back(note);
       while (note->tieFor()) {
-            if (std::find(notes.begin(), notes.end(), note->tieFor()->endNote()) != notes.end())
+            Note* endNote = note->tieFor()->endNote();
+            if (!endNote || std::find(notes.begin(), notes.end(), endNote) != notes.end())
                   break;
-            note = note->tieFor()->endNote();
+            note = endNote;
             notes.push_back(note);
             }
       return notes;

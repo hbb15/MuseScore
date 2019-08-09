@@ -67,6 +67,13 @@ class Articulation final : public Element {
 
       virtual void draw(QPainter*) const;
 
+      enum class AnchorGroup {
+            ARTICULATION,
+            LUTE_FINGERING,
+            OTHER
+            };
+      static AnchorGroup anchorGroup(SymId);
+
    public:
       Articulation(Score*);
       Articulation(SymId, Score*);
@@ -132,6 +139,7 @@ class Articulation final : public Element {
       bool isAccent() const;
       bool isMarcato() const;
       bool isLuteFingering() const;
+      bool isOrnament() const;
 
       void doAutoplace();
       };

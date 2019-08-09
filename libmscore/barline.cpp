@@ -79,7 +79,7 @@ static void undoChangeBarLineType(BarLine* bl, BarLineType barType, bool allStav
                               m2 = bl->masterScore()->tick2measure(m2->tick());
                               if (!m2)
                                     return;     // should never happen
-                              segment = m2->undoGetSegmentR(segment->segmentType(), segment->rtick());
+                              segment = m2->undoGetSegment(segment->segmentType(), segment->tick());
                               }
                         const std::vector<Element*>& elist = allStaves ? segment->elist() : std::vector<Element*> { bl };
                         for (Element* e : elist) {
@@ -1566,6 +1566,17 @@ QVariant BarLine::propertyDefault(Pid propertyId) const
                   break;
             }
       return Element::propertyDefault(propertyId);
+      }
+
+//---------------------------------------------------------
+//   propertyId
+//---------------------------------------------------------
+
+Pid BarLine::propertyId(const QStringRef& name) const
+      {
+      if (name == "subtype")
+            return Pid::BARLINE_TYPE;
+      return Element::propertyId(name);
       }
 
 //---------------------------------------------------------

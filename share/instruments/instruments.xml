@@ -1047,10 +1047,10 @@
                   <genre>orchestra</genre>
                   <genre>concertband</genre>
             </Instrument>
-            <Instrument id="baritone-oboe">
-                  <longName>Baritone Oboe</longName>
-                  <shortName>Bar. Ob.</shortName>
-                  <description>Baritone Oboe</description>
+            <Instrument id="bass-oboe">
+                  <longName>Bass Oboe</longName>
+                  <shortName>B. Ob.</shortName>
+                  <description>Bass Oboe</description>
                   <musicXMLid>wind.reed.oboe.bass</musicXMLid>
                   <clef>G8vb</clef>
                   <barlineSpan>1</barlineSpan>
@@ -2952,7 +2952,7 @@
                   </Channel>
             </Instrument>
             <Instrument id="e-horn">
-                  <longName>E Horn</longName>
+                  <longName>Horn in E</longName>
                   <shortName>E Hn.</shortName>
                   <description>E Horn</description>
                   <musicXMLid>brass.natural-horn</musicXMLid>
@@ -2983,8 +2983,8 @@
             </Instrument>
             <Instrument id="d-horn">
                   <longName>Horn in D</longName>
-                  <shortName>Hn.</shortName>
-                  <description>Horn</description>
+                  <shortName>D Hn.</shortName>
+                  <description>D Horn</description>
                   <musicXMLid>brass.natural-horn</musicXMLid>
                   <clef>G</clef>
                   <barlineSpan>1</barlineSpan>
@@ -3005,6 +3005,23 @@
                   <barlineSpan>1</barlineSpan>
                   <aPitchRange>34-67</aPitchRange>
                   <pPitchRange>30-72</pPitchRange>
+                  <Channel>
+                        <program value="60"/> <!--French Horn-->
+                  </Channel>
+            </Instrument>
+            <Instrument id="low-c-horn-treble">
+                  <trackName>Horn in C (Treble Clef)</trackName>
+                  <longName>Horn in C</longName>
+                  <shortName>C Hn.</shortName>
+                  <description>Low C Horn</description>
+                  <musicXMLid>brass.natural-horn</musicXMLid>
+                  <transposingClef>G</transposingClef>
+                  <concertClef>F</concertClef>
+                  <barlineSpan>1</barlineSpan>
+                  <aPitchRange>34-67</aPitchRange>
+                  <pPitchRange>30-72</pPitchRange>
+                  <transposeDiatonic>-7</transposeDiatonic>
+                  <transposeChromatic>-12</transposeChromatic>
                   <Channel>
                         <program value="60"/> <!--French Horn-->
                   </Channel>
@@ -10242,9 +10259,6 @@
                   <Channel name="pizzicato">
                         <program value="32"/> <!--Acoustic Bass-->
                   </Channel>
-                  <Channel>
-                        <program value="32"/>
-                  </Channel>
                   <Channel name="arco">
                         <program value="43"/> <!--Contrabass-->
                   </Channel>
@@ -10682,12 +10696,15 @@
                   <aPitchRange>55-88</aPitchRange>
                   <pPitchRange>55-103</pPitchRange>
                   <Channel name="arco">
+                        <controller ctrl="32" value="21"/> <!--Violins Fast Expr.-->.
                         <program value="48"/> <!--String Ensemble 1-->
                   </Channel>
                   <Channel name="pizzicato">
+                        <controller ctrl="32" value="21"/> <!--Violins Pizzicato Expr.-->.
                         <program value="45"/> <!--Pizzicato Strings-->
                   </Channel>
                   <Channel name="tremolo">
+                        <controller ctrl="32" value="21"/> <!--Violins Tremolo Expr.-->.
                         <program value="44"/> <!--Tremolo Strings-->
                   </Channel>
                   <genre>orchestra</genre>
@@ -10724,12 +10741,15 @@
                   <aPitchRange>48-79</aPitchRange>
                   <pPitchRange>48-93</pPitchRange>
                   <Channel name="arco">
+                        <controller ctrl="32" value="31"/> <!--Violas Fast Expr.-->.
                         <program value="48"/> <!--String Ensemble 1-->
                   </Channel>
                   <Channel name="pizzicato">
+                        <controller ctrl="32" value="31"/> <!--Violas Pizzicato Expr.-->.
                         <program value="45"/> <!--Pizzicato Strings-->
                   </Channel>
                   <Channel name="tremolo">
+                        <controller ctrl="32" value="31"/> <!--Violas Tremolo Expr.-->.
                         <program value="44"/> <!--Tremolo Strings-->
                   </Channel>
                   <genre>orchestra</genre>
@@ -10767,12 +10787,15 @@
                   <aPitchRange>36-67</aPitchRange>
                   <pPitchRange>36-90</pPitchRange>
                   <Channel name="arco">
+                        <controller ctrl="32" value="41"/> <!--Celli Fast Expr.-->.
                         <program value="48"/> <!--String Ensemble 1-->
                   </Channel>
                   <Channel name="pizzicato">
+                        <controller ctrl="32" value="41"/> <!--Celli Pizzicato Expr.-->.
                         <program value="45"/> <!--Pizzicato Strings-->
                   </Channel>
                   <Channel name="tremolo">
+                        <controller ctrl="32" value="41"/> <!--Celli Tremolo Expr.-->.
                         <program value="44"/> <!--Tremolo Strings-->
                   </Channel>
                   <genre>orchestra</genre>
@@ -10816,12 +10839,15 @@
                   <transposeDiatonic>-7</transposeDiatonic>
                   <transposeChromatic>-12</transposeChromatic>
                   <Channel name="arco">
+                        <controller ctrl="32" value="51"/> <!--Basses Fast Expr.-->.
                         <program value="48"/> <!--String Ensemble 1-->
                   </Channel>
                   <Channel name="pizzicato">
+                        <controller ctrl="32" value="51"/> <!--Basses Pisszcato Expr.-->.
                         <program value="45"/> <!--Pizzicato Strings-->
                   </Channel>
                   <Channel name="tremolo">
+                        <controller ctrl="32" value="51"/> <!--Basses Tremolo Expr.-->.
                         <program value="44"/> <!--Tremolo Strings-->
                   </Channel>
                   <genre>orchestra</genre>

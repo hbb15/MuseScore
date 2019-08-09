@@ -124,9 +124,6 @@ void Score::resetSystems(bool layoutAll, LayoutContext& lc)
       {
       System* system = systems().front();
       system->setInstrumentNames(/* longNames */ true);
-      // we need to reset tempo because fermata is setted
-      //inside getNextMeasure and it lead to twice timeStretch
-      resetTempo();
 
       QPointF pos;
       bool firstMeasure = true;     //lc.startTick.isZero();
@@ -167,7 +164,7 @@ void Score::resetSystems(bool layoutAll, LayoutContext& lc)
                         m->removeSystemTrailer();
                   if (m->tick() >= lc.startTick && m->tick() <= lc.endTick) {
                         // for measures in range, do full layout
-                        m->createEndBarLines(true);
+                        m->createEndBarLines(false);
                         m->computeMinWidth();
                         ww = m->width();
                         m->stretchMeasure(ww);
@@ -544,7 +541,7 @@ void LayoutContext::layoutLinear()
 //---------------------------------------------------------
 //   layoutMeasureLinear
 //---------------------------------------------------------
-
+#if 0 // unused
 void LayoutContext::layoutMeasureLinear(MeasureBase* mb)
       {
       adjustMeasureNo(mb);
@@ -772,6 +769,7 @@ void LayoutContext::layoutMeasureLinear(MeasureBase* mb)
 
       tick += measure->ticks();
       }
+#endif
 
 } // namespace Ms
 

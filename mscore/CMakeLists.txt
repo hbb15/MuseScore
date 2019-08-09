@@ -58,6 +58,8 @@ if (SCRIPT_INTERFACE)
             plugin/api/fraction.h
             plugin/api/excerpt.h
             plugin/api/util.h
+            plugin/api/selection.h
+            plugin/api/playevent.h
 
             plugin/api/enums.cpp
             plugin/mscorePlugins.cpp plugin/pluginCreator.cpp plugin/pluginManager.cpp plugin/qmledit.cpp
@@ -66,6 +68,8 @@ if (SCRIPT_INTERFACE)
             plugin/api/score.cpp
             plugin/api/excerpt.cpp
             plugin/api/util.cpp
+            plugin/api/selection.cpp
+            plugin/api/playevent.cpp
             )
 
       set (SCRIPT_UI
@@ -183,6 +187,7 @@ QT5_WRAP_UI (ui_headers
       inspector/inspector_bend.ui
       inspector/inspector_arpeggio.ui
       inspector/inspector_tremolo.ui
+      inspector/inspector_tremolobar.ui
       inspector/inspector_caesura.ui
       inspector/inspector_bracket.ui
       inspector/inspector_iname.ui

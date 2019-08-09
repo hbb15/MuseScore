@@ -40,6 +40,7 @@
 #include "slur.h"
 #include "staff.h"
 #include "stem.h"
+#include "sticking.h"
 #include "style.h"
 #include "sym.h"
 #include "system.h"
@@ -1726,10 +1727,12 @@ void LayoutContext::getNextPage()
             page = new Page(score);
             score->pages().push_back(page);
             prevSystem = nullptr;
+            pageOldMeasure = nullptr;
             }
       else {
             page = score->pages()[curPage];
             QList<System*>& systems = page->systems();
+            pageOldMeasure = systems.isEmpty() ? nullptr : systems.back()->measures().back();
             const int i = systems.indexOf(curSystem);
             if (i > 0 && systems[i-1]->page() == page) {
                   // Current and previous systems are on the current page.
@@ -1817,15 +1820,16 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                   if (s)
                         s->setRtick(len);
                   }
+            mmr->removeSystemTrailer();
             }
       else {
             mmr = new Measure(this);
             mmr->setTicks(len);
             mmr->setTick(m->tick());
-            mmr->setPageBreak(lm->pageBreak());
-            mmr->setLineBreak(lm->lineBreak());
             undo(new ChangeMMRest(m, mmr));
             }
+      mmr->setPageBreak(lm->pageBreak());
+      mmr->setLineBreak(lm->lineBreak());
       mmr->setMMRestCount(n);
       mmr->setNo(m->no());
 
@@ -1866,13 +1870,14 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                   if (e && e->isClef()) {
                         Clef* clef = toClef(e);
                         if (!mmrClefSeg->element(track)) {
-                              Clef* mmrClef = clef->clone();
+                              Clef* mmrClef = clef->generated() ? clef->clone() : toClef(clef->linkedClone());
                               mmrClef->setParent(mmrClefSeg);
                               undoAddElement(mmrClef);
                               }
                         else {
                               Clef* mmrClef = toClef(mmrClefSeg->element(track));
                               mmrClef->setClefType(clef->clefType());
+                              mmrClef->setShowCourtesy(clef->showCourtesy());
                               }
                         }
                   }
@@ -1930,6 +1935,8 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
       if (cs) {
             if (ns == 0)
                   ns = mmr->undoGetSegmentR(SegmentType::Clef, lm->ticks());
+            ns->setEnabled(cs->enabled());
+            ns->setTrailer(cs->trailer());
             for (int staffIdx = 0; staffIdx < _staves.size(); ++staffIdx) {
                   int track = staffIdx * VOICES;
                   Clef* clef = toClef(cs->element(track));
@@ -1942,8 +1949,10 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                         }
                   }
             }
-      else if (ns)
+      else if (ns) {
+            // TODO: remove elements from ns?
             undo(new RemoveElement(ns));
+            }
 
       //
       // check for time signature
@@ -1953,13 +1962,15 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
       if (cs) {
             if (ns == 0)
                   ns = mmr->undoGetSegmentR(SegmentType::TimeSig, Fraction(0,1));
+            ns->setEnabled(cs->enabled());
+            ns->setHeader(cs->header());
             for (int staffIdx = 0; staffIdx < _staves.size(); ++staffIdx) {
                   int track = staffIdx * VOICES;
                   TimeSig* ts = toTimeSig(cs->element(track));
                   if (ts) {
                         TimeSig* nts = toTimeSig(ns->element(track));
                         if (!nts) {
-                              nts = ts->clone();
+                              nts = ts->generated() ? ts->clone() : toTimeSig(ts->linkedClone());
                               nts->setParent(ns);
                               undo(new AddElement(nts));
                               }
@@ -1970,8 +1981,10 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                         }
                   }
             }
-      else if (ns)
+      else if (ns) {
+            // TODO: remove elements from ns?
             undo(new RemoveElement(ns));
+            }
 
       //
       // check for ambitus
@@ -1998,8 +2011,10 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                         }
                   }
             }
-      else if (ns)
+      else if (ns) {
+            // TODO: remove elements from ns?
             undo(new RemoveElement(ns));
+            }
 
       //
       // check for key signature
@@ -2009,27 +2024,37 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
       if (cs) {
             if (ns == 0)
                   ns = mmr->undoGetSegmentR(SegmentType::KeySig, Fraction(0,1));
+            ns->setEnabled(cs->enabled());
+            ns->setHeader(cs->header());
             for (int staffIdx = 0; staffIdx < _staves.size(); ++staffIdx) {
                   int track = staffIdx * VOICES;
-                  KeySig* ts  = toKeySig(cs->element(track));
-                  KeySig* nts = toKeySig(ns->element(track));
-                  if (ts) {
-                        if (!nts) {
-                              KeySig* nks = ts->clone();
+                  KeySig* ks  = toKeySig(cs->element(track));
+                  if (ks) {
+                        KeySig* nks = toKeySig(ns->element(track));
+                        if (!nks) {
+                              nks = ks->generated() ? ks->clone() : toKeySig(ks->linkedClone());
                               nks->setParent(ns);
                               undo(new AddElement(nks));
                               }
                         else {
-                              if (!(nts->keySigEvent() == ts->keySigEvent())) {
-                                    bool addKey = ts->isChange();
-                                    undo(new ChangeKeySig(nts, ts->keySigEvent(), nts->showCourtesy(), addKey));
+                              if (!(nks->keySigEvent() == ks->keySigEvent())) {
+                                    bool addKey = ks->isChange();
+                                    undo(new ChangeKeySig(nks, ks->keySigEvent(), nks->showCourtesy(), addKey));
                                     }
                               }
                         }
                   }
             }
-      else if (ns && ns->empty())
-            undo(new RemoveElement(ns));
+      else if (ns) {
+            ns->setEnabled(false);
+            // TODO: remove elements from ns, then delete ns
+            // previously we removed the segment if not empty,
+            // but this resulted in "stale" keysig in mmrest after removed from underlying measure
+            //undo(new RemoveElement(ns));
+            }
+
+      mmr->checkHeader();
+      mmr->checkTrailer();
 
       //
       // check for rehearsal mark etc.
@@ -2658,6 +2683,9 @@ void Score::getNextMeasure(LayoutContext& lc)
             as.init(staff->keySigEvent(measure->tick()), staff->clef(measure->tick()));
 
             for (Segment& segment : measure->segments()) {
+                  // TODO? maybe we do need to process it here to make it possible to enable later
+                  //if (!segment.enabled())
+                  //      continue;
                   if (segment.isKeySigType()) {
                         KeySig* ks = toKeySig(segment.element(staffIdx * VOICES));
                         if (!ks)
@@ -2738,52 +2766,11 @@ void Score::getNextMeasure(LayoutContext& lc)
 
       measure->computeTicks();
 
-      if (isMaster()) {
-            // Reset tempo to set correct time stretch for fermata.
-            const Fraction& startTick = measure->tick();
-            resetTempoRange(startTick, measure->endTick());
-
-            // Implement section break rest
-            for (MeasureBase* mb = measure->prev(); mb && mb->endTick() == startTick; mb = mb->prev()) {
-                  if (mb->pause())
-                        setPause(startTick, mb->pause());
-                  }
-
-            // Add pauses from the end of the previous measure (at measure->tick()):
-            for (Segment* s = measure->first()->prev1(); s && s->tick() == startTick; s = s->prev1()) {
-                  if (!s->isBreathType())
-                        continue;
-                  qreal length = 0.0;
-                  for (Element* e : s->elist()) {
-                        if (e && e->isBreath())
-                              length = qMax(length, toBreath(e)->pause());
-                        }
-                  if (length != 0.0)
-                        setPause(startTick, length);
-                  }
-            }
-
       for (Segment& segment : measure->segments()) {
             if (segment.isBreathType()) {
-                  qreal length = 0.0;
-                  Fraction tick = segment.tick();
-                  // find longest pause
-                  for (int i = 0, n = ntracks(); i < n; ++i) {
-                        Element* e = segment.element(i);
-                        if (e && e->isBreath()) {
-                              Breath* b = toBreath(e);
-                              b->layout();
-                              length = qMax(length, b->pause());
-                              }
-                        }
-                  if (length != 0.0)
-                        setPause(tick, length);
-                  }
-            else if (segment.isTimeSigType()) {
-                  for (int staffIdx = 0; staffIdx < _staves.size(); ++staffIdx) {
-                        TimeSig* ts = toTimeSig(segment.element(staffIdx * VOICES));
-                        if (ts)
-                              staff(staffIdx)->addTimeSig(ts);
+                  for (Element* e : segment.elist()) {
+                        if (e && e->isBreath())
+                              e->layout();
                         }
                   }
             else if (segment.isChordRestType()) {
@@ -2791,64 +2778,10 @@ void Score::getNextMeasure(LayoutContext& lc)
                         if (e->isSymbol())
                               e->layout();
                         }
-                  if (!isMaster())
-                        continue;
-#if 0 // ws
-                  for (Element* e : segment.annotations()) {
-                        if (!(e->isTempoText()
-                           || e->isDynamic()
-                           || e->isFermata()
-                           || e->isRehearsalMark()
-                           || e->isFretDiagram()
-                           || e->isHarmony()
-                           || e->isStaffText()
-                           || e->isFiguredBass())) {
-                              e->layout();             // system text ?
-                              }
-                        }
-#endif
-                  // TODO, this is not going to work, we just cleaned the tempomap
-                  // it breaks the test midi/testBaroqueOrnaments.mscx where first note has stretch 2
-                  // Also see fixTicks
-                  qreal stretch = 0.0;
-                  for (Element* e : segment.annotations()) {
-                        if (e->isFermata())
-                              stretch = qMax(stretch, toFermata(e)->timeStretch());
-                        else if (e->isTempoText()) {
-                              if (isMaster()) {
-                                    TempoText* tt = toTempoText(e);
-                                    setTempo(tt->segment(), tt->tempo());
-                                    }
-                              }
-                        }
-                  if (stretch != 0.0 && stretch != 1.0) {
-                        qreal otempo = tempomap()->tempo(segment.tick().ticks());
-                        qreal ntempo = otempo / stretch;
-                        setTempo(segment.tick(), ntempo);
-                        Fraction etick = segment.tick() + segment.ticks() - Fraction(1, 480*4);
-                        auto e = tempomap()->find(etick.ticks());
-                        if (e == tempomap()->end())
-                              setTempo(etick, otempo);
-                        }
                   }
             }
 
-      // update time signature map
-      // create event if measure len and time signature are different
-      // even if they are equivalent 4/4 vs 2/2
-      // also check if nominal time signature has changed
-
-      if (isMaster() && ((!measure->ticks().identical(lc.sig)
-         && measure->ticks() != lc.sig * measure->mmRestCount())
-         || (lc.prevMeasure && lc.prevMeasure->isMeasure()
-         && !measure->timesig().identical(toMeasure(lc.prevMeasure)->timesig()))))
-            {
-            if (measure->isMMRest())
-                  lc.sig = measure->mmRestFirst()->ticks();
-            else
-                  lc.sig = measure->ticks();
-            sigmap()->add(lc.tick.ticks(), SigEvent(lc.sig, measure->timesig(), measure->no()));
-            }
+      rebuildTempoAndTimeSigMaps(measure);
 
       Segment* seg = measure->findSegmentR(SegmentType::StartRepeatBarLine, Fraction(0,1));
       if (measure->repeatStart()) {
@@ -2867,6 +2800,9 @@ void Score::getNextMeasure(LayoutContext& lc)
             score()->undoRemoveElement(seg);
 
       for (Segment& s : measure->segments()) {
+            // TODO? maybe we do need to process it here to make it possible to enable later
+            //if (!s.enabled())
+            //      continue;
             // DEBUG: relayout grace notes as beaming/flags may have changed
             if (s.isChordRestType()) {
                   for (Element* e : s.elist()) {
@@ -3510,9 +3446,15 @@ System* Score::collectSystem(LayoutContext& lc)
 
             // preserve state of next measure (which is about to become current measure)
             if (lc.nextMeasure) {
-                  curWidth = lc.nextMeasure->width();
-                  curHeader = lc.nextMeasure->header();
-                  curTrailer = lc.nextMeasure->trailer();
+                  MeasureBase* nmb = lc.nextMeasure;
+                  if (nmb->isMeasure() && styleB(Sid::createMultiMeasureRests)) {
+                        Measure* nm = toMeasure(nmb);
+                        if (nm->hasMMRest())
+                              nmb = nm->mmRest();
+                        }
+                  curWidth = nmb->width();
+                  curHeader = nmb->header();
+                  curTrailer = nmb->trailer();
                   }
 
             getNextMeasure(lc);
@@ -3711,6 +3653,31 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             }
 
       //-------------------------------------------------------------
+      // layout beams
+      //  Needs to be done before creating skylines as stem lengths
+      //  may change.
+      //-------------------------------------------------------------
+
+      for (Segment* s : sl) {
+            for (Element* e : s->elist()) {
+                  if (!e || !e->isChordRest() || !score()->staff(e->staffIdx())->show()) {
+                        // the beam and its system may still be referenced when selecting all,
+                        // even if the staff is invisible. The old system is invalid and does cause problems in #284012
+                        if (e && e->isChordRest() && !score()->staff(e->staffIdx())->show() && toChordRest(e)->beam())
+                              toChordRest(e)->beam()->setParent(nullptr);
+                        continue;
+                        }
+                  ChordRest* cr = toChordRest(e);
+
+                  // layout beam
+                  if (isTopBeam(cr)) {
+                        Beam* b = cr->beam();
+                        b->layout();
+                        }
+                  }
+            }
+
+      //-------------------------------------------------------------
       //    create skylines
       //-------------------------------------------------------------
 
@@ -3796,24 +3763,18 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             }
 
       //-------------------------------------------------------------
-      // layout beams + fingering
+      // layout fingerings, add beams to skylines
       //-------------------------------------------------------------
 
       for (Segment* s : sl) {
             for (Element* e : s->elist()) {
-                  if (!e || !e->isChordRest() || !score()->staff(e->staffIdx())->show()) {
-                        // the beam and its system may still be referenced when selecting all,
-                        // even if the staff is invisible. The old system is invalid and does cause problems in #284012
-                        if (e && e->isChordRest() && !score()->staff(e->staffIdx())->show() && toChordRest(e)->beam())
-                              toChordRest(e)->beam()->setParent(nullptr);
+                  if (!e || !e->isChordRest() || !score()->staff(e->staffIdx())->show())
                         continue;
-                        }
                   ChordRest* cr = toChordRest(e);
 
-                  // layout beam
+                  // add beam to skyline
                   if (isTopBeam(cr)) {
                         Beam* b = cr->beam();
-                        b->layout();
                         b->addSkyline(system->staff(b->staffIdx())->skyline());
                         }
 
@@ -3854,7 +3815,7 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             }
 
       //-------------------------------------------------------------
-      // layout articulations, tuplet
+      // layout articulations
       //-------------------------------------------------------------
 
       for (Segment* s : sl) {
@@ -3868,17 +3829,37 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
                         c->layoutArticulations();
                         c->layoutArticulations2();
                         }
-                  // tuplets
+                  }
+            }
+
+      //-------------------------------------------------------------
+      // layout tuplets
+      //-------------------------------------------------------------
+
+      for (Segment* s : sl) {
+            for (Element* e : s->elist()) {
+                  if (!e || !e->isChordRest() || !score()->staff(e->staffIdx())->show())
+                        continue;
+                  ChordRest* cr = toChordRest(e);
                   if (!isTopTuplet(cr))
                         continue;
                   DurationElement* de = cr;
                   while (de->tuplet() && de->tuplet()->elements().front() == de) {
                         Tuplet* t = de->tuplet();
                         t->layout();
-                        if (t->addToSkyline())
-                              system->staff(t->staffIdx())->skyline().add(t->shape().translated(t->pos() + t->measure()->pos()));
                         de = t;
                         }
+                  }
+            }
+
+      //-------------------------------------------------------------
+      // Drumline sticking
+      //-------------------------------------------------------------
+
+      for (const Segment* s : sl) {
+            for (Element* e : s->annotations()) {
+                  if (e->isSticking())
+                        e->layout();
                   }
             }
 
@@ -4231,7 +4212,7 @@ void LayoutContext::collectPage()
             //
             //  check for page break or if next system will fit on page
             //
-            const bool rangeWasDone = rangeDone;
+            bool collected = false;
             if (rangeDone) {
                   // take next system unchanged
                   if (systemIdx > 0) {
@@ -4256,6 +4237,8 @@ void LayoutContext::collectPage()
                   }
             else {
                   nextSystem = score->collectSystem(*this);
+                  if (nextSystem)
+                        collected = true;
                   if (!nextSystem && score->isMaster()) {
                         MasterScore* ms = static_cast<MasterScore*>(score)->next();
                         if (ms) {
@@ -4306,9 +4289,10 @@ void LayoutContext::collectPage()
                   qreal dist = qMax(prevSystem->minBottom(), prevSystem->spacerDistance(false));
                   dist = qMax(dist, slb);
                   layoutPage(page, ey - (y + dist));
-                  // We don't accept current system to this page
-                  // so rollback rangeDone variable as well.
-                  rangeDone = rangeWasDone;
+                  // if we collected a system we cannot fit onto this page,
+                  // we need to collect next page in order to correctly set system positions
+                  if (collected)
+                        pageOldMeasure = nullptr;
                   break;
                   }
             }
@@ -4589,10 +4573,28 @@ void Score::doLayoutRange(const Fraction& st, const Fraction& et)
 
 void LayoutContext::layout()
       {
+      MeasureBase* lmb;
       do {
             getNextPage();
             collectPage();
-            } while (curSystem && !(rangeDone && page->system(0)->measures().back()->tick() > endTick)); // FIXME: perhaps the first measure was meant? Or last system?
+
+            if (page && !page->systems().isEmpty())
+                  lmb = page->systems().back()->measures().back();
+            else
+                  lmb = nullptr;
+
+            // we can stop collecting pages when:
+            // 1) we reach the end of score (curSystem is nullptr)
+            // or
+            // 2) we have fully processed the range and reached a point of stability:
+            //    a) we have completed layout for the range (rangeDone is true)
+            //    b) we haven't collected a system that will need to go on the next page
+            //    c) this page ends with the same measure as the previous layout
+            //    pageOldMeasure will be last measure from previous layout if range was completed on or before this page
+            //    it will be nullptr if this page was never laid out or if we collected a system for next page
+            } while (curSystem && !(rangeDone && lmb == pageOldMeasure));
+            // && page->system(0)->measures().back()->tick() > endTick // FIXME: perhaps the first measure was meant? Or last system?
+
       if (!curSystem) {
             // The end of the score. The remaining systems are not needed...
             qDeleteAll(systemList);

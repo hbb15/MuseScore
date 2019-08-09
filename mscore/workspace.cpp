@@ -195,6 +195,13 @@ void MuseScore::updateIcons()
                   widget->setFixedHeight(preferences.getInt(PREF_UI_THEME_ICONHEIGHT) + 8);  // hack
                   // apparently needed for viewModeCombo, see MuseScore::populateFileOperations
             }
+      for (QAction* a : cpitchTools->actions()) {
+            QWidget* widget = cpitchTools->widgetForAction(a);
+            if (widget->property("iconic-text") == true)
+                  widget->setFixedHeight(preferences.getInt(PREF_UI_THEME_ICONHEIGHT) + 8);  // hack
+                  // so that toolbar buttons with text but no icon can match
+                  // the height of other toolbar buttons
+            }
       }
 
 //---------------------------------------------------------
@@ -494,12 +501,18 @@ void Workspace::writeMenuBar(XmlWriter& xml, QMenuBar* mb)
             if (action->isSeparator())
                   xml.tag("action", "");
             else if (action->menu()) {
-                  xml.stag("Menu name=\"" + findStringFromMenu(action->menu()) + "\"");
-                  writeMenu(xml, action->menu());
-                  xml.etag();
+                  const QString menuString = findStringFromMenu(action->menu());
+                  if (!menuString.isEmpty()) {
+                        xml.stag("Menu name=\"" + menuString + "\"");
+                        writeMenu(xml, action->menu());
+                        xml.etag();
+                        }
                   }
-            else
-                  xml.tag("action", findStringFromAction(action));
+            else {
+                  const QString actionString = findStringFromAction(action);
+                  if (!actionString.isEmpty())
+                        xml.tag("action", actionString);
+                  }
 
             }
       xml.etag();
@@ -516,12 +529,17 @@ void Workspace::writeMenu(XmlWriter& xml, QMenu* menu)
             if (action->isSeparator())
                   xml.tag("action", "");
             else if (action->menu()) {
-                  xml.stag("Menu name=\"" + findStringFromMenu(action->menu()) + "\"");
-                  writeMenu(xml, action->menu());
-                  xml.etag();
+                  const QString menuString = findStringFromMenu(action->menu());
+                  if (!menuString.isEmpty()) {
+                        xml.stag("Menu name=\"" + menuString + "\"");
+                        writeMenu(xml, action->menu());
+                        xml.etag();
+                        }
                   }
             else {
-                  xml.tag("action", findStringFromAction(action));
+                  const QString actionString = findStringFromAction(action);
+                  if (!actionString.isEmpty())
+                        xml.tag("action", actionString);
                   }
             }
       }
@@ -686,21 +704,21 @@ void Workspace::read(XmlReader& e)
             else if (tag == "MenuBar") {
                   saveMenuBar = true;
                   QMenuBar* mb = mscore->menuBar();
+                  const QObjectList menus(mb->children()); // need a copy
+                  for (QObject* m : menus) {
+                        if (qobject_cast<QMenu*>(m)) {
+                              m->setParent(nullptr);
+                              m->deleteLater();
+                              }
+                        }
                   mb->clear();
+                  menuToStringList.clear();
                   while (e.readNextStartElement()) {
                         if (e.hasAttribute("name")) { // is a menu
                               QString menu_id = e.attribute("name");
-                              QMenu* menu = findMenuFromString(menu_id);
-                              if (menu) {
-                                    menu->clear();
-                                    mb->addMenu(menu);
-                                    readMenu(e, menu);
-                                    }
-                              else {
-                                    menu = new QMenu(menu_id);
-                                    mb->addMenu(menu);
-                                    readMenu(e, menu);
-                                    }
+                              QMenu* menu = mb->addMenu(menu_id);
+                              addMenuAndString(menu, menu_id);
+                              readMenu(e, menu);
                               }
                         else { // is an action
                               QString action_id = e.readXml();
@@ -712,6 +730,7 @@ void Workspace::read(XmlReader& e)
                                     }
                               }
                         }
+                  mscore->updateMenus();
                   }
             else if (tag == "State") {
                   saveComponents = true;
@@ -755,17 +774,9 @@ void Workspace::readMenu(XmlReader& e, QMenu* menu)
       while (e.readNextStartElement()) {
             if (e.hasAttribute("name")) { // is a menu
                   QString menu_id = e.attribute("name");
-                  QMenu* new_menu = findMenuFromString(menu_id);
-                  if (new_menu) {
-                        new_menu->clear();
-                        menu->addMenu(new_menu);
-                        readMenu(e, new_menu);
-                        }
-                  else {
-                        new_menu = new QMenu(menu_id);
-                        menu->addMenu(new_menu);
-                        readMenu(e, new_menu);
-                        }
+                  QMenu* new_menu = menu->addMenu(menu_id);
+                  addMenuAndString(new_menu, menu_id);
+                  readMenu(e, new_menu);
                   }
             else { // is an action
                   QString action_id = e.readXml();
@@ -798,21 +809,21 @@ void Workspace::readGlobalMenuBar()
                   while (e.readNextStartElement()) {
                         if (e.name() == "MenuBar") {
                               QMenuBar* mb = mscore->menuBar();
+                              const QObjectList menus(mb->children()); // need a copy
+                              for (QObject* m : menus) {
+                                    if (qobject_cast<QMenu*>(m)) {
+                                          m->setParent(nullptr);
+                                          m->deleteLater();
+                                          }
+                                    }
                               mb->clear();
+                              menuToStringList.clear();
                               while (e.readNextStartElement()) {
                                     if (e.hasAttribute("name")) { // is a menu
                                           QString menu_id = e.attribute("name");
-                                          QMenu* menu = findMenuFromString(menu_id);
-                                          if (menu) {
-                                                menu->clear();
-                                                mb->addMenu(menu);
-                                                readMenu(e, menu);
-                                                }
-                                          else {
-                                                menu = new QMenu(menu_id);
-                                                mb->addMenu(menu);
-                                                readMenu(e, menu);
-                                                }
+                                          QMenu* menu = mb->addMenu(menu_id);
+                                          addMenuAndString(menu, menu_id);
+                                          readMenu(e, menu);
                                           }
                                     else { // is an action
                                           QString action_id = e.readXml();
@@ -824,6 +835,7 @@ void Workspace::readGlobalMenuBar()
                                                 }
                                           }
                                     }
+                              mscore->updateMenus();
                               }
                         else
                               e.unknown();

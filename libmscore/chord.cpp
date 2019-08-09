@@ -516,6 +516,7 @@ void Chord::add(Element* e)
                   if (voice() && measure() && note->visible())
                         measure()->setHasVoices(staffIdx(), true);
                   }
+                  score()->setPlaylistDirty();
                   break;
             case ElementType::ARPEGGIO:
                   _arpeggio = toArpeggio(e);
@@ -597,6 +598,7 @@ void Chord::remove(Element* e)
                         qDebug("Chord::remove() note %p not found!", e);
                   if (voice() && measure() && note->visible())
                         measure()->checkMultiVoices(staffIdx());
+                  score()->setPlaylistDirty();
                   }
                   break;
 
@@ -719,7 +721,7 @@ void Chord::addLedgerLines()
 
       // the extra length of a ledger line with respect to notehead (half of it on each side)
       qreal extraLen = score()->styleP(Sid::ledgerLineLength) * mag * 0.5;
-      qreal hw = _notes[0]->headWidth();
+      qreal hw;
       qreal minX, maxX;                         // note extrema in raster units
       int   minLine, maxLine;
       bool  visible = false;
@@ -733,6 +735,7 @@ void Chord::addLedgerLines()
       for (size_t j = 0; j < 2; j++) {             // notes are scanned twice...
             int from, delta;
             vector<LedgerLineData> vecLines;
+            hw = 0.0;
             minX  = maxX = 0;
             minLine = 0;
             maxLine = lineBelow;
@@ -759,6 +762,7 @@ void Chord::addLedgerLines()
 
                   if (note->visible())          // if one note is visible,
                         visible = true;         // all lines between it and the staff are visible
+                  hw = qMax(hw, note->headWidth());
 
                   //
                   // Experimental:
@@ -1317,7 +1321,7 @@ qreal hookAdjustment(QString font, int hooks, bool up, bool small)
 ///   Get the default stem length for this chord
 //-----------------------------------------------------------------------------
 
-qreal Chord::defaultStemLength()
+qreal Chord::defaultStemLength() const
       {
       Note* downnote;
       qreal stemLen;
@@ -1423,7 +1427,12 @@ qreal Chord::defaultStemLength()
             }
 
       // adjust stem len for tremolo
-      if (_tremolo && !_tremolo->twoNotes()) {
+      if (_tremolo && !_tremolo->twoNotes() && !_tremolo->placeMidStem()) {
+            // Use the old algorithm for stem lengthening. It not always
+            // optimal but still performs better when not placing the tremolo
+            // at stem middle. TODO: rework minAbsStemLen() to perform
+            // correctly in this case too.
+
             // hook up odd lines
             static const int tab1[2][2][2][4] = {
                   { { { 0, 0, 0,  1 },  // stem - down - even - lines
@@ -1448,7 +1457,33 @@ qreal Chord::defaultStemLength()
 
       if (tab)
             stemLen *= lineDistance;
-      return stemLen * _spatium;
+
+      const qreal sgn = up() ? -1.0 : 1.0;
+      qreal stemLenPoints = stemLen * _spatium;
+      const qreal minAbsStemLen = minAbsStemLength();
+      if (sgn * stemLenPoints < minAbsStemLen)
+            stemLenPoints = sgn * minAbsStemLen;
+
+      return stemLenPoints;
+      }
+
+//---------------------------------------------------------
+//   minAbsStemLength
+//---------------------------------------------------------
+
+qreal Chord::minAbsStemLength() const
+      {
+      if (!_tremolo || _tremolo->twoNotes() || !_tremolo->placeMidStem())
+            return 0.0;
+
+      int beamLvl = beams();
+      const bool hasHook = (beamLvl > 0) && !beam();
+      if (hasHook)
+            ++beamLvl; // reserve more space for stem with both hook and tremolo
+      const qreal beamDist = beam() ? beam()->beamDist() : (0.5 * spatium());
+      const qreal tremoloSpacing = 0.5 * spatium(); // TODO: style setting
+
+      return beamLvl * beamDist + _tremolo->height() + 2 * tremoloSpacing;
       }
 
 //---------------------------------------------------------
@@ -3567,6 +3602,8 @@ Shape Chord::shape() const
       for (Note* note : _notes) {
             shape.add(note->shape().translated(note->pos()));
             for (Element* e : note->el()) {
+                  if (!e->addToSkyline())
+                        continue;
                   if (e->isFingering() && toFingering(e)->layoutType() == ElementType::CHORD && e->bbox().isValid())
                         shape.add(e->bbox().translated(e->pos() + note->pos()));
                   }
@@ -3850,6 +3887,40 @@ void Chord::layoutArticulations3(Slur* slur)
                         sstaff->skyline().add(aShape);
                   }
             }
+      }
+
+//---------------------------------------------------------
+//   getNoteEventLists
+//    Get contents of all NoteEventLists for all notes in
+//    the chord.
+//---------------------------------------------------------
+
+QList<NoteEventList> Chord::getNoteEventLists()
+      {
+      QList<NoteEventList> ell;
+      if (notes().empty())
+            return ell;
+      for (size_t i = 0; i < notes().size(); ++i) {
+            ell.append(NoteEventList(notes()[i]->playEvents()));
+            }
+      return ell;
+      }
+
+   //---------------------------------------------------------
+   //   setNoteEventLists
+   //    Set contents of all NoteEventLists for all notes in
+   //    the chord.
+   //---------------------------------------------------------
+
+void Chord::setNoteEventLists(QList<NoteEventList>& ell)
+      {
+      if (notes().empty())
+            return;
+      Q_ASSERT(ell.size() == notes().size());
+      for (size_t i = 0; i < ell.size(); i++) {
+            notes()[i]->setPlayEvents(ell[int(i)]);
+            }
+
       }
 
 }

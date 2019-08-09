@@ -310,6 +310,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       QMenu* menuTuplet;
 
       QMenu* menuFormat;
+      QMenu* menuStretch;
       QMenu* menuTools;
       QMenu* menuVoices;
       QMenu* menuMeasure;
@@ -317,6 +318,9 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       QMenu* menuPlugins;
       QMenu* menuHelp;
       QMenu* menuTours;
+#ifndef NDEBUG
+      QMenu* menuDebug;
+#endif
       AlbumManager* albumManager           { 0 };
 
       QWidget* _searchDialog               { 0 };
@@ -354,12 +358,13 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       ScriptEngine* se               { 0 };
       QString pluginPath;
 
+#ifdef SCRIPT_INTERFACE
       void createMenuEntry(PluginDescription*);
       void removeMenuEntry(PluginDescription*);
+#endif
 
       QTimer* autoSaveTimer;
       QList<QAction*> pluginActions;
-      QSignalMapper* pluginMapper        { 0 };
 
       PianorollEditor* pianorollEditor   { 0 };
       DrumrollEditor* drumrollEditor     { 0 };
@@ -442,6 +447,8 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       virtual void showEvent(QShowEvent *event);
 
       void retranslate();
+      void setMenuTitles();
+      void updateMenu(QMenu*& menu, QString menu_id, QString objectName);
 
       void playVisible(bool flag);
       void launchBrowser(const QString whereTo);
@@ -454,7 +461,9 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       bool saveFile(MasterScore* score);
       void fingeringMenu();
 
+#ifdef SCRIPT_INTERFACE
       int  pluginIdxFromPath(QString pluginPath);
+#endif
       void startDebugger();
       void midiinToggled(bool);
       void undoRedo(bool undo);
@@ -566,6 +575,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void dirtyChanged(Score*);
       void setPos(const Fraction& tick);
       void pluginTriggered(int);
+      void pluginTriggered(QString path);
       void handleMessage(const QString& message);
       void setCurrentScoreView(ScoreView*);
       void setCurrentScoreView(int);
@@ -648,6 +658,9 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       virtual void setCurrentView(int tabIdx, int idx);
       void loadPlugins();
       void unloadPlugins();
+#ifdef SCRIPT_INTERFACE
+      void addPluginMenuEntries();
+#endif
 
       ScoreState state() const { return _sstate; }
       void changeState(ScoreState);
@@ -740,6 +753,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
 
       /////The methods are used in the musescore.com backend
       bool exportAllMediaFiles(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
+      bool exportScoreMetadata(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
       bool exportMp3AsJSON(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
       bool exportPartsPdfsToJSON(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
       /////////////////////////////////////////////////
@@ -803,6 +817,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
 
       WorkspaceDialog* workspaceDialog() { return _workspaceDialog; }
       void updateIcons();
+      void updateMenus();
 
       Inspector* inspector()           { return _inspector; }
       PluginCreator* pluginCreator()   { return _pluginCreator; }
@@ -816,10 +831,13 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
 
       TourHandler* tourHandler()       { return _tourHandler; }
 
+#ifdef SCRIPT_INTERFACE
       void registerPlugin(PluginDescription*);
       void unregisterPlugin(PluginDescription*);
+#endif
 
       Q_INVOKABLE void showStartcenter(bool);
+      void reDisplayDockWidget(QDockWidget* widget, bool visible);
       void showPlayPanel(bool);
 
       QFileInfoList recentScores() const;
@@ -891,7 +909,7 @@ extern bool saveXml(Score*, QIODevice*);
 extern bool saveXml(Score*, const QString& name);
 
 struct PluginDescription;
-extern void collectPluginMetaInformation(PluginDescription*);
+extern bool collectPluginMetaInformation(PluginDescription*);
 extern QString getSharePath();
 
 extern Score::FileError importMidi(MasterScore*, const QString& name);

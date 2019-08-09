@@ -69,6 +69,7 @@
 #include "systemtext.h"
 #include "stafftype.h"
 #include "stem.h"
+#include "sticking.h"
 #include "style.h"
 #include "symbol.h"
 #include "sym.h"
@@ -1041,6 +1042,7 @@ Element* Element::create(ElementType type, Score* score)
             case ElementType::IMAGE:             return new Image(score);
             case ElementType::BAGPIPE_EMBELLISHMENT: return new BagpipeEmbellishment(score);
             case ElementType::AMBITUS:           return new Ambitus(score);
+            case ElementType::STICKING:          return new Sticking(score);
 
             case ElementType::LYRICSLINE:
             case ElementType::TEXTLINE_BASE:
@@ -2270,10 +2272,9 @@ qreal Element::rebaseOffset(bool nox)
 //    returns true if shape needs to be rebased
 //---------------------------------------------------------
 
-bool Element::rebaseMinDistance(qreal& md, qreal& yd, qreal sp, qreal rebase, bool fix)
+bool Element::rebaseMinDistance(qreal& md, qreal& yd, qreal sp, qreal rebase, bool above, bool fix)
       {
       bool rc = false;
-      bool above = isSpannerSegment() ? toSpannerSegment(this)->spanner()->placeAbove() : placeAbove();
       PropertyFlags pf = propertyFlags(Pid::MIN_DISTANCE);
       if (pf == PropertyFlags::STYLED)
             pf = PropertyFlags::UNSTYLED;
@@ -2321,7 +2322,7 @@ bool Element::rebaseMinDistance(qreal& md, qreal& yd, qreal sp, qreal rebase, bo
 //   autoplaceSegmentElement
 //---------------------------------------------------------
 
-void Element::autoplaceSegmentElement(bool add)
+void Element::autoplaceSegmentElement(bool above, bool add)
       {
       // rebase vertical offset on drag
       qreal rebase = 0.0;
@@ -2348,9 +2349,9 @@ void Element::autoplaceSegmentElement(bool add)
             SysStaff* ss = m->system()->staff(si);
             QRectF r = bbox().translated(m->pos() + s->pos() + pos());
 
-            SkylineLine sk(!placeAbove());
+            SkylineLine sk(!above);
             qreal d;
-            if (placeAbove()) {
+            if (above) {
                   sk.add(r.x(), r.bottom(), r.width());
                   d = sk.minDistance(ss->skyline().north());
                   }
@@ -2361,13 +2362,13 @@ void Element::autoplaceSegmentElement(bool add)
 
             if (d > -minDistance) {
                   qreal yd = d + minDistance;
-                  if (placeAbove())
+                  if (above)
                         yd *= -1.0;
                   if (offsetChanged() != OffsetChange::NONE) {
                         // user moved element within the skyline
                         // we may need to adjust minDistance, yd, and/or offset
-                        bool inStaff = placeAbove() ? r.bottom() + rebase > 0.0 : r.top() + rebase < staff()->height();
-                        if (rebaseMinDistance(minDistance, yd, sp, rebase, inStaff))
+                        bool inStaff = above ? r.bottom() + rebase > 0.0 : r.top() + rebase < staff()->height();
+                        if (rebaseMinDistance(minDistance, yd, sp, rebase, above, inStaff))
                               r.translate(0.0, rebase);
                         }
                   rypos() += yd;
@@ -2383,7 +2384,7 @@ void Element::autoplaceSegmentElement(bool add)
 //   autoplaceMeasureElement
 //---------------------------------------------------------
 
-void Element::autoplaceMeasureElement(bool add)
+void Element::autoplaceMeasureElement(bool above, bool add)
       {
       // rebase vertical offset on drag
       qreal rebase = 0.0;
@@ -2398,34 +2399,35 @@ void Element::autoplaceMeasureElement(bool add)
             qreal minDistance = _minDistance.val() * sp;
 
             SysStaff* ss = m->system()->staff(si);
-            QRectF r = bbox().translated(m->pos() + pos());
+            // shape rather than bbox is good for tuplets especially
+            Shape sh = shape().translated(m->pos() + pos());
 
-            SkylineLine sk(!placeAbove());
+            SkylineLine sk(!above);
             qreal d;
-            if (placeAbove()) {
-                  sk.add(r.x(), r.bottom(), r.width());
+            if (above) {
+                  sk.add(sh);
                   d = sk.minDistance(ss->skyline().north());
                   }
             else {
-                  sk.add(r.x(), r.top(), r.width());
+                  sk.add(sh);
                   d = ss->skyline().south().minDistance(sk);
                   }
             if (d > -minDistance) {
                   qreal yd = d + minDistance;
-                  if (placeAbove())
+                  if (above)
                         yd *= -1.0;
                   if (offsetChanged() != OffsetChange::NONE) {
                         // user moved element within the skyline
                         // we may need to adjust minDistance, yd, and/or offset
-                        bool inStaff = placeAbove() ? r.bottom() + rebase > 0.0 : r.top() + rebase < staff()->height();
-                        if (rebaseMinDistance(minDistance, yd, sp, rebase, inStaff))
-                              r.translate(0.0, rebase);
+                        bool inStaff = above ? sh.bottom() + rebase > 0.0 : sh.top() + rebase < staff()->height();
+                        if (rebaseMinDistance(minDistance, yd, sp, rebase, above, inStaff))
+                              sh.translateY(rebase);
                         }
                   rypos() += yd;
-                  r.translate(QPointF(0.0, yd));
+                  sh.translateY(yd);
                   }
             if (add && addToSkyline())
-                  ss->skyline().add(r);
+                  ss->skyline().add(sh);
             }
       setOffsetChanged(false);
       }

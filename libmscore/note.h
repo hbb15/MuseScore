@@ -279,6 +279,7 @@ class Note final : public Element {
       bool _fretHidden = false;
       bool _drawFlat = false;
       bool _drawSharp = false;
+
       virtual void startDrag(EditData&) override;
       virtual QRectF drag(EditData&) override;
       virtual void endDrag(EditData&) override;

@@ -40,6 +40,7 @@ static const ElementStyle tupletStyle {
       { Sid::tupletFontSize,                     Pid::FONT_SIZE               },
       { Sid::tupletFontStyle,                    Pid::FONT_STYLE              },
       { Sid::tupletAlign,                        Pid::ALIGN                   },
+      { Sid::tupletMinDistance,                  Pid::MIN_DISTANCE            },
       };
 
 //---------------------------------------------------------
@@ -654,6 +655,9 @@ void Tuplet::layout()
             r |= b;
             }
       setbbox(r);
+
+      if (outOfStaff && !cross())
+            autoplaceMeasureElement(_isUp, /* add to skyline */ true);
       }
 
 //---------------------------------------------------------
@@ -930,8 +934,9 @@ void Tuplet::editDrag(EditData& ed)
       else
             _p2 += ed.delta;
       setGenerated(false);
-      layout();
-      score()->setUpdateAll();
+      //layout();
+      //score()->setUpdateAll();
+      triggerLayout();
       }
 
 //---------------------------------------------------------

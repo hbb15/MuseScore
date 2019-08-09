@@ -86,7 +86,7 @@ void MuseScore::showInspector(bool visible)
             addDockWidget(Qt::RightDockWidgetArea, _inspector);
             }
       if (_inspector)
-            _inspector->setVisible(visible);
+            reDisplayDockWidget(_inspector, visible);
       if (visible)
             updateInspector();
       }
@@ -304,6 +304,9 @@ void Inspector::update(Score* s)
                         case ElementType::BEND:
                               ie = new InspectorBend(this);
                               break;
+                        case ElementType::TREMOLO:
+                              ie = new InspectorTremolo(this);
+                              break;
                         case ElementType::TREMOLOBAR:
                               ie = new InspectorTremoloBar(this);
                               break;
@@ -336,6 +339,9 @@ void Inspector::update(Score* s)
                               break;
                         case ElementType::FINGERING:
                               ie = new InspectorFingering(this);
+                              break;
+                        case ElementType::STICKING:
+                              ie = new InspectorText(this); // TODO: add a separate inspector for sticking?
                               break;
                         case ElementType::STEM:
                               ie = new InspectorStem(this);
@@ -844,7 +850,7 @@ InspectorAccidental::InspectorAccidental(QWidget* parent)
             { Pid::ACCIDENTAL_BRACKET,  0, a.bracket,  a.resetBracket  }
             };
       a.bracket->clear();
-      a.bracket->addItem(tr("None"), int(AccidentalBracket::NONE));
+      a.bracket->addItem(tr("None", "no accidental bracket type"), int(AccidentalBracket::NONE));
       a.bracket->addItem(tr("Parenthesis"), int(AccidentalBracket::PARENTHESIS));
       a.bracket->addItem(tr("Bracket"), int(AccidentalBracket::BRACKET));
 
@@ -919,6 +925,23 @@ void InspectorTremoloBar::propertiesClicked()
       mscore->currentScoreView()->editTremoloBarProperties(b);
       score->setLayoutAll();
       score->endCmd();
+      }
+
+//---------------------------------------------------------
+//   InspectorTremoloBar
+//---------------------------------------------------------
+
+InspectorTremolo::InspectorTremolo(QWidget* parent)
+   : InspectorElementBase(parent)
+      {
+      g.setupUi(addWidget());
+
+      const std::vector<InspectorItem> iiList = {
+            { Pid::TREMOLO_PLACEMENT, 0, g.tremoloPlacement, g.resetTremoloPlacement },
+            };
+      const std::vector<InspectorPanel> ppList = { { g.title, g.panel } };
+
+      mapSignals(iiList, ppList);
       }
 
 //---------------------------------------------------------

@@ -61,6 +61,7 @@ class Rest;
 class LayoutBreak;
 class Tremolo;
 class System;
+class Sticking;
 class Lyrics;
 class LyricsLine;
 class LyricsLineSegment;
@@ -350,6 +351,7 @@ class ScoreElement {
       CONVERT(Staff,         STAFF)
       CONVERT(Part,          PART)
       CONVERT(BagpipeEmbellishment, BAGPIPE_EMBELLISHMENT)
+      CONVERT(Sticking,      STICKING)
 #undef CONVERT
 
       virtual bool isElement() const { return false; } // overriden in element.h
@@ -482,6 +484,10 @@ static inline TextBase* toTextBase(ScoreElement* e) {
       Q_ASSERT(e == 0 || e->isTextBase());
       return (TextBase*)e;
       }
+static inline const TextBase* toTextBase(const ScoreElement* e) {
+      Q_ASSERT(e == 0 || e->isTextBase());
+      return (const TextBase*)e;
+      }
 static inline StaffTextBase* toStaffTextBase(ScoreElement* e) {
       Q_ASSERT(e == 0 || e->isStaffTextBase());
       return (StaffTextBase*)e;
@@ -589,6 +595,7 @@ static inline const a* to##a(const ScoreElement* e) { Q_ASSERT(e == 0 || e->is##
       CONVERT(Staff)
       CONVERT(Part)
       CONVERT(BagpipeEmbellishment)
+      CONVERT(Sticking)
 #undef CONVERT
 
 }

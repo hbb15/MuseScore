@@ -179,6 +179,9 @@ enum class Sid {
       propertyDistance,
       articulationMag,
       articulationPosAbove,
+      articulationAnchorDefault,
+      articulationAnchorLuteFingering,
+      articulationAnchorOther,
       lastSystemFillLimit,
 
       hairpinPlacement,
@@ -434,6 +437,7 @@ enum class Sid {
       tremoloBoxHeight,
       tremoloStrokeWidth,
       tremoloDistance,
+      tremoloPlacement,
       // TODO tremoloBeamLengthMultiplier,
       // TODO tremoloMaxBeamLength,
 
@@ -944,6 +948,24 @@ enum class Sid {
       instrumentChangeFrameFgColor,
       instrumentChangeFrameBgColor,
 
+      stickingFontFace,
+      stickingFontSize,
+      stickingFontSpatiumDependent,
+      stickingFontStyle,
+      stickingColor,
+      stickingAlign,
+      stickingOffset,
+      stickingPlacement,
+      stickingPosAbove,
+      stickingPosBelow,
+      stickingMinDistance,
+      stickingFrameType,
+      stickingFramePadding,
+      stickingFrameWidth,
+      stickingFrameRound,
+      stickingFrameFgColor,
+      stickingFrameBgColor,
+
       figuredBassFontFace,
       figuredBassFontSize,
       figuredBassFontSpatiumDependent,
@@ -1109,6 +1131,7 @@ enum class Sid {
       vibratoMinDistance,
       voltaMinDistance,
       figuredBassMinDistance,
+      tupletMinDistance,
 
       autoplaceEnabled,
 
@@ -1180,7 +1203,7 @@ class MStyle {
       void setCustomChordList(bool t) { _customChordList = t; }
       void checkChordList();
 
-      bool load(QFile* qf, bool ignore = false);
+      bool load(QFile* qf, bool ign = false);
       void load(XmlReader& e);
       void save(XmlWriter& xml, bool optimize);
       bool readProperties(XmlReader&);
