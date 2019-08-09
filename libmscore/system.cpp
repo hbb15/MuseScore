@@ -494,7 +494,10 @@ void System::layout2()
       int numericAnzalStaff=0;
       Staff* numericFirstStaff  = 0;
       TimeSig* numericTimesig = 0;
-      Fraction tickk =nextSegmentElement()->tick();
+	  Fraction tickk = tick();
+	  if (nextSegmentElement())
+		  tickk = nextSegmentElement()->tick();
+
 
 
       if (visibleStaves.empty()) {
