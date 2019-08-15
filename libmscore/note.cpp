@@ -905,7 +905,7 @@ qreal Note::tabHeadWidth(const StaffType* tab) const
 
           QFont font;
           font.setFamily(score()->styleSt(Sid::numericFont));
-          font.setPointSizeF(tab->fretFontSize()*_trackthick);
+          font.setPointSizeF(score()->styleD(Sid::numericFontSize) *_trackthick);
             QFontMetricsF fm(font, MScore::paintDevice());
             val  = fm.width(_fretString) * magS();
             }
@@ -1158,7 +1158,7 @@ void Note::draw(QPainter* painter) const
             StaffType* tab = staff()->staffType(tick());
             QFont font;
             font.setFamily(score()->styleSt(Sid::numericFont));
-            font.setPointSizeF((tab->fretFontSize() * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick);
+            font.setPointSizeF((score()->styleD(Sid::numericFontSize) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick);
             painter->setFont(font);
             painter->setPen(c);
             painter->drawText(_numericTextPos, _fretString);
@@ -2317,7 +2317,7 @@ void Note::layout2()
                         }
                   QFont font;
                   font.setFamily(score()->styleSt(Sid::numericFont));
-                  font.setPointSizeF(numeric1->fretFontSize() *_trackthick);
+                  font.setPointSizeF(score()->styleD(Sid::numericFontSize) *_trackthick);
                   numeric n;
                   qreal wr = n.textWidth(font,"(")*magS();
                   _numericKlammerPos = QPointF(xK- wr,_numericTextPos.y());

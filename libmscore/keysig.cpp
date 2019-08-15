@@ -467,7 +467,7 @@ void KeySig::draw(QPainter* p) const
 
                           QFont font;
                           font.setFamily(score()->styleSt(Sid::numericKeySigFont));
-                          font.setPointSizeF(numeric->fretFontSize() * spatium() * score()->styleD(Sid::numericKeySigSize) * MScore::pixelRatio / SPATIUM20);
+                          font.setPointSizeF(score()->styleD(Sid::numericFontSize) * spatium() * score()->styleD(Sid::numericKeySigSize) * MScore::pixelRatio / SPATIUM20);
                           QColor c(curColor());
                           p->setFont(font);
                           p->setPen(c);
@@ -869,7 +869,7 @@ qreal KeySig::numericGetWidth(StaffType* numeric, QString string) const
       if (numeric) {
             QFont font;
             font.setFamily(score()->styleSt(Sid::numericKeySigFont));
-            font.setPointSizeF(numeric->fretFontSize() * score()->styleD(Sid::numericKeySigSize));
+            font.setPointSizeF(score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericKeySigSize));
             QFontMetricsF fm(font, MScore::paintDevice());
             val  = fm.width(string) * magS();
             }

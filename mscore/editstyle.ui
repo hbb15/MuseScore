@@ -252,7 +252,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>34</number>
       </property>
       <widget class="QWidget" name="PageScore">
        <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -10327,7 +10327,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>6</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="page_3">
            <layout class="QGridLayout" name="gridLayout_58">
@@ -10456,52 +10456,6 @@
                <string>Ziffern</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_62">
-               <item row="2" column="0">
-                <widget class="QGroupBox" name="groupBox_46">
-                 <property name="title">
-                  <string>Schriftart</string>
-                 </property>
-                 <layout class="QGridLayout" name="gridLayout_63">
-                  <item row="0" column="0">
-                   <layout class="QGridLayout" name="gridLayout_431">
-                    <property name="leftMargin">
-                     <number>0</number>
-                    </property>
-                    <item row="0" column="1">
-                     <widget class="QToolButton" name="resetNumericFont">
-                      <property name="toolTip">
-                       <string>Reset to default</string>
-                      </property>
-                      <property name="accessibleName">
-                       <string>Reset 'Key to barline distance' value</string>
-                      </property>
-                      <property name="text">
-                       <string notr="true"/>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="musescore.qrc">
-                        <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="0">
-                     <widget class="QFontComboBox" name="numericFont">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="editable">
-                       <bool>false</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
                <item row="0" column="0">
                 <layout class="QGridLayout" name="gridLayout_441">
                  <item row="12" column="2">
@@ -10927,6 +10881,109 @@
                   </size>
                  </property>
                 </spacer>
+               </item>
+               <item row="2" column="0">
+                <widget class="QGroupBox" name="groupBox_46">
+                 <property name="title">
+                  <string>Schriftart</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_63">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_431">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <item row="1" column="2">
+                     <widget class="QToolButton" name="resetNumericFontSize">
+                      <property name="toolTip">
+                       <string>Reset to default</string>
+                      </property>
+                      <property name="accessibleName">
+                       <string>Reset 'Key to barline distance' value</string>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="musescore.qrc">
+                        <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QFrame" name="frame">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>50</height>
+                       </size>
+                      </property>
+                      <property name="frameShape">
+                       <enum>QFrame::StyledPanel</enum>
+                      </property>
+                      <property name="frameShadow">
+                       <enum>QFrame::Raised</enum>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="1">
+                     <widget class="QFontComboBox" name="numericFont">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="editable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="2">
+                     <widget class="QToolButton" name="resetNumericFont">
+                      <property name="toolTip">
+                       <string>Reset to default</string>
+                      </property>
+                      <property name="accessibleName">
+                       <string>Reset 'Key to barline distance' value</string>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="musescore.qrc">
+                        <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QLabel" name="label_145">
+                      <property name="text">
+                       <string>Schriftgröße</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="0">
+                     <widget class="QLabel" name="label_146">
+                      <property name="text">
+                       <string>Schriftart</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QDoubleSpinBox" name="numericFontSize">
+                      <property name="suffix">
+                       <string extracomment="spatium unit">sp</string>
+                      </property>
+                      <property name="singleStep">
+                       <double>0.010000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
                </item>
               </layout>
              </widget>

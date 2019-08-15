@@ -98,7 +98,7 @@ void Rest::draw(QPainter* painter) const
             
             QFont font;
             font.setFamily(score()->styleSt(Sid::numericFont));
-            font.setPointSizeF(tab->fretFontSize() * spatium() * MScore::pixelRatio / SPATIUM20);
+            font.setPointSizeF(score()->styleD(Sid::numericFontSize) * spatium() * MScore::pixelRatio / SPATIUM20);
             painter->setFont(font);
             painter->setPen(c);
             painter->drawText(QPointF(0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement)), "0"+
@@ -1112,7 +1112,7 @@ qreal Rest::numericGetWidthRest(StaffType* numeric, QString string) const
       qreal val;
       if (numeric) {
             QFont f    = numeric->fretFont();
-            f.setPointSizeF(numeric->fretFontSize());
+            f.setPointSizeF(score()->styleD(Sid::numericFontSize));
             QFontMetricsF fm(f, MScore::paintDevice());
             val  = fm.width(string) * magS();
             }

@@ -465,7 +465,7 @@ void TimeSig::draw(QPainter* painter) const
                 QColor c(curColor());
                 QFont font;
                 font.setFamily(score()->styleSt(Sid::numericTimeSigFont));
-                font.setPointSizeF(numeric->fretFontSize() * spatium() * score()->styleD(Sid::numericTimeSigSize) * MScore::pixelRatio / SPATIUM20);
+                font.setPointSizeF(score()->styleD(Sid::numericFontSize) * spatium() * score()->styleD(Sid::numericTimeSigSize) * MScore::pixelRatio / SPATIUM20);
                 painter->setFont(font);
                 painter->setPen(c);
                 painter->drawText(pz,_numeric_ns);
@@ -692,7 +692,7 @@ qreal TimeSig::numericGetWidth(StaffType* numeric, QString string) const
       if (numeric) {
             QFont font;
             font.setFamily(score()->styleSt(Sid::numericTimeSigFont));
-            font.setPointSizeF(numeric->fretFontSize() * score()->styleD(Sid::numericTimeSigSize));
+            font.setPointSizeF(score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericTimeSigSize));
             QFontMetricsF fm(font, MScore::paintDevice());
             val  = fm.width(string) * magS();
             }
