@@ -2108,6 +2108,16 @@ int Note::setAccidentalTypeBack(int defaultdirection) {
             _drawSharp = true;
       else
             _drawFlat = true;
+	  if (_accidental&& _accidental->accidentalType() == AccidentalType::SHARP && _drawFlat) {
+		  _drawFlat = false;
+		  _accidental->setAccidentalType(AccidentalType::NONE);
+		  shift = 1;
+	  }
+	  if (_accidental&& _accidental->accidentalType() == AccidentalType::FLAT && _drawSharp) {
+		  _drawSharp = false;
+		  _accidental->setAccidentalType(AccidentalType::NONE);
+		  shift = -1;
+	  }
       return shift;
       }
 //---------------------------------------------------------
