@@ -3563,6 +3563,12 @@ QString Chord::accessibleExtraInfo() const
                   rez = QString("%1 %2").arg(rez).arg(n->screenReaderInfo());
             }
 
+      for (Articulation* a : articulations()) {
+            if (!score()->selectionFilter().canSelect(a))
+                  continue;
+            rez = QString("%1 %2").arg(rez).arg(a->screenReaderInfo());
+            }
+
       if (arpeggio() && score()->selectionFilter().canSelect(arpeggio()))
             rez = QString("%1 %2").arg(rez).arg(arpeggio()->screenReaderInfo());
 
