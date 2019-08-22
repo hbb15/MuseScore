@@ -497,7 +497,7 @@ void System::layout2()
 	  Fraction tickk = tick();
 	  if (nextSegmentElement())
 		  tickk = nextSegmentElement()->tick();
-
+	  firstVisibleSysStaff()->set_distanceFirstStaff(0);
 
 
       if (visibleStaves.empty()) {
@@ -510,6 +510,8 @@ void System::layout2()
             int si1       = i->first;
             Staff* staff  = score()->staff(si1);
             auto ni       = i + 1;
+
+			ss->set_distanceFirstStaff(y);
             if(staff && staff->isNumericStaff(tickk)){
                   numericAnzalStaff++;
                   staffDistance       = score()->styleP(Sid::numericStaffDistans);

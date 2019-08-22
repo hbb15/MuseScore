@@ -1060,7 +1060,8 @@ InspectorLyric::InspectorLyric(QWidget* parent)
       const std::vector<InspectorItem> il = {
             { Pid::VERSE,              0, l.verse,        l.resetVerse        },
             { Pid::SUB_STYLE,          0, l.style,        l.resetStyle        },
-            { Pid::PLACEMENT,          0, l.placement,    l.resetPlacement    }
+            { Pid::PLACEMENT,          0, l.placement,    l.resetPlacement    },
+			{ Pid::LYRICS_STAFF_SHIFT, 0, l.staffshift,   l.resetStaffshift    }
             };
       const std::vector<InspectorPanel> ppList = {
             { l.title, l.panel }

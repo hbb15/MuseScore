@@ -50,6 +50,7 @@ class SysStaff {
       qreal _yOff { 0    };         // offset of top staff line within bbox
       bool _show  { true };         // derived from Staff or false if empty
                                     // staff is hidden
+	  qreal _distanceFirstStaff;
    public:
       int idx     { 0    };
       QList<InstrumentName*> instrumentNames;
@@ -65,6 +66,9 @@ class SysStaff {
 
       const Skyline& skyline() const { return _skyline; }
       Skyline& skyline()             { return _skyline; }
+
+	  void set_distanceFirstStaff(qreal h) { _distanceFirstStaff = h; }
+	  qreal get_distanceFirstStaff() { return _distanceFirstStaff; }
 
       SysStaff() {}
       ~SysStaff();

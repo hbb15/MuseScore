@@ -330,6 +330,7 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::TREMOLO_PLACEMENT,       false, "tremoloPlacement",      P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "tremolo placement") },
 
       { Pid::SET_KEY_TYPE,           false,  "set_key_type",          P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "set Key Type")     },
+	  { Pid::LYRICS_STAFF_SHIFT,     false,  "lyricsStaffShift",      P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "Notenzeilen verschibung") },
 
       { Pid::END, false, "++end++", P_TYPE::INT, DUMMY_QT_TRANSLATE_NOOP("propertyName", "<invalid property>") }
       };

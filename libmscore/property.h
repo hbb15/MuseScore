@@ -340,6 +340,7 @@ enum class Pid {
       TREMOLO_PLACEMENT,
 
       SET_KEY_TYPE,
+	  LYRICS_STAFF_SHIFT,
 
       END
       };

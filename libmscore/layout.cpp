@@ -3026,16 +3026,19 @@ static void applyLyricsMax(Segment& s, int staffIdx, qreal yMax)
       {
       if (!s.isChordRestType())
             return;
-      Skyline& sk = s.measure()->system()->staff(staffIdx)->skyline();
       for (int voice = 0; voice < VOICES; ++voice) {
-            ChordRest* cr = s.cr(staffIdx * VOICES + voice);
+		    ChordRest* cr = s.cr(staffIdx * VOICES + voice);
             if (cr && !cr->lyrics().empty()) {
                   qreal lyricsMinBottomDistance = s.score()->styleP(Sid::lyricsMinBottomDistance);
                   for (Lyrics* l : cr->lyrics()) {
                         if (l->autoplace() && l->placeBelow()) {
+							int schift = staffIdx + l->getStaffShift();
+							if (s.score()->nstaves() <= schift)
+								schift = s.score()->nstaves() - 1;
                               l->rypos() += yMax - l->propertyDefault(Pid::OFFSET).toPointF().y();
                               if (l->addToSkyline()) {
                                     QPointF offset = l->pos() + cr->pos() + s.pos() + s.measure()->pos();
+									Skyline& sk = s.measure()->system()->staff(schift)->skyline();
                                     sk.add(l->bbox().translated(offset).adjusted(0.0, 0.0, 0.0, lyricsMinBottomDistance));
                                     }
                               }
@@ -3056,11 +3059,14 @@ static void applyLyricsMax(Measure* m, int staffIdx, qreal yMax)
 
 static void applyLyricsMin(ChordRest* cr, int staffIdx, qreal yMin)
       {
-      Skyline& sk = cr->measure()->system()->staff(staffIdx)->skyline();
       for (Lyrics* l : cr->lyrics()) {
             if (l->autoplace() && l->placeAbove()) {
+				  int schift = staffIdx - l->getStaffShift();
+				  if (0 > schift)
+					    schift = 0;
                   l->rypos() += yMin - l->propertyDefault(Pid::OFFSET).toPointF().y();
                   if (l->addToSkyline()) {
+					    Skyline& sk = cr->measure()->system()->staff(schift)->skyline();
                         QPointF offset = l->pos() + cr->pos() + cr->segment()->pos() + cr->segment()->measure()->pos();
                         sk.add(l->bbox().translated(offset));
                         }
@@ -3219,6 +3225,42 @@ void Score::layoutLyrics(System* system)
             }
       }
 
+	  //---------------------------------------------------------
+	  //   layoutTies
+	  //---------------------------------------------------------
+
+void Score::LyricsLayout3(System* system, LayoutContext& lc)
+	  {
+	  for (int staffIdx = system->firstVisibleStaff(); staffIdx < system->score()->nstaves(); staffIdx = system->nextVisibleStaff(staffIdx)) {
+		    for (MeasureBase* mb : system->measures()) {
+			      if (!mb->isMeasure())
+				        continue;
+			      Measure* m = toMeasure(mb);
+			      for (Segment& s : m->segments()) {
+				        if (s.isChordRestType()) {
+					          for (int voice = 0; voice < VOICES; ++voice) {
+						            ChordRest* cr = s.cr(staffIdx * VOICES + voice);
+						            if (cr) {
+							              for (Lyrics* l : cr->lyrics()) {
+								                l->layout3();
+							                    }
+						                  }
+					                }
+				              }
+			            }
+		          }
+	        }
+
+	  bool useRange = false;  // TODO: lineMode();
+	  Fraction stick = useRange ? lc.startTick : system->measures().front()->tick();
+	  Fraction etick = useRange ? lc.endTick : system->measures().back()->endTick();
+	  for (Spanner* sp : _unmanagedSpanner) {
+		  if (sp->tick() >= etick || sp->tick2() <= stick)
+			  continue;
+		  sp->layoutSystem(system);
+	  }
+
+	  }
 //---------------------------------------------------------
 //   layoutTies
 //---------------------------------------------------------
@@ -3616,6 +3658,7 @@ System* Score::collectSystem(LayoutContext& lc)
 
       layoutSystemElements(system, lc);
       system->layout2();   // compute staff distances
+	  LyricsLayout3(system, lc);
 
       lm  = system->lastMeasure();
       if (lm) {
@@ -3995,11 +4038,11 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
       layoutLyrics(system);
 
       // here are lyrics dashes and melisma
-      for (Spanner* sp : _unmanagedSpanner) {
-            if (sp->tick() >= etick || sp->tick2() <= stick)
-                  continue;
-            sp->layoutSystem(system);
-            }
+      //for (Spanner* sp : _unmanagedSpanner) {
+      //     if (sp->tick() >= etick || sp->tick2() <= stick)
+      //            continue;
+      //      sp->layoutSystem(system);
+      //      }
 
       //
       // We need to known if we have FretDiagrams in the system to decide when to layout the Harmonies
