@@ -48,11 +48,11 @@ const char* keyNames[] = {
 //   getNumericString
 //---------------------------------------------------------
 QString NumericString[15][2]={
-      {"H-Dur  a=#6","gis-Moll  a=#6"},
-      {"Fis-Dur  a=#2","es-Moll  a=#2"},
-      {"Cis-Dur  a=#5","B-Moll  a=#5"},
-      {"Gis-Dur  a=#1","f-Moll  a=#1"},
-      {"Es-Dur  a=#4","c-Moll  a=#4"},
+      {"H-Dur  a=♭7","gis-Moll  a=♭7"},
+      {"Fis-Dur  a=♯2","es-Moll  a=♯2"},
+      {"Cis-Dur  a=♯5","B-Moll  a=♯5"},
+      {"Gis-Dur  a=♯1","f-Moll  a=♯1"},
+      {"Es-Dur  a=♯4","c-Moll  a=♯4"},
       {"B-Dur  a=7","g-Moll  a=7"},
       {"F-Dur  a=3","d-moll  a=3"},
       {"C-Dur  a=6","a-Moll  a=6"},
@@ -60,9 +60,9 @@ QString NumericString[15][2]={
       {"D-Dur  a=5","h-Moll  a=5"},
       {"A-Dur  a=1","fis-Moll  a=1"},
       {"E-Dur  a=4","cis-Moll  a=4"},
-      {"H-Dur  a=#6","gis-Moll  a=#6"},
-      {"Fis-Dur  a=#2","es-Moll  a=#2"},
-      {"Cis-Dur  a=#5","B-Moll  a=#5"}
+      {"H-Dur  a=♭7","gis-Moll  a=♭7"},
+      {"Fis-Dur  a=♯2","es-Moll  a=♯2"},
+      {"Cis-Dur  a=♯5","B-Moll  a=♯5"}
 
 };
 
