@@ -26,6 +26,8 @@
 #include "spanner.h"
 #include "undo.h"
 #include "fermata.h"
+#include "symbol.h"
+#include "image.h"
 
 namespace Ms {
 
@@ -294,7 +296,7 @@ BarLine::BarLine(const BarLine& bl)
       y2           = bl.y2;
 
       for (Element* e : bl._el)
-            _el.push_back(e->clone());
+            add(e->clone());
       }
 
 BarLine::~BarLine()
@@ -788,6 +790,22 @@ void BarLine::read(XmlReader& e)
                   a->read(e);
                   add(a);
                   }
+            else if (tag == "Symbol") {
+                  Symbol* s = new Symbol(score());
+                  s->setTrack(track());
+                  s->read(e);
+                  add(s);
+                  }
+            else if (tag == "Image") {
+                  if (MScore::noImages)
+                        e.skipCurrentElement();
+                  else {
+                        Image* image = new Image(score());
+                        image->setTrack(track());
+                        image->read(e);
+                        add(image);
+                        }
+                  }
             else if (!Element::readProperties(e))
                   e.unknown();
             }
@@ -804,7 +822,7 @@ bool BarLine::acceptDrop(EditData& data) const
             return true;
             }
       else {
-            return ((type == ElementType::ARTICULATION || type == ElementType::FERMATA)
+            return ((type == ElementType::ARTICULATION || type == ElementType::FERMATA || type == ElementType::SYMBOL || type == ElementType::IMAGE)
                && segment()
                && segment()->isEndBarLineType());
             }
@@ -867,6 +885,12 @@ Element* BarLine::drop(EditData& data)
             atr->setTrack(track());
             score()->undoAddElement(atr);
             return atr;
+            }
+      else if (e->isSymbol() || e->isImage()) {
+            e->setParent(this);
+            e->setTrack(track());
+            score()->undoAddElement(e);
+            return e;
             }
       else if (e->isFermata()) {
             e->setPlacement(track() & 1 ? Placement::BELOW : Placement::ABOVE);
@@ -1434,6 +1458,28 @@ void BarLine::scanElements(void* data, void (*func)(void*, Element*), bool all)
       }
 
 //---------------------------------------------------------
+//   setTrack
+//---------------------------------------------------------
+
+void BarLine::setTrack(int t)
+      {
+      Element::setTrack(t);
+      for (Element* e : _el)
+            e->setTrack(t);
+      }
+
+//---------------------------------------------------------
+//   setScore
+//---------------------------------------------------------
+
+void BarLine::setScore(Score* s)
+      {
+      Element::setScore(s);
+      for (Element* e : _el)
+            e->setScore(s);
+      }
+
+//---------------------------------------------------------
 //   add
 //---------------------------------------------------------
 
@@ -1442,6 +1488,8 @@ void BarLine::add(Element* e)
       e->setParent(this);
       switch (e->type()) {
             case ElementType::ARTICULATION:
+            case ElementType::SYMBOL:
+            case ElementType::IMAGE:
                   _el.push_back(e);
                   setGenerated(false);
                   break;
@@ -1460,6 +1508,8 @@ void BarLine::remove(Element* e)
       {
       switch(e->type()) {
             case ElementType::ARTICULATION:
+            case ElementType::SYMBOL:
+            case ElementType::IMAGE:
                   if (!_el.remove(e))
                         qDebug("BarLine::remove(): cannot find %s", e->name());
                   break;

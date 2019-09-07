@@ -42,7 +42,7 @@
 #include "rest.h"
 #include "fret.h"
 
-Q_DECLARE_LOGGING_CATEGORY(undoRedo)
+Q_DECLARE_LOGGING_CATEGORY(undoRedo);
 
 namespace Ms {
 
@@ -723,11 +723,11 @@ class ChangeMStaffProperties : public UndoCommand {
       Measure* measure;
       int staffIdx;
       bool visible;
-      bool slashStyle;
+      bool stemless;
       void flip(EditData*) override;
 
    public:
-      ChangeMStaffProperties(Measure*, int staffIdx, bool visible, bool slashStyle);
+      ChangeMStaffProperties(Measure*, int staffIdx, bool visible, bool stemless);
       UNDO_NAME("ChangeMStaffProperties")
       };
 

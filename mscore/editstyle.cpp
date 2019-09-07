@@ -146,6 +146,10 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::repeatBarlineDotSeparation, false, repeatBarlineDotSeparation, resetRepeatBarlineDotSeparation },
 
       { Sid::barGraceDistance,        false, barGraceDistance,        resetBarGraceDistance },
+      { Sid::chordExtensionMag,       false, extensionMag,            resetExtensionMag },
+      { Sid::chordExtensionAdjust,    false, extensionAdjust,         resetExtensionAdjust },
+      { Sid::chordModifierMag,        false, modifierMag,             resetModifierMag },
+      { Sid::chordModifierAdjust,     false, modifierAdjust,          resetModifierAdjust },
       { Sid::useStandardNoteNames,    false, useStandardNoteNames,    0 },
       { Sid::useGermanNoteNames,      false, useGermanNoteNames,      0 },
       { Sid::useFullGermanNoteNames,  false, useFullGermanNoteNames,  0 },
@@ -1114,6 +1118,7 @@ void EditStyle::setValues()
             chordsCustom->setChecked(true);
             chordDescriptionGroup->setEnabled(true);
             }
+      //formattingGroup->setEnabled(lstyle.chordList()->autoAdjust());
 
       dontHideStavesInFirstSystem->setEnabled(hideEmptyStaves->isChecked());
 
@@ -1238,6 +1243,7 @@ void EditStyle::setChordStyle(bool checked)
             cs->undo(new ChangeStyleVal(cs, Sid::chordDescriptionFile, file));
             cs->update();
             }
+      //formattingGroup->setEnabled(cs->style().chordList()->autoAdjust());
       }
 
 //---------------------------------------------------------

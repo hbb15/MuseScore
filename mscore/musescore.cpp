@@ -146,10 +146,10 @@ extern Ms::Synthesizer* createZerberus();
 #endif
 
 #ifdef QT_NO_DEBUG
-      Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg)
+      Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg);
 #else
-      Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg)
-//      Q_LOGGING_CATEGORY(undoRedo, "undoRedo")
+      Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg);
+//      Q_LOGGING_CATEGORY(undoRedo, "undoRedo");
 #endif
 
 #ifdef BUILD_CRASH_REPORTER
@@ -1588,6 +1588,8 @@ MuseScore::MuseScore()
       menuAddText->addSeparator();
       menuAddText->addAction(getAction("lyrics"));
       menuAddText->addAction(getAction("sticking-text"));
+      menuAddText->addAction(getAction("roman-numeral-text"));
+      menuAddText->addAction(getAction("nashville-number-text"));
       menuAddText->addAction(getAction("figured-bass"));
       menuAddText->addAction(getAction("tempo"));
       menuAdd->addMenu(menuAddText);
@@ -7273,7 +7275,7 @@ int main(int argc, char* av[])
       parser.addOption(QCommandLineOption({"p", "plugin"}, "Execute named plugin", "name"));
       parser.addOption(QCommandLineOption(      "template-mode", "Save template mode, no page size")); // and no platform and creationDate tags
       parser.addOption(QCommandLineOption({"F", "factory-settings"}, "Use factory settings"));  // this includes -R, --revert-settimngs
-      parser.addOption(QCommandLineOption({"R", "revert-settings"}, "Revert to default preferences"));
+      parser.addOption(QCommandLineOption({"R", "revert-settings"}, "Revert to factory settings, but keep default preferences"));
       parser.addOption(QCommandLineOption({"i", "load-icons"}, "Load icons from INSTALLPATH/icons"));
       parser.addOption(QCommandLineOption({"j", "job"}, "Process a conversion job", "file"));
       parser.addOption(QCommandLineOption({"e", "experimental"}, "Enable experimental features"));
@@ -7393,8 +7395,8 @@ int main(int argc, char* av[])
             if (styleFile.isEmpty())
                   parser.showHelp(EXIT_FAILURE);
             }
-      useFactorySettings = parser.isSet("F");
-      deletePreferences = (useFactorySettings || parser.isSet("R"));
+      deletePreferences = parser.isSet("F");
+      useFactorySettings = (deletePreferences || parser.isSet("R"));
       enableExperimental = parser.isSet("e");
       if (parser.isSet("c")) {
             QString path = parser.value("c");
@@ -7503,8 +7505,8 @@ int main(int argc, char* av[])
       if (dataPath.isEmpty())
             dataPath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
 
-      if (deletePreferences) {
-            if (useFactorySettings)
+      if (useFactorySettings) {
+            if (deletePreferences)
                   QDir(dataPath).removeRecursively();
             QSettings settings;
             QFile::remove(settings.fileName() + ".lock"); //forcibly remove lock

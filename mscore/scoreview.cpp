@@ -1876,7 +1876,15 @@ void ScoreView::cmd(const char* s)
             cmdAddNoteLine();
       else if (cmd == "chord-text") {
             changeState(ViewState::NORMAL);
-            cmdAddChordName();
+            cmdAddChordName(HarmonyType::STANDARD);
+            }
+      else if (cmd == "roman-numeral-text") {
+            changeState(ViewState::NORMAL);
+            cmdAddChordName(HarmonyType::ROMAN);
+            }
+      else if (cmd == "nashville-number-text") {
+            changeState(ViewState::NORMAL);
+            cmdAddChordName(HarmonyType::NASHVILLE);
             }
       else if (cmd == "title-text")
             cmdAddText(Tid::TITLE);
@@ -2411,6 +2419,7 @@ void ScoreView::textTab(bool back)
             return;
 
       TextBase* ot = toTextBase(oe);
+      Tid defaultTid = Tid(ot->propertyDefault(Pid::SUB_STYLE).toInt());
       Tid tid = ot->tid();
       ElementType type = ot->type();
       int staffIdx = ot->staffIdx();
@@ -2488,6 +2497,7 @@ void ScoreView::textTab(bool back)
       if (el) {
             // edit existing text
             score()->select(el);
+            mscore->updateInspector();    // needed for Space with fingering
             startEditMode(el);
             }
       else {
@@ -2496,7 +2506,7 @@ void ScoreView::textTab(bool back)
             // but it pre-fills the text
             // would be better to create empty tempo element
             if (type != ElementType::TEMPO_TEXT)
-                  cmdAddText(tid);
+                  cmdAddText(defaultTid, tid);
             }
       }
 
@@ -3987,7 +3997,7 @@ void ScoreView::cmdRealtimeAdvance()
 //   cmdAddChordName
 //---------------------------------------------------------
 
-void ScoreView::cmdAddChordName()
+void ScoreView::cmdAddChordName(HarmonyType ht)
       {
       if (!_score->checkHasMeasures())
             return;
@@ -4014,6 +4024,7 @@ void ScoreView::cmdAddChordName()
       Harmony* harmony = new Harmony(_score);
       harmony->setTrack(track);
       harmony->setParent(newParent);
+      harmony->setHarmonyType(ht);
       _score->undoAddElement(harmony);
       _score->endCmd();
 
@@ -4026,7 +4037,7 @@ void ScoreView::cmdAddChordName()
 //   cmdAddText
 //---------------------------------------------------------
 
-void ScoreView::cmdAddText(Tid tid)
+void ScoreView::cmdAddText(Tid tid, Tid customTid)
       {
       if (!_score->checkHasMeasures())
             return;
@@ -4132,6 +4143,8 @@ void ScoreView::cmdAddText(Tid tid)
             }
 
       if (s) {
+            if (customTid != Tid::DEFAULT && customTid != tid)
+                  s->initTid(customTid);
             _score->select(s, SelectType::SINGLE, 0);
             _score->endCmd();
             Measure* m = s->findMeasure();

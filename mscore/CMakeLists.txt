@@ -59,6 +59,7 @@ if (SCRIPT_INTERFACE)
             plugin/api/excerpt.h
             plugin/api/util.h
             plugin/api/selection.h
+            plugin/api/tie.h
             plugin/api/playevent.h
 
             plugin/api/enums.cpp
@@ -69,6 +70,7 @@ if (SCRIPT_INTERFACE)
             plugin/api/excerpt.cpp
             plugin/api/util.cpp
             plugin/api/selection.cpp
+            plugin/api/tie.cpp
             plugin/api/playevent.cpp
             )
 
@@ -211,6 +213,7 @@ else (APPLE)
             musescorefonts-Gootville.qrc
             musescorefonts-Bravura.qrc
             musescorefonts-MuseJazz.qrc
+            musescorefonts-Campania.qrc
             musescorefonts-FreeSerif.qrc
             musescorefonts-Free.qrc
             shortcut.qrc)
@@ -644,6 +647,12 @@ if (MINGW)
       install( FILES
          ${MINGW_ROOT}/bin/libgcc_s_seh-1.dll
          DESTINATION bin)
+      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.12.4")
+         install( FILES
+            ${DEPENDENCIES_DIR}/libcrypto-1_1-x64.dll
+            ${DEPENDENCIES_DIR}/libssl-1_1-x64.dll
+            DESTINATION bin)
+      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.12.4")
       install( FILES
          ${DEPENDENCIES_DIR}/portaudio.dll RENAME libportaudio-x86_64-w64-mingw32.static.dll
          DESTINATION bin)
@@ -652,6 +661,12 @@ if (MINGW)
          ${MINGW_ROOT}/bin/libgcc_s_dw2-1.dll
          ${DEPENDENCIES_DIR}/portaudio.dll
          DESTINATION bin)
+      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.12.4")
+         install( FILES
+            ${DEPENDENCIES_DIR}/libcrypto-1_1.dll
+            ${DEPENDENCIES_DIR}/libssl-1_1.dll
+            DESTINATION bin)
+      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.12.4")
    endif (BUILD_64)
 
    install( FILES
@@ -659,16 +674,20 @@ if (MINGW)
       ${MINGW_ROOT}/bin/libwinpthread-1.dll
       ${DEPENDENCIES_DIR}/libogg.dll
       ${DEPENDENCIES_DIR}/libsndfile-1.dll
-      ${MINGW_ROOT}/opt/bin/libeay32.dll
       ${DEPENDENCIES_DIR}/libvorbis.dll
       ${DEPENDENCIES_DIR}/libvorbisfile.dll
-      ${MINGW_ROOT}/opt/bin/ssleay32.dll
       ${QT_INSTALL_BINS}/libEGL.dll
       ${QT_INSTALL_BINS}/libGLESv2.dll
       ${QT_INSTALL_BINS}/opengl32sw.dll
       ${QtInstallLibraries}
       ${PROJECT_SOURCE_DIR}/build/qt.conf
       DESTINATION bin)
+   if (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
+      install( FILES
+         ${MINGW_ROOT}/opt/bin/libeay32.dll
+         ${MINGW_ROOT}/opt/bin/ssleay32.dll
+         DESTINATION bin)
+   endif (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
 
    install (FILES
       ${DEPENDENCIES_DIR}/lame_enc.dll
@@ -748,7 +767,12 @@ else (MINGW)
            if (APPLE)
                set(PORTMIDI_LIB portmidi)
            else (APPLE)
-               set(PORTMIDI_LIB -lportmidi -lporttime) # Remove -lporttime on RPM-based systems where PortTime is part of PortMidi.
+               find_library(PORTTIME_LIB porttime)
+               if (PORTTIME_LIB)
+                   set(PORTMIDI_LIB portmidi porttime)
+               else (PORTTIME_LIB)
+                   set(PORTMIDI_LIB portmidi)
+               endif (PORTTIME_LIB)
            endif (APPLE)
            target_link_libraries(mscore ${PORTMIDI_LIB})
        endif (USE_PORTMIDI)
@@ -916,8 +940,13 @@ else (MINGW)
       find_library( dll_vorbis      NAMES "libvorbis"      PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_vorbisfile  NAMES "libvorbisfile"  PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_portaudio   NAMES "portaudio"      PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
-      find_library( dll_ssl1        NAMES "libeay32"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
-      find_library( dll_ssl2        NAMES "ssleay32"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+      if (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
+         find_library( dll_ssl1        NAMES "libeay32"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+         find_library( dll_ssl2        NAMES "ssleay32"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+      else (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
+         find_library( dll_ssl1        NAMES "libcrypto-1_1-x64" "libcrypto-1_1"  PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+         find_library( dll_ssl2        NAMES "libssl-1_1-x64" "libssl-1_1"        PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+      endif (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
 
       list(APPEND dlls_to_copy ${dll_lame} ${dll_ogg} ${dll_sndfile} ${dll_vorbis} ${dll_vorbisfile} ${dll_portaudio} ${dll_ssl1} ${dll_ssl2} "$<TARGET_FILE_DIR:mscore>/${MSCORE_OUTPUT_NAME}.exe")
       set( output_dir_for_dlls "${PROJECT_BINARY_DIR}/../msvc.install${ARCH_TYPE}/bin")
@@ -1024,6 +1053,7 @@ if (APPLE)
       ../fonts/gootville/GootvilleText.otf
       ../fonts/mscore/MScoreText.ttf
       ../fonts/musejazz/MuseJazzText.otf
+      ../fonts/campania/Campania.otf
       ../fonts/FreeSerif.ttf
       ../fonts/FreeSerifBold.ttf
       ../fonts/FreeSerifItalic.ttf

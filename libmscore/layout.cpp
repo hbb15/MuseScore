@@ -1897,7 +1897,7 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
       for (Element* e : newList) {
             bool found = false;
             for (Element* ee : oldList) {
-                  if (ee->type() == e->type()) {
+                  if (ee->type() == e->type() && ee->subtype() == e->subtype()) {
                         mmr->add(ee);
                         auto i = std::find(oldList.begin(), oldList.end(), ee);
                         if (i != oldList.end())
@@ -1906,11 +1906,8 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                         break;
                         }
                   }
-            if (!found) {
-                  Element* e1 = e->clone();
-                  e1->setParent(mmr);
-                  undo(new AddElement(e1));
-                  }
+            if (!found)
+                  mmr->add(e->clone());
             }
       for (Element* e : oldList)
             delete e;
@@ -2061,39 +2058,46 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
       //
       cs = m->findSegmentR(SegmentType::ChordRest, Fraction(0,1));
       if (cs) {
+            // clone elements from underlying measure to mmr
             for (Element* e : cs->annotations()) {
+                  // look at elements in underlying measure
                   if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
                         continue;
-
+                  // try to find a match in mmr
                   bool found = false;
                   for (Element* ee : s->annotations()) {
-                        if (ee->type() == e->type() && ee->track() == e->track()) {
+                        if (e->linkList().contains(ee)) {
                               found = true;
                               break;
                               }
                         }
+                  // add to mmr if no match found
                   if (!found) {
                         Element* ne = e->linkedClone();
                         ne->setParent(s);
                         undo(new AddElement(ne));
                         }
                   }
-            }
 
-      for (Element* e : s->annotations()) {
-            if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
-                  continue;
-            bool found = false;
-            for (Element* ee : cs->annotations()) {
-                  if (ee->type() == e->type() && ee->track() == e->track()) {
-                        found = true;
-                        break;
+            // remove stray elements (possibly leftover from a previous layout of this mmr)
+            // this should not happen since the elements are linked?
+            for (Element* e : s->annotations()) {
+                  // look at elements in mmr
+                  if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
+                        continue;
+                  // try to find a match in underlying measure
+                  bool found = false;
+                  for (Element* ee : cs->annotations()) {
+                        if (e->linkList().contains(ee)) {
+                              found = true;
+                              break;
+                              }
                         }
+                  // remove from mmr if no match found
+                  if (!found)
+                        undo(new RemoveElement(e));
                   }
-            if (!found)
-                  undo(new RemoveElement(e));
             }
-
       MeasureBase* nm = _showVBox ? lm->next() : lm->nextMeasure();
       mmr->setNext(nm);
       mmr->setPrev(m->prev());
@@ -2266,7 +2270,7 @@ void Score::createBeams(Measure* measure)
             Staff* stf = staff(track2staff(track));
 
             // don’t compute beams for invisible staffs and tablature without stems
-            if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->slashStyle()))
+            if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->stemless()))
                   continue;
 
             ChordRest* a1    = 0;      // start of (potential) beam
@@ -2482,7 +2486,7 @@ static void breakCrossMeasureBeams(Measure* measure)
             Staff* stf = score->staff(track2staff(track));
 
             // don’t compute beams for invisible staffs and tablature without stems
-            if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->slashStyle()))
+            if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->stemless()))
                   continue;
 
             Element* e = fstSeg->element(track);
@@ -3479,8 +3483,9 @@ System* Score::collectSystem(LayoutContext& lc)
                               if (!s->enabled())
                                     s->setEnabled(true);
                               }
+                        bool firstSystem = lc.prevMeasure->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
                         if (curHeader)
-                              m->addSystemHeader(lc.firstSystem);
+                              m->addSystemHeader(firstSystem);
                         else
                               m->removeSystemHeader();
                         if (curTrailer)
