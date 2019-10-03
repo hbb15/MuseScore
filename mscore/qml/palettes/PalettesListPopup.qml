@@ -20,109 +20,148 @@
 import QtQuick 2.8
 import QtQuick.Controls 2.1
 import MuseScore.Palette 3.3
+import MuseScore.Utils 3.3
 
 StyledPopup {
     id: palettesListPopup
     property PaletteWorkspace paletteWorkspace: null
+    property int maxHeight: 400
+    height: column.height + topPadding + bottomPadding
 
-    Text {
-        id: header
-        anchors.top: parent.top
-        text: qsTr("More palettes")
-    }
+    property bool inMenuAction: false
 
-    ToolSeparator {
-        id: topSeparator
-        orientation: Qt.Horizontal
-        anchors.top: header.bottom
+    signal addCustomPaletteRequested()
+
+    Column {
+        id: column
         width: parent.width
-    }
 
-    ListView {
-        anchors {
-            top: topSeparator.bottom
-            bottom: bottomSeparator.top
-            left: parent.left
-            right: parent.right
-        }
-        clip: true
-        model: null
-
-        ScrollBar.vertical: ScrollBar {}
-
-        spacing: 8
-
-        onVisibleChanged: {
-            if (visible) {
-                model = paletteWorkspace.availableExtraPalettePanelsModel();
-            }
+        Text {
+            id: header
+            text: qsTr("More palettes")
+            font: globalStyle.font
+            color: globalStyle.windowText
         }
 
-        delegate: ItemDelegate { // TODO: use ItemDelegate or just Item?
-            id: morePalettesDelegate
+        ToolSeparator {
+            id: topSeparator
+            orientation: Qt.Horizontal
             width: parent.width
-            height: addButton.height
-            topPadding: 0
-            bottomPadding: 0
-            property bool added: false // TODO: store in some model
+        }
 
-            text: model.display
+        Text {
+            width: parent.width
+            visible: !palettesList.count
+            text: qsTr("All palettes were added")
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
+            font: globalStyle.font
+            color: globalStyle.windowText
+        }
 
-            contentItem: Item {
-                height: parent.availableHeight
-                width: parent.availableWidth
-                Item {
-                    visible: !morePalettesDelegate.added
-                    anchors.fill: parent
+        ListView {
+            id: palettesList
+            width: parent.width
+            clip: true
+            model: null
 
-                    Text {
-                        height: parent.height
-                        text: morePalettesDelegate.text
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                    Button {
-                        id: addButton
-//                         height: parent.height
-                        anchors.right: parent.right
-                        text: qsTr("Add")
-                        ToolTip.visible: hovered
-                        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-                        ToolTip.text: qsTr("Add %1 palette").arg(model.display)
-                        Accessible.description: ToolTip.text
+            readonly property int availableHeight: palettesListPopup.maxHeight - header.height - createCustomPaletteButton.height - topSeparator.height - bottomSeparator.height
+            height: Math.min(availableHeight, contentHeight)
 
-                        onClicked: {
-                            paletteWorkspace.addPalette(model.display);
-                            morePalettesDelegate.added = true; // TODO: store in some model
+            ScrollBar.vertical: ScrollBar {}
+
+            spacing: 8
+
+            onVisibleChanged: {
+                if (visible) {
+                    model = paletteWorkspace.availableExtraPalettesModel();
+                }
+            }
+
+            delegate: ItemDelegate { // TODO: use ItemDelegate or just Item?
+                id: morePalettesDelegate
+                width: parent.width
+                height: addButton.height
+                topPadding: 0
+                bottomPadding: 0
+
+                property bool added: false // TODO: store in some model
+                property bool removed: false
+
+                text: model.display
+
+                contentItem: Item {
+                    height: parent.availableHeight
+                    width: parent.availableWidth
+                    Item {
+                        visible: !(morePalettesDelegate.added || morePalettesDelegate.removed)
+                        anchors.fill: parent
+
+                        Text {
+                            height: parent.height
+                            anchors.left: parent.left
+                            anchors.right: addButton.left
+                            text: morePalettesDelegate.text
+                            font: globalStyle.font
+                            color: globalStyle.windowText
+                            verticalAlignment: Text.AlignVCenter
+                            horizontalAlignment: Text.AlignHLeft
+                            elide: Text.ElideRight
+                        }
+
+                        StyledButton {
+                            id: addButton
+    //                         height: parent.height
+                            anchors.right: parent.right
+                            text: qsTr("Add")
+
+                            ToolTip.text: qsTr("Add %1 palette").arg(model.display)
+                            Accessible.description: ToolTip.text
+
+                            onHoveredChanged: {
+                                if (hovered) {
+                                    mscore.tooltip.item = addButton;
+                                    mscore.tooltip.text = addButton.ToolTip.text;
+                                } else if (mscore.tooltip.item == addButton)
+                                    mscore.tooltip.item = null;
+                            }
+
+                            onClicked: {
+                                if (paletteWorkspace.addPalette(model.paletteIndex))
+                                    morePalettesDelegate.added = true; // TODO: store in some model
+                            }
                         }
                     }
-                }
 
-                Text {
-                    visible: morePalettesDelegate.added
-                    anchors.fill: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    text: qsTr("%1 Added!").arg(model.display)
+                    Text {
+                        visible: morePalettesDelegate.added || morePalettesDelegate.removed
+                        anchors.fill: parent
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        text: morePalettesDelegate.added ? qsTr("%1 Added!").arg(model.display) : (morePalettesDelegate.removed ? qsTr("%1 removed").arg(model.display) : "")
+                        font: globalStyle.font
+                        color: globalStyle.windowText
+                        elide: Text.ElideMiddle
+                    }
                 }
             }
         }
-    }
 
-    ToolSeparator {
-        id: bottomSeparator
-        orientation: Qt.Horizontal
-        anchors.bottom: createCustomPaletteButton.top
-        width: parent.width
-    }
+        ToolSeparator {
+            id: bottomSeparator
+            orientation: Qt.Horizontal
+            width: parent.width
+        }
 
-    Button {
-        id: createCustomPaletteButton
-        anchors.bottom: parent.bottom
-        width: parent.width
-        text: qsTr("Create custom palette")
-        onClicked: {
-            paletteWorkspace.addCustomPalette();
-            palettesListPopup.close();
+        StyledButton {
+            id: createCustomPaletteButton
+            width: parent.width
+    //         iconSource: "icons/add.png"
+            text: qsTr("Create custom palette")
+            onClicked: {
+                addCustomPaletteRequested();
+                palettesListPopup.close();
+            }
         }
     }
 }

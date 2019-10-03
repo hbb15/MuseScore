@@ -4652,17 +4652,17 @@
                 0.0, 
                 -1.392
             ]
-        }, 
+        },
         "accidentalSharpSmall": {
             "bBoxNE": [
-                1.044, 
+                1.044,
                 1.404
-            ], 
+            ],
             "bBoxSW": [
-                0.0, 
+                0.0,
                 -1.396
             ]
-        }, 
+        },
         "accidentalSharpThreeArrowsDown": {
             "bBoxNE": [
                 1.076, 
@@ -22665,7 +22665,7 @@
         }, 
         "numericAccidentalFlat": {
             "bBoxNE": [
-                0.904,
+                1.5,
                 1.756
             ],
             "bBoxSW": [
@@ -22675,7 +22675,7 @@
         },
         "numericAccidentalSharp": {
             "bBoxNE": [
-                0.996,
+                1.0,
                 1.4
             ],
             "bBoxSW": [
@@ -34001,16 +34001,16 @@
         "numericAccidentalFlat": {
             "alternates": [
                 {
-                    "codepoint": "U+F427",
-                    "name": "accidentalFlatSmall"
+                    "codepoint": "U+E29A",
+                    "name": "numericAccidentalFlat"
                 }
             ]
         },
         "numericAccidentalSharp": {
             "alternates": [
                 {
-                    "codepoint": "U+F429",
-                    "name": "accidentalSharpSmall"
+                    "codepoint": "U+E299",
+                    "name": "numericAccidentalSharp"
                 }
             ]
         },

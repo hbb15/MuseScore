@@ -33,7 +33,14 @@ Item {
 
     readonly property bool hasFocus: Window.activeFocusItem
 
-    implicitHeight: paletteTree.implicitHeight + palettesWidgetHeader.implicitHeight
+    implicitHeight: 4 * palettesWidgetHeader.implicitHeight
+    implicitWidth: paletteTree.implicitWidth
+
+    enabled: mscore.palettesEnabled
+
+    function applyCurrentPaletteElement() {
+        paletteTree.applyCurrentElement();
+    }
 
     FocusChainBreak {}
 
@@ -49,6 +56,8 @@ Item {
             right: parent.right
             rightMargin: 12
         }
+
+        onAddCustomPaletteRequested: paletteTree.insertCustomPalette(0);
     }
 
     ToolSeparator {
@@ -64,6 +73,7 @@ Item {
         paletteWorkspace: palettesWidget.paletteWorkspace
 
         filter: palettesWidgetHeader.cellFilter
+        enableAnimations: !palettesWidgetHeader.searching
 
         anchors {
             top: separator.bottom

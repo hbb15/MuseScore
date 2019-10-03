@@ -1343,9 +1343,9 @@
         "description": "Flat"
     }, 
     "numericAccidentalFlat": {
-        "alternateCodepoint": "U+266D",
-        "codepoint": "U+E298",
-        "description": "Flat"
+        "alternateCodepoint": "U+E260",
+        "codepoint": "U+E29A",
+        "description": "numericFlat"
     },
     "accidentalFlatArabic": {
         "codepoint": "U+ED32", 
@@ -1704,9 +1704,9 @@
         "description": "Sharp"
     },
     "numericAccidentalSharp": {
-        "alternateCodepoint": "U+266F",
-        "codepoint": "U+E297",
-        "description": "Sharp"
+        "alternateCodepoint": "U+E262",
+        "codepoint": "U+E299",
+        "description": "numericSharp"
     },
     "accidentalSharpArabic": {
         "codepoint": "U+ED36", 

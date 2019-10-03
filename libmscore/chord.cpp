@@ -1709,6 +1709,8 @@ void Chord::layout2()
                   xOff -= minNoteDist + g->_spaceLw;    // move to left by grace note right space and inter-grace distance
                   }
             }
+      if (_tabDur)
+            _tabDur->layout2();
       }
 
 //---------------------------------------------------------
@@ -2589,12 +2591,7 @@ void Chord::layoutNumeric()
 
       addLedgerLines();
 
-      // horiz. spacing: leave half width at each side of the (potential) stem
-      qreal halfHeadWidth = headWidth * 0.5;
-      if (lll < stemX - halfHeadWidth)
-            lll = stemX - halfHeadWidth;
-      if (rrr < stemX + halfHeadWidth)
-            rrr = stemX + halfHeadWidth;
+      lll = rrr = headWidth;
       // align dots to the widest fret mark (not needed in all TAB styles, but harmless anyway)
       if (segment())
             segment()->setDotPosX(staffIdx(), headWidth);

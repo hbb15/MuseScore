@@ -1748,7 +1748,9 @@ void ScoreView::cmdGotoElement(Element* e)
             score()->select(e, SelectType::SINGLE, 0);
             if (e)
                   adjustCanvasPosition(e, false);
-            moveCursor();
+            if (noteEntryMode())
+                  moveCursor();
+            updateAll();
             }
       }
 
@@ -2130,10 +2132,10 @@ void ScoreView::cmd(const char* s)
                   cmdGotoElement(score()->lastElement());
             }
       else if (cmd == "first-element") {
-            cmdGotoElement(score()->firstElement());
+            cmdGotoElement(score()->firstElement(false));
             }
       else if (cmd == "last-element") {
-            cmdGotoElement(score()->lastElement());
+            cmdGotoElement(score()->lastElement(false));
             }
       else if (cmd == "rest" || cmd == "rest-TAB")
             cmdEnterRest();
@@ -2430,7 +2432,7 @@ void ScoreView::textTab(bool back)
       changeState(ViewState::NORMAL);
 
       // find new note to add text to
-      bool here = false;      // prevent infinite loop
+      bool here = false;      // prevent infinite loop (relevant if navigation is allowed to wrap around end of score)
       while (el) {
             if (el->isNote()) {
                   Note* n = toNote(el);
@@ -2453,12 +2455,18 @@ void ScoreView::textTab(bool back)
                   }
             // get prev/next note
             score()->select(el);
-            el = back ? score()->prevElement() : score()->nextElement();
+            Element* el2 = back ? score()->prevElement() : score()->nextElement();
+            // start/end of score reached
+            if (el2 == el)
+                  break;
+            el = el2;
             }
       if (!el || !el->isNote()) {
-            // nothing found, re-select original element and give up
-            score()->select(oe);
-            changeState(ViewState::EDIT);
+            // nothing found, exit cleanly
+            if (op->selectable())
+                  score()->select(op);
+            else
+                  score()->deselectAll();
             return;
             }
       Note* nn = toNote(el);
@@ -2497,7 +2505,6 @@ void ScoreView::textTab(bool back)
       if (el) {
             // edit existing text
             score()->select(el);
-            mscore->updateInspector();    // needed for Space with fingering
             startEditMode(el);
             }
       else {
@@ -3197,7 +3204,7 @@ void ScoreView::adjustCanvasPosition(const Element* el, bool playBack, int staff
       else if (el->type() == ElementType::HARMONY && el->parent()->type() == ElementType::FRET_DIAGRAM
          && el->parent()->parent()->type() == ElementType::SEGMENT)
             m = static_cast<const Segment*>(el->parent()->parent())->measure();
-      else if (el->type() == ElementType::MEASURE || el->type() == ElementType::VBOX)
+      else if (el->isMeasureBase())
             m = static_cast<const MeasureBase*>(el);
       else if (el->isSpannerSegment()) {
             Element* se = static_cast<const SpannerSegment*>(el)->spanner()->startElement();
@@ -4593,10 +4600,11 @@ Element* ScoreView::elementNear(QPointF p)
 
 void ScoreView::posChanged(POS pos, unsigned tick)
       {
-      if (this != mscore->currentScoreView() && !_moveWhenInactive)
-            return;
       switch (pos) {
             case POS::CURRENT:
+                  // draw playback cursor only in the currently active view
+                  if (this != mscore->currentScoreView() && !_moveWhenInactive)
+                        return;
                   if (noteEntryMode())
                         moveCursor();     // update input cursor position
                   else

@@ -3193,16 +3193,29 @@ Element* Measure::nextElementStaff(int staff)
       Element* e = score()->selection().element();
       if (!e && !score()->selection().elements().isEmpty())
             e = score()->selection().elements().first();
+
+      // handle measure elements
+      if (e->parent() == this) {
+            auto i = std::find(el().begin(), el().end(), e);
+            if (i != el().end()) {
+                  if (++i != el().end()) {
+                        Element* e = *i;
+                        if (e)
+                              return e;
+                        }
+                  }
+            }
+
       for (; e && e->type() != ElementType::SEGMENT; e = e->parent()) {
             ;
       }
       Segment* seg = toSegment(e);
-      Segment* nextSegment = seg->next();
+      Segment* nextSegment = seg ? seg->next() : first();
       Element* next = seg->firstElementOfSegment(nextSegment, staff);
       if (next)
             return next;
 
-      return score()->firstElement();
+      return score()->lastElement();
       }
 
 //---------------------------------------------------------
@@ -3211,13 +3224,29 @@ Element* Measure::nextElementStaff(int staff)
 
 Element* Measure::prevElementStaff(int staff)
       {
+      Element* e = score()->selection().element();
+      if (!e && !score()->selection().elements().isEmpty())
+            e = score()->selection().elements().first();
+
+      // handle measure elements
+      if (e->parent() == this) {
+            auto i = std::find(el().rbegin(), el().rend(), e);
+            if (i != el().rend()) {
+                  if (++i != el().rend()) {
+                        Element* e = *i;
+                        if (e)
+                              return e;
+                        }
+                  }
+            }
+
       Measure* prevM = prevMeasureMM();
       if (prevM) {
             Segment* seg = prevM->last();
             if (seg)
-                  seg->lastElement(staff);
+                  return seg->lastElement(staff);
             }
-      return score()->lastElement();
+      return score()->firstElement();
       }
 
 //---------------------------------------------------------
@@ -3936,13 +3965,18 @@ void Measure::addSystemTrailer(Measure* nm)
 
       // locate a time sig. in the next measure and, if found,
       // check if it has court. sig. turned off
-      TimeSig* ts;
+      TimeSig* ts = nullptr;
       bool showCourtesySig = false;
       Segment* s = findSegmentR(SegmentType::TimeSigAnnounce, _rtick);
       if (score()->genCourtesyTimesig() && !isFinalMeasure && !score()->floatMode()) {
             Segment* tss = nm->findSegmentR(SegmentType::TimeSig, Fraction(0,1));
             if (tss) {
-                  ts = toTimeSig(tss->element(0));
+                  int nstaves = score()->nstaves();
+                  for (int track = 0; track < nstaves * VOICES; track += VOICES) {
+                        ts = toTimeSig(tss->element(track));
+                        if (ts)
+                              break;
+                        }
                   if (ts && ts->showCourtesySig()) {
                         showCourtesySig = true;
                         // if due, create a new courtesy time signature for each staff
@@ -3952,7 +3986,6 @@ void Measure::addSystemTrailer(Measure* nm)
                               add(s);
                               }
                         s->setEnabled(true);
-                        int nstaves = score()->nstaves();
                         for (int track = 0; track < nstaves * VOICES; track += VOICES) {
                               TimeSig* nts = toTimeSig(tss->element(track));
                               if (!nts)

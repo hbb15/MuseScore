@@ -1199,7 +1199,7 @@ Element* System::nextSegmentElement()
             if (firstSeg)
                   return firstSeg->element(0);
             }
-      return score()->firstElement();
+      return score()->lastElement();
       }
 
 //---------------------------------------------------------
@@ -1213,7 +1213,7 @@ Element* System::prevSegmentElement()
       while (!re) {
             seg = seg->prev1MM();
             if (!seg)
-                  return score()->lastElement();
+                  return score()->firstElement();
 
             if (seg->segmentType() == SegmentType::EndBarLine)
                   score()->inputState().setTrack((score()->staves().size() - 1) * VOICES); //corection

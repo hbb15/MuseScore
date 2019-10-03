@@ -790,6 +790,8 @@ void ChordRest::removeDeleteBeam(bool beamed)
             _beam->remove(this);
             if (b->empty())
                   score()->undoRemoveElement(b);
+            else
+                  b->layout1();
             }
       if (!beamed && isChord())
             toChord(this)->layoutStem();
@@ -1158,7 +1160,7 @@ QString ChordRest::accessibleExtraInfo() const
             for (Element* e : segment()->annotations()) {
                   if (!score()->selectionFilter().canSelect(e))
                         continue;
-                  if (e->staffIdx() == staffIdx() )
+                  if (e->track() == track())
                         rez = QString("%1 %2").arg(rez).arg(e->screenReaderInfo());
                   }
 

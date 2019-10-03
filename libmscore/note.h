@@ -24,6 +24,7 @@
 #include "pitchspelling.h"
 #include "shape.h"
 #include "key.h"
+#include "numeric.h"
 
 namespace Ms {
 
@@ -275,6 +276,7 @@ class Note final : public Element {
       QPointF _numericaccidentalPos;
       QPointF _numericTextPos;
       QPointF _numericKlammerPos;
+      numeric _numeric;
       int _numericLedgerline;
       bool _fretHidden = false;
       bool _drawFlat = false;

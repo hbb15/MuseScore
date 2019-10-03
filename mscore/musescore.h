@@ -52,7 +52,6 @@ class MasterScore;
 class Score;
 class Tuplet;
 class PageSettings;
-class PaletteBox;
 class Palette;
 class PaletteScrollArea;
 class SelectionWindow;
@@ -68,7 +67,6 @@ class ScoreTab;
 class Drumset;
 class TextTools;
 class DrumTools;
-class ScriptEngine;
 class KeyEditor;
 class ChordStyleEditor;
 class Navigator;
@@ -108,7 +106,7 @@ class TourHandler;
 class GeneralAutoUpdater;
 
 class PalettePanel;
-class PaletteTree;
+struct PaletteTree;
 class PaletteWidget;
 class PaletteWorkspace;
 
@@ -120,6 +118,7 @@ enum class MagIdx : char;
 extern QString mscoreGlobalShare;
 static const int PROJECT_LIST_LEN = 6;
 extern const char* voiceActions[];
+extern bool mscoreFirstStart;
 
 //---------------------------------------------------------
 //   IconActions
@@ -357,7 +356,6 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       PaletteWorkspace* paletteWorkspace { nullptr };
       PaletteWidget* paletteWidget { nullptr };
 
-      PaletteBox* paletteBox         { 0 };
       Inspector* _inspector          { 0 };
       OmrPanel* omrPanel             { 0 };
       QWidget* lastFocusWidget       { 0 };
@@ -366,7 +364,6 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
 
       bool _midiinEnabled            { true };
       QList<QString> plugins;
-      ScriptEngine* se               { 0 };
       QString pluginPath;
 
 #ifdef SCRIPT_INTERFACE
@@ -722,7 +719,6 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       PaletteWorkspace* getPaletteWorkspace();
       void changeWorkspace(const QString& name);
 
-      PaletteBox* getPaletteBox();
       void disableCommands(bool val) { inChordEditor = val; }
 
       Tuplet* tupletDialog();

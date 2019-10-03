@@ -2729,6 +2729,7 @@ class Sym {
 
       static const std::array<const char*, int (SymId::lastSym)+1> symNames;
       static const std::array<const char*, int(SymId::lastSym)+1> symUserNames;
+      static const QVector<SymId> commonScoreSymbols;
 
       static QHash<QString, SymId> lnhash;
       static QHash<QString, SymId> lonhash;

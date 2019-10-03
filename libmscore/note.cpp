@@ -1164,10 +1164,10 @@ void Note::draw(QPainter* painter) const
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        score()->scoreFont()->draw(SymId::numericAccidentalSharp, painter,( magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)*_trackthick, _numericaccidentalPos);
+                        score()->scoreFont()->draw(SymId::numericAccidentalSharp, painter,( score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth), _numericaccidentalPos);
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        score()->scoreFont()->draw(SymId::numericAccidentalFlat, painter,( magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)*_trackthick,_numericaccidentalPos);
+                        score()->scoreFont()->draw(SymId::numericAccidentalFlat, painter,( score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth),_numericaccidentalPos);
                         }
                   }
             if(_trackthick!=1.0){
@@ -1835,10 +1835,6 @@ Element* Note::drop(EditData& data)
 
             case ElementType::NOTE:
                   {
-                  if (ch->noteType() != NoteType::NORMAL) {
-                        delete e;
-                        return 0;
-                        }
                   // calculate correct transposed tpc
                   Note* n = toNote(e);
                   Interval v = part()->instrument(ch->tick())->transpose();
@@ -2231,8 +2227,12 @@ void Note::layout()
             _numericLedgerline = ((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)/2;
             _fretStringYShift=((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
             rypos() = -_fretStringYShift;
-            bbox().setRect(0.0, numeric->fretBoxY() * mags * _trackthick, _numericWidth, numeric->fretBoxH() * mags* _trackthick);
-            _numericHigth = bbox().height();
+            qreal w = tabHeadWidth(numeric); // !! use _fretString
+            _numericHigth =  numeric->fretBoxH() * mags* _trackthick;
+            _numeric.set_relativeSize(_numericHigth);
+            QRectF stringbox = QRectF(_numericWidth*-0.5,_numericHigth*-1 + _numericHigth*score()->styleD(Sid::numericHeightDisplacement),
+                             w, _numericHigth);
+            setbbox(stringbox);
             staff()->set_numericHeight(_numericHigth);
             }
       else {
@@ -2301,12 +2301,12 @@ void Note::layout2()
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
                         _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp),
                                                         (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)));
-                        addbbox(score()->scoreFont()->bbox(SymId::accidentalSharp,( magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)*_trackthick).translated(_numericaccidentalPos));
+                        addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalSharp,(score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)).translated(_numericaccidentalPos));
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
                         _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat),
                                                         (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)));
-                        addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalFlat,( magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)*_trackthick).translated(_numericaccidentalPos));
+                        addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalFlat,(score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)).translated(_numericaccidentalPos));
                         }
                   }
             if(_trackthick!=1.0){
@@ -2315,13 +2315,13 @@ void Note::layout2()
                         if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
                               _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*0.7,
                                                               (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)));
-                              addbbox(score()->scoreFont()->bbox(SymId::accidentalSharp,( magS()*score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)*_trackthick).translated(_numericaccidentalPos));
+                              addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalSharp,( score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)*_trackthick).translated(_numericaccidentalPos));
                               xK = _numericaccidentalPos.x();
                               }
                         if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
                               _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*0.7,
                                                               (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)));
-                              addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalFlat,( magS()*score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)*_trackthick).translated(_numericaccidentalPos));
+                              addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalFlat,( score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)*_trackthick).translated(_numericaccidentalPos));
                               xK = _numericaccidentalPos.x();
                               }
                         }
@@ -3114,6 +3114,8 @@ QString Note::accessibleInfo() const
             pitchName = chord()->noStem() ? QObject::tr("Beat slash") : QObject::tr("Rhythm slash");
       else if (staff()->isDrumStaff(tick()) && drumset)
             pitchName = qApp->translate("drumset", drumset->name(pitch()).toUtf8().constData());
+      else if (staff()->isTabStaff(tick()))
+            pitchName = QObject::tr("%1; String %2; Fret %3").arg(tpcUserName(false)).arg(QString::number(string() + 1)).arg(QString::number(fret()));
       else
             pitchName = tpcUserName(false);
       return QObject::tr("%1; Pitch: %2; Duration: %3%4").arg(noteTypeUserName()).arg(pitchName).arg(duration).arg((chord()->isGrace() ? "" : QString("; %1").arg(voice)));
@@ -3126,13 +3128,17 @@ QString Note::accessibleInfo() const
 QString Note::screenReaderInfo() const
       {
       QString duration = chord()->durationUserName();
-      QString voice = QObject::tr("Voice: %1").arg(QString::number(track() % VOICES + 1));
+      Measure* m = chord()->measure();
+      bool voices = m ? m->hasVoices(staffIdx()) : false;
+      QString voice = voices ? QObject::tr("Voice: %1").arg(QString::number(track() % VOICES + 1)) : "";
       QString pitchName;
       const Drumset* drumset = part()->instrument()->drumset();
       if (fixed() && headGroup() == NoteHead::Group::HEAD_SLASH)
             pitchName = chord()->noStem() ? QObject::tr("Beat Slash") : QObject::tr("Rhythm Slash");
       else if (staff()->isDrumStaff(tick()) && drumset)
             pitchName = qApp->translate("drumset", drumset->name(pitch()).toUtf8().constData());
+      else if (staff()->isTabStaff(tick()))
+            pitchName = QObject::tr("%1 String %2 Fret %3").arg(tpcUserName(true)).arg(QString::number(string() + 1)).arg(QString::number(fret()));
       else
             pitchName = tpcUserName(true);
       return QString("%1 %2 %3%4").arg(noteTypeUserName()).arg(pitchName).arg(duration).arg((chord()->isGrace() ? "" : QString("; %1").arg(voice)));
@@ -3175,7 +3181,11 @@ QString Note::accessibleExtraInfo() const
                   }
             }
 
-      rez = QString("%1 %2").arg(rez).arg(chord()->accessibleExtraInfo());
+      // only read extra information for top note of chord
+      // (it is reached directly on next/previous element)
+      if (this == chord()->upNote())
+            rez = QString("%1 %2").arg(rez).arg(chord()->accessibleExtraInfo());
+
       return rez;
       }
 
@@ -3224,6 +3234,8 @@ Element* Note::nextInEl(Element* e)
       if (e == _el.back())
             return nullptr;
       auto i = std::find(_el.begin(), _el.end(), e);
+      if (i == _el.end())
+            return nullptr;
       return *(i+1);
       }
 
@@ -3237,6 +3249,8 @@ Element* Note::prevInEl(Element* e)
       if (e == _el.front())
             return nullptr;
       auto i = std::find(_el.begin(), _el.end(), e);
+      if (i == _el.end())
+            return nullptr;
       return *(i-1);
       }
 

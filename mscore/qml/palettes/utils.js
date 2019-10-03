@@ -19,14 +19,15 @@
 
 .pragma library
 
-//     function stretched(cw, w) {
-//         return cw + (w % cw) / Math.floor(w / cw);
-// //         const n = Math.floor(w / cw);
-// //         return n + w/n - 1;
-//     }
+var style = {
+    popupMargin: 3
+}
+
+function stretched(cw, w) {
+    return cw + (w % cw) / Math.floor(w / cw);
+}
 
 function dropEventMimeData(drag) {
-
     var formats = drag.formats;
     var mime = {};
     for (var i = 0; i < formats.length; i++) {
@@ -50,7 +51,9 @@ function removeSelectedItems(paletteModel, paletteController, selectionModel, pa
 
     var selectedIndex = findNextSelectedIndex(selectionModel.selectedIndexes);
     while (selectedIndex) {
-        paletteController.remove(selectedIndex);
+        var ok = paletteController.remove(selectedIndex);
+        if (!ok)
+            return;
         selectedIndex = findNextSelectedIndex(selectionModel.selectedIndexes);
     }
 }

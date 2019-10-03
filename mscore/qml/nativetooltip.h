@@ -2,7 +2,7 @@
 //  MuseScore
 //  Music Composition & Notation
 //
-//  Copyright (C) 2019 Werner Schweer and others
+//  Copyright (C) 2019 MuseScore BVBA
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -17,38 +17,39 @@
 //  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //=============================================================================
 
-#ifndef __PALETTEDIALOGS_H__
-#define __PALETTEDIALOGS_H__
-
-namespace Ui {
-      class PaletteProperties;
-      }
+#ifndef __QML_NATIVETOOLTIP_H__
+#define __QML_NATIVETOOLTIP_H__
 
 namespace Ms {
 
-class PalettePanel;
-
 //---------------------------------------------------------
-//   PalettePropertiesDialog
+//   QmlNativeToolTip
 //---------------------------------------------------------
 
-class PalettePropertiesDialog : public QDialog {
+class QmlNativeToolTip : public QObject {
       Q_OBJECT
 
-      Ui::PaletteProperties* ui;
+      Q_PROPERTY(QQuickItem* item READ item WRITE setItem)
+      Q_PROPERTY(QString text READ text WRITE setText)
 
-      PalettePanel* palette;
+      QWidget* _widget;
+      QPointer<QQuickItem> _item = nullptr;
+      QString _text;
+      QString _lastShownText;
+      QTimer _timer;
 
-      void setData(const PalettePanel*);
-
-      virtual void accept();
-      virtual void hideEvent(QHideEvent*);
+   private slots:
+      void showToolTip();
 
    public:
-      PalettePropertiesDialog(PalettePanel*, QWidget* parent = nullptr);
-      ~PalettePropertiesDialog();
+      QmlNativeToolTip(QWidget* w, QObject* parent = nullptr);
+
+      QQuickItem* item() const { return _item; }
+      void setItem(QQuickItem*);
+
+      const QString& text() const { return _text; }
+      void setText(const QString& t) { _text = t; }
       };
 
 } // namespace Ms
-
 #endif

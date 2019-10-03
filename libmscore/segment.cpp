@@ -1178,11 +1178,15 @@ Element* Segment::nextAnnotation(Element* e)
       {
       if (_annotations.empty() || e == _annotations.back())
             return nullptr;
-      auto i = std::find(_annotations.begin(), _annotations.end(), e);
-      Element* next = *(i+1);
-      if (next && next->staffIdx() == e->staffIdx())
-            return next;
-      return nullptr;
+      auto ei = std::find(_annotations.begin(), _annotations.end(), e);
+      if (ei == _annotations.end())
+            return nullptr;               // element not found
+      
+      auto resIt = std::find_if(ei + 1, _annotations.end(), [e](Element* nextElem){
+            return nextElem && nextElem->staffIdx() == e->staffIdx();
+            });
+      
+      return _annotations.end() == resIt ? nullptr : *resIt;
       }
 
 //---------------------------------------------------------
@@ -1194,11 +1198,15 @@ Element* Segment::prevAnnotation(Element* e)
       {
       if (e == _annotations.front())
           return nullptr;
-      auto i = std::find(_annotations.begin(), _annotations.end(), e);
-            Element* prev = *(i-1);
-      if (prev && prev->staffIdx() == e->staffIdx())
-            return prev;
-      return nullptr;
+      auto reverseIt = std::find(_annotations.rbegin(), _annotations.rend(), e);
+      if (reverseIt == _annotations.rend())
+            return nullptr;               // element not found
+      
+      auto resIt = std::find_if(reverseIt + 1, _annotations.rend(), [e](Element* prevElem){
+            return prevElem && prevElem->staffIdx() == e->staffIdx();
+            });
+      
+      return _annotations.rend() == resIt ? nullptr : *resIt;
       }
 
 //---------------------------------------------------------
@@ -1317,7 +1325,7 @@ Element* Segment::nextElementOfSegment(Segment* s, Element* e, int activeStaff)
                                 (!nextEl || nextEl->staffIdx() != activeStaff)) {
                                nextEl = s->element(++track);
                                }
-                         if (!nextEl)
+                         if (!nextEl || nextEl->staffIdx() != activeStaff)
                                return nullptr;
                          if (nextEl->isChord())
                                return toChord(nextEl)->notes().back();
@@ -1506,7 +1514,9 @@ Element* Segment::nextElement(int activeStaff)
             case ElementType::STAFF_STATE:
             case ElementType::INSTRUMENT_CHANGE:
             case ElementType::STICKING: {
-                  Element* next = nextAnnotation(e);
+                  Element* next = nullptr;
+                  if (e->parent() == this)
+                        next = nextAnnotation(e);
                   if (next)
                         return next;
                   else {
@@ -1573,6 +1583,22 @@ Element* Segment::nextElement(int activeStaff)
                   if (s)
                         return s->spannerSegments().front();
                   Segment* nextSegment =  seg->next1enabled();
+                  if (!nextSegment) {
+                        MeasureBase* mb = measure()->next();
+                        return mb && mb->isBox() ? mb : score()->lastElement();
+                        }
+
+                  Measure* nsm = nextSegment->measure();
+                  if (nsm != measure()) {
+                        // check for frame, measure elements
+                        MeasureBase* nmb = measure()->next();
+                        Element* nme = nsm->el().empty() ? nullptr : nsm->el().front();
+                        if (nsm != nmb)
+                              return nmb;
+                        else if (nme && nme->isTextBase() && nme->staffIdx() == e->staffIdx())
+                              return nme;
+                        }
+
                   while (nextSegment) {
                         nextEl = nextSegment->firstElementOfSegment(nextSegment, activeStaff);
                         if (nextEl)
@@ -1613,7 +1639,9 @@ Element* Segment::prevElement(int activeStaff)
             case ElementType::STAFF_STATE:
             case ElementType::INSTRUMENT_CHANGE:
             case ElementType::STICKING: {
-                  Element* prev = prevAnnotation(e);
+                  Element* prev = nullptr;
+                  if (e->parent() == this)
+                        prev = prevAnnotation(e);
                   if (prev)
                         return prev;
                   if (notChordRestType(this)) {
@@ -1700,8 +1728,21 @@ Element* Segment::prevElement(int activeStaff)
                               }
                         }
                    Segment* prevSeg = seg->prev1enabled();
-                   if (!prevSeg)
-                         return score()->lastElement();
+                   if (!prevSeg) {
+                         MeasureBase* mb = measure()->prev();
+                         return mb && mb->isBox() ? mb : score()->firstElement();
+                         }
+
+                   Measure* psm = prevSeg->measure();
+                   if (psm != measure()) {
+                         // check for frame, measure elements
+                         MeasureBase* pmb = measure()->prev();
+                         Element* me = measure()->el().empty() ? nullptr : measure()->el().back();
+                         if (me && me->isTextBase() && me->staffIdx() == e->staffIdx())
+                               return me;
+                         else if (psm != pmb)
+                              return pmb;
+                         }
 
                    prev = lastElementOfSegment(prevSeg, activeStaff);
                    while (!prev && prevSeg) {
@@ -1709,7 +1750,7 @@ Element* Segment::prevElement(int activeStaff)
                          prev = lastElementOfSegment(prevSeg, activeStaff);
                          }
                    if (!prevSeg)
-                         return score()->lastElement();
+                         return score()->firstElement();
 
                    if (notChordRestType(prevSeg)) {
                          Element* lastEl = lastElementOfSegment(prevSeg, activeStaff);

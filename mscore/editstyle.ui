@@ -10207,9 +10207,6 @@
                  </property>
                  <item row="0" column="1">
                   <widget class="Awl::ColorLabel" name="textStyleFrameForeground">
-                   <property name="frameShape">
-                    <enum>QFrame::Box</enum>
-                   </property>
                   </widget>
                  </item>
                  <item row="2" column="0">
@@ -10296,9 +10293,6 @@
                  </item>
                  <item row="1" column="1">
                   <widget class="Awl::ColorLabel" name="textStyleFrameBackground">
-                   <property name="frameShape">
-                    <enum>QFrame::Box</enum>
-                   </property>
                   </widget>
                  </item>
                  <item row="3" column="2">
@@ -10360,9 +10354,6 @@
            </item>
            <item row="6" column="1">
             <widget class="Awl::ColorLabel" name="textStyleColor">
-             <property name="frameShape">
-              <enum>QFrame::Box</enum>
-             </property>
             </widget>
            </item>
            <item row="7" column="1">
@@ -12530,7 +12521,7 @@
  <customwidgets>
   <customwidget>
    <class>Awl::ColorLabel</class>
-   <extends>QFrame</extends>
+   <extends>QPushButton</extends>
    <header>awl/colorlabel.h</header>
    <container>1</container>
   </customwidget>
