@@ -19925,7 +19925,7 @@
         }, 
         "numericAccidentalFlat": {
             "bBoxNE": [
-                0.904,
+                1.904,
                 1.756
             ],
             "bBoxSW": [
@@ -19935,7 +19935,7 @@
         },
         "numericAccidentalSharp": {
             "bBoxNE": [
-                0.996,
+                1.5,
                 1.4
             ],
             "bBoxSW": [
@@ -28957,16 +28957,16 @@
         "numericAccidentalFlat": {
             "alternates": [
                 {
-                    "codepoint": "U+F427",
-                    "name": "accidentalFlatSmall"
+                    "codepoint": "U+E29A",
+                    "name": "numericAccidentalFlat"
                 }
             ]
         },
         "numericAccidentalSharp": {
             "alternates": [
                 {
-                    "codepoint": "U+F429",
-                    "name": "accidentalSharpSmall"
+                    "codepoint": "U+E299",
+                    "name": "numericAccidentalSharp"
                 }
             ]
         },
@@ -33702,22 +33702,22 @@
             ]
         }, 
         "numericAccidentalFlat": {
-            "cutOutNE": [
-                0.252,
+            "cutOutNW": [
+                0.0,
                 0.656
             ],
             "cutOutSE": [
-                0.504,
+                1.5,
                 -0.476
             ]
         },
         "numericAccidentalSharp": {
-            "cutOutNE": [
-                0.252,
+            "cutOutNW": [
+                0.0,
                 0.656
             ],
             "cutOutSE": [
-                0.504,
+                1.0,
                 -0.476
             ]
         },
