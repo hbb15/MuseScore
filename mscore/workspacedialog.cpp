@@ -14,7 +14,6 @@
 #include "workspace.h"
 #include "preferences.h"
 #include "musescore.h"
-#include "palettebox.h"
 
 namespace Ms {
 
@@ -58,6 +57,7 @@ WorkspaceDialog::WorkspaceDialog(QWidget* parent)
       setObjectName("WorkspaceDialog");
       setupUi(this);
       retranslateUi(this);
+      setModal(true);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       MuseScore::restoreGeometry(this);
 
@@ -71,7 +71,7 @@ WorkspaceDialog::WorkspaceDialog(QWidget* parent)
 
 void WorkspaceDialog::display()
       {
-      mscore->getPaletteBox()->searchBox()->clear();
+      // TODO: clear search box?
       if (editMode) {
             componentsCheck->setChecked(Workspace::currentWorkspace->getSaveComponents());
             toolbarsCheck->setChecked(Workspace::currentWorkspace->getSaveToolbars());
@@ -142,8 +142,7 @@ void WorkspaceDialog::accepted()
             Workspace::currentWorkspace->rename(s);
 
       preferences.setPreference(PREF_APP_WORKSPACE, Workspace::currentWorkspace->name());
-      PaletteBox* paletteBox = mscore->getPaletteBox();
-      paletteBox->updateWorkspaces();
+      emit mscore->workspacesChanged();
       close();
       }
 

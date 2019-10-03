@@ -14,7 +14,6 @@
 #include "network/loginmanager.h"
 #include "uploadscoredialog.h"
 #include <QStyleFactory>
-#include "palettebox.h"
 #include "config.h"
 #include "musescore.h"
 #include "scoreview.h"
@@ -36,7 +35,9 @@
 #include "mixer.h"
 #include "selectionwindow.h"
 #include "palette.h"
-#include "palettebox.h"
+#include "palette/palettemodel.h"
+#include "palette/palettewidget.h"
+#include "palette/paletteworkspace.h"
 #include "libmscore/part.h"
 #include "libmscore/drumset.h"
 #include "libmscore/instrtemplate.h"
@@ -68,6 +69,7 @@
 #include "pianotools.h"
 #include "mediadialog.h"
 #include "workspace.h"
+#include "workspacecombobox.h"
 #include "selectdialog.h"
 #include "selectnotedialog.h"
 #include "transposedialog.h"
@@ -146,10 +148,10 @@ extern Ms::Synthesizer* createZerberus();
 #endif
 
 #ifdef QT_NO_DEBUG
-      Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg)
+      Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg);
 #else
-      Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg)
-//      Q_LOGGING_CATEGORY(undoRedo, "undoRedo")
+      Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg);
+//      Q_LOGGING_CATEGORY(undoRedo, "undoRedo");
 #endif
 
 #ifdef BUILD_CRASH_REPORTER
@@ -204,6 +206,8 @@ QString styleName;
 QString revision;
 QErrorMessage* errorMessage;
 const char* voiceActions[] = { "voice-1", "voice-2", "voice-3", "voice-4" };
+
+bool mscoreFirstStart = false;
 
 const std::list<const char*> MuseScore::_allNoteInputMenuEntries {
             "note-input",
@@ -527,10 +531,8 @@ void MuseScore::preferencesChanged(bool fromWorkspace)
                         }
                   }
 
-            if (workspace != 0) {
+            if (workspace)
                   mscore->changeWorkspace(workspace);
-                  mscore->getPaletteBox()->updateWorkspaces();
-                  }
             }
 
       delete newWizard;
@@ -820,8 +822,8 @@ bool MuseScore::importExtension(QString path)
             auto wsList = workspacesDir.entryInfoList(QStringList("*.workspace"), QDir::Files);
             if (!wsList.isEmpty()) {
                   Workspace::refreshWorkspaces();
-                  paletteBox->updateWorkspaces();
-                  paletteBox->selectWorkspace(wsList.last().absoluteFilePath());
+                  emit workspacesChanged();
+                  changeWorkspace(Workspace::workspaces().last());
                   }
             }
       return true;
@@ -885,9 +887,21 @@ bool MuseScore::uninstallExtension(QString extensionId)
       mscore->reloadInstrumentTemplates();
       mscore->updateInstrumentDialog();
       if (refreshWorkspaces) {
+            const auto& curWorkspaceName = Workspace::currentWorkspace->name();
             Workspace::refreshWorkspaces();
-            paletteBox->updateWorkspaces();
-            paletteBox->selectWorkspace(-1);
+            emit workspacesChanged();
+            auto ws = Workspace::workspaces();
+            //If current worksapce is alive, do nothing
+            //Select first available workspace in the list otherwise
+            bool curWorkspaceDisappeared = true;
+            for (auto workspace : ws) {
+                  if (workspace->name() == curWorkspaceName) {
+                        curWorkspaceDisappeared = false;
+                        break;
+                        }
+                  }
+            if (curWorkspaceDisappeared)
+                  changeWorkspace(Workspace::workspaces().last());
             }
       return true;
       }
@@ -1230,6 +1244,7 @@ MuseScore::MuseScore()
       //    Feedback Tool Bar
       //-------------------------------
 
+      {
       feedbackTools = addToolBar("");
       feedbackTools->setObjectName("feedback-tools");
 	  // Forbid to move or undock the toolbar...
@@ -1243,6 +1258,7 @@ MuseScore::MuseScore()
       AccessibleToolButton* feedbackButton = new AccessibleToolButton(feedbackTools, getAction("leave-feedback"));
       feedbackButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
       feedbackTools->addWidget(feedbackButton);
+      }
 
       addToolBarBreak();
 
@@ -1254,6 +1270,29 @@ MuseScore::MuseScore()
       entryTools->setObjectName("entry-tools");
 
       populateNoteInputMenu();
+
+      //-------------------------------
+      //    Workspaces Tool Bar
+      //-------------------------------
+
+      {
+      workspacesTools = addToolBar("");
+      workspacesTools->setObjectName("workspaces-tools");
+
+      // Add a spacer to align the buttons to the right side.
+      QWidget* spacer = new QWidget(workspacesTools);
+      spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+      workspacesTools->addWidget(spacer);
+
+      WorkspaceComboBox* box = new WorkspaceComboBox(this);
+      workspacesTools->addWidget(box);
+
+      AccessibleToolButton* addWorkspaceButton = new AccessibleToolButton(workspacesTools, getAction("create-new-workspace"));
+      addWorkspaceButton->setMinimumHeight(24);
+      workspacesTools->addWidget(addWorkspaceButton);
+      }
+
+      addToolBarBreak();
 
       //---------------------
       //    Menus
@@ -1463,6 +1502,12 @@ MuseScore::MuseScore()
       connect(feedbackTools, SIGNAL(visibilityChanged(bool)), a, SLOT(setChecked(bool)));
       menuToolbars->addAction(a);
 
+      a = getAction("toggle-workspaces-toolbar");
+      a->setCheckable(true);
+      a->setChecked(workspacesTools->isVisible());
+      connect(workspacesTools, SIGNAL(visibilityChanged(bool)), a, SLOT(setChecked(bool)));
+      menuToolbars->addAction(a);
+
       menuToolbars->addSeparator();
 
       menuToolbars->addAction(getAction("edit-toolbars"));
@@ -1588,6 +1633,8 @@ MuseScore::MuseScore()
       menuAddText->addSeparator();
       menuAddText->addAction(getAction("lyrics"));
       menuAddText->addAction(getAction("sticking-text"));
+      menuAddText->addAction(getAction("roman-numeral-text"));
+      menuAddText->addAction(getAction("nashville-number-text"));
       menuAddText->addAction(getAction("figured-bass"));
       menuAddText->addAction(getAction("tempo"));
       menuAdd->addMenu(menuAddText);
@@ -1733,6 +1780,8 @@ MuseScore::MuseScore()
       a->setChecked(true);
       menuDebug->addAction(a);
       a = getAction("relayout");
+      menuDebug->addAction(a);
+      a = getAction("qml-reload-source");
       menuDebug->addAction(a);
       Workspace::addMenuAndString(menuDebug, "menu-debug");
 #endif
@@ -1924,6 +1973,12 @@ MuseScore::~MuseScore()
             autoUpdater->cleanup();
 
       delete synti;
+
+      // A crash is possible if paletteWorkspace gets
+      // deleted before paletteWidget, so force the widget
+      // be deleted before paletteWorkspace.
+      delete paletteWidget;
+      paletteWidget = nullptr;
       }
 
 //---------------------------------------------------------
@@ -1965,6 +2020,7 @@ void MuseScore::retranslate()
       fotoTools->setWindowTitle(tr("Image Capture"));
       entryTools->setWindowTitle(tr("Note Input"));
       feedbackTools->setWindowTitle(tr("Feedback"));
+      workspacesTools->setWindowTitle(tr("Workspaces"));
 
       viewModeCombo->setAccessibleName(tr("View Mode"));
       viewModeCombo->setItemText(viewModeCombo->findData(int(LayoutMode::PAGE)), tr("Page View"));
@@ -1975,6 +2031,9 @@ void MuseScore::retranslate()
 
       Shortcut::retranslate();
       Workspace::retranslate();
+
+      if (paletteWorkspace)
+          paletteWorkspace->retranslate();
       }
       
 //---------------------------------------------------------
@@ -2260,56 +2319,8 @@ void MuseScore::selectionChanged(SelState selectionState)
 
 void MuseScore::updatePaletteBeamMode(bool unselect)
       {
-      for (Palette* p : paletteBox->palettes()) {
-            if (p->name() == "Beam Properties") {
-                  if (unselect) {
-                        p->setSelected(-1);
-                        p->update();
-                        return;
-                        }
-                  const Selection sel = cs->selection();
-                  const ChordRest* cr = sel.cr();
-                  if (sel.isSingle() && cr) {
-                        Beam::Mode bm = cr->beamMode();
-                        IconType type;
-                        switch (bm) {
-                        case Beam::Mode::BEGIN:
-                              type = IconType::SBEAM;
-                              break;
-                        case Beam::Mode::MID:
-                              type = IconType::MBEAM;
-                              break;
-                        case Beam::Mode::NONE:
-                              type = IconType::NBEAM;
-                              break;
-                        case Beam::Mode::BEGIN32:
-                              type = IconType::BEAM32;
-                              break;
-                        case Beam::Mode::BEGIN64:
-                              type = IconType::BEAM64;
-                              break;
-                        case Beam::Mode::AUTO:
-                              type = IconType::AUTOBEAM;
-                              break;
-                        default:
-                              p->setSelected(-1);
-                              p->update();
-                              return;
-                        }
-                        for (int i = 0; i < p->size(); ++i) {
-                              if (toIcon(p->element(i))->iconType() == type) {
-                                    p->setSelected(i);
-                                    p->update();
-                                    return;
-                                    }
-                              }
-                  }
-                  else {
-                        p->setSelected(-1);
-                        }
-                  p->update();
-                  }
-            }
+      if (paletteWorkspace)
+            paletteWorkspace->updateCellsState(cs->selection(), unselect);
       }
 
 //---------------------------------------------------------
@@ -3886,6 +3897,18 @@ bool MuseScoreApplication::event(QEvent* event)
       }
 
 //---------------------------------------------------------
+//   focusScoreView
+//---------------------------------------------------------
+
+void MuseScore::focusScoreView()
+      {
+      if (currentScoreView())
+            currentScoreView()->setFocus();
+      else
+            mscore->setFocus();
+      }
+
+//---------------------------------------------------------
 //   eventFilter
 //---------------------------------------------------------
 
@@ -3918,22 +3941,15 @@ bool MuseScore::eventFilter(QObject *obj, QEvent *event)
                               endSearch();
                         if (isActiveWindow()) {
                               obj->event(e);
-                              if(currentScoreView())
-                                    currentScoreView()->setFocus();
-                              else
-                                    mscore->setFocus();
+                              focusScoreView();
                               return true;
                               }
 
                         QWidget* w = static_cast<QWidget*>(obj);
-                        if(getPaletteBox()->isAncestorOf(w) ||
-                           inspector()->isAncestorOf(w) ||
+                        if (inspector()->isAncestorOf(w) ||
                            (selectionWindow && selectionWindow->isAncestorOf(w))) {
                               activateWindow();
-                              if(currentScoreView())
-                                    currentScoreView()->setFocus();
-                              else
-                                    mscore->setFocus();
+                              focusScoreView();
                               return true;
                               }
                         }
@@ -4360,8 +4376,8 @@ void MuseScore::changeState(ScoreState val)
                   qFatal("MuseScore::changeState: illegal state %d", val);
                   break;
             }
-      if (paletteBox)
-            paletteBox->setDisabled(val == STATE_PLAY || val == STATE_DISABLED);
+      if (paletteWidget)
+            paletteWidget->setDisabled(val == STATE_PLAY || val == STATE_DISABLED);
       if (selectionWindow)
             selectionWindow->setDisabled(val == STATE_PLAY || val == STATE_DISABLED);
       QAction* a = getAction("note-input");
@@ -4457,7 +4473,7 @@ void MuseScore::writeSettings()
       MuseScore::saveGeometry(this);
 
       settings.beginGroup("MainWindow");
-      settings.setValue("showPanel", paletteBox && paletteBox->isVisible());
+      settings.setValue("showPanel", paletteWidget && paletteWidget->isVisible());
       settings.setValue("showInspector", _inspector && _inspector->isVisible());
       settings.setValue("showPianoKeyboard", _pianoTools && _pianoTools->isVisible());
       settings.setValue("showSelectionWindow", selectionWindow && selectionWindow->isVisible());
@@ -5440,18 +5456,21 @@ void MuseScore::showMediaDialog()
       }
 
 //---------------------------------------------------------
-//   getPaletteBox
+//   getPaletteWorkspace
 //---------------------------------------------------------
 
-PaletteBox* MuseScore::getPaletteBox()
+PaletteWorkspace* MuseScore::getPaletteWorkspace()
       {
-      if (paletteBox == 0) {
-            paletteBox = new PaletteBox(this);
-            QAction* a = getAction("toggle-palette");
-            connect(paletteBox, SIGNAL(visibilityChanged(bool)), a, SLOT(setChecked(bool)));
-            addDockWidget(Qt::LeftDockWidgetArea, paletteBox);
+      if (!paletteWorkspace) {
+            PaletteTreeModel* emptyModel = new PaletteTreeModel(new PaletteTree);
+            PaletteTreeModel* masterPaletteModel = new PaletteTreeModel(MuseScore::newMasterPaletteTree());
+
+            paletteWorkspace = new PaletteWorkspace(emptyModel, masterPaletteModel, /* parent */ this);
+            emptyModel->setParent(paletteWorkspace);
+            masterPaletteModel->setParent(paletteWorkspace);
             }
-      return paletteBox;
+
+      return paletteWorkspace;
       }
 
 //---------------------------------------------------------
@@ -5807,15 +5826,9 @@ void MuseScore::cmd(QAction* a)
             }
       if (cmdn == "toggle-palette") {
             showPalette(a->isChecked());
-            PaletteBox* pb = mscore->getPaletteBox();
-            QLineEdit* sb = pb->searchBox();
             if (a->isChecked()) {
                   lastFocusWidget = QApplication::focusWidget();
-                  sb->setFocus();
-                  if (pb->noSelection())
-                        pb->setKeyboardNavigation(false);
-                  else
-                        pb->setKeyboardNavigation(true);
+                  paletteWidget->activateSearchBox();
                   }
             else {
                   if (lastFocusWidget)
@@ -5824,23 +5837,14 @@ void MuseScore::cmd(QAction* a)
             return;
             }
       if (cmdn == "palette-search") {
-            PaletteBox* pb = getPaletteBox();
-            QLineEdit* sb = pb->searchBox();
-            sb->setFocus();
-            if (pb->noSelection())
-                  pb->setKeyboardNavigation(false);
-            else
-                  pb->setKeyboardNavigation(true);
+            showPalette(true);
+            if (paletteWidget)
+                  paletteWidget->activateSearchBox();
             return;
             }
       if (cmdn == "apply-current-palette-element") {
-            PaletteBox* pb = getPaletteBox();
-            for (Palette* p : pb->palettes()) {
-                  if (p->getCurrentIdx() != -1) {
-                        p->applyPaletteElement();
-                        break;
-                        }
-                  }
+            if (paletteWidget)
+                  paletteWidget->applyCurrentPaletteElement();
             return;
             }
       if (cmdn == "repeat-cmd") {
@@ -5879,6 +5883,9 @@ void MuseScore::cmd(QAction* a)
 
 void MuseScore::endCmd()
       {
+#ifdef SCRIPT_INTERFACE
+      getPluginEngine()->beginEndCmd(this);
+#endif
       if (timeline())
             timeline()->updateGrid();
       if (MScore::_error != MS_NO_ERROR)
@@ -5960,8 +5967,11 @@ void MuseScore::endCmd()
             selectionChanged(SelState::NONE);
             }
       updateInspector();
-      if (cv && paletteBox)
+      if (cv)
             updatePaletteBeamMode(cv->clickOffElement);
+#ifdef SCRIPT_INTERFACE
+      getPluginEngine()->endEndCmd(this);
+#endif
       }
 
 //---------------------------------------------------------
@@ -6164,6 +6174,12 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             entryTools->setVisible(!entryTools->isVisible());
       else if (cmd == "toggle-feedback")
             feedbackTools->setVisible(!feedbackTools->isVisible());
+      else if (cmd == "toggle-workspaces-toolbar")
+            workspacesTools->setVisible(!workspacesTools->isVisible());
+      else if (cmd == "create-new-workspace") {
+            mscore->createNewWorkspace();
+            emit mscore->workspacesChanged();
+            }
       else if (cmd == "help")
             showContextHelp();
       else if (cmd == "follow")
@@ -6216,7 +6232,7 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
       else if (cmd == "next-score")
             changeScore(1);
       else if (cmd == "previous-score")
-            changeScore(1);
+            changeScore(-1);
       else if (cmd == "transpose")
             transpose();
       else if (cmd == "save-style") {
@@ -6280,8 +6296,7 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             addTempo();
       else if (cmd == "loop") {
             if (loop()) {
-                  if (cs->selection().isRange())
-                        seq->setLoopSelection();
+                  seq->setLoopSelection();
                   }
             }
       else if (cmd == "loop-in") {
@@ -6382,6 +6397,20 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             if (cs) {
                   cs->setLayoutAll();
                   cs->update();
+                  }
+            }
+      else if (cmd == "qml-reload-source") {
+            const QList<QmlDockWidget*> qmlWidgets = findChildren<QmlDockWidget*>();
+
+            const QString oldPrefix = QmlDockWidget::qmlSourcePrefix();
+            useSourceQmlFiles = true;
+            const QString newPrefix = QmlDockWidget::qmlSourcePrefix();
+
+            getQmlUiEngine()->clearComponentCache();
+
+            for (QmlDockWidget* w : qmlWidgets) {
+                  const QString urlString = w->source().toString().replace(oldPrefix, newPrefix);
+                  w->setSource(QUrl(urlString));
                   }
             }
 #endif
@@ -7273,7 +7302,7 @@ int main(int argc, char* av[])
       parser.addOption(QCommandLineOption({"p", "plugin"}, "Execute named plugin", "name"));
       parser.addOption(QCommandLineOption(      "template-mode", "Save template mode, no page size")); // and no platform and creationDate tags
       parser.addOption(QCommandLineOption({"F", "factory-settings"}, "Use factory settings"));  // this includes -R, --revert-settimngs
-      parser.addOption(QCommandLineOption({"R", "revert-settings"}, "Revert to default preferences"));
+      parser.addOption(QCommandLineOption({"R", "revert-settings"}, "Revert to factory settings, but keep default preferences"));
       parser.addOption(QCommandLineOption({"i", "load-icons"}, "Load icons from INSTALLPATH/icons"));
       parser.addOption(QCommandLineOption({"j", "job"}, "Process a conversion job", "file"));
       parser.addOption(QCommandLineOption({"e", "experimental"}, "Enable experimental features"));
@@ -7393,8 +7422,8 @@ int main(int argc, char* av[])
             if (styleFile.isEmpty())
                   parser.showHelp(EXIT_FAILURE);
             }
-      useFactorySettings = parser.isSet("F");
-      deletePreferences = (useFactorySettings || parser.isSet("R"));
+      deletePreferences = parser.isSet("F");
+      useFactorySettings = (deletePreferences || parser.isSet("R"));
       enableExperimental = parser.isSet("e");
       if (parser.isSet("c")) {
             QString path = parser.value("c");
@@ -7503,8 +7532,8 @@ int main(int argc, char* av[])
       if (dataPath.isEmpty())
             dataPath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
 
-      if (deletePreferences) {
-            if (useFactorySettings)
+      if (useFactorySettings) {
+            if (deletePreferences)
                   QDir(dataPath).removeRecursively();
             QSettings settings;
             QFile::remove(settings.fileName() + ".lock"); //forcibly remove lock
@@ -7672,6 +7701,7 @@ int main(int argc, char* av[])
 
       if (!MScore::noGui) {
             if (preferences.getBool(PREF_APP_STARTUP_FIRSTSTART)) {
+                  mscoreFirstStart = true;
                   StartupWizard* sw = new StartupWizard;
                   sw->exec();
                   preferences.setPreference(PREF_APP_STARTUP_FIRSTSTART, false);
@@ -7681,11 +7711,8 @@ int main(int argc, char* av[])
                   Workspace::writeGlobalToolBar();
                   Workspace::writeGlobalGUIState();
                   for (auto ws : Workspace::workspaces()) {
-                        if (ws->name().compare(sw->workspace()) == 0) {
+                        if (ws->name().compare(sw->workspace()) == 0)
                               mscore->changeWorkspace(ws, true);
-                              preferences.setPreference(PREF_APP_WORKSPACE, ws->name());
-                              mscore->getPaletteBox()->updateWorkspaces();
-                              }
                         }
                   preferences.setPreference(PREF_UI_APP_STARTUP_SHOWTOURS, sw->showTours());
                   delete sw;
@@ -7894,6 +7921,17 @@ bool MuseScore::exportPartsPdfsToJSON(const QString& inFilePath, const QString& 
 
       delete score;
       return res;
+      }
+
+//---------------------------------------------------------
+//   getQmlEngine
+//---------------------------------------------------------
+
+MsQmlEngine* MuseScore::getQmlUiEngine()
+      {
+      if (!_qmlUiEngine)
+            _qmlUiEngine = new MsQmlEngine(this);
+      return _qmlUiEngine;
       }
 
 //---------------------------------------------------------

@@ -1828,6 +1828,7 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
             mmr->setTick(m->tick());
             undo(new ChangeMMRest(m, mmr));
             }
+      mmr->setTimesig(m->timesig());
       mmr->setPageBreak(lm->pageBreak());
       mmr->setLineBreak(lm->lineBreak());
       mmr->setMMRestCount(n);
@@ -1897,7 +1898,7 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
       for (Element* e : newList) {
             bool found = false;
             for (Element* ee : oldList) {
-                  if (ee->type() == e->type()) {
+                  if (ee->type() == e->type() && ee->subtype() == e->subtype()) {
                         mmr->add(ee);
                         auto i = std::find(oldList.begin(), oldList.end(), ee);
                         if (i != oldList.end())
@@ -1906,11 +1907,8 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                         break;
                         }
                   }
-            if (!found) {
-                  Element* e1 = e->clone();
-                  e1->setParent(mmr);
-                  undo(new AddElement(e1));
-                  }
+            if (!found)
+                  mmr->add(e->clone());
             }
       for (Element* e : oldList)
             delete e;
@@ -2061,39 +2059,46 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
       //
       cs = m->findSegmentR(SegmentType::ChordRest, Fraction(0,1));
       if (cs) {
+            // clone elements from underlying measure to mmr
             for (Element* e : cs->annotations()) {
+                  // look at elements in underlying measure
                   if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
                         continue;
-
+                  // try to find a match in mmr
                   bool found = false;
                   for (Element* ee : s->annotations()) {
-                        if (ee->type() == e->type() && ee->track() == e->track()) {
+                        if (e->linkList().contains(ee)) {
                               found = true;
                               break;
                               }
                         }
+                  // add to mmr if no match found
                   if (!found) {
                         Element* ne = e->linkedClone();
                         ne->setParent(s);
                         undo(new AddElement(ne));
                         }
                   }
-            }
 
-      for (Element* e : s->annotations()) {
-            if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
-                  continue;
-            bool found = false;
-            for (Element* ee : cs->annotations()) {
-                  if (ee->type() == e->type() && ee->track() == e->track()) {
-                        found = true;
-                        break;
+            // remove stray elements (possibly leftover from a previous layout of this mmr)
+            // this should not happen since the elements are linked?
+            for (Element* e : s->annotations()) {
+                  // look at elements in mmr
+                  if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
+                        continue;
+                  // try to find a match in underlying measure
+                  bool found = false;
+                  for (Element* ee : cs->annotations()) {
+                        if (e->linkList().contains(ee)) {
+                              found = true;
+                              break;
+                              }
                         }
+                  // remove from mmr if no match found
+                  if (!found)
+                        undo(new RemoveElement(e));
                   }
-            if (!found)
-                  undo(new RemoveElement(e));
             }
-
       MeasureBase* nm = _showVBox ? lm->next() : lm->nextMeasure();
       mmr->setNext(nm);
       mmr->setPrev(m->prev());
@@ -2266,7 +2271,7 @@ void Score::createBeams(Measure* measure)
             Staff* stf = staff(track2staff(track));
 
             // don’t compute beams for invisible staffs and tablature without stems
-            if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->slashStyle()))
+            if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->stemless()))
                   continue;
 
             ChordRest* a1    = 0;      // start of (potential) beam
@@ -2441,22 +2446,11 @@ void Score::createBeams(Measure* measure)
             if (beam)
                   beam->layout1();
             else if (a1) {
-                  // is a1 the last chord/rest in the measure for its track?
-                  bool lastCR = true;
-                  for (Segment* s = a1->segment()->next(SegmentType::ChordRest); s; s = s->next(SegmentType::ChordRest)) {
-                        if (s->element(track)) {
-                              lastCR = false;
-                              break;
-                              }
-                        }
-                  if (lastCR) {
-                        const auto b = a1->beam();
-                        // if the second chord/rest in a1's beam (it must be in next measure) has forced MID beam mode
-                        if (b && b->elements().startsWith(a1) && b->elements().size()>=2 && b->elements()[1]->beamMode() == Beam::Mode::MID)
-                              // do not delete the origin beam
-                              continue;
-                        }
-                  a1->removeDeleteBeam(false);
+                  Fraction nextTick = a1->tick() + a1->actualTicks();
+                  Measure* m = (nextTick >= measure->endTick() ? measure->nextMeasure() : measure);
+                  ChordRest* nextCR = (m ? m->findChordRest(nextTick, track) : nullptr);
+                  if (!nextCR || !beamModeMid(nextCR->beamMode()))
+                        a1->removeDeleteBeam(false);
                   }
             }
       }
@@ -2482,7 +2476,7 @@ static void breakCrossMeasureBeams(Measure* measure)
             Staff* stf = score->staff(track2staff(track));
 
             // don’t compute beams for invisible staffs and tablature without stems
-            if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->slashStyle()))
+            if (!stf->show() || (stf->isTabStaff(measure->tick()) && stf->staffType(measure->tick())->stemless()))
                   continue;
 
             Element* e = fstSeg->element(track);
@@ -2545,52 +2539,6 @@ void layoutDrumsetChord(Chord* c, const Drumset* drumset, const StaffType* st, q
                   int off  = st->stepOffset();
                   qreal ld = st->lineDistance().val();
                   note->rypos()  = (line + off * 2.0) * spatium * .5 * ld;
-                  }
-            }
-      }
-
-//---------------------------------------------------------
-//   connectTremolo
-//    Connect two-notes tremolo and update duration types
-//    for the involved chords.
-//---------------------------------------------------------
-
-static void connectTremolo(Measure* m)
-      {
-      const int ntracks = m->score()->ntracks();
-      constexpr SegmentType st = SegmentType::ChordRest;
-      for (Segment* s = m->first(st); s; s = s->next(st)) {
-            for (int i = 0; i < ntracks; ++i) {
-                  Element* e = s->element(i);
-                  if (!e || !e->isChord())
-                        continue;
-
-                  Chord* c = toChord(e);
-                  Tremolo* tremolo = c->tremolo();
-                  if (tremolo && tremolo->twoNotes()) {
-                        // Ensure correct duration type for chord
-                        c->setDurationType(tremolo->durationType());
-
-                        // If it is the first tremolo's chord, find the second
-                        // chord for tremolo, if needed.
-                        if (!tremolo->chord1())
-                              tremolo->setChords(c, tremolo->chord2());
-                        else if (tremolo->chord1() != c || tremolo->chord2())
-                              continue;
-
-                        for (Segment* ls = s->next(st); ls; ls = ls->next(st)) {
-                              if (Element* element = ls->element(i)) {
-                                    if (!element->isChord()) {
-                                          qDebug("cannot connect tremolo");
-                                          continue;
-                                          }
-                                    Chord* nc = toChord(element);
-                                    tremolo->setChords(c, nc);
-                                    nc->setTremolo(tremolo);
-                                    break;
-                                    }
-                              }
-                        }
                   }
             }
       }
@@ -2670,7 +2618,7 @@ void Score::getNextMeasure(LayoutContext& lc)
             return;
             }
 
-      connectTremolo(measure);
+      measure->connectTremolo();
 
       //
       // calculate accidentals and note lines,
@@ -3525,8 +3473,9 @@ System* Score::collectSystem(LayoutContext& lc)
                               if (!s->enabled())
                                     s->setEnabled(true);
                               }
+                        bool firstSystem = lc.prevMeasure->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
                         if (curHeader)
-                              m->addSystemHeader(lc.firstSystem);
+                              m->addSystemHeader(firstSystem);
                         else
                               m->removeSystemHeader();
                         if (curTrailer)

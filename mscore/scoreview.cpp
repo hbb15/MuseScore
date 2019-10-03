@@ -1748,7 +1748,9 @@ void ScoreView::cmdGotoElement(Element* e)
             score()->select(e, SelectType::SINGLE, 0);
             if (e)
                   adjustCanvasPosition(e, false);
-            moveCursor();
+            if (noteEntryMode())
+                  moveCursor();
+            updateAll();
             }
       }
 
@@ -1876,7 +1878,15 @@ void ScoreView::cmd(const char* s)
             cmdAddNoteLine();
       else if (cmd == "chord-text") {
             changeState(ViewState::NORMAL);
-            cmdAddChordName();
+            cmdAddChordName(HarmonyType::STANDARD);
+            }
+      else if (cmd == "roman-numeral-text") {
+            changeState(ViewState::NORMAL);
+            cmdAddChordName(HarmonyType::ROMAN);
+            }
+      else if (cmd == "nashville-number-text") {
+            changeState(ViewState::NORMAL);
+            cmdAddChordName(HarmonyType::NASHVILLE);
             }
       else if (cmd == "title-text")
             cmdAddText(Tid::TITLE);
@@ -1929,6 +1939,10 @@ void ScoreView::cmd(const char* s)
             }
 //      else if (cmd == "find")
 //            ; // TODO:state         sm->postEvent(new CommandEvent(cmd));
+      else if (cmd == "scr-prev")
+            screenPrev();
+      else if (cmd == "scr-next")
+            screenNext();
       else if (cmd == "page-prev")
             pagePrev();
       else if (cmd == "page-next")
@@ -2077,6 +2091,16 @@ void ScoreView::cmd(const char* s)
             Element* el = score()->selection().element();
             if (!el && !score()->selection().elements().isEmpty() )
                 el = score()->selection().elements().first();
+            if (!el) {
+                  ChordRest* cr = score()->selection().currentCR();
+                  if (cr) {
+                        if (cr->isChord())
+                              el = toChord(cr)->downNote();
+                        else if (cr->isRest())
+                              el = cr;
+                        score()->select(el);
+                        }
+                  }
 
             if (el)
                   cmdGotoElement(score()->nextElement());
@@ -2091,6 +2115,16 @@ void ScoreView::cmd(const char* s)
             Element* el = score()->selection().element();
             if (!el && !score()->selection().elements().isEmpty())
                 el = score()->selection().elements().last();
+            if (!el) {
+                  ChordRest* cr = score()->selection().currentCR();
+                  if (cr) {
+                        if (cr->isChord())
+                              el = toChord(cr)->upNote();
+                        else if (cr->isRest())
+                              el = cr;
+                        score()->select(el);
+                        }
+                  }
 
             if (el)
                   cmdGotoElement(score()->prevElement());
@@ -2098,10 +2132,10 @@ void ScoreView::cmd(const char* s)
                   cmdGotoElement(score()->lastElement());
             }
       else if (cmd == "first-element") {
-            cmdGotoElement(score()->firstElement());
+            cmdGotoElement(score()->firstElement(false));
             }
       else if (cmd == "last-element") {
-            cmdGotoElement(score()->lastElement());
+            cmdGotoElement(score()->lastElement(false));
             }
       else if (cmd == "rest" || cmd == "rest-TAB")
             cmdEnterRest();
@@ -2387,6 +2421,7 @@ void ScoreView::textTab(bool back)
             return;
 
       TextBase* ot = toTextBase(oe);
+      Tid defaultTid = Tid(ot->propertyDefault(Pid::SUB_STYLE).toInt());
       Tid tid = ot->tid();
       ElementType type = ot->type();
       int staffIdx = ot->staffIdx();
@@ -2397,7 +2432,7 @@ void ScoreView::textTab(bool back)
       changeState(ViewState::NORMAL);
 
       // find new note to add text to
-      bool here = false;      // prevent infinite loop
+      bool here = false;      // prevent infinite loop (relevant if navigation is allowed to wrap around end of score)
       while (el) {
             if (el->isNote()) {
                   Note* n = toNote(el);
@@ -2420,12 +2455,18 @@ void ScoreView::textTab(bool back)
                   }
             // get prev/next note
             score()->select(el);
-            el = back ? score()->prevElement() : score()->nextElement();
+            Element* el2 = back ? score()->prevElement() : score()->nextElement();
+            // start/end of score reached
+            if (el2 == el)
+                  break;
+            el = el2;
             }
       if (!el || !el->isNote()) {
-            // nothing found, re-select original element and give up
-            score()->select(oe);
-            changeState(ViewState::EDIT);
+            // nothing found, exit cleanly
+            if (op->selectable())
+                  score()->select(op);
+            else
+                  score()->deselectAll();
             return;
             }
       Note* nn = toNote(el);
@@ -2472,7 +2513,7 @@ void ScoreView::textTab(bool back)
             // but it pre-fills the text
             // would be better to create empty tempo element
             if (type != ElementType::TEMPO_TEXT)
-                  cmdAddText(tid);
+                  cmdAddText(defaultTid, tid);
             }
       }
 
@@ -2864,6 +2905,10 @@ QSizeF ScoreView::fsize() const
       return QSizeF(s.width() * imatrix.m11(), s.height() * imatrix.m22());
       }
 
+//---------------------------------------------------------
+//   keyboard nav constants
+//---------------------------------------------------------
+
 constexpr qreal scrollStep   {   .8 };
 constexpr qreal thinPadding  { 10.0 };
 constexpr qreal thickPadding { 25.0 };
@@ -2876,8 +2921,46 @@ void ScoreView::pageNext()
       {
       if (score()->pages().empty())
             return;
+      if (score()->layoutMode() != LayoutMode::PAGE) {
+            screenNext();
+            return;
+            }
+      Page* page = score()->pages().back();
+      qreal x, y;
+      if (MScore::verticalOrientation()) {
+            x        = thinPadding;
+            y        = yoffset() - (page->height() + thickPadding) * mag();
+            qreal ly = thinPadding - page->pos().y() * mag();
+            if (y <= ly - height() * scrollStep) {
+                  pageEnd();
+                  return;
+                  }
+            }
+      else {
+            y        = thinPadding;
+            x        = xoffset() - (page->width() + thickPadding) * mag();
+            qreal lx = thinPadding - page->pos().x() * mag();
+            if (x <= lx - width() * scrollStep) {
+                  pageEnd();
+                  return;
+                  }
+            }
+      setOffset(x, y);
+      update();
+      }
+
+//---------------------------------------------------------
+//   screenNext
+//---------------------------------------------------------
+
+void ScoreView::screenNext()
+      {
+      if (score()->pages().empty())
+            return;
+      qreal x { xoffset() };
+      qreal y { yoffset() };
       if (score()->layoutMode() == LayoutMode::LINE) {
-            qreal x = xoffset() - width() * scrollStep;
+            x -= width() * scrollStep;
             MeasureBase* lm = score()->last();
             // Vertical frames aren't laid out in continuous view
             while (lm->isVBoxBase())
@@ -2885,35 +2968,21 @@ void ScoreView::pageNext()
             qreal lx = (lm->pos().x() + lm->width()) * mag() - width() * scrollStep;
             if (x < -lx)
                   x = -lx;
-            setOffset(x, yoffset());
-            }
-      else if (score()->layoutMode() == LayoutMode::SYSTEM) {
-            qreal y { yoffset() - height() * scrollStep };
-            MeasureBase* lm { score()->last() };
-            qreal ly { (lm->canvasPos().y() + lm->height()) * mag() - height() * scrollStep };
-            if (y < -ly)
-                  y = -ly;
-            setOffset(xoffset(), y);
             }
       else {
-            Page* page = score()->pages().back();
-            qreal x, y;
-            if (MScore::verticalOrientation()) {
-                  x        = thinPadding;
-                  y        = yoffset() - (page->height() + thickPadding) * mag();
-                  qreal ly = thinPadding - page->pos().y() * mag();
-                  if (y < ly)
-                        y = ly;
+            y -= height() * scrollStep;
+            MeasureBase* lm { score()->last() };
+            qreal ly { (lm->canvasPos().y() + lm->height()) * mag() - height() * scrollStep };
+            // Special case to jump to top of next page in horizontal view.
+            if (score()->layoutMode() == LayoutMode::PAGE && !MScore::verticalOrientation()
+               && y <= -ly - height() * scrollStep) {
+                  pageNext();
+                  return;
                   }
-            else {
-                  y        = thinPadding;
-                  x        = xoffset() - (page->width() + thickPadding) * mag();
-                  qreal lx = thinPadding - page->pos().x() * mag();
-                  if (x < lx)
-                        x = lx;
-                  }
-            setOffset(x, y);
+            if (y < -ly)
+                  y = -ly;
             }
+      setOffset(x, y);
       update();
       }
 
@@ -2925,35 +2994,63 @@ void ScoreView::pagePrev()
       {
       if (score()->pages().empty())
             return;
-      if (score()->layoutMode() == LayoutMode::LINE) {
-            qreal x = xoffset() + width() * scrollStep;
-            if (x > thinPadding)
-                  x = thinPadding;
-            setOffset(x, yoffset());
+      if (score()->layoutMode() != LayoutMode::PAGE) {
+            screenPrev();
+            return;
             }
-      else if (score()->layoutMode() == LayoutMode::SYSTEM) {
-            qreal y { yoffset() + height() * scrollStep };
+      Page* page = score()->pages().front();
+      qreal x, y;
+      if (MScore::verticalOrientation()) {
+            x  = thinPadding;
+            y  = yoffset() + (page->height() + thickPadding) * mag();
             if (y > thinPadding)
                   y = thinPadding;
-            setOffset(xoffset(), y);
             }
       else {
-            Page* page = score()->pages().front();
-            qreal x, y;
-            if (MScore::verticalOrientation()) {
-                  x  = thinPadding;
-                  y  = yoffset() + (page->height() + thickPadding) * mag();
-                  if (y > thinPadding)
-                        y = thinPadding;
-                  }
-            else {
-                  y  = thinPadding;
-                  x    = xoffset() + (page->width() + thickPadding) * mag();
+            y  = thinPadding;
+            x  = xoffset() + (page->width() + thickPadding) * mag();
+            if (x > thinPadding)
+                  x = thinPadding;
+            }
+      setOffset(x, y);
+      update();
+      }
+
+//---------------------------------------------------------
+//   screenPrev
+//---------------------------------------------------------
+
+void ScoreView::screenPrev()
+      {
+      if (score()->pages().empty())
+            return;
+      qreal x { xoffset() };
+      qreal y { yoffset() };
+      if (score()->layoutMode() == LayoutMode::LINE) {
+            x += width() * scrollStep;
+            if (x > thinPadding)
+                  x = thinPadding;
+            }
+      else {
+            y += height() * scrollStep;
+            // Special casing for jumping to bottom of prev page in horizontal view
+            if (score()->layoutMode() == LayoutMode::PAGE && !MScore::verticalOrientation()
+               && y >= thinPadding + height() * scrollStep) {
+                  Page* page { score()->pages().front() };
+                  x += (page->width() + thickPadding) * mag();
+                  // The condition prevents jumping to the bottom of the
+                  // first page after reaching the top
+                  if (x < thinPadding + (page->width() + thickPadding) * mag()) {
+                        MeasureBase* lm { score()->last() };
+                        y = -(lm->canvasPos().y() + lm->height()) * mag() + height() * scrollStep;
+                        }
                   if (x > thinPadding)
                         x = thinPadding;
                   }
-            setOffset(x, y);
+            if (y > thinPadding)
+                y = thinPadding;
             }
+      setOffset(x, y);
       update();
       }
 
@@ -2978,28 +3075,25 @@ void ScoreView::pageEnd()
       {
       if (score()->pages().empty())
             return;
+      MeasureBase* lm = score()->last();
       if (score()->layoutMode() == LayoutMode::LINE) {
-            MeasureBase* lm = score()->last();
             // Vertical frames aren't laid out in continuous view
             while (lm->isVBoxBase())
                   lm = lm->prev();
-            qreal lx = (lm->pos().x() + lm->width()) * mag() - width() * scrollStep;
+            qreal lx = (lm->pos().x() + lm->width()) * mag() - scrollStep * width();
             setOffset(-lx, yoffset());
             }
-      else if (score()->layoutMode() == LayoutMode::SYSTEM) {
-            MeasureBase* lm { score()->last() };
-            qreal ly { (lm->canvasPos().y() + lm->height()) * mag() - height() * scrollStep };
-            setOffset(xoffset(), -ly);
-            }
       else {
-            Page* lastPage = score()->pages().back();
-            QPointF p(lastPage->pos());
-            if (MScore::verticalOrientation()) {
-                  setOffset(thickPadding, thickPadding - p.y() * mag());
+            qreal lx { -thinPadding };
+            if (score()->layoutMode() == LayoutMode::PAGE && !MScore::verticalOrientation()) {
+                  for (int i { 0 }; i < score()->npages() - 1; ++i)
+                        lx += score()->pages().at(i)->width() * mag();
                   }
-            else {
-                  setOffset(thickPadding - p.x() * mag(), thickPadding);
-                  }
+            if (lm->system()->page()->width() * mag() > width())
+                  lx = (lm->canvasPos().x() + lm->width()) * mag() - width() * scrollStep;
+
+            qreal ly { (lm->canvasPos().y() + lm->height()) * mag() - height() * scrollStep };
+            setOffset(-lx, -ly);
             }
       update();
       }
@@ -3110,7 +3204,7 @@ void ScoreView::adjustCanvasPosition(const Element* el, bool playBack, int staff
       else if (el->type() == ElementType::HARMONY && el->parent()->type() == ElementType::FRET_DIAGRAM
          && el->parent()->parent()->type() == ElementType::SEGMENT)
             m = static_cast<const Segment*>(el->parent()->parent())->measure();
-      else if (el->type() == ElementType::MEASURE || el->type() == ElementType::VBOX)
+      else if (el->isMeasureBase())
             m = static_cast<const MeasureBase*>(el);
       else if (el->isSpannerSegment()) {
             Element* se = static_cast<const SpannerSegment*>(el)->spanner()->startElement();
@@ -3910,7 +4004,7 @@ void ScoreView::cmdRealtimeAdvance()
 //   cmdAddChordName
 //---------------------------------------------------------
 
-void ScoreView::cmdAddChordName()
+void ScoreView::cmdAddChordName(HarmonyType ht)
       {
       if (!_score->checkHasMeasures())
             return;
@@ -3937,6 +4031,7 @@ void ScoreView::cmdAddChordName()
       Harmony* harmony = new Harmony(_score);
       harmony->setTrack(track);
       harmony->setParent(newParent);
+      harmony->setHarmonyType(ht);
       _score->undoAddElement(harmony);
       _score->endCmd();
 
@@ -3949,7 +4044,7 @@ void ScoreView::cmdAddChordName()
 //   cmdAddText
 //---------------------------------------------------------
 
-void ScoreView::cmdAddText(Tid tid)
+void ScoreView::cmdAddText(Tid tid, Tid customTid)
       {
       if (!_score->checkHasMeasures())
             return;
@@ -4055,6 +4150,8 @@ void ScoreView::cmdAddText(Tid tid)
             }
 
       if (s) {
+            if (customTid != Tid::DEFAULT && customTid != tid)
+                  s->initTid(customTid);
             _score->select(s, SelectType::SINGLE, 0);
             _score->endCmd();
             Measure* m = s->findMeasure();
@@ -4503,10 +4600,11 @@ Element* ScoreView::elementNear(QPointF p)
 
 void ScoreView::posChanged(POS pos, unsigned tick)
       {
-      if (this != mscore->currentScoreView() && !_moveWhenInactive)
-            return;
       switch (pos) {
             case POS::CURRENT:
+                  // draw playback cursor only in the currently active view
+                  if (this != mscore->currentScoreView() && !_moveWhenInactive)
+                        return;
                   if (noteEntryMode())
                         moveCursor();     // update input cursor position
                   else

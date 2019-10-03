@@ -280,11 +280,13 @@ void Score::deletePostponed()
 //        HAIRPIN, LET_RING, VIBRATO and TEXTLINE
 //---------------------------------------------------------
 
-void Score::cmdAddSpanner(Spanner* spanner, const QPointF& pos)
+void Score::cmdAddSpanner(Spanner* spanner, const QPointF& pos, bool firstStaffOnly)
       {
       int staffIdx;
       Segment* segment;
       MeasureBase* mb = pos2measure(pos, &staffIdx, 0, &segment, 0);
+      if (firstStaffOnly)
+            staffIdx = 0;
       // ignore if we do not have a measure
       if (mb == 0 || mb->type() != ElementType::MEASURE) {
             qDebug("cmdAddSpanner: cannot put object here");
@@ -308,7 +310,7 @@ void Score::cmdAddSpanner(Spanner* spanner, const QPointF& pos)
             Measure* m = toMeasure(mb);
             QRectF b(m->canvasBoundingRect());
 
-            if (pos.x() >= (b.x() + b.width() * .5) && m != lastMeasureMM())
+            if (pos.x() >= (b.x() + b.width() * .5) && m != lastMeasureMM() && m->nextMeasure()->system() == m->system())
                   m = m->nextMeasure();
             spanner->setTick(m->tick());
             spanner->setTick2(m->endTick());
@@ -590,7 +592,7 @@ void Score::createCRSequence(const Fraction& f, ChordRest* cr, const Fraction& t
                         undoAddElement(tie);
                         }
                   }
-            
+
             tick += ncr->actualTicks();
             ocr = ncr;
             }
@@ -3734,7 +3736,8 @@ void Score::cmd(const QAction* a, EditData& ed)
             { "beam-start",                 [this]{ cmdSetBeamMode(Beam::Mode::BEGIN);                          }},
             { "beam-mid",                   [this]{ cmdSetBeamMode(Beam::Mode::MID);                            }},
             { "no-beam",                    [this]{ cmdSetBeamMode(Beam::Mode::NONE);                           }},
-            { "beam-32",                    [this]{ cmdSetBeamMode(Beam::Mode::BEGIN32);                        }},
+            { "beam32",                     [this]{ cmdSetBeamMode(Beam::Mode::BEGIN32);                        }},
+            { "beam64",                     [this]{ cmdSetBeamMode(Beam::Mode::BEGIN64);                        }},
             { "sharp2",                     [this]{ changeAccidental(AccidentalType::SHARP2);                   }},
             { "sharp",                      [this]{ changeAccidental(AccidentalType::SHARP);                    }},
             { "nat",                        [this]{ changeAccidental(AccidentalType::NATURAL);                  }},

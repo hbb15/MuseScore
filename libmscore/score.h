@@ -97,8 +97,6 @@ enum class HairpinType : signed char;
 enum class SegmentType;
 enum class OttavaType : char;
 
-extern bool showRubberBand;
-
 enum class POS : char { CURRENT, LEFT, RIGHT };
 
 enum class Pad : char {
@@ -436,8 +434,6 @@ class Score : public QObject, public ScoreElement {
       bool _defaultsRead        { false };      ///< defaults were read at MusicXML import, allow export of defaults in convertermode
       bool _isPalette           { false };
 
-      Fraction _pos[3];                    ///< 0 - current, 1 - left loop, 2 - right loop
-
       int _mscVersion { MSCVERSION };   ///< version of current loading *.msc file
 
       QMap<QString, QString> _metaTags;
@@ -481,11 +477,7 @@ class Score : public QObject, public ScoreElement {
       void cmdAddParentheses();
       void resetUserStretch();
 
-      bool layoutSystem(qreal& minWidth, qreal w, bool, bool);
       void createMMRest(Measure*, Measure*, const Fraction&);
-      bool layoutSystem1(qreal& minWidth, bool, bool);
-      QList<System*> layoutSystemRow(qreal w, bool, bool);
-      bool doReLayout();
 
       void beamGraceNotes(Chord*, bool);
 
@@ -762,7 +754,6 @@ class Score : public QObject, public ScoreElement {
       bool saveFile(QIODevice* f, bool msczFormat, bool onlySelection = false);
       bool saveCompressedFile(QFileInfo&, bool onlySelection);
       bool saveCompressedFile(QFileDevice*, QFileInfo&, bool onlySelection, bool createThumbnail = true);
-      bool exportFile();
 
       void print(QPainter* printer, int page);
       ChordRest* getSelectedChordRest() const;
@@ -793,7 +784,6 @@ class Score : public QObject, public ScoreElement {
       Segment* tick2segmentMM(const Fraction& tick, bool first, SegmentType st) const;
       Segment* tick2segmentMM(const Fraction& tick) const;
       Segment* tick2segmentMM(const Fraction& tick, bool first) const;
-      Segment* tick2segmentEnd(int track, const Fraction& tick) const;
       Segment* tick2leftSegment(const Fraction& tick) const;
       Segment* tick2rightSegment(const Fraction& tick) const;
       void fixTicks();
@@ -859,8 +849,8 @@ class Score : public QObject, public ScoreElement {
       void setLoopInTick(const Fraction& tick)      { setPos(POS::LEFT, tick);    }
       void setLoopOutTick(const Fraction& tick)     { setPos(POS::RIGHT, tick);   }
 
-      Fraction pos(POS pos) const                   {  return _pos[int(pos)]; }
-      void setPos(POS pos, Fraction tick);
+      inline Fraction pos(POS pos) const;
+      inline void setPos(POS pos, Fraction tick);
 
       bool noteEntryMode() const                   { return inputState().noteEntryMode(); }
       void setNoteEntryMode(bool val)              { inputState().setNoteEntryMode(val); }
@@ -978,7 +968,6 @@ class Score : public QObject, public ScoreElement {
 
       void scanElements(void* data, void (*func)(void*, Element*), bool all=true);
       void scanElementsInRange(void* data, void (*func)(void*, Element*), bool all = true);
-      QByteArray buildCanonical(int track);
       int fileDivision() const { return _fileDivision; } ///< division of current loading *.msc file
       void splitStaff(int staffIdx, int splitPoint);
       QString tmpName() const           { return _tmpName;      }
@@ -999,9 +988,6 @@ class Score : public QObject, public ScoreElement {
       void doLayout();
       void doLayoutRange(const Fraction&, const Fraction&);
       void layoutLinear(bool layoutAll, LayoutContext& lc);
-
-      void layoutSystemsUndoRedo();
-      void layoutPagesUndoRedo();
 
       void layoutChords1(Segment* segment, int staffIdx);
       qreal layoutChords2(std::vector<Note*>& notes, bool up);
@@ -1086,7 +1072,7 @@ class Score : public QObject, public ScoreElement {
       bool isSpannerStartEnd(const Fraction& tick, int track) const;
       void removeSpanner(Spanner*);
       void addSpanner(Spanner*);
-      void cmdAddSpanner(Spanner* spanner, const QPointF& pos);
+      void cmdAddSpanner(Spanner* spanner, const QPointF& pos, bool firstStaffOnly = false);
       void cmdAddSpanner(Spanner* spanner, int staffIdx, Segment* startSegment, Segment* endSegment);
       void checkSpanner(const Fraction& startTick, const Fraction& lastTick);
       const std::set<Spanner*> unmanagedSpanners() { return _unmanagedSpanner; }
@@ -1116,8 +1102,8 @@ class Score : public QObject, public ScoreElement {
       Element* downAlt(Element*);
       Note* downAltCtrl(Note*) const;
 
-      Element* firstElement();
-      Element* lastElement();
+      Element* firstElement(bool frame = true);
+      Element* lastElement(bool frame = true);
 
       int nmeasures() const;
       bool hasLyrics();
@@ -1223,6 +1209,8 @@ class MasterScore : public Score {
 
       Omr* _omr               { 0 };
       bool _showOmr           { false };
+
+      Fraction _pos[3];                    ///< 0 - current, 1 - left loop, 2 - right loop
 
       int _midiPortCount      { 0 };                  // A count of JACK/ALSA midi out ports
       QQueue<MidiInputEvent> _midiInputQueue;         // MIDI events that have yet to be processed
@@ -1332,6 +1320,10 @@ class MasterScore : public Score {
       void updateExpressive(Synthesizer* synth, bool expressive, bool force = false);
       void setSoloMute();
 
+      using Score::pos;
+      Fraction pos(POS pos) const { return _pos[int(pos)]; }
+      void setPos(POS pos, Fraction tick);
+
       void addExcerpt(Excerpt*);
       void removeExcerpt(Excerpt*);
       void deleteExcerpt(Excerpt*);
@@ -1393,8 +1385,10 @@ inline void Score::setInstrumentsChanged(bool v)       { _masterScore->setInstru
 inline Movements* Score::movements()                   { return _masterScore->movements();       }
 inline const Movements* Score::movements() const       { return _masterScore->movements();       }
 
+inline Fraction Score::pos(POS pos) const              { return _masterScore->pos(pos);          }
+inline void Score::setPos(POS pos, Fraction tick)      { _masterScore->setPos(pos, tick);        }
+
 extern MasterScore* gscore;
-extern void fixTicks();
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(LayoutFlags);
 

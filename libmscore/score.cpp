@@ -79,12 +79,10 @@ namespace Ms {
 MasterScore* gscore;                 ///< system score, used for palettes etc.
 std::set<Score*> Score::validScores;
 
-bool scriptDebug     = false;
 bool noSeq           = false;
 bool noMidi          = false;
 bool midiInputTrace  = false;
 bool midiOutputTrace = false;
-bool showRubberBand  = true;
 
 //---------------------------------------------------------
 //   MeasureBaseList
@@ -258,9 +256,6 @@ Score::Score()
 
       _scoreFont = ScoreFont::fontFactory("emmentaler");
 
-      _pos[int(POS::CURRENT)] = Fraction(0,1);
-      _pos[int(POS::LEFT)]    = Fraction(0,1);
-      _pos[int(POS::RIGHT)]   = Fraction(0,1);
       _fileDivision           = MScore::division;
       _style  = MScore::defaultStyle();
 //      accInfo = tr("No selection");     // ??
@@ -1393,6 +1388,7 @@ void Score::addElement(Element* element)
          || et == ElementType::FBOX
          ) {
             measures()->add(toMeasureBase(element));
+            setLayout(element->tick());
             return;
             }
 
@@ -2098,7 +2094,7 @@ bool Score::appendScore(Score* score, bool addPageBreak, bool addSectionBreak)
       else if (!last()->lineBreak() && !last()->pageBreak()) {
             last()->undoSetBreak(true, LayoutBreak::Type::LINE);
             }
-      
+
       if (addSectionBreak && !last()->sectionBreak())
             last()->undoSetBreak(true, LayoutBreak::Type::SECTION);
 
@@ -2146,7 +2142,7 @@ bool Score::appendMeasuresFromScore(Score* score, const Fraction& startTick, con
             pmb->setNext(nmb);
             pmb = nmb;
             }
-      
+
       Measure* firstAppendedMeasure = tick2measure(tickOfAppend);
 
       // if the appended score has less staves,
@@ -2172,7 +2168,7 @@ bool Score::appendMeasuresFromScore(Score* score, const Fraction& startTick, con
             int trackIdx = staff2track(staffIdx); // idx of irst track on the staff
             Staff* staff = this->staff(staffIdx);
             Staff* ostaff = score->staff(staffIdx);
-            
+
             // check if key signature needs to be changed
             if (ostaff->key(otick) != staff->key(ctick)) {
                   Segment* ns = firstAppendedMeasure->undoGetSegment(SegmentType::KeySig, ctick);
@@ -2192,7 +2188,7 @@ bool Score::appendMeasuresFromScore(Score* score, const Fraction& startTick, con
                         if (ns)
                               ns->remove(ns->element(trackIdx));
                   }
-            
+
             // check if time signature needs to be changed
             TimeSig* ots = ostaff->timeSig(otick), * cts = staff->timeSig(ctick);
             TimeSig* pts = staff->timeSig(ctick - Fraction::fromTicks(1));
@@ -2237,7 +2233,7 @@ bool Score::appendMeasuresFromScore(Score* score, const Fraction& startTick, con
       auto lb = ospans.lower_bound(startTick.ticks()), ub = ospans.upper_bound(endTick.ticks());
       for (auto sp = lb; sp != ub; sp++) {
             Spanner* spanner = sp->second;
-            
+
             if (spanner->tick2() > endTick) continue; // map is by tick() so this can still happen in theory...
 
             Spanner* ns = toSpanner(spanner->clone());
@@ -3762,7 +3758,7 @@ void Score::removeUnmanagedSpanner(Spanner* s)
 //   setPos
 //---------------------------------------------------------
 
-void Score::setPos(POS pos, Fraction tick)
+void MasterScore::setPos(POS pos, Fraction tick)
       {
       if (tick < Fraction(0,1))
             tick = Fraction(0,1);
@@ -3772,7 +3768,8 @@ void Score::setPos(POS pos, Fraction tick)
       // even though tick position might not have changed, layout might have
       // so we should update cursor here
       // however, we must be careful not to call setPos() again while handling posChanged, or recursion results
-      emit posChanged(pos, unsigned(tick.ticks()));
+      for (Score* s : scoreList())
+            emit s->posChanged(pos, unsigned(tick.ticks()));
       }
 
 //---------------------------------------------------------
@@ -4455,6 +4452,10 @@ MasterScore::MasterScore()
       _repeatList  = new RepeatList(this);
       _revisions   = new Revisions;
       setMasterScore(this);
+
+      _pos[int(POS::CURRENT)] = Fraction(0,1);
+      _pos[int(POS::LEFT)]    = Fraction(0,1);
+      _pos[int(POS::RIGHT)]   = Fraction(0,1);
 
 #if defined(Q_OS_WIN)
       metaTags().insert("platform", "Microsoft Windows");

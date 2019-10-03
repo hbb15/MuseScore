@@ -395,6 +395,8 @@ enum class Tid {
       STAFF,
       HARMONY_A,
       HARMONY_B,
+      HARMONY_ROMAN,
+      HARMONY_NASHVILLE,
       REHEARSAL_MARK,
       REPEAT_LEFT,       // align to start of measure
       REPEAT_RIGHT,      // align to end of measure
@@ -491,17 +493,17 @@ enum class TupletNumberType  : char { SHOW_NUMBER, SHOW_RELATION, NO_TEXT       
 enum class TupletBracketType : char { AUTO_BRACKET, SHOW_BRACKET, SHOW_NO_BRACKET };
 
 #ifdef SCRIPT_INTERFACE
-Q_ENUM_NS(ElementType)
-Q_ENUM_NS(Direction)
-Q_ENUM_NS(GlissandoType)
-Q_ENUM_NS(GlissandoStyle)
-Q_ENUM_NS(Placement)
-Q_ENUM_NS(SegmentType)
-Q_ENUM_NS(Tid)
-Q_ENUM_NS(Align)
-Q_ENUM_NS(NoteType)
-Q_ENUM_NS(PlayEventType)
-Q_ENUM_NS(AccidentalType)
+Q_ENUM_NS(ElementType);
+Q_ENUM_NS(Direction);
+Q_ENUM_NS(GlissandoType);
+Q_ENUM_NS(GlissandoStyle);
+Q_ENUM_NS(Placement);
+Q_ENUM_NS(SegmentType);
+Q_ENUM_NS(Tid);
+Q_ENUM_NS(Align);
+Q_ENUM_NS(NoteType);
+Q_ENUM_NS(PlayEventType);
+Q_ENUM_NS(AccidentalType);
 #endif
 
 //hack: to force the build system to run moc on this file
