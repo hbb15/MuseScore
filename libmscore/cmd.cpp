@@ -3468,12 +3468,22 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
                               }
                         octave = curPitch / 12;
                         }
+                  if (staff(is.track() / VOICES)->isNumericStaff(is.tick())){
 
-                  int delta = octave * 12 + tab[note] - curPitch;
-                  if (delta > 6)
-                        --octave;
-                  else if (delta < -6)
-                        ++octave;
+                        int delta = octave * 12 + tab[note] - curPitch - Note().getNumericTrans(staff(is.track() / VOICES)->key(is.tick()));
+                        if (delta > 6)
+                              --octave;
+                        else if (delta < -6)
+                              ++octave;
+                        }
+                  else{
+
+                        int delta = octave * 12 + tab[note] - curPitch;
+                        if (delta > 6)
+                              --octave;
+                        else if (delta < -6)
+                              ++octave;
+                        }
                   }
             }
       ed.view->startNoteEntryMode();
