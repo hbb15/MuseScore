@@ -2591,7 +2591,7 @@ void Chord::layoutNumeric()
 
       addLedgerLines();
 
-      lll = rrr = headWidth;
+      lll = rrr = headWidth*score()->styleD(Sid::numericNoteDistanc);
       // align dots to the widest fret mark (not needed in all TAB styles, but harmless anyway)
       if (segment())
             segment()->setDotPosX(staffIdx(), headWidth);

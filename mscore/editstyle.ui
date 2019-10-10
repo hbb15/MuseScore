@@ -9359,7 +9359,7 @@
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="extensionAdjust">
                 <property name="minimum">
-                 <double>-99.99</double>
+                 <double>-99.989999999999995</double>
                 </property>
                </widget>
               </item>
@@ -9393,7 +9393,7 @@
               <item row="1" column="4">
                <widget class="QDoubleSpinBox" name="modifierAdjust">
                 <property name="minimum">
-                 <double>-99.99</double>
+                 <double>-99.989999999999995</double>
                 </property>
                </widget>
               </item>
@@ -10206,8 +10206,7 @@
                   <number>0</number>
                  </property>
                  <item row="0" column="1">
-                  <widget class="Awl::ColorLabel" name="textStyleFrameForeground">
-                  </widget>
+                  <widget class="Awl::ColorLabel" name="textStyleFrameForeground"/>
                  </item>
                  <item row="2" column="0">
                   <widget class="QLabel" name="label_205">
@@ -10292,8 +10291,7 @@
                   <widget class="QDoubleSpinBox" name="textStyleFramePadding"/>
                  </item>
                  <item row="1" column="1">
-                  <widget class="Awl::ColorLabel" name="textStyleFrameBackground">
-                  </widget>
+                  <widget class="Awl::ColorLabel" name="textStyleFrameBackground"/>
                  </item>
                  <item row="3" column="2">
                   <widget class="QToolButton" name="resetTextStyleFramePadding">
@@ -10353,8 +10351,7 @@
             </widget>
            </item>
            <item row="6" column="1">
-            <widget class="Awl::ColorLabel" name="textStyleColor">
-            </widget>
+            <widget class="Awl::ColorLabel" name="textStyleColor"/>
            </item>
            <item row="7" column="1">
             <widget class="Ms::OffsetSelect" name="textStyleOffset" native="true"/>
@@ -10966,16 +10963,6 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="10" column="0">
-                  <widget class="QLabel" name="label_170">
-                   <property name="text">
-                    <string>Hilfslinie Länge</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>clefTimesigDistance</cstring>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="3" column="0">
                   <widget class="QLabel" name="label_123">
                    <property name="text">
@@ -11013,6 +11000,90 @@
                    <property name="icon">
                     <iconset resource="musescore.qrc">
                      <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="1">
+                  <widget class="QDoubleSpinBox" name="numericRestDistanc">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="2">
+                  <widget class="QToolButton" name="resetNumericRestDistanc">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="10" column="0">
+                  <widget class="QLabel" name="label_171">
+                   <property name="text">
+                    <string>Hilfslinie Länge</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>clefTimesigDistance</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="1">
+                  <widget class="QDoubleSpinBox" name="numericNoteDistanc">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="2">
+                  <widget class="QToolButton" name="resetNumericNoteDistanc">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="0">
+                  <widget class="QLabel" name="label_170">
+                   <property name="text">
+                    <string>abstand Pausen</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>clefTimesigDistance</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="0">
+                  <widget class="QLabel" name="label_182">
+                   <property name="text">
+                    <string>abstand Noten</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>clefTimesigDistance</cstring>
                    </property>
                   </widget>
                  </item>

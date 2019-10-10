@@ -1246,8 +1246,10 @@ static const StyleType styleTypes[] {
       { Sid::numericKeySigHigth,            "numericKeySigHigth",            2.5 },
       { Sid::numericKeysigNoteDistancLeft,  "numericKeysigNoteDistancLeft",  0.5 },
       { Sid::numericKeysigNoteDistancReigth,"numericKeysigNoteDistancReigth",1.0 }, 
-	  { Sid::numericBarlineLength,          "numericBarlineLength",          1.0 },
-	  { Sid::numericFontSize,               "numericFontSize",               12.0 },
+      { Sid::numericBarlineLength,          "numericBarlineLength",          1.0 },
+      { Sid::numericFontSize,               "numericFontSize",               12.0 },
+      { Sid::numericRestDistanc,            "numericRestDistanc",            1.0 },
+      { Sid::numericNoteDistanc,            "numericNoteDistanc",            1.0 },
       };
 
 MStyle  MScore::_baseStyle;

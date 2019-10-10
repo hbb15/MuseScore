@@ -1220,7 +1220,9 @@ enum class Sid {
       numericKeysigNoteDistancLeft,
       numericKeysigNoteDistancReigth,
       numericBarlineLength,
-	  numericFontSize,
+      numericFontSize,
+      numericRestDistanc,
+      numericNoteDistanc,
 
       STYLES
       };
