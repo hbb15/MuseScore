@@ -1219,8 +1219,8 @@ static const StyleType styleTypes[] {
       { Sid::numericDistanceBetweenLines,   "numericDistanceBetweenLines",   0.3 },
       { Sid::numericWideLine,               "numericWideLine",               0.7 },
       { Sid::numericThickLine,              "numericThickLine",              0.09 },
-      { Sid::numericSizeSignSharp,          "numericSizeSignSharp",          1.14 },
-      { Sid::numericSizeSignFlat,           "numericSizeSignFlat",           1.77 },
+      { Sid::numericSizeSignSharp,          "numericSizeSignSharp",          1.0 },
+      { Sid::numericSizeSignFlat,           "numericSizeSignFlat",           1.0 },
       { Sid::numericDistanceSignSharp,      "numericDistanceSignSharp",      1.43 },
       { Sid::numericDistanceSignFlat,       "numericDistanceSignFlat",       1.74 },
       { Sid::numericHeigthSignSharp,        "numericHeigthSignSharp",        0.07 },
@@ -1240,7 +1240,7 @@ static const StyleType styleTypes[] {
       { Sid::numericTimeSigLineThick,       "numericTimeSigLineThick",       0.09 },
       { Sid::numericTimeSigLineSize,        "numericTimeSigLineSize",        1.0 },
       { Sid::numericTimeSigFont,            "numericTimeSigFont",            "FreeSerif" },
-      { Sid::numericKeySigFont,             "numericKeySigFont",             "FreeSerif" },
+      { Sid::numericKeySigFont,             "numericKeySigFont",             "Numeric" },
       { Sid::numericKeySigSize,             "numericKeySigSize",             0.95 },
       { Sid::numericKeySigHorizontalShift,  "numericKeySigHorizontalShift",  1.0 },
       { Sid::numericKeySigHigth,            "numericKeySigHigth",            2.5 },
@@ -1250,6 +1250,7 @@ static const StyleType styleTypes[] {
       { Sid::numericFontSize,               "numericFontSize",               12.0 },
       { Sid::numericRestDistanc,            "numericRestDistanc",            1.0 },
       { Sid::numericNoteDistanc,            "numericNoteDistanc",            1.0 },
+      { Sid::numericAccidentalFont,         "numericAccidentalFont",     "Numeric" },
       };
 
 MStyle  MScore::_baseStyle;

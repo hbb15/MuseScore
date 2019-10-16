@@ -2517,7 +2517,6 @@ void Chord::layoutNumeric()
       qreal headWidth   = symWidth(SymId::noteheadBlack);
       StaffType* tab    = staff()->staffType(tick());
       qreal lineDist    = tab->lineDistance().val() *_spatium;
-      qreal stemX       = tab->chordStemPosX(this) *_spatium;
 
       int   numOfNotes  = _notes.size();
       qreal minY        = 1000.0;               // just a very large value

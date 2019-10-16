@@ -1223,6 +1223,7 @@ enum class Sid {
       numericFontSize,
       numericRestDistanc,
       numericNoteDistanc,
+      numericAccidentalFont,
 
       STYLES
       };

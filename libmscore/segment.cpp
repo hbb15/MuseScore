@@ -2043,9 +2043,6 @@ qreal Segment::minHorizontalCollidingDistance(Segment* ns) const
       qreal w = 0.0;
       for (unsigned staffIdx = 0; staffIdx < _shapes.size(); ++staffIdx) {
             qreal d = staffShape(staffIdx).minHorizontalDistance(ns->staffShape(staffIdx));
-            //if(_elist[staffIdx * VOICES] && _elist[staffIdx * VOICES]->staff()->isNumericStaff(tick())&&isTimeSigType()
-            //   ||ns->_elist[staffIdx * VOICES] && ns->_elist[staffIdx * VOICES]->staff()->isNumericStaff(tick())&&ns->isTimeSigType())
-            //      d=0.0;
             w       = qMax(w, d);
             }
       return w;
@@ -2219,7 +2216,7 @@ qreal Segment::numericKeysigDistansAdjustLeft(const Segment* s) const{
             for (Element* e : s->elist()) {
                   if(e&&e->isKeySig()){
 
-                        w = qMin(w, toKeySig(e)->get_numericLefthAdjust());
+                        w = qMax(w, toKeySig(e)->get_numericLefthAdjust());
                         }
                   }
             }

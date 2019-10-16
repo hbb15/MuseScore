@@ -1342,11 +1342,6 @@
         "codepoint": "U+E260", 
         "description": "Flat"
     }, 
-    "numericAccidentalFlat": {
-        "alternateCodepoint": "U+E260",
-        "codepoint": "U+E29A",
-        "description": "numericFlat"
-    },
     "accidentalFlatArabic": {
         "codepoint": "U+ED32", 
         "description": "Arabic half-tone flat"
@@ -1697,17 +1692,12 @@
     "accidentalReversedFlatArrowUp": {
         "codepoint": "U+E290", 
         "description": "Reversed flat with arrow up"
-    },
+    }, 
     "accidentalSharp": {
-        "alternateCodepoint": "U+266F",
-        "codepoint": "U+E262",
+        "alternateCodepoint": "U+266F", 
+        "codepoint": "U+E262", 
         "description": "Sharp"
-    },
-    "numericAccidentalSharp": {
-        "alternateCodepoint": "U+E262",
-        "codepoint": "U+E299",
-        "description": "numericSharp"
-    },
+    }, 
     "accidentalSharpArabic": {
         "codepoint": "U+ED36", 
         "description": "Arabic half-tone sharp"
