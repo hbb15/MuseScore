@@ -358,6 +358,7 @@ void MScore::init()
             ":/fonts/bravura/BravuraText.otf",
             ":/fonts/gootville/GootvilleText.otf",
             ":/fonts/mscore/MScoreText.ttf",
+            ":/fonts/numeric/Numeric.ttf",
             };
 
       for (unsigned i = 0; i < sizeof(fonts)/sizeof(*fonts); ++i) {
