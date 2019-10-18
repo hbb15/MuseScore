@@ -94,16 +94,13 @@ void Rest::draw(QPainter* painter) const
 
             QColor c(curColor());
             painter->setPen(c);
-            StaffType* tab = staff()->staffType(tick());
             
             QFont font;
             font.setFamily(score()->styleSt(Sid::numericFont));
             font.setPointSizeF(score()->styleD(Sid::numericFontSize) * spatium() * MScore::pixelRatio / SPATIUM20);
             painter->setFont(font);
             painter->setPen(c);
-            painter->drawText(QPointF(0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement)), "0"+
-                              getNumericDurationRest[int(durationType().type())]+
-                              getNumericDurationDotRest[int(durationType().dots())]);
+            painter->drawText(QPointF(0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement)), _fretString);
 
             painter->setPen(QPen(curColor(), _numericLineThick));
             for (int i = 0; i < qAbs(durationType().hooks()); ++i){
@@ -422,18 +419,24 @@ void Rest::layout()
             }
       if (staff() && staff()->isNumericStaff(tick())) {
 
+            setPos(0.0, 0.0);             // no rest is drawn: reset any position might be set for it
             StaffType* numeric = staff()->staffType(tick());
             _fretString = "0";
             _numericHigth = bbox().height();
             _numericLineWidht=numericGetWidthRest(numeric,_fretString);
+            _fretString = "0"+
+                        getNumericDurationRest[int(durationType().type())]+
+                        getNumericDurationDotRest[int(durationType().dots())];
+            _numericWidht = numericGetWidthRest(numeric,_fretString);
             QRectF hookbox = QRectF(0.0, numeric->fretBoxY() * magS(), _numericLineWidht, numeric->fretBoxH() * magS());
             _numericHigth = hookbox.height();
             staff()->set_numericHeight(_numericHigth);
             _numericLineThick=_numericHigth*score()->styleD(Sid::numericThickLine);
             _numericLineSpace=_numericHigth*(score()->styleD(Sid::numericDistanceBetweenLines)*-1);
             _numericHigthLine=_numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_numericHigth-_numericHigth*score()->styleD(Sid::numericHeigthLine);
-            hookbox = QRectF(0.0, (_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick,
-                             _numericLineWidht,(_numericHigth*score()->styleD(Sid::numericHeightDisplacement)+((_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick)*-1));
+            qreal distance =_numericWidht * score()->styleD(Sid::numericRestDistanc);
+            hookbox = QRectF(0.0-distance/2, (_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick,
+                             _numericWidht+distance,(_numericHigth*score()->styleD(Sid::numericHeightDisplacement)+((_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick)*-1));
             setbbox(hookbox);
             return;
 

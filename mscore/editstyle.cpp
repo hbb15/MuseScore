@@ -402,8 +402,11 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::numericKeySigHigth,               false, numericKeySigHigth,                 resetNumericKeySigHigth             },
       { Sid::numericKeysigNoteDistancLeft,     false, numericKeysigNoteDistancLeft,       resetNumericKeysigNoteDistancLeft   },
       { Sid::numericKeysigNoteDistancReigth,   false, numericKeysigNoteDistancReigth,     resetNumericKeysigNoteDistancReigth }, 
-	  { Sid::numericBarlineLength,             false, numericBarlineLength,               resetNumericBarlineLength           },
-	  { Sid::numericFontSize,                  false, numericFontSize,                    resetNumericFontSize                },
+      { Sid::numericBarlineLength,             false, numericBarlineLength,               resetNumericBarlineLength           },
+      { Sid::numericFontSize,                  false, numericFontSize,                    resetNumericFontSize                },
+      { Sid::numericRestDistanc,               false, numericRestDistanc,                 resetNumericRestDistanc             },
+      { Sid::numericNoteDistanc,               false, numericNoteDistanc,                 resetNumericNoteDistanc             },
+      { Sid::numericAccidentalFont,            false, numericAccidentalFont,              resetNumericAccidentalFont          },
       };
 
       for (QComboBox* cb : std::vector<QComboBox*> {

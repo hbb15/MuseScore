@@ -1362,31 +1362,38 @@
     </SC>
   <SC>
     <key>numeric-1</key>
-    <seq>Shift+1</seq>
+    <seq>1</seq>
+    <seq>c</seq>
     </SC>
   <SC>
     <key>numeric-2</key>
-    <seq>Shift+2</seq>
+    <seq>2</seq>
+    <seq>d</seq>
     </SC>
   <SC>
     <key>numeric-3</key>
-    <seq>Shift+3</seq>
+    <seq>3</seq>
+    <seq>e</seq>
     </SC>
   <SC>
     <key>numeric-4</key>
-    <seq>Shift+4</seq>
+    <seq>4</seq>
+    <seq>f</seq>
     </SC>
   <SC>
     <key>numeric-5</key>
-    <seq>Shift+5</seq>
+    <seq>5</seq>
+    <seq>g</seq>
     </SC>
   <SC>
     <key>numeric-6</key>
-    <seq>Shift+6</seq>
+    <seq>6</seq>
+    <seq>a</seq>
     </SC>
   <SC>
     <key>numeric-7</key>
-    <seq>Shift+7</seq>
+    <seq>7</seq>
+    <seq>h</seq>
     </SC>
   <SC>
     <key>numchord-1</key>

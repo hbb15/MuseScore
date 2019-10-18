@@ -2517,7 +2517,6 @@ void Chord::layoutNumeric()
       qreal headWidth   = symWidth(SymId::noteheadBlack);
       StaffType* tab    = staff()->staffType(tick());
       qreal lineDist    = tab->lineDistance().val() *_spatium;
-      qreal stemX       = tab->chordStemPosX(this) *_spatium;
 
       int   numOfNotes  = _notes.size();
       qreal minY        = 1000.0;               // just a very large value
@@ -2591,7 +2590,7 @@ void Chord::layoutNumeric()
 
       addLedgerLines();
 
-      lll = rrr = headWidth;
+      lll = rrr = headWidth*score()->styleD(Sid::numericNoteDistanc);
       // align dots to the widest fret mark (not needed in all TAB styles, but harmless anyway)
       if (segment())
             segment()->setDotPosX(staffIdx(), headWidth);

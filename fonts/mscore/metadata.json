@@ -1830,16 +1830,6 @@
                 -0.36
             ]
         },
-        "numericAccidentalFlat": {
-            "cutOutNW": [
-                0.19,
-                0.59
-            ],
-            "cutOutSE": [
-                2.49,
-                -0.36
-            ]
-        },
         "accidentalDoubleFlat": {
             "cutOutNE": [
                 0.84,
@@ -1875,16 +1865,6 @@
             ],
             "cutOutSW": [
                 0.23,
-                -0.9
-            ]
-        },
-        "numericAccidentalSharp": {
-            "cutOutNW": [
-                0.-40,
-                0.9
-            ],
-            "cutOutSE": [
-                1.40,
                 -0.9
             ]
         }

@@ -1155,7 +1155,6 @@ void Note::draw(QPainter* painter) const
             }
 
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
-            StaffType* tab = staff()->staffType(tick());
             QFont font;
             font.setFamily(score()->styleSt(Sid::numericFont));
             font.setPointSizeF((score()->styleD(Sid::numericFontSize) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick);
@@ -1164,10 +1163,18 @@ void Note::draw(QPainter* painter) const
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
-                        score()->scoreFont()->draw(SymId::numericAccidentalSharp, painter,( score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth), _numericaccidentalPos);
+                        QFont fontAccidental;
+                        fontAccidental.setFamily(score()->styleSt(Sid::numericAccidentalFont));
+                        fontAccidental.setPointSizeF((score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericSizeSignSharp) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick);
+                        _numeric.drawShap(painter,_numericaccidentalPos, fontAccidental);
+                        //score()->scoreFont()->draw(SymId::numericAccidentalSharp, painter,( score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth), _numericaccidentalPos);
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
-                        score()->scoreFont()->draw(SymId::numericAccidentalFlat, painter,( score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth),_numericaccidentalPos);
+                        QFont fontAccidental;
+                        fontAccidental.setFamily(score()->styleSt(Sid::numericAccidentalFont));
+                        fontAccidental.setPointSizeF((score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericSizeSignFlat) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick);
+                        _numeric.drawFlat(painter,_numericaccidentalPos, fontAccidental);
+                        //score()->scoreFont()->draw(SymId::numericAccidentalFlat, painter,( score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth),_numericaccidentalPos);
                         }
                   }
             if(_trackthick!=1.0){
@@ -2297,16 +2304,22 @@ void Note::layout2()
                              w, _numericHigth);
             setbbox(stringbox);
             _numericTextPos = QPointF(bbox().x(),_numericHigth*score()->styleD(Sid::numericHeightDisplacement));
+            qreal ShapSize=(score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericSizeSignSharp) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick;
+            qreal FlatSize=(score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericSizeSignFlat) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick;
+            QFont fontAccidental;
+            fontAccidental.setFamily(score()->styleSt(Sid::numericAccidentalFont));
             if (_accidental || _drawFlat || _drawSharp){
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
                         _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp),
                                                         (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)));
-                        addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalSharp,(score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)).translated(_numericaccidentalPos));
+                        fontAccidental.setPointSizeF(ShapSize);
+                        addbbox(_numeric.bbox(fontAccidental,_numericaccidentalPos,_numeric.shapString()));
                         }
                   if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
                         _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat),
                                                         (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)));
-                        addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalFlat,(score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)).translated(_numericaccidentalPos));
+                        fontAccidental.setPointSizeF(FlatSize);
+                        addbbox(_numeric.bbox(fontAccidental,_numericaccidentalPos,_numeric.shapString()));
                         }
                   }
             if(_trackthick!=1.0){
@@ -2315,13 +2328,15 @@ void Note::layout2()
                         if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp){
                               _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*0.7,
                                                               (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp)));
-                              addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalSharp,( score()->styleD(Sid::numericSizeSignSharp)/100*_numericHigth)*_trackthick).translated(_numericaccidentalPos));
+                              fontAccidental.setPointSizeF(ShapSize);
+                              addbbox(_numeric.bbox(fontAccidental,_numericaccidentalPos,_numeric.shapString()));
                               xK = _numericaccidentalPos.x();
                               }
                         if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat){
                               _numericaccidentalPos = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*0.7,
                                                               (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)));
-                              addbbox(score()->scoreFont()->bbox(SymId::numericAccidentalFlat,( score()->styleD(Sid::numericSizeSignFlat)/100*_numericHigth)*_trackthick).translated(_numericaccidentalPos));
+                              fontAccidental.setPointSizeF(FlatSize);
+                              addbbox(_numeric.bbox(fontAccidental,_numericaccidentalPos,_numeric.shapString()));
                               xK = _numericaccidentalPos.x();
                               }
                         }

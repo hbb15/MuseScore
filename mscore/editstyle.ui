@@ -9359,7 +9359,7 @@
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="extensionAdjust">
                 <property name="minimum">
-                 <double>-99.99</double>
+                 <double>-99.989999999999995</double>
                 </property>
                </widget>
               </item>
@@ -9393,7 +9393,7 @@
               <item row="1" column="4">
                <widget class="QDoubleSpinBox" name="modifierAdjust">
                 <property name="minimum">
-                 <double>-99.99</double>
+                 <double>-99.989999999999995</double>
                 </property>
                </widget>
               </item>
@@ -10206,8 +10206,7 @@
                   <number>0</number>
                  </property>
                  <item row="0" column="1">
-                  <widget class="Awl::ColorLabel" name="textStyleFrameForeground">
-                  </widget>
+                  <widget class="Awl::ColorLabel" name="textStyleFrameForeground"/>
                  </item>
                  <item row="2" column="0">
                   <widget class="QLabel" name="label_205">
@@ -10292,8 +10291,7 @@
                   <widget class="QDoubleSpinBox" name="textStyleFramePadding"/>
                  </item>
                  <item row="1" column="1">
-                  <widget class="Awl::ColorLabel" name="textStyleFrameBackground">
-                  </widget>
+                  <widget class="Awl::ColorLabel" name="textStyleFrameBackground"/>
                  </item>
                  <item row="3" column="2">
                   <widget class="QToolButton" name="resetTextStyleFramePadding">
@@ -10353,8 +10351,7 @@
             </widget>
            </item>
            <item row="6" column="1">
-            <widget class="Awl::ColorLabel" name="textStyleColor">
-            </widget>
+            <widget class="Awl::ColorLabel" name="textStyleColor"/>
            </item>
            <item row="7" column="1">
             <widget class="Ms::OffsetSelect" name="textStyleOffset" native="true"/>
@@ -10476,7 +10473,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="page_3">
            <layout class="QGridLayout" name="gridLayout_58">
@@ -10966,16 +10963,6 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="10" column="0">
-                  <widget class="QLabel" name="label_170">
-                   <property name="text">
-                    <string>Hilfslinie Länge</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>clefTimesigDistance</cstring>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="3" column="0">
                   <widget class="QLabel" name="label_123">
                    <property name="text">
@@ -11013,6 +11000,90 @@
                    <property name="icon">
                     <iconset resource="musescore.qrc">
                      <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="1">
+                  <widget class="QDoubleSpinBox" name="numericRestDistanc">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="2">
+                  <widget class="QToolButton" name="resetNumericRestDistanc">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="10" column="0">
+                  <widget class="QLabel" name="label_171">
+                   <property name="text">
+                    <string>Hilfslinie Länge</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>clefTimesigDistance</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="1">
+                  <widget class="QDoubleSpinBox" name="numericNoteDistanc">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="2">
+                  <widget class="QToolButton" name="resetNumericNoteDistanc">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="0">
+                  <widget class="QLabel" name="label_170">
+                   <property name="text">
+                    <string>abstand Pausen</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>clefTimesigDistance</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="0">
+                  <widget class="QLabel" name="label_182">
+                   <property name="text">
+                    <string>abstand Noten</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>clefTimesigDistance</cstring>
                    </property>
                   </widget>
                  </item>
@@ -11147,8 +11218,21 @@
                <string>Vorzeichen</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_61">
+               <item row="1" column="0">
+                <spacer name="verticalSpacer_361">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
                <item row="0" column="0">
-                <layout class="QGridLayout" name="gridLayout_45">
+                <layout class="QGridLayout" name="gridLayout_451">
                  <item row="0" column="2">
                   <widget class="QToolButton" name="resetNumericSizeSignSharp">
                    <property name="toolTip">
@@ -11457,18 +11541,58 @@
                  </item>
                 </layout>
                </item>
-               <item row="1" column="0">
-                <spacer name="verticalSpacer_361">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
+               <item row="2" column="0">
+                <widget class="QGroupBox" name="groupBox_52">
+                 <property name="title">
+                  <string>Schriftart</string>
                  </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
+                 <layout class="QGridLayout" name="gridLayout_70">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_432">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <item row="0" column="2">
+                     <widget class="QToolButton" name="resetNumericAccidentalFont">
+                      <property name="toolTip">
+                       <string>Reset to default</string>
+                      </property>
+                      <property name="accessibleName">
+                       <string>Reset 'Key to barline distance' value</string>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="musescore.qrc">
+                        <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QFontComboBox" name="numericAccidentalFont">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="editable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="label_148">
+                      <property name="text">
+                       <string>Schriftart</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
                </item>
               </layout>
              </widget>

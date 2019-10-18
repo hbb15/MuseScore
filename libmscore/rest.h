@@ -41,6 +41,7 @@ class Rest : public ChordRest {
 
 
       QString _fretString;
+      qreal _numericWidht;
       qreal _numericLineWidht;
       qreal _numericLineThick;
       qreal _numericLineSpace;

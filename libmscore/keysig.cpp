@@ -49,7 +49,7 @@ const char* keyNames[] = {
 //---------------------------------------------------------
 QString NumericString[15][2]={
       {"H-Dur  a=♭7","gis-Moll  a=♭7"},
-      {"Fis-Dur  a=♯2","es-Moll  a=♯2"},
+      {"Fis-Dur  a=♭3","es-Moll  a=♭3"},
       {"Cis-Dur  a=♯5","B-Moll  a=♯5"},
       {"Gis-Dur  a=♯1","f-Moll  a=♯1"},
       {"Es-Dur  a=♯4","c-Moll  a=♯4"},
@@ -61,7 +61,7 @@ QString NumericString[15][2]={
       {"A-Dur  a=1","fis-Moll  a=1"},
       {"E-Dur  a=4","cis-Moll  a=4"},
       {"H-Dur  a=♭7","gis-Moll  a=♭7"},
-      {"Fis-Dur  a=♯2","es-Moll  a=♯2"},
+      {"Fis-Dur  a=♭3","es-Moll  a=♭3"},
       {"Cis-Dur  a=♯5","B-Moll  a=♯5"}
 
 };
@@ -114,6 +114,7 @@ void KeySig::addLayout(SymId sym, qreal x, int line)
 void KeySig::layout()
       {
       _numericLeftAdjust = 0.0;
+      _numericReigthAdjust = 0.0;
       if(_keyListSave){
             _keyListSave = false;
             staff()->setKey(_keyListSaveFraction,_keyListSaveSig);
@@ -261,83 +262,83 @@ void KeySig::layout()
                         setbbox(QRectF());
                         }
                   }
-            _numericDrawNote = true;
-            if( measure()&&measure()->first()){
-                  if( measure()->first()->isBeginBarLineType()) {
-                        _numericDrawNote = false;
-                        _numericNoteString = "";
-                        }
-                  }
-            if(_numericDrawNote&&segment()->isKeySigType()){
-                  Segment* seg = segment()->next();
-                  while (seg && !seg->isChordRestType()) {
-                        seg = seg->next();
-                        }
-                  if(seg && seg->element(track())->isChord()) {
-                        Chord* cd=toChord(seg->element(track()));
-                        if(cd && cd->upNote()){
-                              cd->upNote()->numeric_setKeysigNote(this);
-                              }
-                        }
-                  }
-            if(segment()->isKeySigAnnounceType()){
-
-                  if( measure()&&measure()->nextMeasure()){
-                        Segment* seg = measure()->nextMeasure()->first();
+            _numericDrawNote = _showCourtesy && !tick().isZero();
+            if(_numericDrawNote){
+                  if(_numericDrawNote&&segment()->isKeySigType()){
+                        Segment* seg = segment()->next();
                         while (seg && !seg->isChordRestType()) {
                               seg = seg->next();
                               }
                         if(seg && seg->element(track())->isChord()) {
                               Chord* cd=toChord(seg->element(track()));
-                              if(cd){
+                              if(cd && cd->upNote()){
                                     cd->upNote()->numeric_setKeysigNote(this);
                                     }
                               }
                         }
-                  }
-            if(_numericNoteString!=""){
-                  StaffType* numeric = staff()->staffType(tick());
+                  if(segment()->isKeySigAnnounceType()){
 
-                  _numericNotePoint = QPointF(0.0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement) -_numericNoteShift);
-                  _numericNoteRecht = QRectF(_numericNotePoint.x(), _numericNotePoint.y()-_numericHigth, numericGetWidth(numeric, _numericNoteString), _numericHigth);
-                  addbbox(_numericNoteRecht);
-                  qreal wd = numericGetWidth(numeric,"(");
-                  if (_numericAccidentalShift!=0){
-                        if (_numericAccidentalShift==1){
-                              _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*0.7,
-                                                              (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp))  -_numericNoteShift);
-                              addbbox(symBbox(SymId::numericAccidentalSharp).translated(_numericAccidentalPoint));
+                        if( measure()&&measure()->nextMeasure()){
+                              Segment* seg = measure()->nextMeasure()->first();
+                              while (seg && !seg->isChordRestType()) {
+                                    seg = seg->next();
+                                    }
+                              if(seg && seg->element(track())->isChord()) {
+                                    Chord* cd=toChord(seg->element(track()));
+                                    if(cd){
+                                          cd->upNote()->numeric_setKeysigNote(this);
+                                          }
+                                    }
                               }
-                        if (_numericAccidentalShift==-1){
-                              _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*0.7,
-                                                              (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)) -_numericNoteShift);
-                              addbbox(symBbox(SymId::numericAccidentalFlat).translated(_numericAccidentalPoint));
+                        }
+                  if(_numericNoteString!=""){
+                        StaffType* numeric = staff()->staffType(tick());
+
+                        _numericNotePoint = QPointF(0.0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement) -_numericNoteShift);
+                        _numericNoteRecht = QRectF(_numericNotePoint.x(), _numericNotePoint.y()-_numericHigth, numericGetWidth(numeric, _numericNoteString), _numericHigth);
+                        addbbox(_numericNoteRecht);
+                        qreal wd = numericGetWidth(numeric,"(");
+                        if (_numericAccidentalShift!=0){
+                              if (_numericAccidentalShift==1){
+                                    _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignSharp)*0.7,
+                                                                    (_numericHigth*score()->styleD(Sid::numericHeigthSignSharp))  -_numericNoteShift);
+                                    addbbox(symBbox(SymId::numericAccidentalSharp).translated(_numericAccidentalPoint));
+                                    }
+                              if (_numericAccidentalShift==-1){
+                                    _numericAccidentalPoint = QPointF(_numericHigth*-score()->styleD(Sid::numericDistanceSignFlat)*0.7,
+                                                                    (_numericHigth*score()->styleD(Sid::numericHeigthSignFlat)) -_numericNoteShift);
+                                    addbbox(symBbox(SymId::numericAccidentalFlat).translated(_numericAccidentalPoint));
+                                    }
+                              _numericNoteKlammerPoint = QPointF(_numericAccidentalPoint.x()-wd,_numericNotePoint.y());
                               }
-                        _numericNoteKlammerPoint = QPointF(_numericAccidentalPoint.x()-wd,_numericNotePoint.y());
+                        else {
+                              _numericNoteKlammerPoint = QPointF(_numericNotePoint.x()-wd,_numericNotePoint.y());
+
+                              }
+                        _numericNoteKlammerRecht = QRectF(_numericNoteKlammerPoint.x(), _numericNoteKlammerPoint.y()-_numericHigth, wd, _numericHigth);
+                        addbbox(_numericNoteKlammerRecht);
+                        _numericShape = QRectF(_numericNoteKlammerPoint.x()-_numericHigth*score()->styleD(Sid::numericKeysigNoteDistancLeft),
+                                               _numericNoteKlammerPoint.y()-_numericHigth,
+                                               _numericNotePoint.x() - _numericNoteKlammerPoint.x()+_numericNoteRecht.width()+
+                                               _numericHigth*score()->styleD(Sid::numericKeysigNoteDistancLeft)+
+                                               _numericHigth*score()->styleD(Sid::numericKeysigNoteDistancReigth), _numericHigth);
+                        _numericReigthAdjust =wds - _numericShape.width();
+                        addbbox(_numericShape);
+                        if (_numericReigthAdjust<0.0){
+                              _numericReigthAdjust=0.0;
+                              }
                         }
                   else {
-                        _numericNoteKlammerPoint = QPointF(_numericNotePoint.x()-wd,_numericNotePoint.y());
-
-                        }
-                  _numericNoteKlammerRecht = QRectF(_numericNoteKlammerPoint.x(), _numericNoteKlammerPoint.y()-_numericHigth, wd, _numericHigth);
-                  addbbox(_numericNoteKlammerRecht);
-                  _numericShape = QRectF(_numericNoteKlammerPoint.x()-_numericHigth*score()->styleD(Sid::numericKeysigNoteDistancLeft),
-                                         _numericNoteKlammerPoint.y()-_numericHigth,
-                                         _numericNotePoint.x() - _numericNoteKlammerPoint.x()+_numericNoteRecht.width()+
-                                         _numericHigth*score()->styleD(Sid::numericKeysigNoteDistancLeft)+
-                                         _numericHigth*score()->styleD(Sid::numericKeysigNoteDistancReigth), _numericHigth);
-                  _numericReigthAdjust =wds - _numericShape.width();
-                  addbbox(_numericShape);
-                  if (_numericReigthAdjust<0.0){
-                        _numericReigthAdjust=0.0;
+                        _numericShape = QRectF();
+                        _numericReigthAdjust = wds;
+                              //rxpos()=get_numericXpos() + _numericHigth*-score()->styleD(Sid::numericKeySigHorizontalShift);
                         }
                   }
             else {
-                  _numericShape = QRectF();
-                  _numericReigthAdjust = wds;
-                        //rxpos()=get_numericXpos() + _numericHigth*-score()->styleD(Sid::numericKeySigHorizontalShift);
-                  }
 
+                  _numericShape = QRectF();
+                  _numericReigthAdjust = _numericHigth*score()->styleD(Sid::numericNoteDistanc);
+                  }
             return;
             }
       else{
@@ -463,7 +464,6 @@ void KeySig::draw(QPainter* p) const
                if(!segment()->isKeySigAnnounceType()){
 
                      if((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx())<1){
-                          StaffType* numeric = staff()->staffType(tick());
 
                           QFont font;
                           font.setFamily(score()->styleSt(Sid::numericKeySigFont));
@@ -474,7 +474,7 @@ void KeySig::draw(QPainter* p) const
                           p->drawText(_numericPoint,_numericString);
                           }
                      }
-            if(_numericNoteString!=""){
+            if(_numericDrawNote){
 
                   StaffType* tab = staff()->staffType(tick());
                   QFont font;
@@ -813,6 +813,10 @@ bool KeySig::setProperty(Pid propertyId, const QVariant& v)
             case Pid::SHOW_COURTESY:
                   if (generated())
                         return false;
+                  setShowCourtesy(v.toBool());
+                  _keyListSave = true;
+                  _keyListSaveSig = _sig;
+                  _keyListSaveFraction = tick();
                   break;
             case Pid::KEYSIG_MODE:
                   if (generated())

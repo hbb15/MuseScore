@@ -19923,26 +19923,6 @@
                 -0.5
             ]
         }, 
-        "numericAccidentalFlat": {
-            "bBoxNE": [
-                1.904,
-                1.756
-            ],
-            "bBoxSW": [
-                0.0,
-                -0.7
-            ]
-        },
-        "numericAccidentalSharp": {
-            "bBoxNE": [
-                1.5,
-                1.4
-            ],
-            "bBoxSW": [
-                0.0,
-                -1.392
-            ]
-        },
         "octaveBaselineA": {
             "bBoxNE": [
                 0.968, 
@@ -28954,22 +28934,6 @@
                 }
             ]
         }, 
-        "numericAccidentalFlat": {
-            "alternates": [
-                {
-                    "codepoint": "U+E29A",
-                    "name": "numericAccidentalFlat"
-                }
-            ]
-        },
-        "numericAccidentalSharp": {
-            "alternates": [
-                {
-                    "codepoint": "U+E299",
-                    "name": "numericAccidentalSharp"
-                }
-            ]
-        },
         "pictBassDrum": {
             "alternates": [
                 {
@@ -33701,26 +33665,6 @@
                 0.0
             ]
         }, 
-        "numericAccidentalFlat": {
-            "cutOutNW": [
-                0.0,
-                0.656
-            ],
-            "cutOutSE": [
-                1.5,
-                -0.476
-            ]
-        },
-        "numericAccidentalSharp": {
-            "cutOutNW": [
-                0.0,
-                0.656
-            ],
-            "cutOutSE": [
-                1.0,
-                -0.476
-            ]
-        },
         "ornamentBottomLeftConcaveStroke": {
             "repeatOffset": [
                 0.46, 

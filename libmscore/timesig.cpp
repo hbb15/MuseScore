@@ -461,7 +461,6 @@ void TimeSig::draw(QPainter* painter) const
             return;
       if (staff() && staff()->isNumericStaff( tick())) {
           if(get_numericVisible()){
-                StaffType* numeric = staff()->staffType(tick());
                 QColor c(curColor());
                 QFont font;
                 font.setFamily(score()->styleSt(Sid::numericTimeSigFont));
