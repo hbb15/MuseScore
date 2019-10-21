@@ -318,8 +318,8 @@ void SlurSegment::computeBezier(QPointF p6o)
       qreal c    = p2.x();
       qreal w = 0.0;
       if(slur()->staff() && slur()->staff()->isNumericStaff(slur()->tick())){
-            shoulderH = slur()->get_numericWidth()*score()->styleD(Sid::numericSlurHeigth);
-            shoulderW = (c-slur()->get_numericWidth()*score()->styleD(Sid::numericSlurEckenform))/c;
+            shoulderH = slur()->get_numericHigth()*score()->styleD(Sid::numericSlurHeigth);
+            shoulderW = (c-slur()->get_numericHigth()*score()->styleD(Sid::numericSlurEckenform))/c;
             }
       else {
             w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
@@ -669,9 +669,9 @@ void Slur::slurPos(SlurPos* sp)
             sp->p2.rx() += note2->x();
 
       if(staff() && note1 && note2&& staff()->isNumericStaff(endCR()->tick())){
-            _numericWidth=note1->get_numericWidth();
+            _numericHigth=note1->get_numericHigth();
             sp->p1.rx() +=-note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
-            sp->p2.rx() +=+note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
+            sp->p2.rx() += note2->get_numericWidth() + note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
             sp->p1.ry() = note1->y()+note1->get_numericHigth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
             sp->p2.ry() = note2->y()+note2->get_numericHigth()*0.5+note2->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
             return;

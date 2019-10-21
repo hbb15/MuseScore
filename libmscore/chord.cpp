@@ -2691,7 +2691,7 @@ void Chord::layoutNumeric()
                   }
             QPointF p(0,0);
             p.ry() = note->pos().y();
-            p.rx() = - note->get_numericWidth()/2 + note->pos().x();
+            p.rx() = note->pos().x();
 
             _hook->setPos(p);
             _hook->layout();

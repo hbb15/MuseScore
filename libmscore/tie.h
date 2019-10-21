@@ -61,7 +61,7 @@ class TieSegment final : public SlurTieSegment {
 class Tie final : public SlurTie {
       static Note* editStartNote;
       static Note* editEndNote;
-      qreal _numericWidth;
+      qreal _numericHigth;
 
    public:
       Tie(Score* = 0);
@@ -89,7 +89,7 @@ class Tie final : public SlurTie {
       const TieSegment* segmentAt(int n) const { return toTieSegment(Spanner::segmentAt(n));   }
 
       virtual SlurTieSegment* newSlurTieSegment() override { return new TieSegment(score()); }
-      qreal get_numericWidth()                      { return _numericWidth;   }
+      qreal get_numericHigth()                      { return _numericHigth;   }
       };
 
 }     // namespace Ms

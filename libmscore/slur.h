@@ -58,7 +58,7 @@ class SlurSegment final : public SlurTieSegment {
 class Slur final : public SlurTie {
 
       void slurPosChord(SlurPos*);
-      qreal _numericWidth;
+      qreal _numericHigth;
 
    public:
       Slur(Score* = 0);
@@ -78,7 +78,7 @@ class Slur final : public SlurTie {
       SlurSegment* segmentAt(int n)             { return toSlurSegment(Spanner::segmentAt(n));   }
       const SlurSegment* segmentAt(int n) const { return toSlurSegment(Spanner::segmentAt(n));   }
       virtual SlurTieSegment* newSlurTieSegment() override { return new SlurSegment(score()); }
-      qreal get_numericWidth()                      { return _numericWidth;   }
+      qreal get_numericHigth()                      { return _numericHigth;   }
       };
 
 }     // namespace Ms

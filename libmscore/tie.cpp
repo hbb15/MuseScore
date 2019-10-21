@@ -244,8 +244,8 @@ void TieSegment::computeBezier(QPointF p6o)
       qreal w = 0.0;
       qreal c    = p2.x();
       if(tie()->startNote()->staff() && tie()->startNote()->staff()->isNumericStaff(tie()->startNote()->tick())){
-            shoulderH = tie()->get_numericWidth()*score()->styleD(Sid::numericSlurHeigth);
-            shoulderW = (c-tie()->get_numericWidth()*score()->styleD(Sid::numericSlurEckenform))/c;
+            shoulderH = tie()->get_numericHigth()*score()->styleD(Sid::numericSlurHeigth);
+            shoulderW = (c-tie()->get_numericHigth()*score()->styleD(Sid::numericSlurEckenform))/c;
             }
       else {
             w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
@@ -413,6 +413,10 @@ void TieSegment::layoutSegment(const QPointF& p1, const QPointF& p2)
 
 void TieSegment::setAutoAdjust(const QPointF& offset)
       {
+
+	  if (staff()->isNumericStaff(tie()->startNote()->tick())) {
+		    return;
+	        }
       QPointF diff = offset - autoAdjustOffset;
       if (!diff.isNull()) {
             path.translate(diff);
@@ -476,7 +480,7 @@ void Tie::slurPos(SlurPos* sp)
       qreal yo;
       bool shortStart = false;
       if(note1->staff() && note1->staff()->isNumericStaff(note1->tick())){
-            _numericWidth=note1->get_numericWidth();
+            _numericHigth=note1->get_numericHigth();
             sp->p1.rx() +=-note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
             sp->p1.ry() = note1->y() + note1->get_numericHigth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
 
@@ -516,7 +520,7 @@ void Tie::slurPos(SlurPos* sp)
       bool horizontal = startNote()->line() == endNote()->line() && sc->vStaffIdx() == ec->vStaffIdx();
 
       if(note1->staff() && note1->staff()->isNumericStaff(note1->tick())){
-            sp->p2.rx() +=note2->get_numericWidth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
+            sp->p2.rx() +=note2->get_numericWidth()+note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
             sp->p2.ry() = note2->y() + note2->get_numericHigth()*0.5+note2->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
             return;
             }

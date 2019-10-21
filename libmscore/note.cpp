@@ -2303,7 +2303,7 @@ void Note::layout2()
             QRectF stringbox = QRectF(_numericWidth*-0.5,_numericHigth*-1 + _numericHigth*score()->styleD(Sid::numericHeightDisplacement),
                              w, _numericHigth);
             setbbox(stringbox);
-            _numericTextPos = QPointF(bbox().x(),_numericHigth*score()->styleD(Sid::numericHeightDisplacement));
+            _numericTextPos = QPointF(0.0,_numericHigth*score()->styleD(Sid::numericHeightDisplacement));
             qreal ShapSize=(score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericSizeSignSharp) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick;
             qreal FlatSize=(score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericSizeSignFlat) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick;
             QFont fontAccidental;
