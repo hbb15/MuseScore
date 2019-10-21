@@ -39,7 +39,7 @@ else
        emmentaler-text-1 gonville-text-1 bravura-text-1 musejazz-text-1\
        emmentaler-text-2 gonville-text-2 bravura-text-2 musejazz-text-2\
        emmentaler-text-3 gonville-text-3 bravura-text-3 musejazz-text-3\
-       frametext ottava \
+       frametext ottava bend-1 \
        barline-1 instrument-1 symbol-1 \
        slurs-1 slurs-2 slurs-3 slurs-4 slurs-5 slurs-6 slurs-7 slurs-8 slurs-9 slurs-10 \
        hairpins-1 pedal-1 line-1 line-2 line-3 line-4 line-5 line-6 gliss-1 gliss-2\
@@ -104,6 +104,16 @@ echo "{}]" >> $JSON_FILE
 
 echo "Generate PNG files"
 $MSCORE -j $JSON_FILE -r $DPI >LOG 2>&1
+
+if [ "$VTEST_GEN_METADATA" = "1" ]
+then
+    git branch --sort=-committerdate --format="%(refname:short) %(objectname:short)" > branches.list
+    rm -f tests.list
+    for F in $SRC
+    do
+        echo "$F" >> tests.list
+    done
+fi
 
 echo "Compare PNG files and references"
 for src in $SRC; do
