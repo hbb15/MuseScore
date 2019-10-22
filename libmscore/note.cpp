@@ -1155,10 +1155,7 @@ void Note::draw(QPainter* painter) const
             }
 
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
-            QFont font;
-            font.setFamily(score()->styleSt(Sid::numericFont));
-            font.setPointSizeF((score()->styleD(Sid::numericFontSize) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick);
-            painter->setFont(font);
+            painter->setFont(_numeric.getFretFont());
             painter->setPen(c);
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){
@@ -2204,6 +2201,7 @@ void Note::layout()
             }
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
             StaffType* numeric = staff()->staffType(tick());
+
             qreal mags = magS();
             int accidentalshift=0;
             _drawFlat = false;
@@ -2230,14 +2228,18 @@ void Note::layout()
                   _numericWidth *=0.7;
                   _trackthick=0.7;
                   }
+			QFont font;
+			font.setFamily(score()->styleSt(Sid::numericFont));
+			font.setPointSizeF((score()->styleD(Sid::numericFontSize)* spatium()* MScore::pixelRatio / SPATIUM20)* _trackthick);
+			_numeric.set_FretFont(font);
             _numericWidth2=tabHeadWidth(numeric);
             _numericLedgerline = ((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)/2;
             _fretStringYShift=((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
             rypos() = -_fretStringYShift;
             qreal w = tabHeadWidth(numeric); // !! use _fretString
-            _numericHigth =  numeric->fretBoxH() * mags* _trackthick;
+            _numericHigth =  _numeric.textHeigth(_numeric.getFretFont(),_fretString);
             _numeric.set_relativeSize(_numericHigth);
-            QRectF stringbox = QRectF(_numericWidth*-0.5,_numericHigth*-1 + _numericHigth*score()->styleD(Sid::numericHeightDisplacement),
+            QRectF stringbox = QRectF(0.0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement),
                              w, _numericHigth);
             setbbox(stringbox);
             staff()->set_numericHeight(_numericHigth);
@@ -2304,8 +2306,8 @@ void Note::layout2()
                              w, _numericHigth);
             setbbox(stringbox);
             _numericTextPos = QPointF(0.0,_numericHigth*score()->styleD(Sid::numericHeightDisplacement));
-            qreal ShapSize=(score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericSizeSignSharp) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick;
-            qreal FlatSize=(score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericSizeSignFlat) * spatium() * MScore::pixelRatio / SPATIUM20)*_trackthick;
+            qreal ShapSize=_numeric.getFretFont().pointSize() * score()->styleD(Sid::numericSizeSignSharp);
+            qreal FlatSize= _numeric.getFretFont().pointSize() * score()->styleD(Sid::numericSizeSignFlat);
             QFont fontAccidental;
             fontAccidental.setFamily(score()->styleSt(Sid::numericAccidentalFont));
             if (_accidental || _drawFlat || _drawSharp){
@@ -2340,11 +2342,8 @@ void Note::layout2()
                               xK = _numericaccidentalPos.x();
                               }
                         }
-                  QFont font;
-                  font.setFamily(score()->styleSt(Sid::numericFont));
-                  font.setPointSizeF(score()->styleD(Sid::numericFontSize) *_trackthick);
                   numeric n;
-                  qreal wr = n.textWidth(font,"(")*magS();
+                  qreal wr = n.textWidth(_numeric.getFretFont(),"(");
                   _numericKlammerPos = QPointF(xK- wr,_numericTextPos.y());
 
                   addbbox(QRectF(_numericKlammerPos.x(),_numericKlammerPos.y()-_numericHigth,wr, _numericHigth));

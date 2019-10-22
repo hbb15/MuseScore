@@ -15,6 +15,7 @@
 
 #include "chordrest.h"
 #include "notedot.h"
+#include "numeric.h"
 
 namespace Ms {
 
@@ -47,6 +48,7 @@ class Rest : public ChordRest {
       qreal _numericLineSpace;
       qreal _numericHigthLine;
       qreal _numericHigth;
+	  numeric _numeric;
 
 
    public:
