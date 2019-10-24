@@ -444,6 +444,9 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       QMessageBox* infoMsgBox;
       TourHandler* _tourHandler { 0 };
 
+      QWindow* _lastFocusWindow { nullptr };
+      bool _lastFocusWindowIsQQuickView { false };
+
       std::unique_ptr<GeneralAutoUpdater> autoUpdater;
 
       //---------------------
@@ -565,7 +568,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void oscAction();
 #endif
       void deleteWorkspace();
-      void undoWorkspace();
+      void resetWorkspace();
       void showWorkspaceMenu();
       void switchLayer(const QString&);
       void switchPlayMode(int);
@@ -574,6 +577,8 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void showMidiImportPanel();
       void changeWorkspace(QAction*);
       void onLongOperationFinished();
+
+      void onFocusWindowChanged(QWindow*);
 
       virtual QMenu* createPopupMenu() override;
 

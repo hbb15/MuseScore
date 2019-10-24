@@ -25,6 +25,7 @@
 #include "undo.h"
 #include "range.h"
 #include "excerpt.h"
+#include "accidental.h"
 
 namespace Ms {
 
@@ -135,7 +136,8 @@ NoteVal Score::noteValForPosition(Position pos, bool &error)
                   break;
                   }
             case StaffGroup::STANDARD: {
-                  AccidentalVal acci = s->measure()->findAccidental(s, staffIdx, line, error);
+                  AccidentalType at = _is.accidentalType();
+                  AccidentalVal acci = (at == AccidentalType::NONE ? s->measure()->findAccidental(s, staffIdx, line, error) : Accidental::subtype2value(at));
                   if (error)
                         return nval;
                   int step           = absStep(line, clef);
@@ -430,9 +432,11 @@ void Score::putNote(const Position& p, bool replace)
                   addToChord = true;            // if no special case, add note to chord
                   }
             }
+      bool forceAccidental = _is.accidentalType() != AccidentalType::NONE;
       if (addToChord && cr->isChord()) {
             // if adding, add!
-            addNote(toChord(cr), nval);
+            addNote(toChord(cr), nval, forceAccidental);
+            _is.setAccidentalType(AccidentalType::NONE);
             return;
             }
       else {
@@ -440,7 +444,8 @@ void Score::putNote(const Position& p, bool replace)
 
             if (_is.rest())
                   nval.pitch = -1;
-            setNoteRest(_is.segment(), _is.track(), nval, _is.duration().fraction(), stemDirection);
+            setNoteRest(_is.segment(), _is.track(), nval, _is.duration().fraction(), stemDirection, forceAccidental);
+            _is.setAccidentalType(AccidentalType::NONE);
             }
       if (!st->isTabStaff(cr->tick()))
             _is.moveToNextInputPos();
