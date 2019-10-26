@@ -1155,7 +1155,11 @@ void Note::draw(QPainter* painter) const
             }
 
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
-            painter->setFont(_numeric.getFretFont());
+
+            QFont font;
+            font.setFamily(score()->styleSt(Sid::numericFont));
+            font.setPointSizeF((score()->styleD(Sid::numericFontSize)* spatium()* MScore::pixelRatio / SPATIUM20)* _trackthick);
+            painter->setFont(font);
             painter->setPen(c);
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){

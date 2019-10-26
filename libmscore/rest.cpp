@@ -95,8 +95,11 @@ void Rest::draw(QPainter* painter) const
 
             QColor c(curColor());
             painter->setPen(c);
-            
-            painter->setFont(_numeric.getFretFont());
+
+            QFont font;
+            font.setFamily(score()->styleSt(Sid::numericFont));
+            font.setPointSizeF((score()->styleD(Sid::numericFontSize)* spatium()* MScore::pixelRatio / SPATIUM20));
+            painter->setFont(font);
             painter->setPen(c);
             painter->drawText(QPointF(0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement)), _fretString);
 
