@@ -18,7 +18,8 @@ qreal numeric::textHeigth(const QFont font, const QString string) const
       {
       qreal val;
       QFontMetricsF fm(font);
-      val  = fm.height();
+      QRectF pos = fm.tightBoundingRect(string).translated(QPointF());
+      val  = pos.height();
       return val;
       }
 QRectF numeric::bbox(QFont font, QPointF pos, QString string)
