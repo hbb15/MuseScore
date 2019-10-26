@@ -77,6 +77,11 @@ qreal SpannerSegment::mag() const
       return staff() ? staff()->mag(spanner()->tick()) : 1.0;
       }
 
+Fraction SpannerSegment::tick() const
+      {
+      return _spanner ? _spanner->tick() : Fraction(0, 1);
+      }
+
 //---------------------------------------------------------
 //   setSystem
 //---------------------------------------------------------
@@ -142,7 +147,7 @@ bool SpannerSegment::setProperty(Pid pid, const QVariant& v)
       switch (pid) {
             case Pid::OFFSET2:
                   _offset2 = v.toPointF();
-                  score()->setLayoutAll();
+                  triggerLayoutAll();
                   break;
             default:
                   return Element::setProperty(pid, v);
@@ -1028,8 +1033,8 @@ void Spanner::setTicks(const Fraction& f)
 
 void Spanner::triggerLayout() const
       {
-      score()->setLayout(_tick);
-      score()->setLayout(_tick + _ticks);
+      const int tr2 = track2() == -1 ? track() : track2();
+      score()->setLayout(_tick, _tick + _ticks, staffIdx(), track2staff(tr2), this);
       }
 
 //---------------------------------------------------------

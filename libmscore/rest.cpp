@@ -1021,11 +1021,11 @@ bool Rest::setProperty(Pid propertyId, const QVariant& v)
       switch (propertyId) {
             case Pid::GAP:
                   _gap = v.toBool();
-                  score()->setLayout(tick());
+                  triggerLayout();
                   break;
             case Pid::VISIBLE:
                   setVisible(v.toBool());
-                  score()->setLayout(tick());
+                  triggerLayout();
                   break;
             case Pid::OFFSET:
                   score()->addRefresh(canvasBoundingRect());
@@ -1034,7 +1034,7 @@ bool Rest::setProperty(Pid propertyId, const QVariant& v)
                   score()->addRefresh(canvasBoundingRect());
                   if (measure() && durationType().type() == TDuration::DurationType::V_MEASURE)
                          measure()->triggerLayout();
-                  score()->setLayout(tick());
+                  triggerLayout();
                   break;
             default:
                   return ChordRest::setProperty(propertyId, v);

@@ -31,11 +31,9 @@ class XmlWriter;
 //---------------------------------------------------------
 //   Workspace
 //---------------------------------------------------------
-
 class Workspace : public QObject {
       Q_OBJECT
 
-      static QList<Workspace*> _workspaces;
       static QList<QPair<QAction*, QString>> actionToStringList;
       static QList<QPair<QMenu*, QString>> menuToStringList;
 
@@ -66,9 +64,6 @@ class Workspace : public QObject {
       void readGlobalMenuBar();
       void readGlobalGUIState();
 
-      static QString makeUserWorkspacePath(const QString& name);
-      static void readWorkspaceFile(const QString& path, std::function<void(XmlReader&)> readWorkspace);
-
    private slots:
       void ensureWorkspaceSaved();
 
@@ -96,15 +91,11 @@ class Workspace : public QObject {
       void read();
       bool readOnly() const          { return _readOnly;  }
       void setReadOnly(bool val)     { _readOnly = val;   }
-
-      static void initWorkspace();
-      static Workspace* currentWorkspace;
-      static QList<Workspace*>& workspaces();
-      static Workspace* createNewWorkspace(const QString& name);
-      static bool workspacesRead;
-      static QList<Workspace*>& refreshWorkspaces();
+      void reset();
 
       const Workspace* sourceWorkspace() const;
+      void setSourceWorkspaceName(const QString& sourceWorkspaceName) { _sourceWorkspaceName = sourceWorkspaceName; }
+      QString sourceWorkspaceName() { return _sourceWorkspaceName; }
 
       std::unique_ptr<PaletteTree> getPaletteTree() const;
 
@@ -123,8 +114,68 @@ class Workspace : public QObject {
       static void writeGlobalMenuBar(QMenuBar* mb);
       static void writeGlobalToolBar();
       static void writeGlobalGUIState();
+      };
 
-      static void retranslate(QList<Workspace*>* workspacesList = 0);
+class WorkspacesManager {      
+   private:
+      static void initWorkspaces();
+      
+   public:
+      static Workspace* createNewWorkspace(const QString& name);
+      static void refreshWorkspaces();
+      
+      static QString makeUserWorkspacePath(const QString& name);
+      static void readWorkspaceFile(const QString& path, std::function<void(XmlReader&)> readWorkspace);
+      static void retranslate(QList<Workspace*>& workspacesList);
+      static void retranslateAll();
+      
+      static Workspace* findByName(const QString& name) {
+            for (auto w : m_workspaces) {
+                  if (w->name() == name)
+                        return w;
+                  }
+            return nullptr;
+            }
+      
+      static Workspace* findByTranslatableName(const QString& name) {
+            for (auto w : m_workspaces) {
+                  if (w->translatableName() == name)
+                        return w;
+                  }
+            return nullptr;
+            }
+      
+      static void remove(Workspace* workspace);
+      static const QList<Workspace*>& workspaces() {
+            if (isWorkspacesListDirty || m_workspaces.isEmpty())
+                  initWorkspaces();
+            return m_workspaces;
+            }
+      
+      static const QList<Workspace*>& visibleWorkspaces() {
+            if (isWorkspacesListDirty || m_visibleWorkspaces.isEmpty())
+                  initWorkspaces();
+            return m_visibleWorkspaces;
+            }
+      
+      //replace with `const Workspace*` in future
+      static Workspace* currentWorkspace() { return m_currentWorkspace; }
+      static void setCurrentWorkspace(Workspace* currWorkspace) { m_currentWorkspace = currWorkspace; }
+      
+      static void initCurrentWorkspace();
+      static bool isDefaultWorkspace(Workspace* workspace);
+      static bool isDefaultEditedWorkspace(Workspace* workspace);
+      static QString defaultWorkspaceTranslatableName(const QString& editedWorkspaceName);
+      
+   public:
+      static std::vector<QString> defaultWorkspaces;
+      static std::vector<QString> defaultEditedWorkspaces;
+      
+   private:
+      static QList<Workspace*> m_workspaces;
+      static QList<Workspace*> m_visibleWorkspaces;
+      static Workspace* m_currentWorkspace;
+      static bool isWorkspacesListDirty;
       };
 
 }

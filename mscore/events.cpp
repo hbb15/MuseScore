@@ -284,8 +284,7 @@ void ScoreView::mouseReleaseEvent(QMouseEvent* mouseEvent)
                   if (editData.startMove == editData.pos && clickOffElement) {
                         _score->deselectAll();
                         _score->update();
-                        mscore->updateInspector();
-                        ScoreAccessibility::instance()->updateAccessibilityInfo();
+                        mscore->endCmd();
                         }
             case ViewState::EDIT:
             case ViewState::NOTE_ENTRY:
@@ -1001,8 +1000,11 @@ void ScoreView::changeState(ViewState s)
       //
       switch (s) {
             case ViewState::NORMAL:
-                  if (state == ViewState::EDIT)
+                  if (state == ViewState::EDIT) {
+                        _blockShowEdit = true;  // otherwise may jump on clicking outside the text element being edited
                         endEdit();
+                        _blockShowEdit = false;
+                        }
                   setCursor(QCursor(Qt::ArrowCursor));
                   break;
             case ViewState::DRAG:
