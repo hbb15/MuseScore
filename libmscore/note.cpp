@@ -1155,7 +1155,11 @@ void Note::draw(QPainter* painter) const
             }
 
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
-            painter->setFont(_numeric.getFretFont());
+
+            QFont font;
+            font.setFamily(score()->styleSt(Sid::numericFont));
+            font.setPointSizeF((score()->styleD(Sid::numericFontSize)* spatium()* MScore::pixelRatio / SPATIUM20)* _trackthick);
+            painter->setFont(font);
             painter->setPen(c);
             painter->drawText(_numericTextPos, _fretString);
             if (_accidental || _drawFlat || _drawSharp){
@@ -2237,7 +2241,7 @@ void Note::layout()
             _fretStringYShift=((_pitch+grundtonverschibung+accidentalshift+numtransposeInterval)/12-5-clefshift)*_numericHigth*score()->styleD(Sid::numericDistanceOctave);
             rypos() = -_fretStringYShift;
             qreal w = tabHeadWidth(numeric); // !! use _fretString
-            _numericHigth =  _numeric.textHeigth(_numeric.getFretFont(),_fretString);
+            _numericHigth =  _numeric.textHeigth(_numeric.getFretFont(),"1234567890");
             _numeric.set_relativeSize(_numericHigth);
             QRectF stringbox = QRectF(0.0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement),
                              w, _numericHigth);
@@ -2302,7 +2306,7 @@ void Note::layout2()
             if (paren)
                   _fretString = QString("(%1)").arg(_fretString);
             qreal w = tabHeadWidth(numeric1); // !! use _fretString
-            QRectF stringbox = QRectF(_numericWidth*-0.5,_numericHigth*-1 + _numericHigth*score()->styleD(Sid::numericHeightDisplacement),
+            QRectF stringbox = QRectF(0.0,_numericHigth*-1 + _numericHigth*score()->styleD(Sid::numericHeightDisplacement),
                              w, _numericHigth);
             setbbox(stringbox);
             _numericTextPos = QPointF(0.0,_numericHigth*score()->styleD(Sid::numericHeightDisplacement));
