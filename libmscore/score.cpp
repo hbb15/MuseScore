@@ -316,6 +316,8 @@ Score::Score(MasterScore* parent, const MStyle& s)
 
 Score::~Score()
       {
+      Score::validScores.erase(this);
+
       foreach(MuseScoreView* v, viewer)
             v->removeScore();
       // deselectAll();
@@ -335,7 +337,6 @@ Score::~Score()
 
       qDeleteAll(_parts);
       qDeleteAll(_staves);
-      Score::validScores.erase(this);
 //      qDeleteAll(_pages);         // TODO: check
       _masterScore = 0;
 
@@ -384,6 +385,7 @@ void Score::onElementDestruction(Element* e)
             return;
             }
       score->selection().remove(e);
+      score->cmdState().unsetElement(e);
       for (MuseScoreView* v : score->viewer)
             v->onElementDestruction(e);
       }
@@ -512,7 +514,7 @@ void Score::rebuildTempoAndTimeSigMaps(Measure* measure)
                         continue;
                   qreal stretch = 0.0;
                   for (Element* e : segment.annotations()) {
-                        if (e->isFermata())
+                        if (e->isFermata() && toFermata(e)->play())
                               stretch = qMax(stretch, toFermata(e)->timeStretch());
                         else if (e->isTempoText()) {
                               TempoText* tt = toTempoText(e);
@@ -1388,7 +1390,7 @@ void Score::addElement(Element* element)
          || et == ElementType::FBOX
          ) {
             measures()->add(toMeasureBase(element));
-            setLayout(element->tick());
+            element->triggerLayout();
             return;
             }
 
@@ -1492,7 +1494,7 @@ void Score::addElement(Element* element)
             default:
                   break;
             }
-      setLayout(element->tick());
+      element->triggerLayout();
       }
 
 //---------------------------------------------------------
@@ -1585,7 +1587,7 @@ void Score::removeElement(Element* element)
                   Spanner* spanner = toSpanner(element);
                   if (et == ElementType::TEXTLINE && spanner->anchor() == Spanner::Anchor::NOTE)
                         break;
-                  setLayout(spanner->tick2());
+                  spanner->triggerLayout();
                   removeSpanner(spanner);
                   }
                   break;
@@ -1593,7 +1595,7 @@ void Score::removeElement(Element* element)
             case ElementType::OTTAVA:
                   {
                   Ottava* o = toOttava(element);
-                  setLayout(o->tick2());
+                  o->triggerLayout();
                   removeSpanner(o);
                   o->staff()->updateOttava();
                   cmdState().layoutFlags |= LayoutFlag::FIX_PITCH_VELO;
@@ -4631,10 +4633,52 @@ void MasterScore::setUpdateAll()
 //   setLayoutAll
 //---------------------------------------------------------
 
-void MasterScore::setLayoutAll()
+void MasterScore::setLayoutAll(int staff, const Element* e)
       {
       _cmdState.setTick(Fraction(0,1));
       _cmdState.setTick(measures()->last() ? measures()->last()->endTick() : Fraction(0,1));
+
+      if (e && e->score() == this) {
+            // TODO: map staff number properly
+            const int startStaff = staff == -1 ? 0 : staff;
+            const int endStaff = staff == -1 ? (nstaves() - 1) : staff;
+            _cmdState.setStaff(startStaff);
+            _cmdState.setStaff(endStaff);
+
+            _cmdState.setElement(e);
+            }
+      }
+
+//---------------------------------------------------------
+//   setLayout
+//---------------------------------------------------------
+
+void MasterScore::setLayout(const Fraction& t, int staff, const Element* e)
+      {
+      if (t >= Fraction(0,1))
+            _cmdState.setTick(t);
+
+      if (e && e->score() == this) {
+            // TODO: map staff number properly
+            _cmdState.setStaff(staff);
+            _cmdState.setElement(e);
+            }
+      }
+
+void MasterScore::setLayout(const Fraction& tick1, const Fraction& tick2, int staff1, int staff2, const Element* e)
+      {
+      if (tick1 >= Fraction(0,1))
+            _cmdState.setTick(tick1);
+      if (tick2 >= Fraction(0,1))
+            _cmdState.setTick(tick2);
+
+      if (e && e->score() == this) {
+            // TODO: map staff number properly
+            _cmdState.setStaff(staff1);
+            _cmdState.setStaff(staff2);
+
+            _cmdState.setElement(e);
+            }
       }
 
 //---------------------------------------------------------
@@ -4666,16 +4710,6 @@ void MasterScore::setPlaybackScore(Score* score)
                         }
                   }
             }
-      }
-
-//---------------------------------------------------------
-//   setLayout
-//---------------------------------------------------------
-
-void MasterScore::setLayout(const Fraction& t)
-      {
-      if (t >= Fraction(0,1))
-            _cmdState.setTick(t);
       }
 
 //---------------------------------------------------------

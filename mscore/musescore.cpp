@@ -1988,7 +1988,11 @@ void MuseScore::onFocusWindowChanged(QWindow* w)
             QWidget* tmpContainer = createWindowContainer(new QWindow, this);
             tmpContainer->show();
             tmpContainer->setFocus();
-            tmpContainer->deleteLater();
+
+            QTimer::singleShot(0, [this, tmpContainer]() {
+                  focusScoreView();
+                  tmpContainer->deleteLater();
+                  });
             }
 
       _lastFocusWindow = w;
@@ -4943,8 +4947,6 @@ void MuseScore::undoRedo(bool undo)
       cv->startUndoRedo(undo);
       updateInputState(cs);
       endCmd();
-      if (_inspector)
-            _inspector->update();
       if (pianorollEditor)
             pianorollEditor->update();
       }
@@ -5973,6 +5975,10 @@ void MuseScore::endCmd()
                   SelState ss = cs->selection().state();
                   selectionChanged(ss);
                   }
+
+            if (cv)
+                  cv->moveViewportToLastEdit();
+
             getAction("concert-pitch")->setChecked(cs->styleB(Sid::concertPitch));
 
             if (e == 0 && cs->noteEntryMode())
@@ -6902,9 +6908,15 @@ bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled)
       return false;
 #else
       EventMap events;
-      score->renderMidi(&events, synthesizerState());
-      if(events.size() == 0)
-            return false;
+      // In non-GUI mode current synthesizer settings won't
+      // allow single note dynamics. See issue #289947.
+      const bool useCurrentSynthesizerState = !MScore::noGui;
+
+      if (useCurrentSynthesizerState) {
+            score->renderMidi(&events, synthesizerState());
+            if (events.empty())
+                  return false;
+            }
 
       MP3Exporter exporter;
       if (!exporter.loadLibrary(MP3Exporter::AskUser::MAYBE)) {
@@ -6975,6 +6987,16 @@ bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled)
             }
 
       MScore::sampleRate = sampleRate;
+
+      if (!useCurrentSynthesizerState) {
+            score->masterScore()->rebuildAndUpdateExpressive(synth->synthesizer("Fluid"));
+            score->renderMidi(&events, score->synthesizerState());
+            if (synti)
+                  score->masterScore()->rebuildAndUpdateExpressive(synti->synthesizer("Fluid"));
+
+            if (events.empty())
+                  return false;
+            }
 
       QProgressDialog progress(this);
       progress.setWindowFlags(Qt::WindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowTitleHint));

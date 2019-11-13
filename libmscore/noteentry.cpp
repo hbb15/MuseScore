@@ -33,7 +33,7 @@ namespace Ms {
 //   noteValForPosition
 //---------------------------------------------------------
 
-NoteVal Score::noteValForPosition(Position pos, bool &error)
+NoteVal Score::noteValForPosition(Position pos, AccidentalType at, bool &error)
       {
       error           = false;
       Segment* s      = pos.segment;
@@ -136,7 +136,6 @@ NoteVal Score::noteValForPosition(Position pos, bool &error)
                   break;
                   }
             case StaffGroup::STANDARD: {
-                  AccidentalType at = _is.accidentalType();
                   AccidentalVal acci = (at == AccidentalType::NONE ? s->measure()->findAccidental(s, staffIdx, line, error) : Accidental::subtype2value(at));
                   if (error)
                         return nval;
@@ -361,7 +360,7 @@ void Score::putNote(const Position& p, bool replace)
 
       Direction stemDirection = Direction::AUTO;
       bool error;
-      NoteVal nval = noteValForPosition(p, error);
+      NoteVal nval = noteValForPosition(p, _is.accidentalType(), error);
       if (error)
             return;
 
@@ -432,7 +431,11 @@ void Score::putNote(const Position& p, bool replace)
                   addToChord = true;            // if no special case, add note to chord
                   }
             }
-      bool forceAccidental = _is.accidentalType() != AccidentalType::NONE;
+      bool forceAccidental = false;
+      if (_is.accidentalType() != AccidentalType::NONE) {
+            NoteVal nval2 = noteValForPosition(p, AccidentalType::NONE, error);
+            forceAccidental = (nval.pitch == nval2.pitch);
+            }
       if (addToChord && cr->isChord()) {
             // if adding, add!
             addNote(toChord(cr), nval, forceAccidental);

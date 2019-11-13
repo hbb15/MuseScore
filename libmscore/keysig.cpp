@@ -836,9 +836,7 @@ bool KeySig::setProperty(Pid propertyId, const QVariant& v)
                         return false;
                   break;
             }
-
-      triggerLayout();
-      score()->setLayoutAll();
+      triggerLayoutAll();
       setGenerated(false);
       return true;
       }
