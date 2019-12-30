@@ -2877,7 +2877,7 @@ Note* Chord::findNoteBack(int pitch)
       while (s && !n) {
             if (s->element(staffIdx()*VOICES) && s->element(staffIdx()*VOICES)->isChord()) {
                   Chord* ch = toChord(s->element(staffIdx()*VOICES));
-                  n = ch->findNote(pitch);
+                  n = ch->findNote(pitch,100);
                   if(!n){
                         s = s->prev();
                         }
