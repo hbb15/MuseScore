@@ -2522,9 +2522,9 @@ void Chord::layoutNumeric()
       StaffType* tab    = staff()->staffType(tick());
       qreal lineDist    = tab->lineDistance().val() *_spatium;
 
-      int   numOfNotes  = _notes.size();
+	  size_t   numOfNotes  = _notes.size();
       qreal minY        = 1000.0;               // just a very large value
-      for (int i = 0; i < numOfNotes; ++i) {
+      for (size_t i = 0; i < numOfNotes; ++i) {
             Note* note = _notes.at(i);
             note->layout();
             // set headWidth to max fret text width
@@ -2759,7 +2759,7 @@ void Chord::layoutNumeric()
                   }
             }
 
-      for (int i = 0; i < numOfNotes; ++i)
+      for (size_t i = 0; i < numOfNotes; ++i)
             _notes.at(i)->layout2();
       }
 

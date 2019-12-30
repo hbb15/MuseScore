@@ -2005,7 +2005,6 @@ QString Note::getNumericString(int numkro)
               default:
                     return "0";
             }
-      return "0";
       }
 //---------------------------------------------------------
 //   get_numericGroundPitch
@@ -2096,7 +2095,6 @@ int Note::getNumericTrans(Key key) const{
                 return 0;
                 break;
           }
-    return 0;
       }
 //---------------------------------------------------------
 //   getNumericOktave
@@ -2138,7 +2136,6 @@ void Note::layout()
       else if (staff() && staff()->isNumericStaff(chord()->tick())) {
             StaffType* numeric = staff()->staffType(tick());
 
-            qreal mags = magS();
             int accidentalshift=0;
             _drawFlat = false;
             _drawSharp = false;

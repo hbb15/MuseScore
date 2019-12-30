@@ -510,7 +510,9 @@ void System::layout2()
 	  Fraction tickk = tick();
 	  if (nextSegmentElement())
 		  tickk = nextSegmentElement()->tick();
-	  firstVisibleSysStaff()->set_distanceFirstStaff(0);
+	  int si = firstVisibleSysStaff();
+	  SysStaff* sfirstVisibleSysStaff = si < 0 ? nullptr : staff(si);
+	  sfirstVisibleSysStaff->set_distanceFirstStaff(0);
 
 
       if (visibleStaves.empty()) {

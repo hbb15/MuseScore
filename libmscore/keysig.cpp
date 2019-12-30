@@ -292,7 +292,6 @@ void KeySig::layout()
                               }
                         }
                   if(_numericNoteString!=""){
-                        StaffType* numeric = staff()->staffType(tick());
 
                         _numericNotePoint = QPointF(0.0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement) -_numericNoteShift);
                         _numericNoteRecht = QRectF(_numericNotePoint.x(), _numericNotePoint.y()-_numericHigth, numericGetWidth(numeric, _numericNoteString), _numericHigth);

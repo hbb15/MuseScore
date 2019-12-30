@@ -95,7 +95,6 @@ NoteVal Score::noteValForPosition(Position pos, AccidentalType at, bool &error)
                   }
             case StaffGroup::NUMERIC:
                   {
-                  int line = pos.line;
                   if (line < 0)
                         line *= -1;
                   int octave = line/7;
