@@ -52,7 +52,7 @@ class SysStaff {
                                     // staff is hidden
 	  qreal _distanceFirstStaff;
    public:
-      int idx     { 0    };
+      //int idx     { 0    };
       QList<InstrumentName*> instrumentNames;
 
       const QRectF& bbox() const    { return _bbox; }
@@ -93,8 +93,8 @@ class System final : public Element {
       mutable bool fixedDownDistance { false  };
       qreal _distance;                               // temp. variable used during layout
 
-      SysStaff* firstVisibleSysStaff() const;
-      SysStaff* lastVisibleSysStaff() const;
+      int firstVisibleSysStaff() const;
+      int lastVisibleSysStaff() const;
 
       int getBracketsColumnsCount();
       void setBracketsXPosition(const qreal xOffset);

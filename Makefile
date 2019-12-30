@@ -21,9 +21,11 @@ REVISION  := `cat mscore/revision.h`
 CPUS      := $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 1)
 
 PREFIX    = "/usr/local"
-VERSION   = "3.3b-${REVISION}"
-#VERSION = 3.3.1
+VERSION   = "3.4b-${REVISION}"
+#VERSION = 3.3.3
 BUILD_NUMBER=""
+
+TELEMETRY_TRACK_ID=""
 
 # Override SUFFIX and LABEL when multiple versions are installed to avoid conflicts.
 SUFFIX=""# E.g.: SUFFIX="dev" --> "mscore" becomes "mscoredev"
@@ -56,6 +58,7 @@ release:
   	  -DMSCORE_INSTALL_SUFFIX="${SUFFIX}"      \
   	  -DMUSESCORE_LABEL="${LABEL}"             \
   	  -DCMAKE_BUILD_NUMBER="${BUILD_NUMBER}"   \
+  	  -DTELEMETRY_TRACK_ID="${TELEMETRY_TRACK_ID}" \
   	  -DBUILD_LAME="${BUILD_LAME}"             \
   	  -DBUILD_PULSEAUDIO="${BUILD_PULSEAUDIO}" \
   	  -DBUILD_JACK="${BUILD_JACK}"             \
@@ -117,7 +120,7 @@ win32:
             make install;                              \
             make package;                              \
          else                                          \
-            echo "build directory win32build does alread exist, please remove first"; \
+            echo "build directory win32build does already exist, please remove first"; \
          fi
 
 #
@@ -207,7 +210,7 @@ unix:
             make -j${CPUS} -f Makefile;            \
             make package;                          \
          else                                      \
-            echo "build directory linux does alread exist, please remove first";  \
+            echo "build directory linux does already exist, please remove first";  \
          fi
 
 zip:

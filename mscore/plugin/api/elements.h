@@ -435,22 +435,25 @@ class Note : public Element {
       /// \since MuseScore 3.2.1
       Q_PROPERTY(Ms::NoteType                      noteType          READ noteType)
 
-      /** MIDI pitch of this note */
+      /**
+       * MIDI pitch of this note
+       * \see \ref pitch
+       */
       API_PROPERTY_T( int, pitch,                   PITCH                     )
       /**
        * Concert pitch of the note
-       * \see https://musescore.org/plugin-development/tonal-pitch-class-enum
+       * \see \ref tpc
        */
       API_PROPERTY_T( int, tpc1,             TPC1                      )
       /**
        * Transposing pitch of the note
-       * \see https://musescore.org/plugin-development/tonal-pitch-class-enum
+       * \see \ref tpc
        */
       API_PROPERTY_T( int, tpc2,             TPC2                      )
       /**
        * Concert or transposing pitch of this note,
        * as per current "Concert Pitch" setting value.
-       * \see https://musescore.org/plugin-development/tonal-pitch-class-enum
+       * \see \ref tpc
        */
       Q_PROPERTY(int                            tpc               READ tpc                WRITE setTpc)
 //       Q_PROPERTY(qreal                          tuning            READ tuning             WRITE undoSetTuning)
@@ -486,11 +489,21 @@ class Note : public Element {
       Ms::AccidentalType accidentalType() { return note()->accidentalType(); }
       void setAccidentalType(Ms::AccidentalType t) { note()->setAccidentalType(t); }
       Ms::NoteType noteType() { return note()->noteType(); }
+
+      static void addInternal(Ms::Note* note, Ms::Element* el);
+      static bool isChildAllowed(Ms::ElementType elementType);
       /// \endcond
 
       /// Creates a PlayEvent object for use in Javascript.
       /// \since MuseScore 3.3
       Q_INVOKABLE Ms::PluginAPI::PlayEvent* createPlayEvent() { return playEventWrap(new NoteEvent(), nullptr); }
+
+      /// Add to a note's elements.
+      /// \since MuseScore 3.3.3
+      Q_INVOKABLE void add(Ms::PluginAPI::Element* wrapped);
+      /// Remove a note's element.
+      /// \since MuseScore 3.3.3
+      Q_INVOKABLE void remove(Ms::PluginAPI::Element* wrapped);
       };
 
 //---------------------------------------------------------
@@ -577,6 +590,12 @@ class Segment : public Element {
       // good idea though.
       /// Type of this segment, one of PluginAPI::PluginAPI::Segment values.
       Q_PROPERTY(Ms::SegmentType               segmentType       READ segmentType)
+      /**
+       * \brief Current tick for this segment
+       * \returns Tick of this segment, i.e. number of ticks from the beginning
+       * of the score to this segment.
+       * \see \ref ticklength
+       */
       Q_PROPERTY(int                tick              READ tick) // TODO: revise libmscore (or this API):
                                                                  // Pid::TICK is relative or absolute in different contexts
 

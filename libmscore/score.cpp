@@ -2887,24 +2887,30 @@ void Score::padToggle(Pad n, const EditData& ed)
       std::vector<ChordRest*> crs;
 
       if (selection().isSingle()) {
-            // do not allow to add a dot on a full measure rest
             Element* e = selection().element();
-            if (e && e->isRest()) {
-                  Rest* r = toRest(e);
+            ChordRest* cr = InputState::chordRest(e);
+
+            // do not allow to add a dot on a full measure rest
+            if (cr && cr->isRest()) {
+                  Rest* r = toRest(cr);
                   if (r->isFullMeasureRest())
                         _is.setDots(0);
                   }
 
             // on measure rest, select the first actual rest
-            ChordRest* cr = selection().cr();
             if (cr && cr->isRest() && cr->measure()->isMMRest()) {
                   Measure* m = cr->measure()->mmRestFirst();
                   if (m)
                         cr = m->findChordRest(m->tick(), 0);
                   }
 
-            if (cr)
+            if (cr) {
                   crs.push_back(cr);
+                  }
+            else {
+                  ed.view->startNoteEntryMode();
+                  deselect(e);
+                  }
             }
       else if (selection().isNone() && n != Pad::REST) {
             TDuration td = _is.duration();
@@ -2916,15 +2922,14 @@ void Score::padToggle(Pad n, const EditData& ed)
             const auto elements = selection().uniqueElements();
             bool canAdjustLength = true;
             for (Element* e : elements) {
-                  if (!e)
+                  ChordRest* cr = InputState::chordRest(e);
+                  if (!cr)
                         continue;
-                  if (e->isNote())
-                        e = e->parent();
-                  if (!e->isChordRest() || e->isRepeatMeasure() || (e->isRest() && toRest(e)->measure() && toRest(e)->measure()->isMMRest())) {
+                  if (cr->isRepeatMeasure() || (cr->isRest() && toRest(cr)->measure() && toRest(cr)->measure()->isMMRest())) {
                         canAdjustLength = false;
                         break;
                         }
-                  crs.push_back(toChordRest(e));
+                  crs.push_back(cr);
                   }
 
             if (canAdjustLength) {
@@ -2934,6 +2939,8 @@ void Score::padToggle(Pad n, const EditData& ed)
                               return cr2->isBefore(cr1);
                         return cr2->track() < cr1->track();
                         });
+                  // Remove duplicates from the list
+                  crs.erase(std::unique(crs.begin(), crs.end()), crs.end());
                   }
             else
                   crs.clear();
@@ -3268,7 +3275,9 @@ void Score::collectNoteMatch(void* data, Element* e)
             return;
       if (p->notehead != NoteHead::Group::HEAD_INVALID && p->notehead != n->headGroup())
             return;
-      if (p->duration.type() != TDuration::DurationType::V_INVALID && p->duration != n->chord()->actualDurationType())
+      if (p->durationType.type() != TDuration::DurationType::V_INVALID && p->durationType != n->chord()->actualDurationType())
+            return;
+      if (p->durationTicks != Fraction(-1,1) && p->durationTicks != n->chord()->actualTicks())
             return;
       if ((p->staffStart != -1)
          && ((p->staffStart > e->staffIdx()) || (p->staffEnd <= e->staffIdx())))
@@ -4055,7 +4064,7 @@ QString Score::extractLyrics()
                               break;
                         }
                   }
-            // consider remaning lyrics
+            // consider remaining lyrics
             for (unsigned lyricsNumber = 0; lyricsNumber < maxLyrics; lyricsNumber++) {
                   for (Measure* m = firstMeasure(); m; m = m->nextMeasure()) {
                         unsigned playCount = m->playbackCount();
@@ -4815,7 +4824,7 @@ Movements::~Movements()
 //    the undo stack do not emit a warning.
 //    Usually pushes and pops to the undo stack are only
 //    valid inside a startCmd() - endCmd(). Exceptions
-//    occure during score loading.
+//    occurred during score loading.
 //---------------------------------------------------------
 
 int ScoreLoad::_loading = 0;

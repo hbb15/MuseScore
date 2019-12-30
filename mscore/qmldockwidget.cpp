@@ -163,6 +163,18 @@ QmlStyle::QmlStyle(QPalette p, QObject* parent)
       }
 
 //---------------------------------------------------------
+//   QmlStyle::setShadowOverlay
+//---------------------------------------------------------
+
+void QmlStyle::setShadowOverlay(bool val)
+      {
+      if (val != _shadowOverlay) {
+            _shadowOverlay = val;
+            emit shadowOverlayChanged();
+            }
+      }
+
+//---------------------------------------------------------
 //   QmlDockWidget
 //---------------------------------------------------------
 
@@ -272,7 +284,7 @@ void QmlDockWidget::changeEvent(QEvent* evt)
                   break;
 #if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
             case QEvent::LanguageChange:
-                  // In the absense of QQmlEngine::retranslate() function, just
+                  // In the absence of QQmlEngine::retranslate() function, just
                   // reload the entire QML view. Qt 5.10 and above seem to
                   // handle retranslation in Qt Quick itself so no explicit
                   // retranslation is required.

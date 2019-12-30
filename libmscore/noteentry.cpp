@@ -70,6 +70,7 @@ NoteVal Score::noteValForPosition(Position pos, AccidentalType at, bool &error)
                         return nval;
                         }
                   stringData = instr->stringData();
+                  line = st->staffType(tick)->visualStringToPhys(line);
                   if (line < 0 || line >= stringData->strings()) {
                         error = true;
                         return nval;
@@ -467,7 +468,8 @@ void Score::repitchNote(const Position& p, bool replace)
 
       NoteVal nval;
       bool error = false;
-      AccidentalVal acci = s->measure()->findAccidental(s, p.staffIdx, p.line, error);
+      AccidentalType at = _is.accidentalType();
+      AccidentalVal acci = (at == AccidentalType::NONE ? s->measure()->findAccidental(s, p.staffIdx, p.line, error) : Accidental::subtype2value(at));
       if (error)
             return;
       int step   = absStep(p.line, clef);
@@ -547,6 +549,21 @@ void Score::repitchNote(const Position& p, bool replace)
       }
       // add new note to chord
       undoAddElement(note);
+      bool forceAccidental = false;
+      if (_is.accidentalType() != AccidentalType::NONE) {
+            NoteVal nval2 = noteValForPosition(p, AccidentalType::NONE, error);
+            forceAccidental = (nval.pitch == nval2.pitch);
+            }
+      if (forceAccidental) {
+            int tpc = styleB(Sid::concertPitch) ? nval.tpc1 : nval.tpc2;
+            AccidentalVal alter = tpc2alter(tpc);
+            at = Accidental::value2subtype(alter);
+            Accidental* a = new Accidental(this);
+            a->setAccidentalType(at);
+            a->setRole(AccidentalRole::USER);
+            a->setParent(note);
+            undoAddElement(a);
+            }
       setPlayNote(true);
       setPlayChord(true);
       // recreate tie forward if there is a note to tie to

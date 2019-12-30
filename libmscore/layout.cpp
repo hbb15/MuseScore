@@ -2028,6 +2028,7 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
                         if (!nks) {
                               nks = ks->generated() ? ks->clone() : toKeySig(ks->linkedClone());
                               nks->setParent(ns);
+                              nks->setGenerated(true);
                               undo(new AddElement(nks));
                               }
                         else {
@@ -2058,7 +2059,7 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
             // clone elements from underlying measure to mmr
             for (Element* e : cs->annotations()) {
                   // look at elements in underlying measure
-                  if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
+                  if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText() || e->isInstrumentChange()))
                         continue;
                   // try to find a match in mmr
                   bool found = false;
@@ -2080,7 +2081,7 @@ void Score::createMMRest(Measure* m, Measure* lm, const Fraction& len)
             // this should not happen since the elements are linked?
             for (Element* e : s->annotations()) {
                   // look at elements in mmr
-                  if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
+                  if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText() || e->isInstrumentChange()))
                         continue;
                   // try to find a match in underlying measure
                   bool found = false;
@@ -2114,7 +2115,7 @@ static bool validMMRestMeasure(Measure* m)
       int n = 0;
       for (Segment* s = m->first(); s; s = s->next()) {
             for (Element* e : s->annotations()) {
-                  if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText()))
+                  if (!(e->isRehearsalMark() || e->isTempoText() || e->isHarmony() || e->isStaffText() || e->isSystemText() || e->isInstrumentChange()))
                         return false;
                   }
             if (s->isChordRestType()) {
@@ -2200,7 +2201,7 @@ static bool breakMultiMeasureRest(Measure* m)
                         continue;
                   if (e->isRehearsalMark() ||
                       e->isTempoText() ||
-                      ((e->isHarmony() || e->isStaffText() || e->isSystemText()) && (e->systemFlag() || m->score()->staff(e->staffIdx())->show())))
+                      ((e->isHarmony() || e->isStaffText() || e->isSystemText() || e->isInstrumentChange()) && (e->systemFlag() || m->score()->staff(e->staffIdx())->show())))
                         return true;
                   }
             for (int staffIdx = 0; staffIdx < m->score()->nstaves(); ++staffIdx) {
@@ -2344,8 +2345,10 @@ void Score::createBeams(Measure* measure)
                               chord->crossMeasureSetup(crossMeasure);
                         }
 
-                  // get defaults from time signature properties
-                  bm = Groups::endBeam(cr, prev);
+                  if (cr->isRest() && cr->beamMode() == Beam::Mode::AUTO)
+                        bm = Beam::Mode::NONE;           // do not beam rests set to Beam::Mode::AUTO
+                  else
+                        bm = Groups::endBeam(cr, prev);  // get defaults from time signature properties
 
                   // perform additional context-dependent checks
                   if (bm == Beam::Mode::AUTO) {
@@ -2445,7 +2448,8 @@ void Score::createBeams(Measure* measure)
                   Fraction nextTick = a1->tick() + a1->actualTicks();
                   Measure* m = (nextTick >= measure->endTick() ? measure->nextMeasure() : measure);
                   ChordRest* nextCR = (m ? m->findChordRest(nextTick, track) : nullptr);
-                  if (!nextCR || !beamModeMid(nextCR->beamMode()))
+                  Beam* b = a1->beam();
+                  if (!(b && b->elements().startsWith(a1) && nextCR && beamModeMid(nextCR->beamMode())))
                         a1->removeDeleteBeam(false);
                   }
             }
@@ -4052,7 +4056,7 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             }
 
       //-------------------------------------------------------------
-      // layout Voltas for current sytem
+      // layout Voltas for current system
       //-------------------------------------------------------------
 
       processLines(system, voltas, false);
@@ -4425,6 +4429,7 @@ class CmdStateLocker {
 void Score::doLayoutRange(const Fraction& st, const Fraction& et)
       {
       CmdStateLocker cmdStateLocker(this);
+      LayoutContext lc(this);
 
       Fraction stick(st);
       Fraction etick(et);
@@ -4440,13 +4445,12 @@ void Score::doLayoutRange(const Fraction& st, const Fraction& et)
             }
 //      if (!_systems.isEmpty())
 //            return;
-      bool layoutAll = stick <= Fraction(0,1) && (etick < Fraction(0,1) || etick >= last()->endTick());
+      bool layoutAll = stick <= Fraction(0,1) && (etick < Fraction(0,1) || etick >= masterScore()->last()->endTick());
       if (stick < Fraction(0,1))
             stick = Fraction(0,1);
       if (etick < Fraction(0,1))
             etick = last()->endTick();
 
-      LayoutContext lc;
       lc.endTick     = etick;
       _scoreFont     = ScoreFont::fontFactory(style().value(Sid::MusicalSymbolFont).toString());
       _noteHeadWidth = _scoreFont->width(SymId::noteheadBlack, spatium() / SPATIUM20);
@@ -4483,7 +4487,6 @@ void Score::doLayoutRange(const Fraction& st, const Fraction& et)
             }
 
 //      qDebug("start <%s> tick %d, system %p", m->name(), m->tick(), m->system());
-      lc.score        = m->score();
 
       if (lineMode()) {
             lc.prevMeasure = 0;
@@ -4564,9 +4567,6 @@ void Score::doLayoutRange(const Fraction& st, const Fraction& et)
       lc.curSystem = collectSystem(lc);
 
       lc.layout();
-
-      for (MuseScoreView* v : viewer)
-            v->layoutChanged();
       }
 
 //---------------------------------------------------------
@@ -4621,5 +4621,8 @@ LayoutContext::~LayoutContext()
       {
       for (Spanner* s : processedSpanners)
             s->layoutSystemsDone();
+
+      for (MuseScoreView* v : score->getViewer())
+            v->layoutChanged();
       }
 }

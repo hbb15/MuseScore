@@ -202,7 +202,7 @@ int FiguredBassItem::parsePrefixSuffix(QString& str, bool bPrefix)
                   break;
             case '#':
                   if(*dest != Modifier::NONE) {
-                        if(*dest == Modifier::SHARP)    // SHARP may double a preivous SHARP
+                        if(*dest == Modifier::SHARP)    // SHARP may double a previous SHARP
                               *dest = Modifier::DOUBLESHARP;
                         else
                               return -1;              // but no other combination is acceptable
@@ -1247,7 +1247,7 @@ void FiguredBass::draw(QPainter* painter) const
       if (!score()->printing() && score()->showUnprintable()) {
             for (qreal len : _lineLengths) {
                   if (len > 0) {
-                        painter->setPen(QPen(Qt::lightGray, 1));
+                        painter->setPen(QPen(Qt::lightGray, 3));
                         painter->drawLine(0.0, -2, len, -2);      // -2: 2 rast. un. above digits
                         }
                   }

@@ -131,7 +131,7 @@ void KeySig::layout()
             }
 
       _sig.keySymbols().clear();
-      if (staff() && !staff()->genKeySig())     // no key sigs on TAB staves
+      if (staff() && !staff()->staffType(tick())->genKeysig())
             return;
 
       // determine current clef for this staff
@@ -786,9 +786,12 @@ void KeySig::undoSetMode(KeyMode v)
 QVariant KeySig::getProperty(Pid propertyId) const
       {
       switch (propertyId) {
-            case Pid::KEY:           return int(key());
-            case Pid::SHOW_COURTESY: return int(showCourtesy());
-            case Pid::KEYSIG_MODE:   return int(mode());
+            case Pid::KEY:
+                  return int(key());
+            case Pid::SHOW_COURTESY:
+                  return int(showCourtesy());
+            case Pid::KEYSIG_MODE:
+                  return int(mode());
             case Pid::SET_KEY_TYPE:
                   if(int(_sig.mode()) < 1 || int(_sig.mode()) > 2)
                         return int(0);
@@ -848,9 +851,12 @@ bool KeySig::setProperty(Pid propertyId, const QVariant& v)
 QVariant KeySig::propertyDefault(Pid id) const
       {
       switch (id) {
-            case Pid::KEY:               return int(Key::INVALID);
-            case Pid::SHOW_COURTESY:     return true;
-            case Pid::KEYSIG_MODE:       return int(KeyMode::UNKNOWN);
+            case Pid::KEY:
+                  return int(Key::INVALID);
+            case Pid::SHOW_COURTESY:
+                  return true;
+            case Pid::KEYSIG_MODE:
+                  return int(KeyMode::UNKNOWN);
             case Pid::SET_KEY_TYPE:     return 0;
             default:
                   return Element::propertyDefault(id);
