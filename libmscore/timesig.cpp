@@ -309,6 +309,10 @@ void TimeSig::layout()
             setEnabled(false);
 
             StaffType* numeric = staff()->staffType(tick());
+			QFont font;
+			font.setFamily(score()->styleSt(Sid::numericTimeSigFont));
+			font.setPointSizeF((score()->styleD(Sid::numericFontSize) * score()->styleD(Sid::numericTimeSigSize) * spatium() * MScore::pixelRatio / SPATIUM20));
+			_numeric.set_FretFont(font);
             _numeric_ds = _numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString;//toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
             _numeric_ns = _denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString;//toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
 
@@ -316,11 +320,12 @@ void TimeSig::layout()
             ds = toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
 
             qreal px =-0.0;
-            _numericHigth =  numeric->fretBoxH() * magS() * score()->styleD(Sid::numericTimeSigSize);
+			_numericHigthds = _numeric.textHeigth(_numeric.getFretFont(), _numeric_ds);
+			_numericHigthns = _numeric.textHeigth(_numeric.getFretFont(), _numeric_ns);
             qreal wn = numericGetWidth(numeric, _numeric_ns);
             qreal wd = numericGetWidth(numeric, _numeric_ds);
-            QRectF numRect = QRectF(px, 0.0, wn, _numericHigth);
-            QRectF denRect = QRectF(px, 0.0, wd, _numericHigth);
+            QRectF numRect = QRectF(px, 0.0, wn, _numericHigthns);
+            QRectF denRect = QRectF(px, 0.0, wd, _numericHigthds);
             qreal displ = numRect.height()*score()->styleD(Sid::numericTimeSigLineThick)*1.5;
 
             //align on the wider
@@ -416,10 +421,10 @@ void TimeSig::layout2(){
                   return;
                   }
             _numericBegin = measure()->first()->isBeginBarLineType();
-            if(_numericBegin) rxpos()= get_numericXpos()-bbox().width() - _numericHigth*score()->styleD(Sid::numericTimeSigDistance);
+            if(_numericBegin) rxpos()= get_numericXpos()-bbox().width() - _numericHigthds*score()->styleD(Sid::numericTimeSigDistance);
             else {
 
-                  qreal x = bbox().width() + _numericHigth*score()->styleD(Sid::numericTimeSigDistance);
+                  qreal x = bbox().width() + _numericHigthds*score()->styleD(Sid::numericTimeSigDistance);
                   numericBarLine = QLineF(x, -_numericBarLinelenght / 2, x,_numericBarLinelenght / 2);
                   qreal lw = score()->styleP(Sid::barWidth) * mag();
                   addbbox(QRect(x, -_numericBarLinelenght / 2,lw, _numericBarLinelenght));

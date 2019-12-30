@@ -17,6 +17,7 @@
 #include "sig.h"
 #include "mscore.h"
 #include "groups.h"
+#include "numeric.h"
 
 namespace Ms {
 
@@ -46,11 +47,13 @@ class TimeSig final : public Element {
 
       qreal _numericlinethick;
       qreal _numericXpos;
-      qreal _numericHigth;
+	  qreal _numericHigthds;
+	  qreal _numericHigthns;
       qreal _numericBarLinelenght;
       bool _numericVisible;
       bool _numericBegin;
 
+	  numeric _numeric;
 
       std::vector<SymId> ns;
       std::vector<SymId> ds;

@@ -1225,7 +1225,7 @@ static const StyleType styleTypes[] {
       { Sid::numericDistanceSignFlat,       "numericDistanceSignFlat",       0.42 },
       { Sid::numericHeigthSignSharp,        "numericHeigthSignSharp",        0.28 },
       { Sid::numericHeigthSignFlat,         "numericHeigthSignFlat",         0.46 },
-      { Sid::numericFont,                   "numericFont",                   "FreeSerif" },
+      { Sid::numericFont,                   "numericFont",                   "Numeric" },
       { Sid::numericSlurEckenform,          "numericSlurEckenform",          0.0 },
       { Sid::numericSlurThick,              "numericSlurThick",              1.3 },
       { Sid::numericSlurHeigth,             "numericSlurHeigth",             0.2 },
