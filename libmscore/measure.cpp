@@ -3946,6 +3946,9 @@ void Measure::addSystemHeader(bool isFirstSystem)
                         bl->layout();
                         s->add(bl);
                         }
+                  else {
+                        bl->layout();
+                        }
                   }
             s->createShapes();
             s->setEnabled(true);
