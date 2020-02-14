@@ -2,7 +2,7 @@
 //  MuseScore
 //  Music Composition & Notation
 //
-//  Copyright (C) 2019 MuseScore BVBA and others
+//  Copyright (C) 2019-2020 MuseScore BVBA and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -20,14 +20,22 @@
 import QtQuick 2.0
 import MuseScore.Telemetry 3.3
 
-Rectangle {
+FocusScope {
     id: root
 
-    signal closeRequested()
+    signal closeRequested
 
     height: childrenRect.height
 
-    color: globalStyle.window
+    Keys.onEscapePressed: {
+        root.closeRequested()
+    }
+
+    Rectangle {
+        anchors.fill: parent
+
+        color: globalStyle.window
+    }
 
     TelemetryPermissionModel {
         id: permissionModel
@@ -47,12 +55,16 @@ Rectangle {
             width: parent.width
         }
 
-        Text {
+        TextLabel {
             id: titleLabel
 
             anchors {
-                horizontalCenter: parent.horizontalCenter
+                left: parent.left
+                right: parent.right
             }
+
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
 
             color: "#00447a"
             font.pixelSize: 28
@@ -185,4 +197,3 @@ Rectangle {
         }
     }
 }
-

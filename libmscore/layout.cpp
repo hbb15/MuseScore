@@ -1196,8 +1196,7 @@ void Score::beamGraceNotes(Chord* mainNote, bool after)
             if (beam) {
                   bool beamEnd = bm == Beam::Mode::BEGIN;
                   if (!beamEnd) {
-                        cr->removeDeleteBeam(true);
-                        beam->add(cr);
+                        cr->replaceBeam(beam);
                         cr = 0;
                         beamEnd = (bm == Beam::Mode::END);
                         }
@@ -1221,11 +1220,9 @@ void Score::beamGraceNotes(Chord* mainNote, bool after)
                               beam = new Beam(this);
                               beam->setGenerated(true);
                               beam->setTrack(mainNote->track());
-                              a1->removeDeleteBeam(true);
-                              beam->add(a1);
+                              a1->replaceBeam(beam);
                               }
-                        cr->removeDeleteBeam(true);
-                        beam->add(cr);
+                        cr->replaceBeam(beam);
                         a1 = 0;
                         }
                   }
@@ -2400,8 +2397,7 @@ void Score::createBeams(Measure* measure)
                   if (beam) {
                         bool beamEnd = (bm == Beam::Mode::BEGIN);
                         if (!beamEnd) {
-                              cr->removeDeleteBeam(true);
-                              beam->add(cr);
+                              cr->replaceBeam(beam);
                               cr = 0;
                               beamEnd = (bm == Beam::Mode::END);
                               }
@@ -2433,11 +2429,9 @@ void Score::createBeams(Measure* measure)
                                     beam = new Beam(this);
                                     beam->setGenerated(true);
                                     beam->setTrack(track);
-                                    a1->removeDeleteBeam(true);
-                                    beam->add(a1);
+                                    a1->replaceBeam(beam);
                                     }
-                              cr->removeDeleteBeam(true);
-                              beam->add(cr);
+                              cr->replaceBeam(beam);
                               a1 = 0;
                               }
                         }
@@ -3272,13 +3266,24 @@ static void processLines(System* system, std::vector<Spanner*> lines, bool align
             }
 
       if (align && segments.size() > 1) {
-            qreal y = segments[0]->rypos();
-            for (unsigned i = 1; i < segments.size(); ++i) {
-                  if (segments[i]->visible())
-                        y = qMax(y, segments[i]->rypos());
+            const int nstaves = system->staves()->size();
+            constexpr qreal minY = -1000000.0;
+            const qreal defaultY = segments[0]->rypos();
+            std::vector<qreal> y(nstaves, minY);
+
+            for (SpannerSegment* ss : segments) {
+                  if (ss->visible()) {
+                        qreal& staffY = y[ss->staffIdx()];
+                        staffY = qMax(staffY, ss->rypos());
+                        }
                   }
-            for (auto ss : segments)
-                  ss->rypos() = y;
+            for (SpannerSegment* ss : segments) {
+                  const qreal staffY = y[ss->staffIdx()];
+                  if (staffY > minY)
+                        ss->rypos() = staffY;
+                  else
+                        ss->rypos() = defaultY;
+                  }
             }
 
       //
@@ -3350,9 +3355,7 @@ System* Score::collectSystem(LayoutContext& lc)
                         }
 
                   m->createEndBarLines(true);
-                  Measure* nm = m->nextMeasure();
-                  if (nm)
-                        m->addSystemTrailer(nm);
+                  m->addSystemTrailer(m->nextMeasure());
                   m->computeMinWidth();
                   ww = m->width();
                   }

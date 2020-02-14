@@ -285,7 +285,9 @@ static constexpr double SCALE_STEP = 1.7;
 
 static const char* saveOnlineMenuItem = "file-save-online";
 
+#ifdef BUILD_TELEMETRY_MODULE
 std::unique_ptr<TelemetryManager> TelemetryManager::mgr;
+#endif
 
 //---------------------------------------------------------
 // cmdInsertMeasure
@@ -445,7 +447,7 @@ void MuseScore::preferencesChanged(bool fromWorkspace)
       setPlayRepeats(MScore::playRepeats);
       getAction("pan")->setChecked(MScore::panPlayback);
       getAction("follow")->setChecked(preferences.getBool(PREF_APP_PLAYBACK_FOLLOWSONG));
-      getAction("midi-on")->setEnabled(preferences.getBool(PREF_IO_MIDI_ENABLEINPUT));
+      getAction("midi-on")->setChecked(preferences.getBool(PREF_IO_MIDI_ENABLEINPUT));
       getAction("toggle-statusbar")->setChecked(preferences.getBool(PREF_UI_APP_SHOWSTATUSBAR));
       getAction("show-tours")->setChecked(preferences.getBool(PREF_UI_APP_STARTUP_SHOWTOURS));
       _statusBar->setVisible(preferences.getBool(PREF_UI_APP_SHOWSTATUSBAR));
@@ -510,6 +512,9 @@ void MuseScore::preferencesChanged(bool fromWorkspace)
       newWizard = 0;
       reloadInstrumentTemplates();
       updateInstrumentDialog();
+
+      if (seq)
+            seq->preferencesChanged();
       }
 
 //---------------------------------------------------------
@@ -1075,13 +1080,18 @@ MuseScore::MuseScore()
       connect(ag, SIGNAL(triggered(QAction*)), SLOT(cmd(QAction*)));
 
       mainWindow = new QSplitter;
+      mainWindow->setObjectName("mainwindow");
+      mainWindow->setAccessibleName("");
       mainWindow->setChildrenCollapsible(false);
 
       QWidget* mainScore = new QWidget;
+      mainScore->setObjectName("mainscore");
+      mainScore->setAccessibleName("");
       mainScore->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
       mainWindow->addWidget(mainScore);
 
       layout = new QVBoxLayout;
+      layout->setObjectName("layout");
       layout->setMargin(0);
       layout->setSpacing(0);
       mainScore->setLayout(layout);
@@ -1125,6 +1135,8 @@ MuseScore::MuseScore()
       mainWindow->setSizes(QList<int>({500, 50}));
 
       QSplitter* envelope = new QSplitter;
+      envelope->setObjectName("pane");
+      envelope->setAccessibleName("");
       envelope->setChildrenCollapsible(false);
       envelope->setOrientation(Qt::Vertical);
       envelope->addWidget(mainWindow);
@@ -1153,6 +1165,8 @@ MuseScore::MuseScore()
       envelope->setSizes(QList<int>({550, 180}));
 
       splitter = new QSplitter;
+      splitter->setObjectName("splitter");
+      splitter->setAccessibleName("");
       tab1 = createScoreTab();
       splitter->addWidget(tab1);
       ctab = tab1; // make tab1 active by default.
@@ -2350,7 +2364,9 @@ void MuseScore::updatePaletteBeamMode()
 
 void MuseScore::updateInspector()
       {
-      if (_inspector)
+      // skip update if no inspector, or if inspector is hidden and there is a GUI
+      // (important not to skip when running test scripts)
+      if (_inspector && (_inspector->isVisible() || MScore::testMode || scriptTestMode))
             _inspector->update(cs);
       }
 
@@ -3219,7 +3235,7 @@ void MuseScore::removeTab(int i)
 
       QString tmpName = score->tmpName();
 
-      if (!scriptTestMode && checkDirty(score))
+      if (!scriptTestMode && !converterMode && checkDirty(score))
             return;
       if (seq && seq->score() == score) {
             seq->stopWait();
@@ -3657,16 +3673,26 @@ static bool convert(const QString& inFile, const QJsonArray& outFiles, const QSt
       if (!score)
             return false;
       mscore->setCurrentScore(score);
+      if (!plugin.isEmpty()) {
+            int index = mscore->appendScore(score);
+            mscore->setCurrentView(index, 0);
+            }
       bool success = doConvert(score, outFiles, plugin);
       fprintf(stderr, success ? "... success!\n" : "... failed!\n");
+      if (plugin.isEmpty())
+            delete score;
+      else
+            mscore->closeScore(score);
       mscore->setCurrentScore(nullptr);
-      delete score;
       return success;
       }
 
 static bool convert(const QString& inFile, const QString& outFile)
       {
-      return convert(inFile, QJsonArray{ outFile });
+      if (pluginMode)
+            return convert(inFile, QJsonArray{ outFile }, pluginName);
+      else
+            return convert(inFile, QJsonArray{ outFile });
       }
 
 //---------------------------------------------------------
@@ -3740,7 +3766,7 @@ static bool processNonGui(const QStringList& argv)
       else if (exportTransposedScore)
             return mscore->exportTransposedScoreToJSON(argv[0], transposeExportOptions);
 
-      if (pluginMode) {
+      if (pluginMode && !converterMode) {
             loadScores(argv);
             QString pn(pluginName);
             bool res = false;
@@ -3763,9 +3789,9 @@ static bool processNonGui(const QStringList& argv)
                         }
                   res = true;
                   }
-            if (!converterMode)
-                  return res;
+            return res;
             }
+
       if (converterMode) {
             if (processJob)
                   return doProcessJob(jsonFileName);
@@ -4854,7 +4880,7 @@ void MuseScore::undoRedo(bool undo)
             cv->changeState(ViewState::NORMAL);
       cv->startUndoRedo(undo);
       updateInputState(cs);
-      endCmd();
+      endCmd(/* undoRedo */ true);
       if (pianorollEditor)
             pianorollEditor->update();
       }
@@ -5825,7 +5851,8 @@ void MuseScore::cmd(QAction* a)
       cmd(a, cmdn);
       if (lastShortcut->isCmd())
             cs->endCmd();
-      endCmd();
+      else
+            endCmd();
       TourHandler::startTour(cmdn);
       }
 
@@ -5836,10 +5863,10 @@ void MuseScore::cmd(QAction* a)
 //    Updates the UI after a possible score change.
 //---------------------------------------------------------
 
-void MuseScore::endCmd()
+void MuseScore::endCmd(bool undoRedo)
       {
 #ifdef SCRIPT_INTERFACE
-      getPluginEngine()->beginEndCmd(this);
+      getPluginEngine()->beginEndCmd(this, undoRedo);
 #endif
       if (timeline())
             timeline()->updateGrid();
@@ -7126,9 +7153,16 @@ bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled)
 
 void tryToRequestTelemetryPermission()
       {
+      static const QString telemetryVersion = "3.4.1";
       QString accessRequestedAtVersion = preferences.getString(PREF_APP_STARTUP_TELEMETRY_ACCESS_REQUESTED);
 
-      if (accessRequestedAtVersion == VERSION)
+      if (accessRequestedAtVersion == telemetryVersion)
+            return;
+
+      // Disable telemetry until the permission is explicitly confirmed by user
+      preferences.setPreference(PREF_APP_TELEMETRY_ALLOWED, false);
+
+      if (MScore::noGui)
             return;
 
       QEventLoop eventLoop;
@@ -7142,7 +7176,7 @@ void tryToRequestTelemetryPermission()
       eventLoop.exec();
       requestDialog->deleteLater();
 
-      preferences.setPreference(PREF_APP_STARTUP_TELEMETRY_ACCESS_REQUESTED, VERSION);
+      preferences.setPreference(PREF_APP_STARTUP_TELEMETRY_ACCESS_REQUESTED, telemetryVersion);
       }
 #endif
 

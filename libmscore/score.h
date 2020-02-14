@@ -315,7 +315,18 @@ class UpdateState {
 //   ScoreContentState
 //---------------------------------------------------------
 
-typedef std::pair<const Score*, int> ScoreContentState;
+class ScoreContentState {
+      const Score* score;
+      int num;
+   public:
+      ScoreContentState() : score(nullptr), num(0) {}
+      ScoreContentState(const Score* s, int stateNum) : score(s), num(stateNum) {}
+
+      bool operator==(const ScoreContentState& s2) const { return score == s2.score && num == s2.num; }
+      bool operator!=(const ScoreContentState& s2) const { return !(*this == s2); }
+
+      bool isNewerThan(const ScoreContentState& s2) const { return score == s2.score && num > s2.num; }
+      };
 
 class MasterScore;
 
@@ -1023,7 +1034,6 @@ class Score : public QObject, public ScoreElement {
       void setSynthesizerState(const SynthesizerState& s);
 
       void updateHairpin(Hairpin*);       // add/modify hairpin to pitchOffset list
-      void removeHairpin(Hairpin*);       // remove hairpin from pitchOffset list
 
       MasterScore* masterScore() const    { return _masterScore; }
       void setMasterScore(MasterScore* s) { _masterScore = s;    }
@@ -1076,7 +1086,7 @@ class Score : public QObject, public ScoreElement {
       void cmdSelectSection();
       void respace(std::vector<ChordRest*>* elements);
       void transposeSemitone(int semitone);
-      void insertMeasure(ElementType type, MeasureBase*, bool createEmptyMeasures = false);
+      void insertMeasure(ElementType type, MeasureBase*, bool createEmptyMeasures = false, bool moveSignaturesClef = true);
       Audio* audio() const         { return _audio;    }
       void setAudio(Audio* a)      { _audio = a;       }
       PlayMode playMode() const    { return _playMode; }

@@ -1194,8 +1194,6 @@ QList<Fraction> Score::splitGapToMeasureBoundaries(ChordRest* cr, Fraction gap)
 
       Tuplet* tuplet = cr->tuplet();
       if (tuplet) {
-            if (tuplet->tuplet())
-                  return flist; // do no deal with nested tuplets
             Fraction rest = tuplet->elementsDuration();
             for (DurationElement* de : tuplet->elements()) {
                   if (de == cr)
@@ -1250,8 +1248,11 @@ void Score::changeCRlen(ChordRest* cr, const Fraction& dstF, bool fillWithRest)
             return;
             }
       Fraction srcF(cr->ticks());
-      if (srcF == dstF)
+      if (srcF == dstF) {
+            if (cr->isFullMeasureRest())
+                  undoChangeChordRestLen(cr, dstF);
             return;
+            }
 
       //keep selected element if any
       Element* selElement = selection().isSingle() ? getSelectedElement() : 0;
@@ -3725,7 +3726,7 @@ void Score::cmdAddFret(int fret)
       Position pos;
       pos.segment   = is.segment();
       pos.staffIdx  = is.track() / VOICES;
-      pos.line      = is.cr()->staff()->staffType(is.tick())->physStringToVisual(is.string());
+      pos.line      = staff(pos.staffIdx)->staffType(is.tick())->physStringToVisual(is.string());
       pos.fret      = fret;
       putNote(pos, false);
       }
@@ -3901,6 +3902,7 @@ void Score::cmd(const QAction* a, EditData& ed)
             { "no-beam",                    [this]{ cmdSetBeamMode(Beam::Mode::NONE);                           }},
             { "beam32",                     [this]{ cmdSetBeamMode(Beam::Mode::BEGIN32);                        }},
             { "beam64",                     [this]{ cmdSetBeamMode(Beam::Mode::BEGIN64);                        }},
+            { "auto-beam",                  [this]{ cmdSetBeamMode(Beam::Mode::AUTO);                           }},
             { "sharp2",                     [this,ed]{ toggleAccidental(AccidentalType::SHARP2, ed);            }},
             { "sharp",                      [this,ed]{ toggleAccidental(AccidentalType::SHARP, ed);             }},
             { "nat",                        [this,ed]{ toggleAccidental(AccidentalType::NATURAL, ed);           }},

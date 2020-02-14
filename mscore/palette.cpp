@@ -707,8 +707,10 @@ bool Palette::applyPaletteElement(Element* element, Qt::KeyboardModifiers modifi
             else if (element->isSLine() && element->type() != ElementType::GLISSANDO) {
                   Segment* startSegment = sel.startSegment();
                   Segment* endSegment = sel.endSegment();
-                  int endStaff = sel.staffEnd();
-                  for (int i = sel.staffStart(); i < endStaff; ++i) {
+                  bool firstStaffOnly = element->isVolta() && !(modifiers & Qt::ControlModifier);
+                  int startStaff = firstStaffOnly ? 0 : sel.staffStart();
+                  int endStaff   = firstStaffOnly ? 1 : sel.staffEnd();
+                  for (int i = startStaff; i < endStaff; ++i) {
                         Spanner* spanner = static_cast<Spanner*>(element->clone());
                         spanner->setScore(score);
                         spanner->styleChanged();
@@ -804,19 +806,35 @@ void PaletteScrollArea::keyPressEvent(QKeyEvent* event)
       }
 
 //---------------------------------------------------------
+//   mouseDoubleClickEvent
+//---------------------------------------------------------
+
+void Palette::mouseDoubleClickEvent(QMouseEvent* event)
+      {
+      if (_useDoubleClickToActivate)
+            applyElementAtPosition(event->pos(), event->modifiers());
+      }
+
+//---------------------------------------------------------
 //   mouseReleaseEvent
 //---------------------------------------------------------
 
-void Palette::mouseReleaseEvent(QMouseEvent *event)
+void Palette::mouseReleaseEvent(QMouseEvent* event)
       {
       pressedIndex = -1;
 
       update();
 
+      if (!_useDoubleClickToActivate)
+            applyElementAtPosition(event->pos(), event->modifiers());
+      }
+
+void Palette::applyElementAtPosition(QPoint pos, Qt::KeyboardModifiers modifiers)
+      {
       if (_disableElementsApply)
             return;
 
-      int index = idx(event->pos());
+      const int index = idx(pos);
 
       if (index == -1)
             return;
@@ -831,7 +849,7 @@ void Palette::mouseReleaseEvent(QMouseEvent *event)
       if (!cell)
             return;
 
-      applyPaletteElement(cell->element.get(), event->modifiers());
+      applyPaletteElement(cell->element.get(), modifiers);
       }
 
 //---------------------------------------------------------
