@@ -1346,7 +1346,16 @@ static const StyleType styleTypes[] {
       { Sid::numericFontSize,               "numericFontSize",               12.0 },
       { Sid::numericRestDistanc,            "numericRestDistanc",            1.0 },
       { Sid::numericNoteDistanc,            "numericNoteDistanc",            1.0 },
-      { Sid::numericAccidentalFont,         "numericAccidentalFont",     "Numeric" },
+      { Sid::numericAccidentalFont,         "numericAccidentalFont",         "Numeric" },
+      { Sid::numericTupletSlurEcke,         "numericTupletSlurEcke",         0.1 },
+      { Sid::numericTupletSlurhigth,        "numericTupletSlurhigth",        0.8 },
+      { Sid::numericTupletSlurdistans,      "numericTupletSlurdistans",      0.0 },
+      { Sid::numericTupletSlurshift,        "numericTupletSlurshift",        0.0 },
+      { Sid::numericTupletSluruberhang,     "numericTupletSluruberhang",     0.0 },
+      { Sid::numericTupletNummerHigth,      "numericTupletNummerHigth",      0.0 },
+      { Sid::numericTupletSlurThickness,    "numericTupletSlurThickness",    1.3 },
+      { Sid::numericTupletNummerFontSize,   "numericTupletNummerFontSize",   0.6 },
+      { Sid::numericTupletNummerFont,       "numericTupletNummerFont",       "Numeric" },
       };
 
 MStyle  MScore::_baseStyle;

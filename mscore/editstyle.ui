@@ -10473,7 +10473,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>6</number>
           </property>
           <widget class="QWidget" name="page_3">
            <layout class="QGridLayout" name="gridLayout_58">
@@ -12364,80 +12364,113 @@
                <string>Triolen</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_65">
-               <item row="0" column="0">
+               <item row="3" column="0">
+                <widget class="QGroupBox" name="groupBox_53">
+                 <property name="title">
+                  <string>Schriftart</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_71">
+                  <item row="0" column="0">
+                   <layout class="QGridLayout" name="gridLayout_433">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <item row="1" column="2">
+                     <widget class="QToolButton" name="resetNumericTupletNummerFontSize">
+                      <property name="toolTip">
+                       <string>Reset to default</string>
+                      </property>
+                      <property name="accessibleName">
+                       <string>Reset 'Key to barline distance' value</string>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="musescore.qrc">
+                        <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QFrame" name="frame_4">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>50</height>
+                       </size>
+                      </property>
+                      <property name="frameShape">
+                       <enum>QFrame::StyledPanel</enum>
+                      </property>
+                      <property name="frameShadow">
+                       <enum>QFrame::Raised</enum>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="1">
+                     <widget class="QFontComboBox" name="numericTupletNummerFont">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="editable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="2">
+                     <widget class="QToolButton" name="resetNumericTupletNummerFont">
+                      <property name="toolTip">
+                       <string>Reset to default</string>
+                      </property>
+                      <property name="accessibleName">
+                       <string>Reset 'Key to barline distance' value</string>
+                      </property>
+                      <property name="text">
+                       <string notr="true"/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="musescore.qrc">
+                        <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QLabel" name="label_147">
+                      <property name="text">
+                       <string>Schriftgröße</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="0">
+                     <widget class="QLabel" name="label_153">
+                      <property name="text">
+                       <string>Schriftart</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QDoubleSpinBox" name="numericTupletNummerFontSize">
+                      <property name="suffix">
+                       <string extracomment="spatium unit">sp</string>
+                      </property>
+                      <property name="singleStep">
+                       <double>0.010000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="1" column="0">
                 <layout class="QGridLayout" name="gridLayout_50">
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_224">
-                   <property name="text">
-                    <string>Taktangabe abstand</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QDoubleSpinBox" name="numericTimeSigDistance_3">
-                   <property name="suffix">
-                    <string extracomment="spatium unit">sp</string>
-                   </property>
-                   <property name="minimum">
-                    <double>-10.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>0.010000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QDoubleSpinBox" name="numericTimeSigLineSize_3">
-                   <property name="suffix">
-                    <string extracomment="spatium unit">sp</string>
-                   </property>
-                   <property name="minimum">
-                    <double>-10.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>0.010000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_225">
-                   <property name="text">
-                    <string>Taktangabe größe</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="numericTimeSigSize_3">
-                   <property name="suffix">
-                    <string extracomment="spatium unit">sp</string>
-                   </property>
-                   <property name="minimum">
-                    <double>-10.000000000000000</double>
-                   </property>
-                   <property name="singleStep">
-                    <double>0.010000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="2">
-                  <widget class="QToolButton" name="resetNumericTimeSigLineSize_3">
-                   <property name="toolTip">
-                    <string>Reset to default</string>
-                   </property>
-                   <property name="accessibleName">
-                    <string>Reset 'Clef to time signature distance' value</string>
-                   </property>
-                   <property name="text">
-                    <string notr="true"/>
-                   </property>
-                   <property name="icon">
-                    <iconset resource="musescore.qrc">
-                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="2">
-                  <widget class="QToolButton" name="resetNumericTimeSigSize_3">
+                 <item row="3" column="2">
+                  <widget class="QToolButton" name="resetNumericTupletSlurshift">
                    <property name="toolTip">
                     <string>Reset to default</string>
                    </property>
@@ -12454,7 +12487,7 @@
                   </widget>
                  </item>
                  <item row="1" column="2">
-                  <widget class="QToolButton" name="resetNumericTimeSigDistance_3">
+                  <widget class="QToolButton" name="resetNumericTupletSlurhigth">
                    <property name="toolTip">
                     <string>Reset to default</string>
                    </property>
@@ -12470,22 +12503,22 @@
                    </property>
                   </widget>
                  </item>
+                 <item row="4" column="0">
+                  <widget class="QLabel" name="label_230">
+                   <property name="text">
+                    <string>Bogen überhang</string>
+                   </property>
+                  </widget>
+                 </item>
                  <item row="2" column="0">
                   <widget class="QLabel" name="label_226">
                    <property name="text">
-                    <string>Taktangabe linie größe</string>
+                    <string>Bogen abstand</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="0">
-                  <widget class="QLabel" name="label_227">
-                   <property name="text">
-                    <string>Taktangabe linie dicke</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="1">
-                  <widget class="QDoubleSpinBox" name="numericTimeSigLineThick_3">
+                 <item row="4" column="1">
+                  <widget class="QDoubleSpinBox" name="numericTupletSluruberhang">
                    <property name="suffix">
                     <string extracomment="spatium unit">sp</string>
                    </property>
@@ -12494,8 +12527,41 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="2">
-                  <widget class="QToolButton" name="resetNumericTimeSigLineThick_3">
+                 <item row="6" column="1">
+                  <widget class="QDoubleSpinBox" name="numericTupletNummerHigth">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="numericTupletSlurhigth">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="minimum">
+                    <double>-10.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="1">
+                  <widget class="QDoubleSpinBox" name="numericTupletSlurThickness">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="2">
+                  <widget class="QToolButton" name="resetNumericTupletSlurThickness">
                    <property name="toolTip">
                     <string>Reset to default</string>
                    </property>
@@ -12511,10 +12577,149 @@
                    </property>
                   </widget>
                  </item>
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_225">
+                   <property name="text">
+                    <string>Bogen Eckenform</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="0">
+                  <widget class="QLabel" name="label_232">
+                   <property name="text">
+                    <string>Bogen dicke</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QDoubleSpinBox" name="numericTupletSlurdistans">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="minimum">
+                    <double>-10.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="numericTupletSlurEcke">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="minimum">
+                    <double>-10.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QDoubleSpinBox" name="numericTupletSlurshift">
+                   <property name="suffix">
+                    <string extracomment="spatium unit">sp</string>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <widget class="QToolButton" name="resetNumericTupletSlurEcke">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_224">
+                   <property name="text">
+                    <string>Bogen höhe</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="2">
+                  <widget class="QToolButton" name="resetNumericTupletNummerHigth">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="2">
+                  <widget class="QToolButton" name="resetNumericTupletSlurdistans">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="label_227">
+                   <property name="text">
+                    <string>Bogen Verschiebung</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="2">
+                  <widget class="QToolButton" name="resetNumericTupletSluruberhang">
+                   <property name="toolTip">
+                    <string>Reset to default</string>
+                   </property>
+                   <property name="accessibleName">
+                    <string>Reset 'Clef to time signature distance' value</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="musescore.qrc">
+                     <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="0">
+                  <widget class="QLabel" name="label_231">
+                   <property name="text">
+                    <string>nummer höhe</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
-               <item row="1" column="0">
-                <spacer name="verticalSpacer_391">
+               <item row="2" column="0">
+                <spacer name="verticalSpacer_34">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
@@ -12644,15 +12849,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Awl::ColorLabel</class>
-   <extends>QPushButton</extends>
-   <header>awl/colorlabel.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>Ms::FontStyleSelect</class>
    <extends>QWidget</extends>
    <header>inspector/fontStyleSelect.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Awl::ColorLabel</class>
+   <extends>QPushButton</extends>
+   <header>awl/colorlabel.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

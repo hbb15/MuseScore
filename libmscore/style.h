@@ -1320,6 +1320,15 @@ enum class Sid {
       numericRestDistanc,
       numericNoteDistanc,
       numericAccidentalFont,
+      numericTupletSlurEcke,
+      numericTupletSlurhigth,
+      numericTupletSlurdistans,
+      numericTupletSlurshift,
+      numericTupletSluruberhang,
+      numericTupletNummerHigth,
+      numericTupletSlurThickness,
+      numericTupletNummerFontSize,
+      numericTupletNummerFont,
 
       STYLES
       };
