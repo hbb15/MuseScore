@@ -1292,7 +1292,7 @@ void Timeline::barlineMeta(Segment* seg, int* stagger, int pos)
                         repeatText = QString("Final barline");
                         break;
                   case BarLineType::BEGIN:
-                        repeat_text = QString("Start barline");
+                        repeatText = QString("Start barline");
                         break;
                   default:
                         break;

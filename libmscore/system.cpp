@@ -570,7 +570,7 @@ void System::layout2()
                   numericTimesig = 0;
                   staffDistance       = score()->styleP(Sid::staffDistance);
                   }
-            qreal h = staff->height();
+
             qreal dist = staff->height();
             qreal yOffset;
             qreal h;
