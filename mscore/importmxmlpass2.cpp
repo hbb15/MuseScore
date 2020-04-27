@@ -3091,8 +3091,6 @@ static bool determineBarLineType(const QString& barStyle, const QString& repeat,
             type = BarLineType::START_REPEAT;
       else if (barStyle == "light-heavy" && repeat.isEmpty())
             type = BarLineType::END;
-      else if (barStyle == "heavy-light" && repeat.isEmpty())
-            type = BarLineType::BEGIN;
       else if (barStyle == "regular")
             type = BarLineType::NORMAL;
       else if (barStyle == "dashed")

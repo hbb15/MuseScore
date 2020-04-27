@@ -22,6 +22,7 @@
  between startUndo() and endUndo().
 */
 
+#include "log.h"
 #include "undo.h"
 #include "element.h"
 #include "note.h"
@@ -122,7 +123,7 @@ void updateNoteLines(Segment* segment, int track)
 
 UndoCommand::~UndoCommand()
       {
-      for (auto c : childList)
+      for (auto c : qAsConst(childList))
             delete c;
       }
 
@@ -162,6 +163,68 @@ void UndoCommand::redo(EditData* ed)
             childList[i]->redo(ed);
             }
       flip(ed);
+      }
+
+//---------------------------------------------------------
+//   appendChildren
+///   Append children of \p other into this UndoCommand.
+///   Ownership over child commands of \p other is
+///   transferred to this UndoCommand.
+//---------------------------------------------------------
+
+void UndoCommand::appendChildren(UndoCommand* other)
+      {
+      childList.append(other->childList);
+      other->childList.clear();
+      }
+
+//---------------------------------------------------------
+//   hasFilteredChildren
+//---------------------------------------------------------
+
+bool UndoCommand::hasFilteredChildren(UndoCommand::Filter f, const Element* target) const
+      {
+      for (UndoCommand* cmd : childList) {
+            if (cmd->isFiltered(f, target))
+                  return true;
+            }
+      return false;
+      }
+
+//---------------------------------------------------------
+//   hasUnfilteredChildren
+//---------------------------------------------------------
+
+bool UndoCommand::hasUnfilteredChildren(const std::vector<UndoCommand::Filter>& filters, const Element* target) const
+      {
+      for (UndoCommand* cmd : childList) {
+            bool filtered = false;
+            for (UndoCommand::Filter f : filters) {
+                  if (cmd->isFiltered(f, target)) {
+                        filtered = true;
+                        break;
+                        }
+                  }
+            if (!filtered)
+                  return true;
+            }
+      return false;
+      }
+
+//---------------------------------------------------------
+//   filterChildren
+//---------------------------------------------------------
+
+void UndoCommand::filterChildren(UndoCommand::Filter f, Element* target)
+      {
+      QList<UndoCommand*> acceptedList;
+      for (UndoCommand* cmd : childList) {
+            if (cmd->isFiltered(f, target))
+                  delete cmd;
+            else
+                  acceptedList.push_back(cmd);
+            }
+      childList = std::move(acceptedList);
       }
 
 //---------------------------------------------------------
@@ -281,6 +344,24 @@ void UndoStack::remove(int idx)
             delete cmd;
             }
       curIdx = idx;
+      }
+
+//---------------------------------------------------------
+//   mergeCommands
+//---------------------------------------------------------
+
+void UndoStack::mergeCommands(int startIdx)
+      {
+      Q_ASSERT(startIdx <= curIdx);
+
+      if (startIdx >= list.size())
+            return;
+
+      UndoMacro* startMacro = list[startIdx];
+
+      for (int idx = startIdx + 1; idx < curIdx; ++idx)
+            startMacro->append(std::move(*list[idx]));
+      remove(startIdx + 1); // TODO: remove from startIdx to curIdx only
       }
 
 //---------------------------------------------------------
@@ -471,6 +552,15 @@ void UndoMacro::redo(EditData* ed)
       if (redoSelectionInfo.isValid()) {
             score->deselectAll();
             applySelectionInfo(redoSelectionInfo, score->selection());
+            }
+      }
+
+void UndoMacro::append(UndoMacro&& other)
+      {
+      appendChildren(&other);
+      if (score == other.score) {
+            redoInputState = std::move(other.redoInputState);
+            redoSelectionInfo = std::move(other.redoSelectionInfo);
             }
       }
 
@@ -686,6 +776,24 @@ const char* AddElement::name() const
       }
 
 //---------------------------------------------------------
+//   AddElement::isFiltered
+//---------------------------------------------------------
+
+bool AddElement::isFiltered(UndoCommand::Filter f, const Element* target) const
+      {
+      using Filter = UndoCommand::Filter;
+      switch (f) {
+            case Filter::AddElement:
+                  return target == element;
+            case Filter::AddElementLinked:
+                  return target->linkList().contains(element);
+            default:
+                  break;
+            }
+      return false;
+      }
+
+//---------------------------------------------------------
 //   removeNote
 //    Helper function for RemoveElement class
 //---------------------------------------------------------
@@ -811,6 +919,24 @@ const char* RemoveElement::name() const
       else
             snprintf(buffer, 64, "Remove: %s %p", element->name(), element);
       return buffer;
+      }
+
+//---------------------------------------------------------
+//   RemoveElement::isFiltered
+//---------------------------------------------------------
+
+bool RemoveElement::isFiltered(UndoCommand::Filter f, const Element* target) const
+      {
+      using Filter = UndoCommand::Filter;
+      switch (f) {
+            case Filter::RemoveElement:
+                  return target == element;
+            case Filter::RemoveElementLinked:
+                  return target->linkList().contains(element);
+            default:
+                  break;
+            }
+      return false;
       }
 
 //---------------------------------------------------------
@@ -1216,6 +1342,7 @@ TransposeHarmony::TransposeHarmony(Harmony* h, int rtpc, int btpc)
 
 void TransposeHarmony::flip(EditData*)
       {
+      harmony->realizedHarmony().setDirty(true); //harmony should be re-realized after transposition
       int baseTpc1 = harmony->baseTpc();
       int rootTpc1 = harmony->rootTpc();
       harmony->setBaseTpc(baseTpc);
@@ -1479,6 +1606,8 @@ void ChangePart::flip(EditData*)
       QString s      = part->partName();
       part->setInstrument(instrument);
       part->setPartName(partName);
+
+      part->updateHarmonyChannels(false);
 
       Score* score = part->score();
       score->masterScore()->rebuildMidiMapping();
@@ -2295,6 +2424,18 @@ Link::Link(ScoreElement* e1, ScoreElement* e2)
       }
 
 //---------------------------------------------------------
+//   Link::isFiltered
+//---------------------------------------------------------
+
+bool Link::isFiltered(UndoCommand::Filter f, const Element* target) const
+      {
+      using Filter = UndoCommand::Filter;
+      if (f == Filter::Link)
+            return e == target || le->contains(const_cast<Element*>(target));
+      return false;
+      }
+
+//---------------------------------------------------------
 //   Unlink
 //---------------------------------------------------------
 
@@ -2423,8 +2564,14 @@ void MoveTremolo::redo(EditData*)
       // Find new tremolo chords
       Measure* m1 = score->tick2measure(chord1Tick);
       Measure* m2 = score->tick2measure(chord2Tick);
+      IF_ASSERT_FAILED(m1 && m2) {
+            return;
+            }
       Chord* c1 = m1->findChord(chord1Tick, track);
       Chord* c2 = m2->findChord(chord2Tick, track);
+      IF_ASSERT_FAILED(c1 && c2) {
+            return;
+            }
 
       // Remember the old tremolo chords
       oldC1 = trem->chord1();

@@ -28,13 +28,13 @@
 #include "libmscore/chord.h"
 #include "libmscore/note.h"
 #include "libmscore/undo.h"
-#include "mixer.h"
+#include "mixer/mixer.h"
 #include "parteditbase.h"
 #include "scoreview.h"
 #include "playpanel.h"
 #include "preferences.h"
 #include "seq.h"
-#include "synthesizer/msynthesizer.h"
+#include "audio/midi/msynthesizer.h"
 #include "shortcut.h"
 
 #ifdef OSC

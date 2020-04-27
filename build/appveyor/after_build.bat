@@ -4,15 +4,13 @@ ccache.exe -s
 CD C:\MuseScore
 
 REM the code is used to generate MS version for both nightly and stable releases
-SET input=C:\MuseScore\CMakeLists.txt
-FOR /f tokens^=2^ delims^=^" %%A IN ('findstr /C:"SET(MUSESCORE_VERSION_MAJOR" %input%') DO set VERSION_MAJOR=%%A
-FOR /f tokens^=2^ delims^=^" %%A IN ('findstr /C:"SET(MUSESCORE_VERSION_MINOR" %input%') DO set VERSION_MINOR=%%A
-FOR /f tokens^=2^ delims^=^" %%A IN ('findstr /C:"SET(MUSESCORE_VERSION_PATCH" %input%') DO set VERSION_PATCH=%%A
-SET MUSESCORE_VERSION=%VERSION_MAJOR%.%VERSION_MINOR%.%VERSION_PATCH%.%APPVEYOR_BUILD_NUMBER%
+SET MUSESCORE_VERSION=%MUSESCORE_VERSION_FULL%.%APPVEYOR_BUILD_NUMBER%
 
 SET DEBUG_SYMS_FILE=musescore_win%TARGET_PROCESSOR_BITS%.sym
+REM Add one of the directories containing msdia140.dll (x86 version), for dump_syms.exe
+SET PATH=%PATH%;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\DIA SDK\bin
 @echo on
-C:\MuseScore\breakpad_tools\dump_syms.exe %APPVEYOR_BUILD_FOLDER%\%BUILD_FOLDER%\main\RelWithDebInfo\MuseScore3.pdb > %DEBUG_SYMS_FILE%
+C:\MuseScore\breakpad_tools\dump_syms.exe %APPVEYOR_BUILD_FOLDER%\msvc.build_%PLATFORM%\main\RelWithDebInfo\MuseScore3.pdb > %DEBUG_SYMS_FILE%
 @echo off
 
 :: Test MuseScore stability
@@ -121,6 +119,8 @@ type C:\MuseScore\update_win_nightly.xml
 :UPLOAD
 SET SSH_IDENTITY=C:\MuseScore\build\appveyor\resources\osuosl_nighlies_rsa_nopp
 SET PATH=%OLD_PATH%
+REM Remove OpenSSH from PATH, to force the use of msys64 ssh
+SET PATH=%PATH:C:\Windows\System32\OpenSSH\;=%
 IF DEFINED ENCRYPT_SECRET_SSH (
   scp -oStrictHostKeyChecking=no -C -i %SSH_IDENTITY% %ARTIFACT_NAME% musescore-nightlies@ftp-osl.osuosl.org:~/ftp/windows/
   ssh -oStrictHostKeyChecking=no -i %SSH_IDENTITY% musescore-nightlies@ftp-osl.osuosl.org "cd ~/ftp/windows; ls MuseScoreNightly* -t | tail -n +41 | xargs rm -f"

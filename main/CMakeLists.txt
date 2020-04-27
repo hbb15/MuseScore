@@ -51,6 +51,8 @@ include_directories(
 add_executable(${ExecutableName}
       ${resource_file}
       main.cpp
+      modulessetup.cpp
+      modulessetup.h
       )
 
 if (MINGW OR MSVC)
@@ -372,8 +374,6 @@ else (MINGW)
       set( output_dir_for_dlls "${PROJECT_BINARY_DIR}/../msvc.install${ARCH_TYPE}/bin")
 
       COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${dlls_to_copy}" ${output_dir_for_dlls}  mscore)
-
-      add_dependencies(mscore pluginDocumentation)
 
       # Keep dependencies in alphabetical order. Changes made to this list
       # might need to be made in "build/Linux+BSD/portable/copy-libs" too.

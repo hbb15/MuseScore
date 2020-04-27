@@ -246,6 +246,10 @@ enum class Sid {
       harmonyPlacement,
       romanNumeralPlacement,
       nashvilleNumberPlacement,
+      harmonyPlay,
+      harmonyVoiceLiteral,
+      harmonyVoicing,
+      harmonyDuration,
 
       chordSymbolAPosAbove,
       chordSymbolAPosBelow,
@@ -488,6 +492,7 @@ enum class Sid {
       tremoloStrokeWidth,
       tremoloDistance,
       tremoloPlacement,
+      tremoloStrokeStyle,
       // TODO tremoloBeamLengthMultiplier,
       // TODO tremoloMaxBeamLength,
 
@@ -1350,7 +1355,7 @@ class MStyle {
       MStyle();
 
       void precomputeValues();
-      QVariant value(Sid idx) const;
+      const QVariant& value(Sid idx) const;
       qreal pvalue(Sid idx) const    { return _precomputedValues[int(idx)]; }
       void set(Sid idx, const QVariant& v);
 

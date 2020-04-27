@@ -47,6 +47,7 @@
 #include "page.h"
 #include "hook.h"
 #include "rehearsalmark.h"
+#include "instrchange.h"
 
 namespace Ms {
 
@@ -177,14 +178,18 @@ void ChordRest::writeProperties(XmlWriter& xml) const
 
       for (Lyrics* lyrics : _lyrics)
             lyrics->write(xml);
+
+      const int curTick = xml.curTick().ticks();
+
       if (!isGrace()) {
             Fraction t(globalTicks());
             if (staff())
                   t /= staff()->timeStretch(xml.curTick());
             xml.incCurTick(t);
             }
-      for (auto i : score()->spanner()) {     // TODO: don’t search whole list
-            Spanner* s = i.second;
+
+      for (auto i : score()->spannerMap().findOverlapping(curTick - 1, curTick + 1)) {
+            Spanner* s = i.value;
             if (s->generated() || !s->isSlur() || toSlur(s)->broken() || !xml.canWrite(s))
                   continue;
 
@@ -537,14 +542,7 @@ Element* ChordRest::drop(EditData& data)
             case ElementType::SYSTEM_TEXT:
             case ElementType::STICKING:
             case ElementType::STAFF_STATE:
-            case ElementType::INSTRUMENT_CHANGE:
-                  if (e->isInstrumentChange() && part()->instruments()->find(tick().ticks()) != part()->instruments()->end()) {
-                        qDebug()<<"InstrumentChange already exists at tick = "<<tick().ticks();
-                        delete e;
-                        return 0;
-                        }
                   // fall through
-
             case ElementType::REHEARSAL_MARK:
                   {
                   e->setParent(segment());
@@ -557,6 +555,23 @@ Element* ChordRest::drop(EditData& data)
                   score()->undoAddElement(e);
                   return e;
                   }
+            case ElementType::INSTRUMENT_CHANGE:
+                  if (part()->instruments()->find(tick().ticks()) != part()->instruments()->end()) {
+                        qDebug() << "InstrumentChange already exists at tick = " << tick().ticks();
+                        delete e;
+                        return 0;
+                        }
+                  else {
+                        InstrumentChange* ic = toInstrumentChange(e);
+                        ic->setParent(segment());
+                        ic->setTrack((track() / VOICES) * VOICES);
+                        Instrument* instr = ic->instrument();
+                        Instrument* prevInstr = part()->instrument(tick());
+                        if (instr && instr->isDifferentInstrument(*prevInstr))
+                              ic->setupInstrument(instr);
+                        score()->undoAddElement(ic);
+                        return e;
+                        }
             case ElementType::FIGURED_BASS:
                   {
                   bool bNew;
@@ -617,16 +632,13 @@ Element* ChordRest::drop(EditData& data)
 
             case ElementType::HAIRPIN:
                   {
-                  const Hairpin* hairpin = toHairpin(e);
-                  ChordRest* endCR = this;
-                  if (hairpin->ticks().isNotZero()) {
-                        const Fraction tick2 = tick() + hairpin->ticks() - Fraction::eps();
-                        endCR = score()->findCR(tick2, track());
-                        }
-                  score()->addHairpin(hairpin->hairpinType(), this, endCR);
-                  delete e;
+                  Hairpin* hairpin = toHairpin(e);
+                  hairpin->setTick(tick());
+                  hairpin->setTrack(track());
+                  hairpin->setTrack2(track());
+                  score()->undoAddElement(hairpin);
                   }
-                  return nullptr;
+                  return e;
 
             default:
                   qDebug("cannot drop %s", e->name());

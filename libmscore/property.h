@@ -238,6 +238,10 @@ enum class Pid {
       FRET_OFFSET,
       FRET_NUM_POS,
 
+      HARMONY_VOICE_LITERAL,
+      HARMONY_VOICING,
+      HARMONY_DURATION,
+
       SYSTEM_BRACKET,
       GAP,
       AUTOPLACE,
@@ -259,7 +263,7 @@ enum class Pid {
       STAFF_SHOW_LEDGERLINES,
       STAFF_STEMLESS,
 
-      STAFF_NOTEHEAD_SCHEME,
+      HEAD_SCHEME,
       STAFF_GEN_CLEF,
       STAFF_GEN_TIMESIG,
       STAFF_GEN_KEYSIG,
@@ -340,12 +344,15 @@ enum class Pid {
       CHORD_LINE_STRAIGHT,
       TREMOLO_TYPE,
       TREMOLO_PLACEMENT,
+      TREMOLO_STROKE_STYLE,
       HARMONY_TYPE,
 
       START_WITH_LONG_NAMES,
       START_WITH_MEASURE_ONE,
 
       PATH, // for ChordLine to make its shape changes undoable
+      
+      PREFER_SHARP_FLAT,
 
       SET_KEY_TYPE,
 	  LYRICS_STAFF_SHIFT,
@@ -397,6 +404,7 @@ enum class P_TYPE : char {
       KEYMODE,          // enum class KeyMode
 
       PATH,             // QPainterPath
+      HEAD_SCHEME,      // enum class NoteHead::Scheme
       };
 
 extern QVariant readProperty(Pid type, XmlReader& e);

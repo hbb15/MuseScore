@@ -748,6 +748,24 @@ void BarLine::drawEditMode(QPainter* p, EditData& ed)
       }
 
 //---------------------------------------------------------
+//   playTick
+//---------------------------------------------------------
+
+Fraction BarLine::playTick() const
+      {
+      // Play from the start of the measure to the right of the barline, unless this is the last barline in either the entire score or the system,
+      // in which case we should play from the start of the measure to the left of the barline.
+      const auto measure = findMeasure();
+      if (measure) {
+            const auto nextMeasure = findMeasure()->next();
+            if (!nextMeasure || (nextMeasure->system() != measure->system()))
+                  return measure->tick();
+            }
+
+      return tick();
+      }
+
+//---------------------------------------------------------
 //   write
 //---------------------------------------------------------
 
@@ -1327,7 +1345,7 @@ void BarLine::layout()
       setPos(QPointF());
       // barlines hidden on this staff
       if (staff() && segment()) {
-            if ((!staff()->staffType(tick())->showBarlines() && segment()->segmentType() == SegmentType::EndBarLine)
+            if ((!staff()->staffTypeForElement(this)->showBarlines() && segment()->segmentType() == SegmentType::EndBarLine)
                 || (staff()->hideSystemBarLine() && segment()->segmentType() == SegmentType::BeginBarLine)) {
                   setbbox(QRectF());
                   return;
@@ -1395,7 +1413,7 @@ void BarLine::layout2()
       {
       // barlines hidden on this staff
       if (staff() && segment()) {
-            if ((!staff()->staffType(tick())->showBarlines() && segment()->segmentType() == SegmentType::EndBarLine)
+            if ((!staff()->staffTypeForElement(this)->showBarlines() && segment()->segmentType() == SegmentType::EndBarLine)
                 || (staff()->hideSystemBarLine() && segment()->segmentType() == SegmentType::BeginBarLine)) {
                   setbbox(QRectF());
                   return;
@@ -1641,7 +1659,7 @@ Pid BarLine::propertyId(const QStringRef& name) const
 
 Element* BarLine::nextSegmentElement()
       {
-      return segment()->firstInNextSegments(score()->inputState().prevTrack() / VOICES);
+      return segment()->firstInNextSegments(staffIdx());    //score()->inputState().prevTrack() / VOICES);
       }
 
 //---------------------------------------------------------
@@ -1650,7 +1668,7 @@ Element* BarLine::nextSegmentElement()
 
 Element* BarLine::prevSegmentElement()
       {
-      return segment()->lastInPrevSegments(score()->inputState().prevTrack() / VOICES);
+      return segment()->lastInPrevSegments(staffIdx());     //score()->inputState().prevTrack() / VOICES);
       }
 
 //---------------------------------------------------------

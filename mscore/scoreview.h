@@ -15,6 +15,7 @@
 
 #include "globals.h"
 #include "libmscore/element.h"
+#include "libmscore/elementgroup.h"
 #include "libmscore/durationtype.h"
 #include "libmscore/mscore.h"
 #include "libmscore/mscoreview.h"
@@ -107,6 +108,7 @@ class ScoreView : public QWidget, public MuseScoreView {
       const Element* dropTarget;    ///< current drop target during dragMove
       QRectF dropRectangle;         ///< current drop rectangle during dragMove
       QLineF dropAnchor;            ///< line to current anchor point during dragMove
+      QVector<QLineF> m_dropAnchorLines;
 
       QTransform _matrix, imatrix;
       MagIdx _magIdx;
@@ -114,6 +116,7 @@ class ScoreView : public QWidget, public MuseScoreView {
       QFocusFrame* focusFrame;
 
       EditData editData;
+      std::vector<std::unique_ptr<ElementGroup>> dragGroups;
 
       //--input state:
       PositionCursor* _cursor;
@@ -200,17 +203,15 @@ class ScoreView : public QWidget, public MuseScoreView {
       virtual void lyricsMinus() override;
       virtual void lyricsUnderscore() override;
       virtual void textTab(bool back = false) override;
-      void harmonyEndEdit();
       void harmonyTab(bool back);
       void harmonyBeatsTab(bool noterest, bool back);
       void harmonyTicksTab(const Fraction& ticks);
       void figuredBassTab(bool meas, bool back);
       void figuredBassTicksTab(const Fraction& ticks);
-      void figuredBassEndEdit();
       void realtimeAdvance(bool allowRests);
       void cmdAddFret(int fret);
       void cmdAddChordName(HarmonyType ht);
-      void cmdAddText(Tid tid, Tid customTid = Tid::DEFAULT);
+      void cmdAddText(Tid tid, Tid customTid = Tid::DEFAULT, PropertyFlags pf = PropertyFlags::STYLED, Placement p = Placement::ABOVE);
       void cmdEnterRest(const TDuration&);
       void cmdEnterRest();
       void cmdTuplet(int n, ChordRest*);
@@ -335,8 +336,8 @@ class ScoreView : public QWidget, public MuseScoreView {
       void doDragEdit(QMouseEvent* ev);
       bool testElementDragTransition(QMouseEvent* ev);
       bool fotoEditElementDragTransition(QMouseEvent* ev);
-      void addSlur(const Slur* slurTemplate = nullptr);
-      void cmdAddSlur(ChordRest*, ChordRest*, const Slur*) override;
+      void cmdAddSlur(const Slur* slurTemplate = nullptr);
+      void addSlur(ChordRest*, ChordRest*, const Slur*) override;
       virtual void cmdAddHairpin(HairpinType);
       void cmdAddNoteLine();
 
@@ -351,7 +352,7 @@ class ScoreView : public QWidget, public MuseScoreView {
 
       virtual void setDropRectangle(const QRectF&);
       virtual void setDropTarget(const Element*) override;
-      void setDropAnchor(const QLineF&);
+      void setDropAnchorLines(const QVector<QLineF> &anchorList);
       const QTransform& matrix() const  { return _matrix; }
       qreal mag() const;
       qreal lmag() const;
@@ -427,6 +428,7 @@ class ScoreView : public QWidget, public MuseScoreView {
       void editArticulationProperties(Articulation*);
       void editTimeSigProperties(TimeSig*);
       void editStaffTextProperties(StaffTextBase*);
+      void selectInstrument(InstrumentChange*);
       EditData& getEditData()        { return editData; }
       void changeState(ViewState);
 
@@ -435,7 +437,9 @@ class ScoreView : public QWidget, public MuseScoreView {
       void updateGrips();
       bool moveWhenInactive() const { return _moveWhenInactive; }
       bool moveWhenInactive(bool move) { bool m = _moveWhenInactive; _moveWhenInactive = move; return m; }
-      };
+   private:
+      void drawAnchorLines(QPainter& painter);
+    };
 
 } // namespace Ms
 #endif

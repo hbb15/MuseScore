@@ -34,6 +34,16 @@ extern int trimMargin;
 extern bool noWebView;
 extern bool ignoreWarnings;
 
+enum TelemetryDataCollectionType : unsigned char {
+      COLLECT_NO_DATA = 0,
+      COLLECT_CRASH_FREE_DATA = 1,
+      COLLECT_INSPECTOR_DATA = 1 << 1,
+      COLLECT_SHORTCUT_AND_MENU_DATA = 1 << 2,
+      COLLECT_ALL_DATA = COLLECT_CRASH_FREE_DATA & COLLECT_INSPECTOR_DATA & COLLECT_SHORTCUT_AND_MENU_DATA
+};
+
+constexpr TelemetryDataCollectionType enabledTelemetryDataTypes = TelemetryDataCollectionType::COLLECT_CRASH_FREE_DATA;
+
 //---------------------------------------------------------
 // MsWidget
 // used to assign actions (shortcuts) to the appropriate
@@ -41,8 +51,9 @@ extern bool ignoreWarnings;
 //---------------------------------------------------------
 
 enum MsWidget {
-      MAIN_WINDOW = 0,
-      SCORE_TAB   = 1 << 0
+      MAIN_WINDOW       = 0,
+      SCORE_TAB         = 1,
+      PIANO_ROLL_EDITOR = 2,
       };
 
 //---------------------------------------------------------

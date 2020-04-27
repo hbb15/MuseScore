@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>834</width>
-    <height>569</height>
+    <height>701</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1278,10 +1278,30 @@
           <bool>true</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="2">
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_37">
             <property name="text">
              <string>Default duration:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="playChordOnAddNote">
+            <property name="text">
+             <string>Play whole chord when editing</string>
             </property>
            </widget>
           </item>
@@ -1307,25 +1327,36 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="playChordOnAddNote">
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="playHarmony">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="mouseTracking">
+          <bool>true</bool>
+         </property>
+         <property name="title">
+          <string>Play Chord Symbols</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_41">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="playHarmonyOnEdit">
             <property name="text">
-             <string>Play whole chord when editing</string>
+             <string>Play chord symbol when editing</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
-          </item>
-          <item row="0" column="2">
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </widget>
@@ -2673,7 +2704,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_8">
        <item>
-        <widget class="QGroupBox" name="pulseaudioDriver">
+        <widget class="Ms::RadioButtonGroupBox" name="pulseaudioDriver">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -2698,7 +2729,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="portaudioDriver">
+        <widget class="Ms::RadioButtonGroupBox" name="portaudioDriver">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -2878,7 +2909,7 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="alsaDriver">
+        <widget class="Ms::RadioButtonGroupBox" name="alsaDriver">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -3094,7 +3125,7 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="jackDriver">
+        <widget class="Ms::RadioButtonGroupBox" name="jackDriver">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -3245,7 +3276,7 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_10">
        <item>
-        <widget class="QGroupBox" name="groupBox_7">
+        <widget class="QGroupBox" name="styleUsedForImport">
          <property name="title">
           <string>Style Used for Import</string>
          </property>
@@ -3299,7 +3330,7 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_20">
+        <widget class="QGroupBox" name="characterSetUsedWhenImportingBinaryFiles">
          <property name="title">
           <string>Character Set Used When Importing Binary Files</string>
          </property>
@@ -3346,7 +3377,7 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_21">
+        <widget class="QGroupBox" name="MusicXML">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -3378,7 +3409,23 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_23">
+        <widget class="QGroupBox" name="groupBox_omr">
+         <property name="title">
+          <string>OMR</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_omr">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="useLocalAvsOmr">
+            <property name="text">
+             <string>Use local OMR engine</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="MIDI">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -3408,7 +3455,7 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
              <string>Choose the shortest note value</string>
             </property>
             <property name="currentIndex">
-             <number>2</number>
+             <number>0</number>
             </property>
             <item>
              <property name="text">
@@ -3435,6 +3482,26 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
               <string>64th</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>128th</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>256th</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>512th</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>1024th</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
@@ -3445,6 +3512,52 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             <property name="sizeHint" stdset="0">
              <size>
               <width>525</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="resetElementPositions">
+         <property name="toolTip">
+          <string>Reset element positions when importing scores from older MuseScore versions.</string>
+         </property>
+         <property name="title">
+          <string>Reset Element Positions</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QRadioButton" name="resetElementPositionsAlwaysAsk">
+            <property name="text">
+             <string>Always ask</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="resetElementPositionsYes">
+            <property name="text">
+             <string>Yes</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="resetElementPositionsNo">
+            <property name="text">
+             <string>No</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_21">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
               <height>20</height>
              </size>
             </property>
@@ -4167,6 +4280,11 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
    <extends>QToolButton</extends>
    <header>recordbutton.h</header>
   </customwidget>
+  <customwidget>
+   <class>Ms::RadioButtonGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>radiobuttongroupbox.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>General</tabstop>
@@ -4306,6 +4424,9 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
   <tabstop>importLayout</tabstop>
   <tabstop>importBreaks</tabstop>
   <tabstop>shortestNote</tabstop>
+  <tabstop>resetElementPositionsAlwaysAsk</tabstop>
+  <tabstop>resetElementPositionsYes</tabstop>
+  <tabstop>resetElementPositionsNo</tabstop>
   <tabstop>pngResolution</tabstop>
   <tabstop>pngTransparent</tabstop>
   <tabstop>exportPdfDpi</tabstop>
@@ -4334,6 +4455,7 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
   <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources>
+  <include location="musescore.qrc"/>
   <include location="musescore.qrc"/>
  </resources>
  <connections>

@@ -20,6 +20,7 @@
 #include "scoreaccessibility.h"
 #include "libmscore/score.h"
 #include "libmscore/keysig.h"
+#include "libmscore/timesig.h"
 #include "libmscore/segment.h"
 #include "libmscore/utils.h"
 #include "libmscore/text.h"
@@ -158,7 +159,7 @@ void ScoreView::wheelEvent(QWheelEvent* event)
             nReal = static_cast<qreal>(stepsScrolled.y()) / 120;
             }
 
-      n = (int) nReal;
+      n = static_cast<int>(nReal);
 
       //this functionality seems currently blocked by the context menu
       if (event->buttons() & Qt::RightButton) {
@@ -384,6 +385,18 @@ void ScoreView::mousePressEventNormal(QMouseEvent* ev)
                               }
                         }
                   }
+            else if (e->isTimeSig() && !toTimeSig(e)->isLocal() && (keyState != Qt::ControlModifier) && st == SelectType::SINGLE) {
+                  // special case: select for all staves except when TimeSig is local.
+                  Segment* s = toTimeSig(e)->segment();
+                  bool first = true;
+                  for (int staffIdx = 0; staffIdx < _score->nstaves(); ++staffIdx) {
+                        Element* ee = s->element(staffIdx * VOICES);
+                        if (ee) {
+                              ee->score()->select(ee, first ? SelectType::SINGLE : SelectType::ADD);
+                              first = false;
+                              }
+                        }
+                  }
             else {
                   if (st == SelectType::ADD) {
                         // e is the top element in stacking order,
@@ -413,11 +426,11 @@ void ScoreView::mousePressEventNormal(QMouseEvent* ev)
                               }
                         }
                   }
-            if (e && e->isNote()) {
-                  e->score()->updateCapo();
-                  mscore->play(e);
-                  }
             if (e) {
+                  if (e->isNote() || e->isHarmony()) {
+                        e->score()->updateCapo();
+                        mscore->play(e);
+                        }
                   _score = e->score();
                   _score->setUpdateAll();
                   }
@@ -809,6 +822,10 @@ void ScoreView::keyPressEvent(QKeyEvent* ev)
       else if (editData.element->isHarmony()) {
             if (editData.key == Qt::Key_Space && !(editData.modifiers & CONTROL_MODIFIER)) {
                   harmonyBeatsTab(true, editData.modifiers & Qt::ShiftModifier);
+                  return;
+                  }
+            else if (editData.key == Qt::Key_Return) {
+                  changeState(ViewState::NORMAL);
                   return;
                   }
             }

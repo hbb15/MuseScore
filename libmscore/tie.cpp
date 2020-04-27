@@ -575,11 +575,7 @@ void Tie::calculateDirection()
       if (_slurDirection == Direction::AUTO) {
             std::vector<Note*> notes = c1->notes();
             size_t n = notes.size();
-            if (startNote()->staff() && startNote()->staff()->isNumericStaff( startNote()->tick())) {
-                  // bei nummeric standard unten
-                  _up = false;
-                  }
-            else if (m1->hasVoices(c1->staffIdx()) || m2->hasVoices(c2->staffIdx())) {
+            if (m1->hasVoices(c1->staffIdx(), c1->tick(), c1->actualTicks()) || m2->hasVoices(c2->staffIdx(), c2->tick(), c2->actualTicks())) {
                   // in polyphonic passage, ties go on the stem side
                   _up = c1->up();
                   }
@@ -654,11 +650,7 @@ TieSegment* Tie::layoutFor(System* system)
                   }
             Chord* c1 = startNote()->chord();
             if (_slurDirection == Direction::AUTO) {
-                  if (startNote()->staff() && startNote()->staff()->isNumericStaff( startNote()->tick())) {
-                        // bei nummeric standard unten
-                        _up = false;
-                        }
-                  else if (c1->measure()->hasVoices(c1->staffIdx())) {
+                  if (c1->measure()->hasVoices(c1->staffIdx(), c1->tick(), c1->actualTicks())) {
                         // in polyphonic passage, ties go on the stem side
                         _up = c1->up();
                         }

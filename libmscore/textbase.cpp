@@ -640,7 +640,9 @@ void TextBlock::layout(TextBase* t)
             _lineSpacing = fm.lineSpacing();
             }
       else {
-            for (TextFragment& f : _fragments) {
+            const auto fiLast = --_fragments.end();
+            for (auto fi = _fragments.begin(); fi != _fragments.end(); ++fi) {
+                  TextFragment& f = *fi;
                   f.pos.setX(x);
                   QFontMetricsF fm(f.font(t), MScore::paintDevice());
                   if (f.format.valign() != VerticalAlignment::AlignNormal) {
@@ -653,9 +655,15 @@ void TextBlock::layout(TextBase* t)
                         }
                   else
                         f.pos.setY(0.0);
-                  qreal w  = fm.width(f.text);
+
+                  // Optimization: don't calculate character position
+                  // for the next fragment if there is no next fragment
+                  if (fi != fiLast) {
+                        const qreal w  = fm.width(f.text);
+                        x += w;
+                        }
+
                   _bbox   |= fm.tightBoundingRect(f.text).translated(f.pos);
-                  x += w;
                   _lineSpacing = qMax(_lineSpacing, fm.lineSpacing());
                   }
             }
@@ -795,6 +803,7 @@ int TextBlock::column(qreal x, TextBase* t) const
 void TextBlock::insert(TextCursor* cursor, const QString& s)
       {
       int rcol, ridx;
+      removeEmptyFragment(); // since we are going to write text, we don't need an empty fragment to hold format info. if such exists, delete it
       auto i = fragment(cursor->column(), &rcol, &ridx);
       if (i != _fragments.end()) {
             if (!(i->format == *cursor->format())) {
@@ -815,6 +824,30 @@ void TextBlock::insert(TextCursor* cursor, const QString& s)
             else
                   _fragments.append(TextFragment(cursor, s));
             }
+      }
+
+//---------------------------------------------------------
+//
+//   insertEmptyFragmentIfNeeded
+//   used to insert an empty TextFragment in TextBlocks that have none
+//   that way, the formatting information (most importantly the font size) of the line is preserved
+//
+//---------------------------------------------------------
+
+void TextBlock::insertEmptyFragmentIfNeeded(TextCursor* cursor)
+      {
+      if (_fragments.size() == 0 || _fragments.at(0).text != "")
+            _fragments.insert(0, TextFragment(cursor, ""));
+      }
+
+//---------------------------------------------------------
+//   removeEmptyFragment
+//---------------------------------------------------------
+
+void TextBlock::removeEmptyFragment()
+      {
+      if (_fragments.size() > 0 && _fragments.at(0).text == "")
+            _fragments.removeAt(0);
       }
 
 //---------------------------------------------------------
@@ -850,7 +883,7 @@ QList<TextFragment>::iterator TextBlock::fragment(int column, int* rcol, int* ri
 //   remove
 //---------------------------------------------------------
 
-QString TextBlock::remove(int column)
+QString TextBlock::remove(int column, TextCursor* cursor)
       {
       int col = 0;
       QString s;
@@ -870,6 +903,7 @@ QString TextBlock::remove(int column)
                         if (i->text.isEmpty())
                               _fragments.erase(i);
                         simplify();
+                        insertEmptyFragmentIfNeeded(cursor); // without this, cursorRect can't calculate the y position of the cursor correctly
                         return s;
                         }
                   ++idx;
@@ -879,6 +913,7 @@ QString TextBlock::remove(int column)
                   ++rcol;
                   }
             }
+      insertEmptyFragmentIfNeeded(cursor); // without this, cursorRect can't calculate the y position of the cursor correctly
       return s;
 //      qDebug("TextBlock::remove: column %d not found", column);
       }
@@ -909,7 +944,7 @@ void TextBlock::simplify()
 //   remove
 //---------------------------------------------------------
 
-QString TextBlock::remove(int start, int n)
+QString TextBlock::remove(int start, int n, TextCursor* cursor)
       {
       if (n == 0)
             return QString();
@@ -933,8 +968,10 @@ QString TextBlock::remove(int start, int n)
                               inc = false;
                               }
                         --n;
-                        if (n == 0)
+                        if (n == 0) {
+                              insertEmptyFragmentIfNeeded(cursor); // without this, cursorRect can't calculate the y position of the cursor correctly
                               return s;
+                              }
                         continue;
                         }
                   ++idx;
@@ -946,6 +983,7 @@ QString TextBlock::remove(int start, int n)
             if (inc)
                   ++i;
             }
+      insertEmptyFragmentIfNeeded(cursor); // without this, cursorRect can't calculate the y position of the cursor correctly
       return s;
       }
 
@@ -1227,7 +1265,7 @@ static qreal parseNumProperty(const QString& s)
 void TextBase::createLayout()
       {
       _layout.clear();
-      TextCursor cursor((Text*)this);
+      TextCursor cursor(this);
       cursor.init();
 
       int state = 0;
@@ -1248,6 +1286,8 @@ void TextBase::createLayout()
                   else if (c == '\n') {
                         if (rows() <= cursor.row())
                               _layout.append(TextBlock());
+                        if(_layout[cursor.row()].fragments().size() == 0)
+                              _layout[cursor.row()].insertEmptyFragmentIfNeeded(&cursor); // used to preserve the Font size of the line (font info is held in TextFragments, see PR #5881)
                         _layout[cursor.row()].setEol(true);
                         cursor.setRow(cursor.row() + 1);
                         cursor.setColumn(0);
@@ -1861,26 +1901,19 @@ void TextBase::dragTo(EditData& ed)
       }
 
 //---------------------------------------------------------
-//   dragAnchor
+//   dragAnchorLines
 //---------------------------------------------------------
 
-QLineF TextBase::dragAnchor() const
+QVector<QLineF> TextBase::dragAnchorLines() const
       {
-      qreal xp = 0.0;
-      for (Element* e = parent(); e; e = e->parent())
-            xp += e->x();
-      qreal yp;
-      if (parent()->isSegment()) {
-            System* system = toSegment(parent())->measure()->system();
-            yp = system->staffCanvasYpage(staffIdx());
+      QVector<QLineF> result(genericDragAnchorLines());
+
+      if (layoutToParentWidth() && !result.empty()) {
+            QLineF& line = result[0];
+            line.setP2(line.p2() + bbox().topLeft());
             }
-      else
-            yp = parent()->canvasPos().y();
-      QPointF p1(xp, yp);
-      QPointF p2 = canvasPos();
-      if (layoutToParentWidth())
-            p2 += bbox().topLeft();
-      return QLineF(p1, p2);
+
+      return result;
       }
 
 //---------------------------------------------------------
@@ -1932,15 +1965,6 @@ bool TextBase::acceptDrop(EditData& data) const
             return false;
       ElementType type = data.dropElement->type();
       return type == ElementType::SYMBOL || type == ElementType::FSYMBOL;
-      }
-
-//---------------------------------------------------------
-//   setPlainText
-//---------------------------------------------------------
-
-void TextBase::setPlainText(const QString& s)
-      {
-      setXmlText(s.toHtmlEscaped());
       }
 
 //---------------------------------------------------------

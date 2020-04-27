@@ -62,10 +62,15 @@ Beam::Beam(Score* s)
       _direction       = Direction::AUTO;
       _up              = true;
       _distribute      = false;
+      _noSlope         = false;
       _userModified[0] = false;
       _userModified[1] = false;
       _grow1           = 1.0;
       _grow2           = 1.0;
+      _beamDist        = 0.;
+      _id              = 0;
+      minMove          = 0;
+      maxMove          = 0;
       _isGrace         = false;
       _cross           = false;
       }
@@ -88,6 +93,7 @@ Beam::Beam(const Beam& b)
       _userModified[1] = b._userModified[1];
       _grow1           = b._grow1;
       _grow2           = b._grow2;
+      _beamDist        = b._beamDist;
       for (const BeamFragment* f : b.fragments)
             fragments.append(new BeamFragment(*f));
       minMove          = b.minMove;
@@ -390,7 +396,7 @@ void Beam::layout1()
                         Measure* m = c1->measure();
                         if (c1->stemDirection() != Direction::AUTO)
                               _up = c1->stemDirection() == Direction::UP;
-                        else if (m->hasVoices(c1->staffIdx()))
+                        else if (m->hasVoices(c1->staffIdx(), tick(), ticks()))
                               _up = !(c1->voice() % 2);
                         else if (!twoBeamedNotes()) {
                               // highest or lowest note determines stem direction
@@ -477,7 +483,7 @@ void Beam::layoutGraceNotes()
                   ChordRest* cr = _elements[0];
 
                   Measure* m = cr->measure();
-                  if (m->hasVoices(cr->staffIdx()))
+                  if (m->hasVoices(cr->staffIdx(), tick(), ticks()))
                         _up = !(cr->voice() % 2);
                   else
                         _up = true;
@@ -1544,7 +1550,7 @@ void Beam::layout2(std::vector<ChordRest*>crl, SpannerSegmentType, int frag)
             _beamDist = score()->styleP(Sid::beamWidth) * (1 + score()->styleD(Sid::beamDistance));
 
       _beamDist *= mag();
-      _beamDist *= c1->staff()->mag(c1->tick());
+      _beamDist *= c1->staff()->mag(c1);
       size_t n = crl.size();
 
       const StaffType* tab = 0;
@@ -1780,7 +1786,7 @@ void Beam::layout2(std::vector<ChordRest*>crl, SpannerSegmentType, int frag)
                               crBase[i1] = bl;
                         }
 
-                  qreal stemWidth  = toChord(cr1)->stem()->lineWidthMag();
+                  qreal stemWidth  = (cr1->isChord() && toChord(cr1)->stem()) ? toChord(cr1)->stem()->lineWidthMag() : 0.0;
                   qreal x2         = cr1->stemPosX() + cr1->pageX() - _pagePos.x();
                   qreal x3;
 
@@ -1797,7 +1803,7 @@ void Beam::layout2(std::vector<ChordRest*>crl, SpannerSegmentType, int frag)
                               if (cr1->up())
                                     x2 -= stemWidth;
                               if (!chordRest2->up())
-                                    x3 += toChord(chordRest2)->stem()->lineWidthMag();
+                                    x3 += (chordRest2->isChord() && toChord(chordRest2)->stem()) ? toChord(chordRest2)->stem()->lineWidthMag() : 0.0;
                               }
                         }
                   else {
@@ -1879,7 +1885,7 @@ void Beam::layout2(std::vector<ChordRest*>crl, SpannerSegmentType, int frag)
                               else {
                                     // determine if this is a logical group end as per 2) above
 
-                                    Fraction baseTick = tuplet ? tuplet->tick() : cr1->measure()->tick();;
+                                    Fraction baseTick = tuplet ? tuplet->tick() : cr1->measure()->tick();
                                     Fraction tickNext = nextCR->tick() - baseTick;
                                     if (tuplet) {
                                           // for tuplets with odd ratios, apply ratio
@@ -2488,6 +2494,19 @@ Fraction Beam::rtick() const
       }
 
 //---------------------------------------------------------
+//   ticks
+//    calculate the ticks of all chords and rests connected by the beam
+//---------------------------------------------------------
+
+Fraction Beam::ticks() const
+      {
+      Fraction ticks = Fraction(0, 1);
+      for (ChordRest* cr : _elements)
+            ticks += cr->actualTicks();
+      return ticks;
+      }
+
+//---------------------------------------------------------
 //   iconType
 //---------------------------------------------------------
 
@@ -2559,7 +2578,7 @@ void Beam::initBeamEditData(EditData& ed)
       bed->editFragment = 0;
       ed.addData(bed);
 
-      QPointF pt(ed.startMove - pagePos());
+      QPointF pt(ed.normalizedStartMove - pagePos());
       qreal ydiff = 100000000.0;
       int idx = (_direction == Direction::AUTO || _direction == Direction::DOWN) ? 0 : 1;
       int i = 0;

@@ -40,6 +40,7 @@ namespace Ms {
 Rest::Rest(Score* s)
   : ChordRest(s)
       {
+      _mmWidth   = 0;
       _beamMode  = Beam::Mode::NONE;
       _sym       = SymId::restQuarter;
       }
@@ -47,6 +48,7 @@ Rest::Rest(Score* s)
 Rest::Rest(Score* s, const TDuration& d)
   : ChordRest(s)
       {
+      _mmWidth   = 0;
       _beamMode  = Beam::Mode::NONE;
       _sym       = SymId::restQuarter;
       setDurationType(d);
@@ -111,10 +113,11 @@ void Rest::draw(QPainter* painter) const
                   }
             return;
             }
+      const StaffType* stt = staff() ? staff()->staffTypeForElement(this) : nullptr;
       if (
-         (staff() && staff()->isTabStaff(tick())
+         (stt && stt->isTabStaff()
          // in tab staff, do not draw rests is rests are off OR if dur. symbols are on
-         && (!staff()->staffType(tick())->showRests() || staff()->staffType(tick())->genDurations())
+         && (!stt->showRests() || stt->genDurations())
          && (!measure() || !measure()->isMMRest()))        // show multi measure rest always
          || generated()
             )
@@ -385,8 +388,9 @@ void Rest::layout()
             }
 
       rxpos() = 0.0;
-      if (staff() && staff()->isTabStaff(tick())) {
-            const StaffType* tab = staff()->staffType(tick());
+      const StaffType* stt = staffType();
+      if (stt && stt->isTabStaff()) {
+            const StaffType* tab = stt;
             // if rests are shown and note values are shown as duration symbols
             if (tab->showRests() && tab->genDurations()) {
                   TDuration::DurationType type = durationType().type();
@@ -450,7 +454,7 @@ void Rest::layout()
 
       qreal yOff       = offset().y();
       const Staff* stf = staff();
-      const StaffType*  st = stf->staffType(tick());
+      const StaffType*  st = stf->staffTypeForElement(this);
       qreal lineDist = st ? st->lineDistance().val() : 1.0;
       int userLine   = yOff == 0.0 ? 0 : lrint(yOff / (lineDist * _spatium));
       int lines      = st ? st->lines() : 5;
@@ -542,7 +546,7 @@ int Rest::getDotline(TDuration::DurationType durationType)
 int Rest::computeLineOffset(int lines)
       {
       Segment* s = segment();
-      bool offsetVoices = s && measure() && measure()->hasVoices(staffIdx());
+      bool offsetVoices = s && measure() && measure()->hasVoices(staffIdx(), tick(), actualTicks());
       if (offsetVoices && voice() == 0) {
             // do not offset voice 1 rest if there exists a matching invisible rest in voice 2;
             Element* e = s->element(track() + 1);
@@ -552,8 +556,6 @@ int Rest::computeLineOffset(int lines)
                         offsetVoices = false;
                         }
                   }
-            else if (measure()->isOnlyDeletedRests(track() + 1, tick(), tick() + globalTicks()))
-                  offsetVoices = false;
             }
 #if 0
       if (offsetVoices && staff()->mergeMatchingRests()) {
@@ -754,7 +756,7 @@ void Rest::reset()
 
 qreal Rest::mag() const
       {
-      qreal m = staff()->mag(tick());
+      qreal m = staff()->mag(this);
       if (small())
             m *= score()->styleD(Sid::smallNoteMag);
       return m;

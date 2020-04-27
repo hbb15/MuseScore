@@ -47,12 +47,14 @@
 #include "bend.h"
 #include "tremolo.h"
 #include "noteevent.h"
-#include "synthesizer/event.h"
 #include "segment.h"
 #include "undo.h"
 #include "utils.h"
 #include "sym.h"
 #include "synthesizerstate.h"
+
+#include "audio/midi/event.h"
+#include "mscore/preferences.h"
 
 namespace Ms {
 
@@ -314,6 +316,7 @@ static void collectNote(EventMap* events, int channel, const Note* note, qreal v
             // Get the velocity used for this note from the staff
             // This allows correct playback of tremolos even without SND enabled.
             int velo;
+            Fraction nonUnwoundTick = Fraction::fromTicks(on - tickOffset);
             if (config.useSND) {
                   switch (config.method) {
                         case DynamicsRenderMethod::FIXED_MAX:
@@ -321,12 +324,12 @@ static void collectNote(EventMap* events, int channel, const Note* note, qreal v
                               break;
                         case DynamicsRenderMethod::SEG_START:
                         default:
-                              velo = staff->velocities().val(Fraction::fromTicks(on));
+                              velo = staff->velocities().val(nonUnwoundTick);
                               break;
                         }
                   }
             else {
-                  velo = staff->velocities().val(Fraction::fromTicks(on));
+                  velo = staff->velocities().val(nonUnwoundTick);
                   }
 
             velo *= velocityMultiplier;
@@ -524,13 +527,55 @@ static int getControllerFromCC(int cc)
       }
 
 //---------------------------------------------------------
+//    renderHarmony
+///    renders chord symbols
+//---------------------------------------------------------
+static void renderHarmony(EventMap* events, Measure* m, Harmony* h, int tickOffset)
+      {
+      if (!h->isRealizable())
+            return;
+      Staff* staff = m->score()->staff(h->track() / VOICES);
+      const Channel* channel = staff->part()->harmonyChannel();
+      Q_ASSERT(channel);
+
+      events->registerChannel(channel->channel());
+      if (!staff->primaryStaff())
+            return;
+
+      int staffIdx = staff->idx();
+      int velocity = staff->velocities().val(h->tick());
+
+      RealizedHarmony r = h->getRealizedHarmony();
+      QList<int> pitches = r.pitches();
+
+      NPlayEvent ev(ME_NOTEON, channel->channel(), 0, velocity);
+      ev.setHarmony(h);
+      Fraction duration = r.getActualDuration();
+
+      int onTime = h->tick().ticks() + tickOffset;
+      int offTime = onTime + duration.ticks();
+
+      ev.setOriginatingStaff(staffIdx);
+      ev.setTuning(0.0);
+
+      //add play events
+      for (int p : pitches) {
+            ev.setPitch(p);
+            ev.setVelo(velocity);
+            events->insert(std::pair<int, NPlayEvent>(onTime, ev));
+            ev.setVelo(0);
+            events->insert(std::pair<int, NPlayEvent>(offTime, ev));
+            }
+      }
+
+//---------------------------------------------------------
 //   collectMeasureEventsSimple
 //    the original, velocity-only method of collecting events.
 //---------------------------------------------------------
 
-static void collectMeasureEventsSimple(EventMap* events, Measure* m, Staff* staff, int tickOffset)
+void MidiRenderer::collectMeasureEventsSimple(EventMap* events, Measure* m, const StaffContext& sctx, int tickOffset)
       {
-      int firstStaffIdx = staff->idx();
+      int firstStaffIdx = sctx.staff->idx();
       int nextStaffIdx  = firstStaffIdx + 1;
 
       SegmentType st = SegmentType::ChordRest;
@@ -539,6 +584,19 @@ static void collectMeasureEventsSimple(EventMap* events, Measure* m, Staff* staf
 
       for (Segment* seg = m->first(st); seg; seg = seg->next(st)) {
             int tick = seg->tick().ticks();
+
+            //render harmony
+            if (sctx.renderHarmony) {
+                  for (Element* e : seg->annotations()) {
+                        if (!e->isHarmony() || (e->track() < strack) || (e->track() >= etrack))
+                              continue;
+                        Harmony* h = toHarmony(e);
+                        if (!h->play())
+                              continue;
+                        renderHarmony(events, m, h, tickOffset);
+                        }
+                  }
+
             for (int track = strack; track < etrack; ++track) {
                   // skip linked staves, except primary
                   if (!m->score()->staff(track / VOICES)->primaryStaff()) {
@@ -590,16 +648,16 @@ static void collectMeasureEventsSimple(EventMap* events, Measure* m, Staff* staf
 //          SEG_START - note-on velocity is the same as the start velocity of the seg
 //---------------------------------------------------------
 
-static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* staff, int tickOffset, DynamicsRenderMethod method, int cc)
+void MidiRenderer::collectMeasureEventsDefault(EventMap* events, Measure* m, const StaffContext& sctx, int tickOffset)
       {
-      int controller = getControllerFromCC(cc);
+      int controller = getControllerFromCC(sctx.cc);
 
       if (controller == -1) {
-            qWarning("controller for CC %d not valid", cc);
+            qWarning("controller for CC %d not valid", sctx.cc);
             return;
             }
 
-      int firstStaffIdx = staff->idx();
+      int firstStaffIdx = sctx.staff->idx();
       int nextStaffIdx  = firstStaffIdx + 1;
 
       SegmentType st = SegmentType::ChordRest;
@@ -607,6 +665,19 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
       int etrack = nextStaffIdx * VOICES;
       for (Segment* seg = m->first(st); seg; seg = seg->next(st)) {
             Fraction tick = seg->tick();
+
+            //render harmony
+            if (sctx.renderHarmony) {
+                  for (Element* e : seg->annotations()) {
+                        if (!e->isHarmony() || (e->track() < strack) || (e->track() >= etrack))
+                              continue;
+                        Harmony* h = toHarmony(e);
+                        if (!h->play())
+                              continue;
+                        renderHarmony(events, m, h, tickOffset);
+                        }
+                  }
+
             for (int track = strack; track < etrack; ++track) {
                   // Skip linked staves, except primary
                   Staff* st1 = m->score()->staff(track / VOICES);
@@ -639,7 +710,7 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
                         }
 
                   bool useSND = instr->singleNoteDynamics();
-                  SndConfig config = SndConfig(useSND, controller, method);
+                  SndConfig config = SndConfig(useSND, controller, sctx.method);
 
                   //
                   // Add normal note events
@@ -666,22 +737,22 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
 //    redirects to the correct function based on the passed method
 //---------------------------------------------------------
 
-static void collectMeasureEvents(EventMap* events, Measure* m, Staff* staff, int tickOffset, DynamicsRenderMethod method, int cc)
+void MidiRenderer::collectMeasureEvents(EventMap* events, Measure* m, const StaffContext& sctx, int tickOffset)
       {
-      switch (method) {
+      switch (sctx.method) {
             case DynamicsRenderMethod::SIMPLE:
-                  collectMeasureEventsSimple(events, m, staff, tickOffset);
+                  collectMeasureEventsSimple(events, m, sctx, tickOffset);
                   break;
             case DynamicsRenderMethod::SEG_START:
             case DynamicsRenderMethod::FIXED_MAX:
-                  collectMeasureEventsDefault(events, m, staff, tickOffset, method, cc);
+                  collectMeasureEventsDefault(events, m, sctx, tickOffset);
                   break;
             default:
-                  qWarning("Unrecognized dynamics method: %d", int(method));
+                  qWarning("Unrecognized dynamics method: %d", int(sctx.method));
                   break;
             }
 
-      collectProgramChanges(events, m, staff, tickOffset);
+      collectProgramChanges(events, m, sctx.staff, tickOffset);
       }
 
 //---------------------------------------------------------
@@ -833,7 +904,7 @@ void Score::updateVelo()
 //   renderStaffSegment
 //---------------------------------------------------------
 
-void MidiRenderer::renderStaffChunk(const Chunk& chunk, EventMap* events, Staff* staff, DynamicsRenderMethod method, int cc)
+void MidiRenderer::renderStaffChunk(const Chunk& chunk, EventMap* events, const StaffContext& sctx)
       {
       Measure* start = chunk.startMeasure();
       Measure* end = chunk.endMeasure();
@@ -842,13 +913,13 @@ void MidiRenderer::renderStaffChunk(const Chunk& chunk, EventMap* events, Staff*
       Measure* lastMeasure = start->prevMeasure();
 
       for (Measure* m = start; m != end; m = m->nextMeasure()) {
-            if (lastMeasure && m->isRepeatMeasure(staff)) {
+            if (lastMeasure && m->isRepeatMeasure(sctx.staff)) {
                   int offset = (m->tick() - lastMeasure->tick()).ticks();
-                  collectMeasureEvents(events, lastMeasure, staff, tickOffset + offset, method, cc);
+                  collectMeasureEvents(events, lastMeasure, sctx, tickOffset + offset);
                   }
             else {
                   lastMeasure = m;
-                  collectMeasureEvents(events, lastMeasure, staff, tickOffset, method, cc);
+                  collectMeasureEvents(events, lastMeasure, sctx, tickOffset);
                   }
             }
       }
@@ -886,13 +957,13 @@ void MidiRenderer::renderSpanners(const Chunk& chunk, EventMap* events)
                         // Handle "overlapping" pedal segments (usual case for connected pedal line)
                         if (lastEvent.second.first == false && lastEvent.first >= (st + tickOffset + 2)) {
                               channelPedalEvents.at(channel).pop_back();
-                              channelPedalEvents.at(channel).push_back(std::pair<int, std::pair<bool, int>>(st + tickOffset + 1, std::pair<bool, int>(false, staff)));
+                              channelPedalEvents.at(channel).push_back(std::pair<int, std::pair<bool, int>>(st + tickOffset + (2 - MScore::pedalEventsMinTicks), std::pair<bool, int>(false, staff)));
                               }
                         int a = st + tickOffset + 2;
                         channelPedalEvents.at(channel).push_back(std::pair<int, std::pair<bool, int>>(a, std::pair<bool, int>(true, staff)));
                         }
                   if (s->tick2().ticks() >= tick1 && s->tick2().ticks() <= tick2) {
-                        int t = s->tick2().ticks() + tickOffset + 1;
+                        int t = s->tick2().ticks() + tickOffset + (2 - MScore::pedalEventsMinTicks);
                         const RepeatSegment& lastRepeat = *score->repeatList().back();
                         if (t > lastRepeat.utick + lastRepeat.len())
                               t = lastRepeat.utick + lastRepeat.len();
@@ -1803,7 +1874,7 @@ static QList<NoteEventList> renderChord(Chord* chord, int gateTime, int ontime, 
             renderChordArticulation(chord, ell, gateTime);
 
       // Check each note and apply gateTime
-      for (int i = 0; i < int(notes); ++i) {
+      for (unsigned i = 0; i < notes; ++i) {
             NoteEventList* el = &ell[i];
             if (!shouldRenderNote(chord->notes()[i])) {
                   el->clear();
@@ -1875,7 +1946,7 @@ void Score::createGraceNotesPlayEvents(const Fraction& tick, Chord* chord, int& 
             //  - the grace note duration as notated does not matter
             //
             Chord* graceChord = gnb[0];
-            if (graceChord->noteType() ==  NoteType::ACCIACCATURA) {
+            if (graceChord->noteType() ==  NoteType::ACCIACCATURA || nb > 1) { // treat multiple subsequent grace notes as acciaccaturas
                   int graceTimeMS = 65 * nb;     // value determined empirically (TODO: make instrument-specific, like articulations)
                   // 1000 occurs below as a unit for ontime
                   ontime = qMin(500, static_cast<int>((graceTimeMS / chordTimeMS) * 1000));
@@ -1896,7 +1967,7 @@ void Score::createGraceNotesPlayEvents(const Fraction& tick, Chord* chord, int& 
             QList<NoteEventList> el;
             Chord* gc = gnb.at(i);
             size_t nn = gc->notes().size();
-            for (size_t ii = 0; ii < nn; ++ii) {
+            for (unsigned ii = 0; ii < nn; ++ii) {
                   NoteEventList nel;
                   nel.append(NoteEvent(0, on, graceDuration));
                   el.append(nel);
@@ -2078,18 +2149,21 @@ void Score::renderMidi(EventMap* events, const SynthesizerState& synthState)
 void Score::renderMidi(EventMap* events, bool metronome, bool expandRepeats, const SynthesizerState& synthState)
       {
       masterScore()->setExpandRepeats(expandRepeats);
-      MidiRenderer(this).renderScore(events, synthState, metronome);
+      MidiRenderer::Context ctx(synthState);
+      ctx.metronome = metronome;
+      ctx.renderHarmony = preferences.getBool(PREF_SCORE_HARMONY_PLAY);
+      MidiRenderer(this).renderScore(events, ctx);
       }
 
-void MidiRenderer::renderScore(EventMap* events, const SynthesizerState& synthState, bool metronome)
+void MidiRenderer::renderScore(EventMap* events, const Context& ctx)
       {
       updateState();
       for (const Chunk& chunk : chunks) {
-            renderChunk(chunk, events, synthState, metronome);
+            renderChunk(chunk, events, ctx);
             }
       }
 
-void MidiRenderer::renderChunk(const Chunk& chunk, EventMap* events, const SynthesizerState& synthState, bool metronome)
+void MidiRenderer::renderChunk(const Chunk& chunk, EventMap* events, const Context& ctx)
       {
       // TODO: avoid doing it multiple times for the same measures
       score->createPlayEvents(chunk.startMeasure(), chunk.endMeasure());
@@ -2104,8 +2178,8 @@ void MidiRenderer::renderChunk(const Chunk& chunk, EventMap* events, const Synth
       // check if the score synth settings are actually set
       // if not, use the global synth state
       if (method == -1) {
-            method = synthState.method();
-            cc = synthState.ccToUse();
+            method = ctx.synthState.method();
+            cc = ctx.synthState.ccToUse();
 
             if (method == -1) {
                   // fall back to defaults - this may be needed to pass tests,
@@ -2133,14 +2207,20 @@ void MidiRenderer::renderChunk(const Chunk& chunk, EventMap* events, const Synth
             }
 
       // create note & other events
-      for (Staff* st : score->staves())
-            renderStaffChunk(chunk, events, st, renderMethod, cc);
+      for (Staff* st : score->staves()) {
+            StaffContext sctx;
+            sctx.staff = st;
+            sctx.method = renderMethod;
+            sctx.cc = cc;
+            sctx.renderHarmony = ctx.renderHarmony;
+            renderStaffChunk(chunk, events, sctx);
+            }
       events->fixupMIDI();
 
       // create sustain pedal events
       renderSpanners(chunk, events);
 
-      if (metronome)
+      if (ctx.metronome)
             renderMetronome(chunk, events);
 
       // NOTE:JT this is a temporary fix for duplicate events until polyphonic aftertouch support

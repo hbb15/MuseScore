@@ -30,6 +30,7 @@
 #include "inspector/alignSelect.h"
 #include "inspector/offsetSelect.h"
 #include "inspector/fontStyleSelect.h"
+#include "preferences.h"
 
 namespace Ms {
 
@@ -528,7 +529,9 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
             }
       toolTipHeaderFooter += QString("</table></body></html>");
       showHeader->setToolTip(toolTipHeaderFooter);
+      showHeader->setToolTipDuration(5000); // leaving the default value of -1 calculates the duration automatically and it takes too long
       showFooter->setToolTip(toolTipHeaderFooter);
+      showFooter->setToolTipDuration(5000);
 
       connect(buttonBox,           SIGNAL(clicked(QAbstractButton*)), SLOT(buttonClicked(QAbstractButton*)));
       connect(headerOddEven,       SIGNAL(toggled(bool)),             SLOT(toggleHeaderOddEven(bool)));
@@ -543,7 +546,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
 
       chordDescriptionFileButton->setIcon(*icons[int(Icons::fileOpen_ICON)]);
 
-      connect(SwingOff,            SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
+      connect(swingOff,            SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
       connect(swingEighth,         SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
       connect(swingSixteenth,      SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
 
@@ -606,6 +609,11 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
 
             mapper2->setMapping(sw.widget, int(sw.idx));
             }
+
+      int topBottomMargin = automaticCapitalization->rect().height() - preferences.getInt(PREF_UI_THEME_FONTSIZE);
+      topBottomMargin /= 2;
+      topBottomMargin = topBottomMargin > 4 ? topBottomMargin - 4 : 0;
+      automaticCapitalization->layout()->setContentsMargins(9, topBottomMargin, 9, topBottomMargin);
 
       connect(mapper,  SIGNAL(mapped(int)), SLOT(resetStyleValue(int)));
       connect(mapper2, SIGNAL(mapped(int)), SLOT(valueChanged(int)));
@@ -877,7 +885,7 @@ void EditStyle::on_comboFBFont_currentIndexChanged(int index)
 
       if (FiguredBass::fontData(index, 0, 0, &size, &lineHeight)) {
             doubleSpinFBSize->setValue(size);
-            spinFBLineHeight->setValue((int)(lineHeight * 100.0));
+            spinFBLineHeight->setValue(static_cast<int>(lineHeight * 100.0));
             }
       }
 
@@ -1113,7 +1121,7 @@ void EditStyle::setValues()
             swingBox->setEnabled(true);
             }
       else if (unit == TDuration(TDuration::DurationType::V_ZERO).name()) {
-            SwingOff->setChecked(true);
+            swingOff->setChecked(true);
             swingBox->setEnabled(false);
             }
       QString s(lstyle.value(Sid::chordDescriptionFile).toString());
@@ -1193,7 +1201,7 @@ void EditStyle::setSwingParams(bool checked)
       if (!checked)
             return;
       QVariant val;
-      if (SwingOff->isChecked()) {
+      if (swingOff->isChecked()) {
             val = TDuration(TDuration::DurationType::V_ZERO).name();
             swingBox->setEnabled(false);
             }

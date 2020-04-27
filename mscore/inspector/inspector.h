@@ -36,6 +36,7 @@
 #include "ui_inspector_accidental.h"
 #include "ui_inspector_tempotext.h"
 #include "ui_inspector_lyric.h"
+#include "ui_inspector_instrchange.h"
 #include "ui_inspector_stafftext.h"
 #include "ui_inspector_slur.h"
 #include "ui_inspector_empty.h"
@@ -222,7 +223,7 @@ class InspectorClef : public InspectorElementBase {
 
       Ui::InspectorSegment s;
       Ui::InspectorClef    c;
-      Clef* otherClef;        // the courtesy clef for a main clef or viceversa
+      Clef* otherClef { nullptr };        // the courtesy clef for a main clef or viceversa
                               // used to keep in sync ShowCourtesy setting of both clefs
    protected slots:
       virtual void valueChanged(int idx) override;
@@ -316,6 +317,7 @@ class InspectorTremolo : public InspectorElementBase {
 
    public:
       InspectorTremolo(QWidget* parent);
+      virtual void setElement() override;
       };
 
 //---------------------------------------------------------
@@ -348,7 +350,7 @@ class InspectorLyric : public InspectorTextBase {
       };
 
 //---------------------------------------------------------
-//   InspectorLyric
+//   InspectorStaffText
 //---------------------------------------------------------
 
 class InspectorStaffText : public InspectorTextBase {

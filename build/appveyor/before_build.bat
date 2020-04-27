@@ -47,7 +47,8 @@ START " " /wait "7z" x -y %TOOLS_ARCHIVE% > nul
 CD C:\MuseScore
 
 :: is MuseScore stable? Check here, no grep in PATH later on
-for /f "delims=" %%i in ('grep "^[[:blank:]]*set( *MSCORE_UNSTABLE \+TRUE *)" C:\MuseScore\CMakeLists.txt') do set NIGHTLY_BUILD=%%i
+for /f "delims=" %%i in ('bash -c "cmake -P config.cmake | grep -o 'MSCORE_UNSTABLE  *TRUE'"') do set NIGHTLY_BUILD=%%i
+for /f %%i in ('bash -c "cmake -P config.cmake | sed -n -e 's/^.*MUSESCORE_VERSION_FULL  *//p'"') do set MUSESCORE_VERSION_FULL=%%i
 
 :: get revision number
 SET "PATH=%QTDIR%\bin;%PATH%"

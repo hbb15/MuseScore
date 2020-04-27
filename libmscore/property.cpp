@@ -228,6 +228,9 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::FRET_NUT,                true,  "showNut",               P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "show nut")         },
       { Pid::FRET_OFFSET,             true,  "fretOffset",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "fret offset")      },
       { Pid::FRET_NUM_POS,            true,  "fretNumPos",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "fret number position") },
+      { Pid::HARMONY_VOICE_LITERAL,   true,  "harmonyVoiceLiteral",   P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "harmony voice literal") },
+      { Pid::HARMONY_VOICING,         true,  "harmonyVoicing",        P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "harmony voicing") },
+      { Pid::HARMONY_DURATION,        true,  "harmonyDuration",       P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "harmony duration") },
 
       { Pid::SYSTEM_BRACKET,          false, "type",                  P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "type")             },
       { Pid::GAP,                     false, 0,                       P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "gap")              },
@@ -250,7 +253,7 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::STAFF_SHOW_LEDGERLINES,  false, "",                      P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "showing ledgerlines") },
       { Pid::STAFF_STEMLESS,          false, "",                      P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "stemless")         },
 
-      { Pid::STAFF_NOTEHEAD_SCHEME,   false, "",                      P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "notehead scheme")  },
+      { Pid::HEAD_SCHEME,             false, "headScheme",            P_TYPE::HEAD_SCHEME,         DUMMY_QT_TRANSLATE_NOOP("propertyName", "notehead scheme")  },
       { Pid::STAFF_GEN_CLEF,          false, "",                      P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "generating clefs") },
       { Pid::STAFF_GEN_TIMESIG,       false, "",                      P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "generating time signature") },
       { Pid::STAFF_GEN_KEYSIG,        false, "",                      P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "generating key signature")  },
@@ -305,7 +308,7 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::END_HOOK_HEIGHT,         false, "endHookHeight",         P_TYPE::SPATIUM,             DUMMY_QT_TRANSLATE_NOOP("propertyName", "end hook height")  },
       { Pid::END_FONT_FACE,           false, "endFontFace",           P_TYPE::FONT,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "end font face")    },
       { Pid::END_FONT_SIZE,           false, "endFontSize",           P_TYPE::REAL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "end font size")    },
-      { Pid::END_FONT_STYLE,          false, "endFontStyle",          P_TYPE::INT,                DUMMY_QT_TRANSLATE_NOOP("propertyName",  "end font style")    },
+      { Pid::END_FONT_STYLE,          false, "endFontStyle",          P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName",  "end font style")  },
       { Pid::END_TEXT_OFFSET,         false, "endTextOffset",         P_TYPE::POINT_SP,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "end text offset")  },
 
       { Pid::POS_ABOVE,               false, "posAbove",              P_TYPE::SP_REAL,             DUMMY_QT_TRANSLATE_NOOP("propertyName", "position above")   },
@@ -331,12 +334,15 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::CHORD_LINE_STRAIGHT,     true,  "straight",              P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "straight chord line") },
       { Pid::TREMOLO_TYPE,            true,  "subtype",               P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "tremolo type")     },
       { Pid::TREMOLO_PLACEMENT,       false, "tremoloPlacement",      P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "tremolo placement") },
+      { Pid::TREMOLO_STROKE_STYLE,    true,  "strokeStyle",           P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "tremolo stroke style") },
       { Pid::HARMONY_TYPE,            true,  "harmonyType",           P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "harmony type") },
 
       { Pid::START_WITH_LONG_NAMES,   false, "startWithLongNames",    P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "start with long names")  },
       { Pid::START_WITH_MEASURE_ONE,  true,  "startWithMeasureOne",   P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "start with measure one") },
 
       { Pid::PATH,                    false, "path",                  P_TYPE::PATH,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "path") },
+
+      { Pid::PREFER_SHARP_FLAT,       true,  "preferSharpFlat",       P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "prefer sharps or flats") },
 
       { Pid::SET_KEY_TYPE,           false,  "set_key_type",          P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "set Key Type")     },
 	  { Pid::LYRICS_STAFF_SHIFT,     false,  "lyricsStaffShift",      P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "Notenzeilen verschibung") },
@@ -530,6 +536,8 @@ QVariant propertyFromString(Pid id, QString value)
                   return QVariant();
             case P_TYPE::SYMID:
                   return QVariant::fromValue(Sym::name2id(value));
+            case P_TYPE::HEAD_SCHEME:
+                  return QVariant::fromValue(NoteHead::name2scheme(value));
             case P_TYPE::HEAD_GROUP:
                   return QVariant::fromValue(NoteHead::name2group(value));
             case P_TYPE::HEAD_TYPE:
@@ -619,6 +627,7 @@ QVariant readProperty(Pid id, XmlReader& e)
             case P_TYPE::TEXT_PLACE:
             case P_TYPE::BARLINE_TYPE:
             case P_TYPE::SYMID:
+            case P_TYPE::HEAD_SCHEME:
             case P_TYPE::HEAD_GROUP:
             case P_TYPE::HEAD_TYPE:
             case P_TYPE::SUB_STYLE:
@@ -786,6 +795,8 @@ QString propertyToString(Pid id, QVariant value, bool mscx)
                   return Sym::id2name(SymId(value.toInt()));
             case P_TYPE::BARLINE_TYPE:
                   return BarLine::barLineTypeName(BarLineType(value.toInt()));
+            case P_TYPE::HEAD_SCHEME:
+                  return NoteHead::scheme2name(NoteHead::Scheme(value.toInt()));
             case P_TYPE::HEAD_GROUP:
                   return NoteHead::group2name(NoteHead::Group(value.toInt()));
             case P_TYPE::HEAD_TYPE:

@@ -48,6 +48,7 @@ InspectorBase::InspectorBase(QWidget* parent)
       _layout->setSpacing(0);
       _layout->setContentsMargins(0, 10, 0, 0);
       _layout->addStretch(100);
+      scrollPreventer = new InspectorScrollPreventer(this);
       }
 
 //---------------------------------------------------------
@@ -73,7 +74,8 @@ QVariant InspectorBase::getValue(const InspectorItem& ii) const
             }
       else if (qobject_cast<Awl::ColorLabel*>(w))
             v = static_cast<Awl::ColorLabel*>(w)->color();
-      else if (qobject_cast<QCheckBox*>(w) || qobject_cast<QPushButton*>(w) || qobject_cast<QToolButton*>(w))
+      else if (qobject_cast<QCheckBox*>(w) || qobject_cast<QPushButton*>(w) ||
+               qobject_cast<QToolButton*>(w) || qobject_cast<QRadioButton*>(w))
             v = w->property("checked");
       else if (qobject_cast<QLineEdit*>(w))
             v =  w->property("text");
@@ -223,6 +225,8 @@ void InspectorBase::setValue(const InspectorItem& ii, QVariant val)
             static_cast<QCheckBox*>(w)->setChecked(val.toBool());
       else if (qobject_cast<Awl::ColorLabel*>(w))
             static_cast<Awl::ColorLabel*>(w)->setColor(val.value<QColor>());
+      else if (qobject_cast<QRadioButton*>(w))
+            static_cast<QRadioButton*>(w)->setChecked(val.toBool());
       else if (qobject_cast<QPushButton*>(w))
             static_cast<QPushButton*>(w)->setChecked(val.toBool());
       else if (qobject_cast<QToolButton*>(w))
@@ -549,7 +553,11 @@ void InspectorBase::mapSignals(const std::vector<InspectorItem>& il, const std::
                         resetButton->setIcon(*icons[int(Icons::reset_ICON)]);
                         connect(resetButton, &QToolButton::clicked, [=] { resetClicked(i); });
                         Sid sidx = inspector->element()->getPropertyStyle(ii.t);
-                        if (sidx != Sid::NOSTYLE) {
+                        // S button for fingering placement is bugged and proposed to be hidden
+                        // it can be brought back once the relevant design is fixed, 
+                        // for example changing values of fingering placement to "Auto, Above, Below", "Auto" as default
+                        // See https://musescore.org/en/node/288372 and https://musescore.org/en/node/297092
+                        if (sidx != Sid::NOSTYLE && sidx != Sid::fingeringPlacement) {
                               QMenu* menu = new QMenu(this);
                               resetButton->setMenu(menu);
                               resetButton->setPopupMode(QToolButton::MenuButtonPopup);
@@ -561,7 +569,8 @@ void InspectorBase::mapSignals(const std::vector<InspectorItem>& il, const std::
                         ResetButton* b = qobject_cast<ResetButton*>(rw);
                         connect(b, &ResetButton::resetClicked, [=] { resetClicked(i); });
                         Sid sidx = inspector->element()->getPropertyStyle(ii.t);
-                        if (sidx != Sid::NOSTYLE) {
+                        // Same, see comment above
+                        if (sidx != Sid::NOSTYLE && sidx != Sid::fingeringPlacement) {
                               b->enableSetStyle(true);
                               connect(b, &ResetButton::setStyleClicked, [=] { setStyleClicked(i); });
                               }
@@ -570,6 +579,16 @@ void InspectorBase::mapSignals(const std::vector<InspectorItem>& il, const std::
             QWidget* w = ii.w;
             if (!w)
                   continue;
+
+            if (qobject_cast<QAbstractSpinBox*>(w)
+                || qobject_cast<QComboBox*>(w)) {
+                  w->setFocusPolicy(Qt::StrongFocus);
+                  w->installEventFilter(scrollPreventer);
+                  }
+            else if (qobject_cast<OffsetSelect*>(w)) {
+                  qobject_cast<OffsetSelect*>(w)->installScrollPreventer(scrollPreventer);
+                  }
+
             if (qobject_cast<QDoubleSpinBox*>(w))
                   connect(qobject_cast<QDoubleSpinBox*>(w), QOverload<double>::of(&QDoubleSpinBox::valueChanged), [=] { valueChanged(i); });
             else if (qobject_cast<QSpinBox*>(w))
@@ -582,6 +601,8 @@ void InspectorBase::mapSignals(const std::vector<InspectorItem>& il, const std::
                   connect(qobject_cast<QCheckBox*>(w), QOverload<bool>::of(&QCheckBox::toggled), [=] { valueChanged(i); });
             else if (qobject_cast<Awl::ColorLabel*>(w))
                   connect(qobject_cast<Awl::ColorLabel*>(w), QOverload<QColor>::of(&Awl::ColorLabel::colorChanged), [=] { valueChanged(i); });
+            else if (qobject_cast<QRadioButton*>(w))
+                  connect(qobject_cast<QRadioButton*>(w), QOverload<bool>::of(&QRadioButton::toggled), [=] { valueChanged(i); });
             else if (qobject_cast<QPushButton*>(w))
                   connect(qobject_cast<QPushButton*>(w), QOverload<bool>::of(&QPushButton::toggled), [=] { valueChanged(i); });
             else if (qobject_cast<QToolButton*>(w))
@@ -655,33 +676,58 @@ void InspectorBase::resetToStyle()
       score->endCmd();
       }
 
+//---------------------------------------------------------
+//   eventFilter
+///   This blocks scrolling on a scrollable thing when not in focus.
+///   `watched` should be a QComboBox or QAbstractSpinBox.
+///   If this event filter is on any non-QWidget, it will crash.
+//---------------------------------------------------------
+
+bool InspectorScrollPreventer::eventFilter(QObject* watched, QEvent* event)
+      {
+      if (event->type() != QEvent::Wheel)
+            return QObject::eventFilter(watched, event);
+
+      if (!qobject_cast<QWidget*>(watched)->hasFocus())
+            return true;
+
+      return QObject::eventFilter(watched, event);
+      }
+
+//---------------------------------------------------------
+//   event
+//---------------------------------------------------------
+
 void InspectorEventObserver::event(EventType evtType, const InspectorItem& ii, const Element* e)
       {
-#ifdef BUILD_TELEMETRY_MODULE
-      QString evtCategory;
-      switch (evtType) {
-            case EventType::PropertyChange:
-                  evtCategory = QStringLiteral("inspector-property-change");
-                  break;
-            case EventType::PropertyReset:
-                  evtCategory = QStringLiteral("inspector-property-reset");
-                  break;
-            case EventType::PropertySetStyle:
-                  evtCategory = QStringLiteral("inspector-property-set-style");
-                  break;
-            }
+#ifndef TELEMETRY_DISABLED
+      //if inspector data IS the enabled telemetry data
+      if (Ms::enabledTelemetryDataTypes & Ms::TelemetryDataCollectionType::COLLECT_INSPECTOR_DATA) {
+            QString evtCategory;
+            switch (evtType) {
+                  case EventType::PropertyChange:
+                        evtCategory = QStringLiteral("inspector-property-change");
+                        break;
+                  case EventType::PropertyReset:
+                        evtCategory = QStringLiteral("inspector-property-reset");
+                        break;
+                  case EventType::PropertySetStyle:
+                        evtCategory = QStringLiteral("inspector-property-set-style");
+                        break;
+                  }
 
-      const QObject* w = ii.w;
-      const QObject* p = w->parent();
-      while (p && !qobject_cast<const InspectorBase*>(p)) {
-            w = p;
-            p = p->parent();
-            }
-      const QString inspectorName = w->objectName();
+            const QObject* w = ii.w;
+            const QObject* p = w->parent();
+            while (p && !qobject_cast<const InspectorBase*>(p)) {
+                  w = p;
+                  p = p->parent();
+                  }
+            const QString inspectorName = w->objectName();
 
-      const QString evtAction = QStringLiteral("%1/%2").arg(inspectorName).arg(propertyName(ii.t));
-      const QString evtLabel = e ? e->name() : "null";
-      TelemetryManager::telemetryService()->sendEvent(evtCategory, evtAction, evtLabel);
+            const QString evtAction = QStringLiteral("%1/%2").arg(inspectorName).arg(propertyName(ii.t));
+            const QString evtLabel = e ? e->name() : "null";
+            TelemetryManager::telemetryService()->sendEvent(evtCategory, evtAction, evtLabel);
+            }
 #else
       Q_UNUSED(evtType);
       Q_UNUSED(ii);

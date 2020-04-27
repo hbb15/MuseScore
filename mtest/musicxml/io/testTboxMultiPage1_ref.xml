@@ -108,6 +108,7 @@
         </note>
       </measure>
     <measure number="7">
+      <print new-page="yes"/>
       <direction placement="above">
         <direction-type>
           <words valign="top" font-size="12">Tbox 5</words>

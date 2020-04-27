@@ -1,7 +1,4 @@
 {
-    "fontName": "Bravura", 
-    "fontVersion": 1.204, 
-
     "engravingDefaults": {
         "arrowShaftThickness": 0.16, 
         "barlineSeparation": 0.4, 
@@ -31,6 +28,8 @@
         "tieMidpointThickness": 0.22, 
         "tupletBracketThickness": 0.16
     }, 
+    "fontName": "Bravura", 
+    "fontVersion": 1.32, 
     "glyphBBoxes": {
         "4stringTabClef": {
             "bBoxNE": [
@@ -2904,22 +2903,22 @@
         }, 
         "accidentalBracketLeft": {
             "bBoxNE": [
-                0.308, 
-                1.0
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -1.0
+                0.0
             ]
         }, 
         "accidentalBracketRight": {
             "bBoxNE": [
-                0.308, 
-                1.0
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -1.0
+                0.0
             ]
         }, 
         "accidentalBuyukMucennebFlat": {
@@ -2954,52 +2953,52 @@
         }, 
         "accidentalCombiningLower17Schisma": {
             "bBoxNE": [
-                0.792, 
-                0.88
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.504
+                0.0
             ]
         }, 
         "accidentalCombiningLower19Schisma": {
             "bBoxNE": [
-                0.792, 
-                0.26
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.496
+                0.0
             ]
         }, 
         "accidentalCombiningLower23Limit29LimitComma": {
             "bBoxNE": [
-                0.988, 
-                1.18
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.5
+                0.0
             ]
         }, 
         "accidentalCombiningLower31Schisma": {
             "bBoxNE": [
-                1.188, 
-                0.332
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                0.152
+                0.0
             ]
         }, 
         "accidentalCombiningLower53LimitComma": {
             "bBoxNE": [
-                0.792, 
-                1.48
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.504
+                0.0
             ]
         }, 
         "accidentalCombiningOpenCurlyBrace": {
@@ -3014,52 +3013,52 @@
         }, 
         "accidentalCombiningRaise17Schisma": {
             "bBoxNE": [
-                0.792, 
-                0.88
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.504
+                0.0
             ]
         }, 
         "accidentalCombiningRaise19Schisma": {
             "bBoxNE": [
-                0.792, 
-                0.26
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.496
+                0.0
             ]
         }, 
         "accidentalCombiningRaise23Limit29LimitComma": {
             "bBoxNE": [
-                0.988, 
-                1.02
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.66
+                0.0
             ]
         }, 
         "accidentalCombiningRaise31Schisma": {
             "bBoxNE": [
-                1.188, 
-                0.836
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.352
+                0.0
             ]
         }, 
         "accidentalCombiningRaise53LimitComma": {
             "bBoxNE": [
-                0.792, 
-                1.48
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.504
+                0.0
             ]
         }, 
         "accidentalCommaSlashDown": {
@@ -3144,12 +3143,12 @@
         }, 
         "accidentalDoubleFlatParens": {
             "bBoxNE": [
-                2.772, 
-                1.748
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.992
+                0.0
             ]
         }, 
         "accidentalDoubleFlatReversed": {
@@ -3264,12 +3263,12 @@
         }, 
         "accidentalDoubleSharpParens": {
             "bBoxNE": [
-                1.992, 
-                0.988
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.992
+                0.0
             ]
         }, 
         "accidentalDoubleSharpThreeArrowsDown": {
@@ -3284,12 +3283,12 @@
         }, 
         "accidentalDoubleSharpThreeArrowsUp": {
             "bBoxNE": [
-                0.984, 
-                2.208
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
-                -0.004, 
-                -0.5
+                0.0, 
+                0.0
             ]
         }, 
         "accidentalDoubleSharpTwoArrowsDown": {
@@ -3314,12 +3313,12 @@
         }, 
         "accidentalEnharmonicAlmostEqualTo": {
             "bBoxNE": [
-                1.732, 
-                0.64
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.64
+                0.0
             ]
         }, 
         "accidentalEnharmonicEquals": {
@@ -3334,12 +3333,12 @@
         }, 
         "accidentalEnharmonicTilde": {
             "bBoxNE": [
-                1.732, 
-                0.34
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.34
+                0.0
             ]
         }, 
         "accidentalFilledReversedFlatAndFlat": {
@@ -3524,12 +3523,12 @@
         }, 
         "accidentalFlatParens": {
             "bBoxNE": [
-                2.024, 
-                1.756
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.992
+                0.0
             ]
         }, 
         "accidentalFlatRaisedStockhausen": {
@@ -3804,12 +3803,12 @@
         }, 
         "accidentalJohnstonUp": {
             "bBoxNE": [
-                0.72, 
-                0.72
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.5
+                0.0
             ]
         }, 
         "accidentalJohnstonUpEl": {
@@ -3884,22 +3883,22 @@
         }, 
         "accidentalLowerOneSeptimalComma": {
             "bBoxNE": [
-                0.684, 
-                1.616
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.5
+                0.0
             ]
         }, 
         "accidentalLowerOneTridecimalQuartertone": {
             "bBoxNE": [
-                0.9, 
-                1.748
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.696
+                0.0
             ]
         }, 
         "accidentalLowerOneUndecimalQuartertone": {
@@ -4024,12 +4023,12 @@
         }, 
         "accidentalNaturalParens": {
             "bBoxNE": [
-                2.164, 
-                1.364
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -1.34
+                0.0
             ]
         }, 
         "accidentalNaturalRaisedStockhausen": {
@@ -4194,22 +4193,22 @@
         }, 
         "accidentalParensLeft": {
             "bBoxNE": [
-                0.564, 
-                0.988
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.992
+                0.0
             ]
         }, 
         "accidentalParensRight": {
             "bBoxNE": [
-                0.564, 
-                0.988
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.992
+                0.0
             ]
         }, 
         "accidentalQuarterFlatEqualTempered": {
@@ -4254,12 +4253,12 @@
         }, 
         "accidentalQuarterToneFlatArrowUp": {
             "bBoxNE": [
-                0.992, 
-                2.316
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
-                -0.168, 
-                -0.708
+                0.0, 
+                0.0
             ]
         }, 
         "accidentalQuarterToneFlatFilledReversed": {
@@ -4384,22 +4383,22 @@
         }, 
         "accidentalRaiseOneSeptimalComma": {
             "bBoxNE": [
-                0.684, 
-                1.608
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.508
+                0.0
             ]
         }, 
         "accidentalRaiseOneTridecimalQuartertone": {
             "bBoxNE": [
-                1.076, 
-                1.524
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
-                -0.004, 
-                -1.3
+                0.0, 
+                0.0
             ]
         }, 
         "accidentalRaiseOneUndecimalQuartertone": {
@@ -4594,12 +4593,12 @@
         }, 
         "accidentalSharpParens": {
             "bBoxNE": [
-                2.24, 
-                1.4
+                0.0, 
+                0.0
             ], 
             "bBoxSW": [
                 0.0, 
-                -1.392
+                0.0
             ]
         }, 
         "accidentalSharpRaisedStockhausen": {
@@ -6845,61 +6844,61 @@
         "brassDoitLong": {
             "bBoxNE": [
                 4.596, 
-                1.552
+                1.392
             ], 
             "bBoxSW": [
                 0.0, 
-                0.0
+                -0.16
             ]
         }, 
         "brassDoitMedium": {
             "bBoxNE": [
                 1.956, 
-                1.544
+                1.384
             ], 
             "bBoxSW": [
                 0.0, 
-                0.0
+                -0.16
             ]
         }, 
         "brassDoitShort": {
             "bBoxNE": [
                 1.28, 
-                1.532
+                1.412
             ], 
             "bBoxSW": [
                 0.004, 
-                -0.012
+                -0.132
             ]
         }, 
         "brassFallLipLong": {
             "bBoxNE": [
                 4.596, 
-                1.552
+                0.152
             ], 
             "bBoxSW": [
                 0.0, 
-                0.0
+                -1.4
             ]
         }, 
         "brassFallLipMedium": {
             "bBoxNE": [
                 1.956, 
-                1.544
+                0.144
             ], 
             "bBoxSW": [
                 0.0, 
-                0.0
+                -1.4
             ]
         }, 
         "brassFallLipShort": {
             "bBoxNE": [
                 1.172, 
-                1.528
+                0.168
             ], 
             "bBoxSW": [
                 0.004, 
-                -0.02
+                -1.38
             ]
         }, 
         "brassFallRoughLong": {
@@ -7115,21 +7114,21 @@
         "brassPlop": {
             "bBoxNE": [
                 1.172, 
-                1.528
+                1.488
             ], 
             "bBoxSW": [
                 0.004, 
-                -0.02
+                -0.06
             ]
         }, 
         "brassScoop": {
             "bBoxNE": [
                 1.28, 
-                1.532
+                0.052
             ], 
             "bBoxSW": [
                 0.004, 
-                -0.012
+                -1.492
             ]
         }, 
         "brassSmear": {
@@ -7865,7 +7864,7 @@
         "chantPunctumDeminutum": {
             "bBoxNE": [
                 0.364, 
-                0.232
+                0.228
             ], 
             "bBoxSW": [
                 0.0, 
@@ -8092,6 +8091,16 @@
                 0.0
             ]
         }, 
+        "clefChangeCombining": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
         "coda": {
             "bBoxNE": [
                 3.82, 
@@ -8230,6 +8239,236 @@
             "bBoxSW": [
                 0.0, 
                 0.0
+            ]
+        }, 
+        "controlBeginBeam": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "controlBeginPhrase": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "controlBeginSlur": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "controlBeginTie": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "controlEndBeam": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "controlEndPhrase": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "controlEndSlur": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "controlEndTie": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "csymAccidentalDoubleFlat": {
+            "bBoxNE": [
+                2.096, 
+                3.0
+            ], 
+            "bBoxSW": [
+                0.004, 
+                -0.004
+            ]
+        }, 
+        "csymAccidentalDoubleFlatSmall": {
+            "bBoxNE": [
+                1.984, 
+                3.004
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "csymAccidentalDoubleSharp": {
+            "bBoxNE": [
+                1.776, 
+                1.796
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "csymAccidentalDoubleSharpSmall": {
+            "bBoxNE": [
+                1.776, 
+                1.796
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "csymAccidentalFlat": {
+            "bBoxNE": [
+                1.136, 
+                3.0
+            ], 
+            "bBoxSW": [
+                0.004, 
+                -0.004
+            ]
+        }, 
+        "csymAccidentalFlatSmall": {
+            "bBoxNE": [
+                1.132, 
+                3.004
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "csymAccidentalNatural": {
+            "bBoxNE": [
+                0.736, 
+                3.004
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "csymAccidentalNaturalSmall": {
+            "bBoxNE": [
+                0.836, 
+                3.004
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "csymAccidentalSharp": {
+            "bBoxNE": [
+                1.24, 
+                3.048
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.052
+            ]
+        }, 
+        "csymAccidentalSharpSmall": {
+            "bBoxNE": [
+                1.4, 
+                3.048
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.052
+            ]
+        }, 
+        "csymAccidentalTripleFlat": {
+            "bBoxNE": [
+                3.056, 
+                3.0
+            ], 
+            "bBoxSW": [
+                0.004, 
+                -0.004
+            ]
+        }, 
+        "csymAccidentalTripleFlatSmall": {
+            "bBoxNE": [
+                2.848, 
+                3.004
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "csymAccidentalTripleSharp": {
+            "bBoxNE": [
+                2.348, 
+                3.048
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.052
+            ]
+        }, 
+        "csymAccidentalTripleSharpSmall": {
+            "bBoxNE": [
+                2.9, 
+                3.048
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.052
+            ]
+        }, 
+        "csymAlteredBassSlash": {
+            "bBoxNE": [
+                1.256, 
+                3.4
+            ], 
+            "bBoxSW": [
+                -0.172, 
+                -0.584
             ]
         }, 
         "csymAugmented": {
@@ -8590,6 +8829,26 @@
             "bBoxSW": [
                 0.12, 
                 0.428
+            ]
+        }, 
+        "dynamicCombinedSeparatorSlash": {
+            "bBoxNE": [
+                1.044, 
+                2.148
+            ], 
+            "bBoxSW": [
+                -0.152, 
+                -0.592
+            ]
+        }, 
+        "dynamicCombinedSeparatorSpace": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
             ]
         }, 
         "dynamicCrescendoHairpin": {
@@ -10275,7 +10534,7 @@
         "figbassParensRight": {
             "bBoxNE": [
                 0.352, 
-                1.088
+                1.084
             ], 
             "bBoxSW": [
                 -0.036, 
@@ -10312,6 +10571,16 @@
                 -0.004
             ]
         }, 
+        "fingering0Italic": {
+            "bBoxNE": [
+                0.864, 
+                0.972
+            ], 
+            "bBoxSW": [
+                0.036, 
+                -0.02
+            ]
+        }, 
         "fingering1": {
             "bBoxNE": [
                 0.548, 
@@ -10319,6 +10588,16 @@
             ], 
             "bBoxSW": [
                 0.08, 
+                0.0
+            ]
+        }, 
+        "fingering1Italic": {
+            "bBoxNE": [
+                0.704, 
+                0.964
+            ], 
+            "bBoxSW": [
+                0.064, 
                 0.0
             ]
         }, 
@@ -10332,6 +10611,16 @@
                 -0.012
             ]
         }, 
+        "fingering2Italic": {
+            "bBoxNE": [
+                0.892, 
+                0.972
+            ], 
+            "bBoxSW": [
+                0.064, 
+                -0.012
+            ]
+        }, 
         "fingering3": {
             "bBoxNE": [
                 0.82, 
@@ -10340,6 +10629,16 @@
             "bBoxSW": [
                 0.08, 
                 0.0
+            ]
+        }, 
+        "fingering3Italic": {
+            "bBoxNE": [
+                0.832, 
+                0.972
+            ], 
+            "bBoxSW": [
+                0.064, 
+                -0.02
             ]
         }, 
         "fingering4": {
@@ -10352,6 +10651,16 @@
                 0.004
             ]
         }, 
+        "fingering4Italic": {
+            "bBoxNE": [
+                0.852, 
+                0.964
+            ], 
+            "bBoxSW": [
+                0.064, 
+                0.0
+            ]
+        }, 
         "fingering5": {
             "bBoxNE": [
                 0.82, 
@@ -10360,6 +10669,96 @@
             "bBoxSW": [
                 0.08, 
                 0.0
+            ]
+        }, 
+        "fingering5Italic": {
+            "bBoxNE": [
+                0.888, 
+                0.968
+            ], 
+            "bBoxSW": [
+                0.064, 
+                -0.02
+            ]
+        }, 
+        "fingering6": {
+            "bBoxNE": [
+                0.864, 
+                1.0
+            ], 
+            "bBoxSW": [
+                0.08, 
+                0.0
+            ]
+        }, 
+        "fingering6Italic": {
+            "bBoxNE": [
+                0.856, 
+                0.972
+            ], 
+            "bBoxSW": [
+                0.064, 
+                -0.02
+            ]
+        }, 
+        "fingering7": {
+            "bBoxNE": [
+                0.868, 
+                0.98
+            ], 
+            "bBoxSW": [
+                0.08, 
+                0.0
+            ]
+        }, 
+        "fingering7Italic": {
+            "bBoxNE": [
+                0.864, 
+                0.964
+            ], 
+            "bBoxSW": [
+                0.076, 
+                -0.008
+            ]
+        }, 
+        "fingering8": {
+            "bBoxNE": [
+                0.848, 
+                1.004
+            ], 
+            "bBoxSW": [
+                0.08, 
+                0.0
+            ]
+        }, 
+        "fingering8Italic": {
+            "bBoxNE": [
+                0.876, 
+                0.972
+            ], 
+            "bBoxSW": [
+                0.064, 
+                -0.02
+            ]
+        }, 
+        "fingering9": {
+            "bBoxNE": [
+                0.864, 
+                1.0
+            ], 
+            "bBoxSW": [
+                0.08, 
+                0.0
+            ]
+        }, 
+        "fingering9Italic": {
+            "bBoxNE": [
+                0.852, 
+                0.972
+            ], 
+            "bBoxSW": [
+                0.064, 
+                -0.02
             ]
         }, 
         "fingeringALower": {
@@ -10440,6 +10839,96 @@
             "bBoxSW": [
                 -0.216, 
                 -0.612
+            ]
+        }, 
+        "fingeringQLower": {
+            "bBoxNE": [
+                0.996, 
+                1.028
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.552
+            ]
+        }, 
+        "fingeringRightBracket": {
+            "bBoxNE": [
+                0.272, 
+                1.076
+            ], 
+            "bBoxSW": [
+                -0.044, 
+                -0.08
+            ]
+        }, 
+        "fingeringRightBracketItalic": {
+            "bBoxNE": [
+                0.432, 
+                1.076
+            ], 
+            "bBoxSW": [
+                -0.084, 
+                -0.08
+            ]
+        }, 
+        "fingeringRightParenthesis": {
+            "bBoxNE": [
+                0.352, 
+                1.084
+            ], 
+            "bBoxSW": [
+                -0.036, 
+                -0.096
+            ]
+        }, 
+        "fingeringRightParenthesisItalic": {
+            "bBoxNE": [
+                0.392, 
+                1.084
+            ], 
+            "bBoxSW": [
+                -0.116, 
+                -0.096
+            ]
+        }, 
+        "fingeringSLower": {
+            "bBoxNE": [
+                0.836, 
+                1.048
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.024
+            ]
+        }, 
+        "fingeringSeparatorMiddleDot": {
+            "bBoxNE": [
+                0.516, 
+                0.7
+            ], 
+            "bBoxSW": [
+                0.092, 
+                0.276
+            ]
+        }, 
+        "fingeringSeparatorMiddleDotWhite": {
+            "bBoxNE": [
+                0.516, 
+                0.7
+            ], 
+            "bBoxSW": [
+                0.092, 
+                0.276
+            ]
+        }, 
+        "fingeringSeparatorSlash": {
+            "bBoxNE": [
+                0.648, 
+                1.224
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.264
             ]
         }, 
         "fingeringSubstitutionAbove": {
@@ -10644,8 +11133,8 @@
         }, 
         "flag16thDown": {
             "bBoxNE": [
-                1.164, 
-                3.252
+                1.16, 
+                3.248
             ], 
             "bBoxSW": [
                 0.0, 
@@ -10995,7 +11484,7 @@
         "flag8thDown": {
             "bBoxNE": [
                 1.224, 
-                3.236
+                3.232
             ], 
             "bBoxSW": [
                 0.0, 
@@ -11005,7 +11494,7 @@
         "flag8thDownSmall": {
             "bBoxNE": [
                 1.076, 
-                3.236
+                3.232
             ], 
             "bBoxSW": [
                 0.004, 
@@ -11029,7 +11518,7 @@
             ], 
             "bBoxSW": [
                 0.0, 
-                -3.244
+                -3.24
             ]
         }, 
         "flag8thUpShort": {
@@ -12024,7 +12513,7 @@
         }, 
         "gClef9Above": {
             "bBoxNE": [
-                3.132, 
+                3.128, 
                 4.908
             ], 
             "bBoxSW": [
@@ -12049,13 +12538,13 @@
             ], 
             "bBoxSW": [
                 0.0, 
-                -2.868
+                -2.864
             ]
         }, 
         "gClefArrowUp": {
             "bBoxNE": [
                 2.684, 
-                4.808
+                4.804
             ], 
             "bBoxSW": [
                 0.0, 
@@ -13362,6 +13851,836 @@
                 0.0
             ]
         }, 
+        "indianDrumClef": {
+            "bBoxNE": [
+                2.588, 
+                1.752
+            ], 
+            "bBoxSW": [
+                0.008, 
+                -2.064
+            ]
+        }, 
+        "kahnBackChug": {
+            "bBoxNE": [
+                2.36, 
+                2.792
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnBackFlap": {
+            "bBoxNE": [
+                0.784, 
+                2.748
+            ], 
+            "bBoxSW": [
+                0.004, 
+                0.004
+            ]
+        }, 
+        "kahnBackRiff": {
+            "bBoxNE": [
+                2.308, 
+                2.808
+            ], 
+            "bBoxSW": [
+                0.004, 
+                0.0
+            ]
+        }, 
+        "kahnBackRip": {
+            "bBoxNE": [
+                1.832, 
+                2.692
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnBallChange": {
+            "bBoxNE": [
+                1.628, 
+                2.792
+            ], 
+            "bBoxSW": [
+                0.004, 
+                0.004
+            ]
+        }, 
+        "kahnBallDig": {
+            "bBoxNE": [
+                1.784, 
+                2.804
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnBrushBackward": {
+            "bBoxNE": [
+                1.128, 
+                2.336
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.084
+            ]
+        }, 
+        "kahnBrushForward": {
+            "bBoxNE": [
+                1.128, 
+                2.336
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.084
+            ]
+        }, 
+        "kahnChug": {
+            "bBoxNE": [
+                2.36, 
+                2.792
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnClap": {
+            "bBoxNE": [
+                1.14, 
+                2.632
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnDoubleSnap": {
+            "bBoxNE": [
+                1.152, 
+                2.668
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.164
+            ]
+        }, 
+        "kahnDoubleWing": {
+            "bBoxNE": [
+                2.432, 
+                2.628
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnDrawStep": {
+            "bBoxNE": [
+                2.624, 
+                2.668
+            ], 
+            "bBoxSW": [
+                0.008, 
+                0.004
+            ]
+        }, 
+        "kahnDrawTap": {
+            "bBoxNE": [
+                3.452, 
+                2.548
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnFlam": {
+            "bBoxNE": [
+                1.752, 
+                2.78
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnFlap": {
+            "bBoxNE": [
+                1.324, 
+                2.716
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnFlapStep": {
+            "bBoxNE": [
+                1.368, 
+                2.812
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnFlat": {
+            "bBoxNE": [
+                0.848, 
+                2.612
+            ], 
+            "bBoxSW": [
+                0.0, 
+                2.296
+            ]
+        }, 
+        "kahnFleaHop": {
+            "bBoxNE": [
+                3.608, 
+                2.508
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.116
+            ]
+        }, 
+        "kahnFleaTap": {
+            "bBoxNE": [
+                2.208, 
+                2.54
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnGraceTap": {
+            "bBoxNE": [
+                1.072, 
+                1.48
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.776
+            ]
+        }, 
+        "kahnGraceTapChange": {
+            "bBoxNE": [
+                1.616, 
+                2.812
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnGraceTapHop": {
+            "bBoxNE": [
+                1.604, 
+                2.812
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnGraceTapStamp": {
+            "bBoxNE": [
+                1.696, 
+                2.792
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnHeel": {
+            "bBoxNE": [
+                0.772, 
+                2.764
+            ], 
+            "bBoxSW": [
+                0.0, 
+                1.992
+            ]
+        }, 
+        "kahnHeelChange": {
+            "bBoxNE": [
+                1.444, 
+                2.536
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnHeelClick": {
+            "bBoxNE": [
+                1.94, 
+                2.168
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.204
+            ]
+        }, 
+        "kahnHeelDrop": {
+            "bBoxNE": [
+                1.224, 
+                1.38
+            ], 
+            "bBoxSW": [
+                0.012, 
+                0.168
+            ]
+        }, 
+        "kahnHeelStep": {
+            "bBoxNE": [
+                1.204, 
+                2.8
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnHeelTap": {
+            "bBoxNE": [
+                2.08, 
+                2.788
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnHop": {
+            "bBoxNE": [
+                1.112, 
+                2.656
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnJumpApart": {
+            "bBoxNE": [
+                2.072, 
+                2.604
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnJumpTogether": {
+            "bBoxNE": [
+                0.976, 
+                2.628
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnKneeInward": {
+            "bBoxNE": [
+                0.544, 
+                2.784
+            ], 
+            "bBoxSW": [
+                0.0, 
+                1.908
+            ]
+        }, 
+        "kahnKneeOutward": {
+            "bBoxNE": [
+                0.544, 
+                2.784
+            ], 
+            "bBoxSW": [
+                0.0, 
+                1.908
+            ]
+        }, 
+        "kahnLeap": {
+            "bBoxNE": [
+                1.616, 
+                2.812
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnLeapFlatFoot": {
+            "bBoxNE": [
+                1.72, 
+                2.776
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnLeapHeelClick": {
+            "bBoxNE": [
+                1.616, 
+                2.812
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnLeftCatch": {
+            "bBoxNE": [
+                1.716, 
+                1.864
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.124
+            ]
+        }, 
+        "kahnLeftCross": {
+            "bBoxNE": [
+                1.716, 
+                1.864
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.124
+            ]
+        }, 
+        "kahnLeftFoot": {
+            "bBoxNE": [
+                0.688, 
+                2.676
+            ], 
+            "bBoxSW": [
+                0.004, 
+                1.876
+            ]
+        }, 
+        "kahnLeftToeStrike": {
+            "bBoxNE": [
+                1.94, 
+                2.168
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.204
+            ]
+        }, 
+        "kahnLeftTurn": {
+            "bBoxNE": [
+                2.3, 
+                2.788
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnOverTheTop": {
+            "bBoxNE": [
+                1.696, 
+                2.8
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnOverTheTopTap": {
+            "bBoxNE": [
+                1.624, 
+                2.68
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnPull": {
+            "bBoxNE": [
+                2.368, 
+                2.8
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnPush": {
+            "bBoxNE": [
+                2.368, 
+                2.8
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnRiff": {
+            "bBoxNE": [
+                3.324, 
+                2.764
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.084
+            ]
+        }, 
+        "kahnRiffle": {
+            "bBoxNE": [
+                1.168, 
+                2.736
+            ], 
+            "bBoxSW": [
+                0.004, 
+                0.088
+            ]
+        }, 
+        "kahnRightCatch": {
+            "bBoxNE": [
+                1.716, 
+                1.864
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.124
+            ]
+        }, 
+        "kahnRightCross": {
+            "bBoxNE": [
+                1.716, 
+                1.864
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.124
+            ]
+        }, 
+        "kahnRightFoot": {
+            "bBoxNE": [
+                0.756, 
+                2.692
+            ], 
+            "bBoxSW": [
+                0.0, 
+                1.872
+            ]
+        }, 
+        "kahnRightToeStrike": {
+            "bBoxNE": [
+                1.94, 
+                2.168
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.204
+            ]
+        }, 
+        "kahnRightTurn": {
+            "bBoxNE": [
+                2.3, 
+                2.788
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnRip": {
+            "bBoxNE": [
+                1.22, 
+                2.792
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnRipple": {
+            "bBoxNE": [
+                1.184, 
+                2.696
+            ], 
+            "bBoxSW": [
+                0.004, 
+                0.092
+            ]
+        }, 
+        "kahnScrape": {
+            "bBoxNE": [
+                0.904, 
+                2.448
+            ], 
+            "bBoxSW": [
+                0.0, 
+                1.904
+            ]
+        }, 
+        "kahnScuff": {
+            "bBoxNE": [
+                2.124, 
+                2.764
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.084
+            ]
+        }, 
+        "kahnScuffle": {
+            "bBoxNE": [
+                1.276, 
+                2.592
+            ], 
+            "bBoxSW": [
+                0.004, 
+                0.032
+            ]
+        }, 
+        "kahnShuffle": {
+            "bBoxNE": [
+                1.14, 
+                2.684
+            ], 
+            "bBoxSW": [
+                0.004, 
+                0.088
+            ]
+        }, 
+        "kahnSlam": {
+            "bBoxNE": [
+                2.608, 
+                2.216
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnSlap": {
+            "bBoxNE": [
+                0.784, 
+                2.748
+            ], 
+            "bBoxSW": [
+                0.004, 
+                0.004
+            ]
+        }, 
+        "kahnSlideStep": {
+            "bBoxNE": [
+                3.456, 
+                2.548
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "kahnSlideTap": {
+            "bBoxNE": [
+                2.62, 
+                2.668
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnSnap": {
+            "bBoxNE": [
+                1.336, 
+                1.908
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.572
+            ]
+        }, 
+        "kahnStamp": {
+            "bBoxNE": [
+                1.276, 
+                2.812
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnStampStamp": {
+            "bBoxNE": [
+                1.528, 
+                2.536
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnStep": {
+            "bBoxNE": [
+                1.112, 
+                2.656
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnStepStamp": {
+            "bBoxNE": [
+                1.568, 
+                2.536
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnStomp": {
+            "bBoxNE": [
+                1.784, 
+                2.66
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnStompBrush": {
+            "bBoxNE": [
+                1.972, 
+                2.68
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnTap": {
+            "bBoxNE": [
+                1.112, 
+                2.656
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnToe": {
+            "bBoxNE": [
+                0.772, 
+                2.784
+            ], 
+            "bBoxSW": [
+                0.0, 
+                2.012
+            ]
+        }, 
+        "kahnToeClick": {
+            "bBoxNE": [
+                1.836, 
+                1.956
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.096
+            ]
+        }, 
+        "kahnToeDrop": {
+            "bBoxNE": [
+                0.988, 
+                1.196
+            ], 
+            "bBoxSW": [
+                0.008, 
+                0.216
+            ]
+        }, 
+        "kahnToeStep": {
+            "bBoxNE": [
+                1.288, 
+                2.792
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnToeTap": {
+            "bBoxNE": [
+                2.156, 
+                2.8
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnTrench": {
+            "bBoxNE": [
+                2.236, 
+                2.684
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.004
+            ]
+        }, 
+        "kahnWing": {
+            "bBoxNE": [
+                2.292, 
+                2.784
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnWingChange": {
+            "bBoxNE": [
+                1.832, 
+                2.796
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnZank": {
+            "bBoxNE": [
+                2.468, 
+                2.812
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
+        "kahnZink": {
+            "bBoxNE": [
+                2.788, 
+                2.64
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.004
+            ]
+        }, 
         "keyboardBebung2DotsAbove": {
             "bBoxNE": [
                 1.78, 
@@ -13945,7 +15264,7 @@
         "kodalyHandMi": {
             "bBoxNE": [
                 4.996, 
-                1.684
+                1.68
             ], 
             "bBoxSW": [
                 0.0, 
@@ -14904,51 +16223,51 @@
         }, 
         "luteItalianFret0": {
             "bBoxNE": [
-                1.124, 
-                1.2
+                1.12, 
+                1.196
             ], 
             "bBoxSW": [
-                0.096, 
+                0.092, 
                 -0.004
             ]
         }, 
         "luteItalianFret1": {
             "bBoxNE": [
-                0.648, 
-                1.2
+                0.644, 
+                1.196
             ], 
             "bBoxSW": [
-                0.096, 
+                0.092, 
                 0.0
             ]
         }, 
         "luteItalianFret2": {
             "bBoxNE": [
-                1.052, 
+                1.048, 
                 1.2
             ], 
             "bBoxSW": [
-                0.096, 
-                -0.012
+                0.092, 
+                -0.008
             ]
         }, 
         "luteItalianFret3": {
             "bBoxNE": [
-                0.976, 
+                0.972, 
                 1.2
             ], 
             "bBoxSW": [
-                0.096, 
+                0.092, 
                 0.0
             ]
         }, 
         "luteItalianFret4": {
             "bBoxNE": [
-                1.028, 
+                1.024, 
                 1.204
             ], 
             "bBoxSW": [
-                0.096, 
+                0.092, 
                 0.004
             ]
         }, 
@@ -14964,41 +16283,41 @@
         }, 
         "luteItalianFret6": {
             "bBoxNE": [
-                1.036, 
+                1.032, 
                 1.2
             ], 
             "bBoxSW": [
-                0.096, 
+                0.092, 
                 0.0
             ]
         }, 
         "luteItalianFret7": {
             "bBoxNE": [
-                1.068, 
+                1.064, 
                 1.204
             ], 
             "bBoxSW": [
-                0.1, 
+                0.096, 
                 0.0
             ]
         }, 
         "luteItalianFret8": {
             "bBoxNE": [
-                1.016, 
-                1.204
+                1.012, 
+                1.2
             ], 
             "bBoxSW": [
-                0.096, 
+                0.092, 
                 0.0
             ]
         }, 
         "luteItalianFret9": {
             "bBoxNE": [
-                1.036, 
+                1.032, 
                 1.2
             ], 
             "bBoxSW": [
-                0.096, 
+                0.092, 
                 0.0
             ]
         }, 
@@ -19365,11 +20684,11 @@
         "noteWhole": {
             "bBoxNE": [
                 1.836, 
-                0.592
+                0.544
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.5
+                -0.548
             ]
         }, 
         "noteheadBlack": {
@@ -20195,41 +21514,41 @@
         "noteheadLargeArrowDownBlack": {
             "bBoxNE": [
                 1.328, 
-                1.0
+                0.5
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.5
+                -1.0
             ]
         }, 
         "noteheadLargeArrowDownDoubleWhole": {
             "bBoxNE": [
                 2.204, 
-                1.12
+                0.62
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.64
+                -1.14
             ]
         }, 
         "noteheadLargeArrowDownHalf": {
             "bBoxNE": [
                 1.44, 
-                1.0
+                0.5
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.5
+                -1.0
             ]
         }, 
         "noteheadLargeArrowDownWhole": {
             "bBoxNE": [
                 1.44, 
-                1.0
+                0.5
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.5
+                -1.0
             ]
         }, 
         "noteheadLargeArrowUpBlack": {
@@ -20290,6 +21609,16 @@
             "bBoxSW": [
                 0.0, 
                 -0.5
+            ]
+        }, 
+        "noteheadNull": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
             ]
         }, 
         "noteheadParenthesis": {
@@ -21202,6 +22531,656 @@
                 0.864
             ]
         }, 
+        "oneHandedRollStevens": {
+            "bBoxNE": [
+                1.084, 
+                0.78
+            ], 
+            "bBoxSW": [
+                -1.084, 
+                0.0
+            ]
+        }, 
+        "organGerman2Fusae": {
+            "bBoxNE": [
+                2.792, 
+                1.544
+            ], 
+            "bBoxSW": [
+                1.208, 
+                -0.744
+            ]
+        }, 
+        "organGerman2Minimae": {
+            "bBoxNE": [
+                2.792, 
+                1.548
+            ], 
+            "bBoxSW": [
+                1.208, 
+                -0.74
+            ]
+        }, 
+        "organGerman2OctaveUp": {
+            "bBoxNE": [
+                1.048, 
+                2.036
+            ], 
+            "bBoxSW": [
+                -1.052, 
+                1.64
+            ]
+        }, 
+        "organGerman2Semifusae": {
+            "bBoxNE": [
+                2.792, 
+                1.544
+            ], 
+            "bBoxSW": [
+                1.208, 
+                -0.744
+            ]
+        }, 
+        "organGerman2Semiminimae": {
+            "bBoxNE": [
+                2.792, 
+                1.544
+            ], 
+            "bBoxSW": [
+                1.208, 
+                -0.744
+            ]
+        }, 
+        "organGerman3Fusae": {
+            "bBoxNE": [
+                3.816, 
+                1.544
+            ], 
+            "bBoxSW": [
+                2.184, 
+                -0.744
+            ]
+        }, 
+        "organGerman3Minimae": {
+            "bBoxNE": [
+                3.816, 
+                1.548
+            ], 
+            "bBoxSW": [
+                2.184, 
+                -0.744
+            ]
+        }, 
+        "organGerman3Semifusae": {
+            "bBoxNE": [
+                3.816, 
+                1.544
+            ], 
+            "bBoxSW": [
+                2.18, 
+                -0.744
+            ]
+        }, 
+        "organGerman3Semiminimae": {
+            "bBoxNE": [
+                3.816, 
+                1.544
+            ], 
+            "bBoxSW": [
+                2.184, 
+                -0.744
+            ]
+        }, 
+        "organGerman4Fusae": {
+            "bBoxNE": [
+                5.076, 
+                1.544
+            ], 
+            "bBoxSW": [
+                2.92, 
+                -0.744
+            ]
+        }, 
+        "organGerman4Minimae": {
+            "bBoxNE": [
+                5.076, 
+                1.548
+            ], 
+            "bBoxSW": [
+                2.92, 
+                -0.744
+            ]
+        }, 
+        "organGerman4Semifusae": {
+            "bBoxNE": [
+                5.076, 
+                1.544
+            ], 
+            "bBoxSW": [
+                2.92, 
+                -0.748
+            ]
+        }, 
+        "organGerman4Semiminimae": {
+            "bBoxNE": [
+                5.076, 
+                1.544
+            ], 
+            "bBoxSW": [
+                2.92, 
+                -0.744
+            ]
+        }, 
+        "organGerman5Fusae": {
+            "bBoxNE": [
+                6.328, 
+                1.544
+            ], 
+            "bBoxSW": [
+                3.66, 
+                -0.744
+            ]
+        }, 
+        "organGerman5Minimae": {
+            "bBoxNE": [
+                6.352, 
+                1.556
+            ], 
+            "bBoxSW": [
+                3.668, 
+                -0.748
+            ]
+        }, 
+        "organGerman5Semifusae": {
+            "bBoxNE": [
+                6.352, 
+                1.556
+            ], 
+            "bBoxSW": [
+                3.656, 
+                -0.752
+            ]
+        }, 
+        "organGerman5Semiminimae": {
+            "bBoxNE": [
+                6.356, 
+                1.544
+            ], 
+            "bBoxSW": [
+                3.668, 
+                -0.764
+            ]
+        }, 
+        "organGerman6Fusae": {
+            "bBoxNE": [
+                7.512, 
+                1.544
+            ], 
+            "bBoxSW": [
+                4.476, 
+                -0.744
+            ]
+        }, 
+        "organGerman6Minimae": {
+            "bBoxNE": [
+                7.544, 
+                1.544
+            ], 
+            "bBoxSW": [
+                4.48, 
+                -0.764
+            ]
+        }, 
+        "organGerman6Semifusae": {
+            "bBoxNE": [
+                7.524, 
+                1.564
+            ], 
+            "bBoxSW": [
+                4.448, 
+                -0.748
+            ]
+        }, 
+        "organGerman6Semiminimae": {
+            "bBoxNE": [
+                7.524, 
+                1.56
+            ], 
+            "bBoxSW": [
+                4.456, 
+                -0.756
+            ]
+        }, 
+        "organGermanALower": {
+            "bBoxNE": [
+                1.82, 
+                1.22
+            ], 
+            "bBoxSW": [
+                0.34, 
+                0.024
+            ]
+        }, 
+        "organGermanAUpper": {
+            "bBoxNE": [
+                1.956, 
+                2.4
+            ], 
+            "bBoxSW": [
+                0.044, 
+                0.004
+            ]
+        }, 
+        "organGermanAugmentationDot": {
+            "bBoxNE": [
+                0.608, 
+                -0.092
+            ], 
+            "bBoxSW": [
+                0.316, 
+                -0.408
+            ]
+        }, 
+        "organGermanBLower": {
+            "bBoxNE": [
+                1.668, 
+                2.396
+            ], 
+            "bBoxSW": [
+                0.488, 
+                0.024
+            ]
+        }, 
+        "organGermanBUpper": {
+            "bBoxNE": [
+                1.888, 
+                2.392
+            ], 
+            "bBoxSW": [
+                0.112, 
+                0.032
+            ]
+        }, 
+        "organGermanBuxheimerBrevis2": {
+            "bBoxNE": [
+                1.492, 
+                -0.092
+            ], 
+            "bBoxSW": [
+                0.496, 
+                -0.408
+            ]
+        }, 
+        "organGermanBuxheimerBrevis3": {
+            "bBoxNE": [
+                1.84, 
+                -0.092
+            ], 
+            "bBoxSW": [
+                0.14, 
+                -0.408
+            ]
+        }, 
+        "organGermanBuxheimerMinimaRest": {
+            "bBoxNE": [
+                2.172, 
+                1.228
+            ], 
+            "bBoxSW": [
+                -0.18, 
+                0.016
+            ]
+        }, 
+        "organGermanBuxheimerSemibrevis": {
+            "bBoxNE": [
+                1.14, 
+                -0.092
+            ], 
+            "bBoxSW": [
+                0.848, 
+                -0.408
+            ]
+        }, 
+        "organGermanBuxheimerSemibrevisRest": {
+            "bBoxNE": [
+                2.172, 
+                1.22
+            ], 
+            "bBoxSW": [
+                -0.18, 
+                0.004
+            ]
+        }, 
+        "organGermanCLower": {
+            "bBoxNE": [
+                1.536, 
+                1.22
+            ], 
+            "bBoxSW": [
+                0.464, 
+                0.028
+            ]
+        }, 
+        "organGermanCUpper": {
+            "bBoxNE": [
+                1.812, 
+                2.388
+            ], 
+            "bBoxSW": [
+                0.188, 
+                0.02
+            ]
+        }, 
+        "organGermanCisLower": {
+            "bBoxNE": [
+                2.276, 
+                1.22
+            ], 
+            "bBoxSW": [
+                0.44, 
+                -1.588
+            ]
+        }, 
+        "organGermanCisUpper": {
+            "bBoxNE": [
+                2.644, 
+                2.392
+            ], 
+            "bBoxSW": [
+                0.076, 
+                -1.576
+            ]
+        }, 
+        "organGermanDLower": {
+            "bBoxNE": [
+                1.708, 
+                2.392
+            ], 
+            "bBoxSW": [
+                0.292, 
+                0.024
+            ]
+        }, 
+        "organGermanDUpper": {
+            "bBoxNE": [
+                2.044, 
+                2.404
+            ], 
+            "bBoxSW": [
+                -0.044, 
+                0.02
+            ]
+        }, 
+        "organGermanDisLower": {
+            "bBoxNE": [
+                2.672, 
+                2.396
+            ], 
+            "bBoxSW": [
+                0.252, 
+                -1.588
+            ]
+        }, 
+        "organGermanDisUpper": {
+            "bBoxNE": [
+                3.004, 
+                2.408
+            ], 
+            "bBoxSW": [
+                -0.288, 
+                -1.588
+            ]
+        }, 
+        "organGermanELower": {
+            "bBoxNE": [
+                1.484, 
+                1.24
+            ], 
+            "bBoxSW": [
+                0.516, 
+                -0.024
+            ]
+        }, 
+        "organGermanEUpper": {
+            "bBoxNE": [
+                1.684, 
+                2.392
+            ], 
+            "bBoxSW": [
+                0.316, 
+                0.024
+            ]
+        }, 
+        "organGermanFLower": {
+            "bBoxNE": [
+                1.548, 
+                2.392
+            ], 
+            "bBoxSW": [
+                0.448, 
+                -1.092
+            ]
+        }, 
+        "organGermanFUpper": {
+            "bBoxNE": [
+                1.724, 
+                2.396
+            ], 
+            "bBoxSW": [
+                0.276, 
+                0.016
+            ]
+        }, 
+        "organGermanFisLower": {
+            "bBoxNE": [
+                2.296, 
+                2.396
+            ], 
+            "bBoxSW": [
+                0.42, 
+                -1.592
+            ]
+        }, 
+        "organGermanFisUpper": {
+            "bBoxNE": [
+                2.88, 
+                2.408
+            ], 
+            "bBoxSW": [
+                0.16, 
+                -1.576
+            ]
+        }, 
+        "organGermanFusa": {
+            "bBoxNE": [
+                1.276, 
+                1.544
+            ], 
+            "bBoxSW": [
+                0.72, 
+                -0.74
+            ]
+        }, 
+        "organGermanFusaRest": {
+            "bBoxNE": [
+                1.276, 
+                1.88
+            ], 
+            "bBoxSW": [
+                0.72, 
+                0.044
+            ]
+        }, 
+        "organGermanGLower": {
+            "bBoxNE": [
+                1.52, 
+                1.22
+            ], 
+            "bBoxSW": [
+                0.264, 
+                -1.6
+            ]
+        }, 
+        "organGermanGUpper": {
+            "bBoxNE": [
+                1.912, 
+                2.396
+            ], 
+            "bBoxSW": [
+                -0.312, 
+                0.016
+            ]
+        }, 
+        "organGermanGisLower": {
+            "bBoxNE": [
+                2.804, 
+                1.228
+            ], 
+            "bBoxSW": [
+                0.256, 
+                -1.588
+            ]
+        }, 
+        "organGermanGisUpper": {
+            "bBoxNE": [
+                2.972, 
+                2.392
+            ], 
+            "bBoxSW": [
+                -0.492, 
+                -1.58
+            ]
+        }, 
+        "organGermanHLower": {
+            "bBoxNE": [
+                1.8, 
+                2.392
+            ], 
+            "bBoxSW": [
+                0.196, 
+                -1.092
+            ]
+        }, 
+        "organGermanHUpper": {
+            "bBoxNE": [
+                1.952, 
+                2.4
+            ], 
+            "bBoxSW": [
+                0.06, 
+                -1.072
+            ]
+        }, 
+        "organGermanMinima": {
+            "bBoxNE": [
+                1.276, 
+                1.544
+            ], 
+            "bBoxSW": [
+                0.72, 
+                -0.74
+            ]
+        }, 
+        "organGermanMinimaRest": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "organGermanOctaveDown": {
+            "bBoxNE": [
+                1.048, 
+                1.86
+            ], 
+            "bBoxSW": [
+                -1.052, 
+                1.728
+            ]
+        }, 
+        "organGermanOctaveUp": {
+            "bBoxNE": [
+                1.048, 
+                1.772
+            ], 
+            "bBoxSW": [
+                -1.048, 
+                1.64
+            ]
+        }, 
+        "organGermanSemibrevis": {
+            "bBoxNE": [
+                1.108, 
+                1.576
+            ], 
+            "bBoxSW": [
+                0.892, 
+                -0.776
+            ]
+        }, 
+        "organGermanSemibrevisRest": {
+            "bBoxNE": [
+                1.108, 
+                1.9
+            ], 
+            "bBoxSW": [
+                0.892, 
+                0.016
+            ]
+        }, 
+        "organGermanSemifusa": {
+            "bBoxNE": [
+                1.276, 
+                1.54
+            ], 
+            "bBoxSW": [
+                0.72, 
+                -0.74
+            ]
+        }, 
+        "organGermanSemifusaRest": {
+            "bBoxNE": [
+                1.276, 
+                1.876
+            ], 
+            "bBoxSW": [
+                0.72, 
+                0.04
+            ]
+        }, 
+        "organGermanSemiminima": {
+            "bBoxNE": [
+                1.28, 
+                1.544
+            ], 
+            "bBoxSW": [
+                0.72, 
+                -0.748
+            ]
+        }, 
+        "organGermanSemiminimaRest": {
+            "bBoxNE": [
+                1.28, 
+                1.872
+            ], 
+            "bBoxSW": [
+                0.72, 
+                0.048
+            ]
+        }, 
+        "organGermanTie": {
+            "bBoxNE": [
+                1.152, 
+                0.396
+            ], 
+            "bBoxSW": [
+                -1.156, 
+                -0.256
+            ]
+        }, 
         "ornamentBottomLeftConcaveStroke": {
             "bBoxNE": [
                 1.528, 
@@ -21889,17 +23868,17 @@
             ], 
             "bBoxSW": [
                 0.0, 
-                -0.004
+                0.0
             ]
         }, 
         "ornamentShortObliqueLineBeforeNote": {
             "bBoxNE": [
-                0.792, 
+                0.788, 
                 1.2
             ], 
             "bBoxSW": [
-                0.004, 
-                -0.004
+                0.0, 
+                0.0
             ]
         }, 
         "ornamentTopLeftConcaveStroke": {
@@ -21984,8 +23963,8 @@
         }, 
         "ornamentTrillNaturalAbove": {
             "bBoxNE": [
-                2.084, 
-                3.384
+                2.956, 
+                3.38
             ], 
             "bBoxSW": [
                 0.0, 
@@ -22029,7 +24008,7 @@
             ], 
             "bBoxSW": [
                 0.0, 
-                -1.98
+                -1.976
             ]
         }, 
         "ornamentTurnFlatBelow": {
@@ -22039,7 +24018,7 @@
             ], 
             "bBoxSW": [
                 0.0, 
-                -1.708
+                -1.704
             ]
         }, 
         "ornamentTurnInverted": {
@@ -22055,7 +24034,7 @@
         "ornamentTurnNaturalAbove": {
             "bBoxNE": [
                 1.84, 
-                2.824
+                2.82
             ], 
             "bBoxSW": [
                 0.0, 
@@ -22089,7 +24068,7 @@
             ], 
             "bBoxSW": [
                 0.0, 
-                -1.708
+                -1.704
             ]
         }, 
         "ornamentTurnSharpBelow": {
@@ -22099,7 +24078,7 @@
             ], 
             "bBoxSW": [
                 0.0, 
-                -1.98
+                -1.976
             ]
         }, 
         "ornamentTurnSlash": {
@@ -22624,7 +24603,7 @@
         }, 
         "pictBeaterHardXylophoneLeft": {
             "bBoxNE": [
-                1.74, 
+                1.736, 
                 2.644
             ], 
             "bBoxSW": [
@@ -26222,6 +28201,166 @@
                 0.0
             ]
         }, 
+        "staffPosLower1": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosLower2": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosLower3": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosLower4": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosLower5": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosLower6": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosLower7": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosLower8": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosRaise1": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosRaise2": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosRaise3": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosRaise4": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosRaise5": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosRaise6": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosRaise7": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "staffPosRaise8": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
         "stem": {
             "bBoxNE": [
                 0.06, 
@@ -27762,6 +29901,46 @@
                 -1.488
             ]
         }, 
+        "timeSigBracketRightSmallLarge": {
+            "bBoxNE": [
+                0.2, 
+                1.316
+            ], 
+            "bBoxSW": [
+                0.012, 
+                -1.32
+            ]
+        }, 
+        "timeSigBracketRightSmallNarrow": {
+            "bBoxNE": [
+                0.472, 
+                1.456
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -1.488
+            ]
+        }, 
+        "timeSigCombDenominator": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
+        "timeSigCombNumerator": {
+            "bBoxNE": [
+                0.0, 
+                0.0
+            ], 
+            "bBoxSW": [
+                0.0, 
+                0.0
+            ]
+        }, 
         "timeSigComma": {
             "bBoxNE": [
                 0.736, 
@@ -27885,31 +30064,91 @@
         "timeSigFractionHalf": {
             "bBoxNE": [
                 1.62, 
-                0.992
+                0.988
             ], 
             "bBoxSW": [
                 0.076, 
-                -0.992
+                -0.988
+            ]
+        }, 
+        "timeSigFractionHalfLarge": {
+            "bBoxNE": [
+                0.596, 
+                1.028
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -1.028
+            ]
+        }, 
+        "timeSigFractionHalfNarrow": {
+            "bBoxNE": [
+                1.62, 
+                0.988
+            ], 
+            "bBoxSW": [
+                0.076, 
+                -0.988
             ]
         }, 
         "timeSigFractionOneThird": {
             "bBoxNE": [
                 1.688, 
-                1.0
+                0.996
             ], 
             "bBoxSW": [
                 0.076, 
-                -1.0
+                -0.996
+            ]
+        }, 
+        "timeSigFractionOneThirdLarge": {
+            "bBoxNE": [
+                0.596, 
+                1.028
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -1.028
+            ]
+        }, 
+        "timeSigFractionOneThirdNarrow": {
+            "bBoxNE": [
+                1.688, 
+                0.996
+            ], 
+            "bBoxSW": [
+                0.076, 
+                -0.996
             ]
         }, 
         "timeSigFractionQuarter": {
             "bBoxNE": [
                 1.592, 
-                1.004
+                1.0
             ], 
             "bBoxSW": [
                 0.068, 
-                -0.992
+                -0.988
+            ]
+        }, 
+        "timeSigFractionQuarterLarge": {
+            "bBoxNE": [
+                0.576, 
+                1.028
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -1.028
+            ]
+        }, 
+        "timeSigFractionQuarterNarrow": {
+            "bBoxNE": [
+                1.592, 
+                1.0
+            ], 
+            "bBoxSW": [
+                0.076, 
+                -0.988
             ]
         }, 
         "timeSigFractionThreeQuarters": {
@@ -27919,7 +30158,27 @@
             ], 
             "bBoxSW": [
                 0.072, 
-                -1.0
+                -0.996
+            ]
+        }, 
+        "timeSigFractionThreeQuartersLarge": {
+            "bBoxNE": [
+                0.632, 
+                1.028
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -1.028
+            ]
+        }, 
+        "timeSigFractionThreeQuartersNarrow": {
+            "bBoxNE": [
+                1.724, 
+                1.0
+            ], 
+            "bBoxSW": [
+                0.072, 
+                -0.996
             ]
         }, 
         "timeSigFractionTwoThirds": {
@@ -27929,7 +30188,27 @@
             ], 
             "bBoxSW": [
                 0.06, 
-                -1.0
+                -0.996
+            ]
+        }, 
+        "timeSigFractionTwoThirdsLarge": {
+            "bBoxNE": [
+                0.68, 
+                1.028
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -1.028
+            ]
+        }, 
+        "timeSigFractionTwoThirdsNarrow": {
+            "bBoxNE": [
+                1.728, 
+                1.0
+            ], 
+            "bBoxSW": [
+                0.06, 
+                -0.996
             ]
         }, 
         "timeSigFractionalSlash": {
@@ -28038,7 +30317,27 @@
                 0.488
             ], 
             "bBoxSW": [
-                -0.004, 
+                0.0, 
+                -0.528
+            ]
+        }, 
+        "timeSigPlusSmallLarge": {
+            "bBoxNE": [
+                0.448, 
+                0.628
+            ], 
+            "bBoxSW": [
+                0.0, 
+                -0.628
+            ]
+        }, 
+        "timeSigPlusSmallNarrow": {
+            "bBoxNE": [
+                0.608, 
+                0.488
+            ], 
+            "bBoxSW": [
+                0.0, 
                 -0.528
             ]
         }, 
@@ -28244,11 +30543,11 @@
         }, 
         "tuplet0": {
             "bBoxNE": [
-                1.276, 
+                1.272, 
                 1.5
             ], 
             "bBoxSW": [
-                -0.004, 
+                0.0, 
                 -0.032
             ]
         }, 
@@ -28334,7 +30633,7 @@
         }, 
         "tuplet9": {
             "bBoxNE": [
-                1.256, 
+                1.252, 
                 1.5
             ], 
             "bBoxSW": [
@@ -30851,6 +33150,10 @@
                 {
                     "codepoint": "U+F45D", 
                     "name": "timeSig0Small"
+                }, 
+                {
+                    "codepoint": "U+F506", 
+                    "name": "timeSig0Narrow"
                 }
             ]
         }, 
@@ -30863,6 +33166,10 @@
                 {
                     "codepoint": "U+F45E", 
                     "name": "timeSig1Small"
+                }, 
+                {
+                    "codepoint": "U+F507", 
+                    "name": "timeSig1Narrow"
                 }
             ]
         }, 
@@ -30875,6 +33182,10 @@
                 {
                     "codepoint": "U+F45F", 
                     "name": "timeSig2Small"
+                }, 
+                {
+                    "codepoint": "U+F508", 
+                    "name": "timeSig2Narrow"
                 }
             ]
         }, 
@@ -30887,6 +33198,10 @@
                 {
                     "codepoint": "U+F460", 
                     "name": "timeSig3Small"
+                }, 
+                {
+                    "codepoint": "U+F509", 
+                    "name": "timeSig3Narrow"
                 }
             ]
         }, 
@@ -30899,6 +33214,10 @@
                 {
                     "codepoint": "U+F461", 
                     "name": "timeSig4Small"
+                }, 
+                {
+                    "codepoint": "U+F50A", 
+                    "name": "timeSig4Narrow"
                 }
             ]
         }, 
@@ -30911,6 +33230,10 @@
                 {
                     "codepoint": "U+F462", 
                     "name": "timeSig5Small"
+                }, 
+                {
+                    "codepoint": "U+F50B", 
+                    "name": "timeSig5Narrow"
                 }
             ]
         }, 
@@ -30923,6 +33246,10 @@
                 {
                     "codepoint": "U+F463", 
                     "name": "timeSig6Small"
+                }, 
+                {
+                    "codepoint": "U+F50C", 
+                    "name": "timeSig6Narrow"
                 }
             ]
         }, 
@@ -30935,6 +33262,10 @@
                 {
                     "codepoint": "U+F464", 
                     "name": "timeSig7Small"
+                }, 
+                {
+                    "codepoint": "U+F50D", 
+                    "name": "timeSig7Narrow"
                 }
             ]
         }, 
@@ -30947,6 +33278,10 @@
                 {
                     "codepoint": "U+F465", 
                     "name": "timeSig8Small"
+                }, 
+                {
+                    "codepoint": "U+F50E", 
+                    "name": "timeSig8Narrow"
                 }
             ]
         }, 
@@ -30959,6 +33294,70 @@
                 {
                     "codepoint": "U+F466", 
                     "name": "timeSig9Small"
+                }, 
+                {
+                    "codepoint": "U+F50F", 
+                    "name": "timeSig9Narrow"
+                }
+            ]
+        }, 
+        "timeSigBracketLeft": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4FF", 
+                    "name": "timeSigBracketLeftLarge"
+                }, 
+                {
+                    "codepoint": "U+F524", 
+                    "name": "timeSigBracketLeftNarrow"
+                }
+            ]
+        }, 
+        "timeSigBracketLeftSmall": {
+            "alternates": [
+                {
+                    "codepoint": "U+F501", 
+                    "name": "timeSigBracketLeftSmallLarge"
+                }, 
+                {
+                    "codepoint": "U+F526", 
+                    "name": "timeSigBracketLeftSmallNarrow"
+                }
+            ]
+        }, 
+        "timeSigBracketRight": {
+            "alternates": [
+                {
+                    "codepoint": "U+F500", 
+                    "name": "timeSigBracketRightLarge"
+                }, 
+                {
+                    "codepoint": "U+F525", 
+                    "name": "timeSigBracketRightNarrow"
+                }
+            ]
+        }, 
+        "timeSigBracketRightSmall": {
+            "alternates": [
+                {
+                    "codepoint": "U+F502", 
+                    "name": "timeSigBracketRightSmallLarge"
+                }, 
+                {
+                    "codepoint": "U+F527", 
+                    "name": "timeSigBracketRightSmallNarrow"
+                }
+            ]
+        }, 
+        "timeSigComma": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F7", 
+                    "name": "timeSigCommaLarge"
+                }, 
+                {
+                    "codepoint": "U+F51C", 
+                    "name": "timeSigCommaNarrow"
                 }
             ]
         }, 
@@ -30967,6 +33366,34 @@
                 {
                     "codepoint": "U+F44A", 
                     "name": "timeSigCommonLarge"
+                }, 
+                {
+                    "codepoint": "U+F510", 
+                    "name": "timeSigCommonNarrow"
+                }
+            ]
+        }, 
+        "timeSigCut2": {
+            "alternates": [
+                {
+                    "codepoint": "U+F504", 
+                    "name": "timeSigCut2Large"
+                }, 
+                {
+                    "codepoint": "U+F529", 
+                    "name": "timeSigCut2Narrow"
+                }
+            ]
+        }, 
+        "timeSigCut3": {
+            "alternates": [
+                {
+                    "codepoint": "U+F505", 
+                    "name": "timeSigCut3Large"
+                }, 
+                {
+                    "codepoint": "U+F52A", 
+                    "name": "timeSigCut3Narrow"
                 }
             ]
         }, 
@@ -30975,6 +33402,178 @@
                 {
                     "codepoint": "U+F44B", 
                     "name": "timeSigCutCommonLarge"
+                }, 
+                {
+                    "codepoint": "U+F511", 
+                    "name": "timeSigCutCommonNarrow"
+                }
+            ]
+        }, 
+        "timeSigEquals": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F0", 
+                    "name": "timeSigEqualsLarge"
+                }, 
+                {
+                    "codepoint": "U+F515", 
+                    "name": "timeSigEqualsNarrow"
+                }
+            ]
+        }, 
+        "timeSigFractionHalf": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F9", 
+                    "name": "timeSigFractionHalfLarge"
+                }, 
+                {
+                    "codepoint": "U+F51E", 
+                    "name": "timeSigFractionHalfNarrow"
+                }
+            ]
+        }, 
+        "timeSigFractionOneThird": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4FB", 
+                    "name": "timeSigFractionOneThirdLarge"
+                }, 
+                {
+                    "codepoint": "U+F520", 
+                    "name": "timeSigFractionOneThirdNarrow"
+                }
+            ]
+        }, 
+        "timeSigFractionQuarter": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F8", 
+                    "name": "timeSigFractionQuarterLarge"
+                }, 
+                {
+                    "codepoint": "U+F51D", 
+                    "name": "timeSigFractionQuarterNarrow"
+                }
+            ]
+        }, 
+        "timeSigFractionThreeQuarters": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4FA", 
+                    "name": "timeSigFractionThreeQuartersLarge"
+                }, 
+                {
+                    "codepoint": "U+F51F", 
+                    "name": "timeSigFractionThreeQuartersNarrow"
+                }
+            ]
+        }, 
+        "timeSigFractionTwoThirds": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4FC", 
+                    "name": "timeSigFractionTwoThirdsLarge"
+                }, 
+                {
+                    "codepoint": "U+F521", 
+                    "name": "timeSigFractionTwoThirdsNarrow"
+                }
+            ]
+        }, 
+        "timeSigFractionalSlash": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4EF", 
+                    "name": "timeSigFractionalSlashLarge"
+                }, 
+                {
+                    "codepoint": "U+F514", 
+                    "name": "timeSigFractionalSlashNarrow"
+                }
+            ]
+        }, 
+        "timeSigMinus": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F1", 
+                    "name": "timeSigMinusLarge"
+                }, 
+                {
+                    "codepoint": "U+F516", 
+                    "name": "timeSigMinusNarrow"
+                }
+            ]
+        }, 
+        "timeSigMultiply": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F2", 
+                    "name": "timeSigMultiplyLarge"
+                }, 
+                {
+                    "codepoint": "U+F517", 
+                    "name": "timeSigMultiplyNarrow"
+                }
+            ]
+        }, 
+        "timeSigOpenPenderecki": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4FE", 
+                    "name": "timeSigOpenPendereckiLarge"
+                }, 
+                {
+                    "codepoint": "U+F523", 
+                    "name": "timeSigOpenPendereckiNarrow"
+                }
+            ]
+        }, 
+        "timeSigParensLeft": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F5", 
+                    "name": "timeSigParensLeftLarge"
+                }, 
+                {
+                    "codepoint": "U+F51A", 
+                    "name": "timeSigParensLeftNarrow"
+                }
+            ]
+        }, 
+        "timeSigParensLeftSmall": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F3", 
+                    "name": "timeSigParensLeftSmallLarge"
+                }, 
+                {
+                    "codepoint": "U+F518", 
+                    "name": "timeSigParensLeftSmallNarrow"
+                }
+            ]
+        }, 
+        "timeSigParensRight": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F6", 
+                    "name": "timeSigParensRightLarge"
+                }, 
+                {
+                    "codepoint": "U+F51B", 
+                    "name": "timeSigParensRightNarrow"
+                }
+            ]
+        }, 
+        "timeSigParensRightSmall": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4F4", 
+                    "name": "timeSigParensRightSmallLarge"
+                }, 
+                {
+                    "codepoint": "U+F519", 
+                    "name": "timeSigParensRightSmallNarrow"
                 }
             ]
         }, 
@@ -30983,6 +33582,46 @@
                 {
                     "codepoint": "U+F44C", 
                     "name": "timeSigPlusLarge"
+                }, 
+                {
+                    "codepoint": "U+F512", 
+                    "name": "timeSigPlusNarrow"
+                }
+            ]
+        }, 
+        "timeSigPlusSmall": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4EE", 
+                    "name": "timeSigPlusSmallLarge"
+                }, 
+                {
+                    "codepoint": "U+F513", 
+                    "name": "timeSigPlusSmallNarrow"
+                }
+            ]
+        }, 
+        "timeSigSlash": {
+            "alternates": [
+                {
+                    "codepoint": "U+F503", 
+                    "name": "timeSigSlashLarge"
+                }, 
+                {
+                    "codepoint": "U+F528", 
+                    "name": "timeSigSlashNarrow"
+                }
+            ]
+        }, 
+        "timeSigX": {
+            "alternates": [
+                {
+                    "codepoint": "U+F4FD", 
+                    "name": "timeSigXLarge"
+                }, 
+                {
+                    "codepoint": "U+F522", 
+                    "name": "timeSigXNarrow"
                 }
             ]
         }, 
@@ -31618,8 +34257,8 @@
         }, 
         "accidentalLowerOneTridecimalQuartertone": {
             "cutOutNW": [
-                0.436, 
-                1.404
+                0.372, 
+                0.7
             ], 
             "cutOutSW": [
                 0.304, 
@@ -31976,8 +34615,8 @@
         }, 
         "accidentalRaiseOneSeptimalComma": {
             "cutOutSE": [
-                0.22, 
-                1.288
+                0.3, 
+                -0.352
             ]
         }, 
         "accidentalRaiseOneTridecimalQuartertone": {
@@ -33428,6 +36067,22 @@
                 0.0
             ]
         }, 
+        "mensuralNoteheadMinimaWhite": {
+            "stemDownNW": [
+                0.0, 
+                0.0
+            ], 
+            "stemUpSE": [
+                1.28, 
+                0.0
+            ]
+        }, 
+        "metNoteDoubleWhole": {
+            "noteheadOrigin": [
+                0.396, 
+                0.0
+            ]
+        }, 
         "noteABlack": {
             "stemDownNW": [
                 0.0, 
@@ -34823,11 +37478,11 @@
         "noteheadLargeArrowDownBlack": {
             "stemDownNW": [
                 0.0, 
-                1.0
+                0.5
             ], 
             "stemUpSE": [
                 1.328, 
-                1.0
+                0.5
             ]
         }, 
         "noteheadLargeArrowDownDoubleWhole": {
@@ -34839,11 +37494,11 @@
         "noteheadLargeArrowDownHalf": {
             "stemDownNW": [
                 0.0, 
-                0.948
+                0.444
             ], 
             "stemUpSE": [
                 1.44, 
-                0.944
+                0.444
             ]
         }, 
         "noteheadLargeArrowUpBlack": {
@@ -39049,6 +41704,11 @@
             "classes": [], 
             "codepoint": "U+F440"
         }, 
+        "timeSig0Narrow": {
+            "classes": [], 
+            "codepoint": "U+F506", 
+            "description": "Time signature 0 (large, narrow)"
+        }, 
         "timeSig0Numerator": {
             "codepoint": "U+F559"
         }, 
@@ -39066,6 +41726,11 @@
             "classes": [], 
             "codepoint": "U+F441"
         }, 
+        "timeSig1Narrow": {
+            "classes": [], 
+            "codepoint": "U+F507", 
+            "description": "Time signature 1 (large, narrow)"
+        }, 
         "timeSig1Numerator": {
             "codepoint": "U+F55B"
         }, 
@@ -39079,6 +41744,11 @@
         "timeSig2Large": {
             "classes": [], 
             "codepoint": "U+F442"
+        }, 
+        "timeSig2Narrow": {
+            "classes": [], 
+            "codepoint": "U+F508", 
+            "description": "Time signature 2 (large, narrow)"
         }, 
         "timeSig2Numerator": {
             "codepoint": "U+F55D"
@@ -39099,6 +41769,11 @@
         "timeSig3Large": {
             "classes": [], 
             "codepoint": "U+F443"
+        }, 
+        "timeSig3Narrow": {
+            "classes": [], 
+            "codepoint": "U+F509", 
+            "description": "Time signature 3 (large, narrow)"
         }, 
         "timeSig3Numerator": {
             "codepoint": "U+F55F"
@@ -39123,6 +41798,11 @@
             "classes": [], 
             "codepoint": "U+F444"
         }, 
+        "timeSig4Narrow": {
+            "classes": [], 
+            "codepoint": "U+F50A", 
+            "description": "Time signature 4 (large, narrow)"
+        }, 
         "timeSig4Numerator": {
             "codepoint": "U+F561"
         }, 
@@ -39139,6 +41819,11 @@
         "timeSig5Large": {
             "classes": [], 
             "codepoint": "U+F445"
+        }, 
+        "timeSig5Narrow": {
+            "classes": [], 
+            "codepoint": "U+F50B", 
+            "description": "Time signature 5 (large, narrow)"
         }, 
         "timeSig5Numerator": {
             "codepoint": "U+F563"
@@ -39160,6 +41845,11 @@
             "classes": [], 
             "codepoint": "U+F446"
         }, 
+        "timeSig6Narrow": {
+            "classes": [], 
+            "codepoint": "U+F50C", 
+            "description": "Time signature 6 (large, narrow)"
+        }, 
         "timeSig6Numerator": {
             "codepoint": "U+F565"
         }, 
@@ -39180,6 +41870,11 @@
             "classes": [], 
             "codepoint": "U+F447"
         }, 
+        "timeSig7Narrow": {
+            "classes": [], 
+            "codepoint": "U+F50D", 
+            "description": "Time signature 7 (large, narrow)"
+        }, 
         "timeSig7Numerator": {
             "codepoint": "U+F567"
         }, 
@@ -39197,6 +41892,11 @@
             "classes": [], 
             "codepoint": "U+F448"
         }, 
+        "timeSig8Narrow": {
+            "classes": [], 
+            "codepoint": "U+F50E", 
+            "description": "Time signature 8 (large, narrow)"
+        }, 
         "timeSig8Numerator": {
             "codepoint": "U+F569"
         }, 
@@ -39211,6 +41911,11 @@
             "classes": [], 
             "codepoint": "U+F449"
         }, 
+        "timeSig9Narrow": {
+            "classes": [], 
+            "codepoint": "U+F50F", 
+            "description": "Time signature 9 (large, narrow)"
+        }, 
         "timeSig9Numerator": {
             "codepoint": "U+F56B"
         }, 
@@ -39221,17 +41926,272 @@
         "timeSig9over8": {
             "codepoint": "U+F594"
         }, 
+        "timeSigBracketLeftLarge": {
+            "classes": [], 
+            "codepoint": "U+F4FF", 
+            "description": "Left bracket for whole time signature (outside staff)"
+        }, 
+        "timeSigBracketLeftNarrow": {
+            "classes": [], 
+            "codepoint": "U+F524", 
+            "description": "Left bracket for whole time signature (narrow, large)"
+        }, 
+        "timeSigBracketLeftSmallLarge": {
+            "classes": [], 
+            "codepoint": "U+F501", 
+            "description": "Left bracket for numerator only (outside staff)"
+        }, 
+        "timeSigBracketLeftSmallNarrow": {
+            "classes": [], 
+            "codepoint": "U+F526", 
+            "description": "Left bracket for numerator only (large, narrow)"
+        }, 
+        "timeSigBracketRightLarge": {
+            "classes": [], 
+            "codepoint": "U+F500", 
+            "description": "Right bracket for whole time signature (outside staff)"
+        }, 
+        "timeSigBracketRightNarrow": {
+            "classes": [], 
+            "codepoint": "U+F525", 
+            "description": "Right bracket for whole time signature (large, narrow)"
+        }, 
+        "timeSigBracketRightSmallLarge": {
+            "classes": [], 
+            "codepoint": "U+F502", 
+            "description": "Right bracket for numerator only (outside staff)"
+        }, 
+        "timeSigBracketRightSmallNarrow": {
+            "classes": [], 
+            "codepoint": "U+F527", 
+            "description": "Right bracket for numerator only (large, narrow)"
+        }, 
+        "timeSigCommaLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F7", 
+            "description": "Time signature comma (outside staff)"
+        }, 
+        "timeSigCommaNarrow": {
+            "classes": [], 
+            "codepoint": "U+F51C", 
+            "description": "Time signature comma (large, narrow)"
+        }, 
         "timeSigCommonLarge": {
             "classes": [], 
             "codepoint": "U+F44A"
+        }, 
+        "timeSigCommonNarrow": {
+            "classes": [], 
+            "codepoint": "U+F510", 
+            "description": "Common time (large, narrow)"
+        }, 
+        "timeSigCut2Large": {
+            "classes": [], 
+            "codepoint": "U+F504", 
+            "description": "Cut time (Bach) (outside staff)"
+        }, 
+        "timeSigCut2Narrow": {
+            "classes": [], 
+            "codepoint": "U+F529", 
+            "description": "Cut time (Bach) (large, narrow)"
+        }, 
+        "timeSigCut3Large": {
+            "classes": [], 
+            "codepoint": "U+F505", 
+            "description": "Cut triple time (9/8) (outside staff)"
+        }, 
+        "timeSigCut3Narrow": {
+            "classes": [], 
+            "codepoint": "U+F52A", 
+            "description": "Cut triple time (9/8) (large, narrow)"
         }, 
         "timeSigCutCommonLarge": {
             "classes": [], 
             "codepoint": "U+F44B"
         }, 
+        "timeSigCutCommonNarrow": {
+            "classes": [], 
+            "codepoint": "U+F511", 
+            "description": "Cut time (large, narrow)"
+        }, 
+        "timeSigEqualsLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F0", 
+            "description": "Time signature equals (outside staff)"
+        }, 
+        "timeSigEqualsNarrow": {
+            "classes": [], 
+            "codepoint": "U+F515", 
+            "description": "Time signature equals (large, narrow)"
+        }, 
+        "timeSigFractionHalfLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F9", 
+            "description": "Time signature fraction \u00bd (outside staff)"
+        }, 
+        "timeSigFractionHalfNarrow": {
+            "classes": [], 
+            "codepoint": "U+F51E", 
+            "description": "Time signature fraction \u00bd (large, narrow)"
+        }, 
+        "timeSigFractionOneThirdLarge": {
+            "classes": [], 
+            "codepoint": "U+F4FB", 
+            "description": "Time signature fraction \u2153 (outside staff)"
+        }, 
+        "timeSigFractionOneThirdNarrow": {
+            "classes": [], 
+            "codepoint": "U+F520", 
+            "description": "Time signature fraction \u2153 (large, narrow)"
+        }, 
+        "timeSigFractionQuarterLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F8", 
+            "description": "Time signature fraction \u00bc (outside staff)"
+        }, 
+        "timeSigFractionQuarterNarrow": {
+            "classes": [], 
+            "codepoint": "U+F51D", 
+            "description": "Time signature fraction \u00bc (large, narrow)"
+        }, 
+        "timeSigFractionThreeQuartersLarge": {
+            "classes": [], 
+            "codepoint": "U+F4FA", 
+            "description": "Time signature fraction \u00be (outside staff)"
+        }, 
+        "timeSigFractionThreeQuartersNarrow": {
+            "classes": [], 
+            "codepoint": "U+F51F", 
+            "description": "Time signature fraction \u00be (large, narrow)"
+        }, 
+        "timeSigFractionTwoThirdsLarge": {
+            "classes": [], 
+            "codepoint": "U+F4FC", 
+            "description": "Time signature fraction \u2154 (outside staff)"
+        }, 
+        "timeSigFractionTwoThirdsNarrow": {
+            "classes": [], 
+            "codepoint": "U+F521", 
+            "description": "Time signature fraction \u2154 (large, narrow)"
+        }, 
+        "timeSigFractionalSlashLarge": {
+            "classes": [], 
+            "codepoint": "U+F4EF", 
+            "description": "Time signature fraction slash (outside staff)"
+        }, 
+        "timeSigFractionalSlashNarrow": {
+            "classes": [], 
+            "codepoint": "U+F514", 
+            "description": "Time signature fraction slash (large, narrow)"
+        }, 
+        "timeSigMinusLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F1", 
+            "description": "Time signature minus (outside staff)"
+        }, 
+        "timeSigMinusNarrow": {
+            "classes": [], 
+            "codepoint": "U+F516", 
+            "description": "Time signature minus (large, narrow)"
+        }, 
+        "timeSigMultiplyLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F2", 
+            "description": "Time signature multiply (outside staff)"
+        }, 
+        "timeSigMultiplyNarrow": {
+            "classes": [], 
+            "codepoint": "U+F517", 
+            "description": "Time signature multiply (large, narrow)"
+        }, 
+        "timeSigOpenPendereckiLarge": {
+            "classes": [], 
+            "codepoint": "U+F4FE", 
+            "description": "Open time signature (Penderecki) (outside staff)"
+        }, 
+        "timeSigOpenPendereckiNarrow": {
+            "classes": [], 
+            "codepoint": "U+F523", 
+            "description": "Open time signature (Penderecki) (narrow, large)"
+        }, 
+        "timeSigParensLeftLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F5", 
+            "description": "Left parenthesis for whole time signature (outside staff)"
+        }, 
+        "timeSigParensLeftNarrow": {
+            "classes": [], 
+            "codepoint": "U+F51A", 
+            "description": "Left parenthesis for whole time signature (large, narrow)"
+        }, 
+        "timeSigParensLeftSmallLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F3", 
+            "description": "Left parenthesis for numerator only (outside staff)"
+        }, 
+        "timeSigParensLeftSmallNarrow": {
+            "classes": [], 
+            "codepoint": "U+F518", 
+            "description": "Left parenthesis for numerator only (large, narrow)"
+        }, 
+        "timeSigParensRightLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F6", 
+            "description": "Right parenthesis for whole time signature (outside staff)"
+        }, 
+        "timeSigParensRightNarrow": {
+            "classes": [], 
+            "codepoint": "U+F51B", 
+            "description": "Right parenthesis for whole time signature (large, narrow)"
+        }, 
+        "timeSigParensRightSmallLarge": {
+            "classes": [], 
+            "codepoint": "U+F4F4", 
+            "description": "Right parenthesis for numerator only (outside staff)"
+        }, 
+        "timeSigParensRightSmallNarrow": {
+            "classes": [], 
+            "codepoint": "U+F519", 
+            "description": "Right parenthesis for numerator only (large, narrow)"
+        }, 
         "timeSigPlusLarge": {
             "classes": [], 
             "codepoint": "U+F44C"
+        }, 
+        "timeSigPlusNarrow": {
+            "classes": [], 
+            "codepoint": "U+F512", 
+            "description": "Time signature + (large, narrow)"
+        }, 
+        "timeSigPlusSmallLarge": {
+            "classes": [], 
+            "codepoint": "U+F4EE", 
+            "description": "Time signature + (for numerators) (outside staff)"
+        }, 
+        "timeSigPlusSmallNarrow": {
+            "classes": [], 
+            "codepoint": "U+F513", 
+            "description": "Time signature + (for numerators) (large, narrow)"
+        }, 
+        "timeSigSlashLarge": {
+            "classes": [], 
+            "codepoint": "U+F503", 
+            "description": "Time signature slash separator (outside staff)"
+        }, 
+        "timeSigSlashNarrow": {
+            "classes": [], 
+            "codepoint": "U+F528", 
+            "description": "Time signature slash separator (large, narrow)"
+        }, 
+        "timeSigXLarge": {
+            "classes": [], 
+            "codepoint": "U+F4FD", 
+            "description": "Open time signature (outside staff)"
+        }, 
+        "timeSigXNarrow": {
+            "classes": [], 
+            "codepoint": "U+F522", 
+            "description": "Open time signature (large, narrow)"
         }, 
         "tripleTongueAboveNoSlur": {
             "classes": [], 
@@ -39739,6 +42699,150 @@
                     "alternateFor": "timeSigPlus", 
                     "codepoint": "U+F44C", 
                     "name": "timeSigPlusLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigPlusSmall", 
+                    "codepoint": "U+F4EE", 
+                    "description": "Time signature + (for numerators) (outside staff)", 
+                    "name": "timeSigPlusSmallLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionalSlash", 
+                    "codepoint": "U+F4EF", 
+                    "description": "Time signature fraction slash (outside staff)", 
+                    "name": "timeSigFractionalSlashLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigEquals", 
+                    "codepoint": "U+F4F0", 
+                    "description": "Time signature equals (outside staff)", 
+                    "name": "timeSigEqualsLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigMinus", 
+                    "codepoint": "U+F4F1", 
+                    "description": "Time signature minus (outside staff)", 
+                    "name": "timeSigMinusLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigMultiply", 
+                    "codepoint": "U+F4F2", 
+                    "description": "Time signature multiply (outside staff)", 
+                    "name": "timeSigMultiplyLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigParensLeftSmall", 
+                    "codepoint": "U+F4F3", 
+                    "description": "Left parenthesis for numerator only (outside staff)", 
+                    "name": "timeSigParensLeftSmallLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigParensRightSmall", 
+                    "codepoint": "U+F4F4", 
+                    "description": "Right parenthesis for numerator only (outside staff)", 
+                    "name": "timeSigParensRightSmallLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigParensLeft", 
+                    "codepoint": "U+F4F5", 
+                    "description": "Left parenthesis for whole time signature (outside staff)", 
+                    "name": "timeSigParensLeftLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigParensRight", 
+                    "codepoint": "U+F4F6", 
+                    "description": "Right parenthesis for whole time signature (outside staff)", 
+                    "name": "timeSigParensRightLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigComma", 
+                    "codepoint": "U+F4F7", 
+                    "description": "Time signature comma (outside staff)", 
+                    "name": "timeSigCommaLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionQuarter", 
+                    "codepoint": "U+F4F8", 
+                    "description": "Time signature fraction \u00bc (outside staff)", 
+                    "name": "timeSigFractionQuarterLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionHalf", 
+                    "codepoint": "U+F4F9", 
+                    "description": "Time signature fraction \u00bd (outside staff)", 
+                    "name": "timeSigFractionHalfLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionThreeQuarters", 
+                    "codepoint": "U+F4FA", 
+                    "description": "Time signature fraction \u00be (outside staff)", 
+                    "name": "timeSigFractionThreeQuartersLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionOneThird", 
+                    "codepoint": "U+F4FB", 
+                    "description": "Time signature fraction \u2153 (outside staff)", 
+                    "name": "timeSigFractionOneThirdLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionTwoThirds", 
+                    "codepoint": "U+F4FC", 
+                    "description": "Time signature fraction \u2154 (outside staff)", 
+                    "name": "timeSigFractionTwoThirdsLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigX", 
+                    "codepoint": "U+F4FD", 
+                    "description": "Open time signature (outside staff)", 
+                    "name": "timeSigXLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigOpenPenderecki", 
+                    "codepoint": "U+F4FE", 
+                    "description": "Open time signature (Penderecki) (outside staff)", 
+                    "name": "timeSigOpenPendereckiLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigBracketLeft", 
+                    "codepoint": "U+F4FF", 
+                    "description": "Left bracket for whole time signature (outside staff)", 
+                    "name": "timeSigBracketLeftLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigBracketRight", 
+                    "codepoint": "U+F500", 
+                    "description": "Right bracket for whole time signature (outside staff)", 
+                    "name": "timeSigBracketRightLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigBracketLeftSmall", 
+                    "codepoint": "U+F501", 
+                    "description": "Left bracket for numerator only (outside staff)", 
+                    "name": "timeSigBracketLeftSmallLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigBracketRightSmall", 
+                    "codepoint": "U+F502", 
+                    "description": "Right bracket for numerator only (outside staff)", 
+                    "name": "timeSigBracketRightSmallLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigSlash", 
+                    "codepoint": "U+F503", 
+                    "description": "Time signature slash separator (outside staff)", 
+                    "name": "timeSigSlashLarge"
+                }, 
+                {
+                    "alternateFor": "timeSigCut2", 
+                    "codepoint": "U+F504", 
+                    "description": "Cut time (Bach) (outside staff)", 
+                    "name": "timeSigCut2Large"
+                }, 
+                {
+                    "alternateFor": "timeSigCut3", 
+                    "codepoint": "U+F505", 
+                    "description": "Cut triple time (9/8) (outside staff)", 
+                    "name": "timeSigCut3Large"
                 }
             ], 
             "type": "timeSigsLarge"
@@ -39773,6 +42877,456 @@
                 }
             ], 
             "type": "noteheadsLarge"
+        }, 
+        "ss06": {
+            "description": "Tuplet numbers at a lighter weight", 
+            "glyphs": [
+                {
+                    "alternateFor": "tuplet0", 
+                    "codepoint": "U+F4CC", 
+                    "description": "Tuplet 0 (light)", 
+                    "name": "tuplet0Light"
+                }, 
+                {
+                    "alternateFor": "tuplet1", 
+                    "codepoint": "U+F4CD", 
+                    "description": "Tuplet 1 (light)", 
+                    "name": "tuplet1Light"
+                }, 
+                {
+                    "alternateFor": "tuplet2", 
+                    "codepoint": "U+F4CE", 
+                    "description": "Tuplet 2 (light)", 
+                    "name": "tuplet2Light"
+                }, 
+                {
+                    "alternateFor": "tuplet3", 
+                    "codepoint": "U+F4CF", 
+                    "description": "Tuplet 3 (light)", 
+                    "name": "tuplet3Light"
+                }, 
+                {
+                    "alternateFor": "tuplet4", 
+                    "codepoint": "U+F4D0", 
+                    "description": "Tuplet 4 (light)", 
+                    "name": "tuplet4Light"
+                }, 
+                {
+                    "alternateFor": "tuplet5", 
+                    "codepoint": "U+F4D1", 
+                    "description": "Tuplet 5 (light)", 
+                    "name": "tuplet5Light"
+                }, 
+                {
+                    "alternateFor": "tuplet6", 
+                    "codepoint": "U+F4D2", 
+                    "description": "Tuplet 6 (light)", 
+                    "name": "tuplet6Light"
+                }, 
+                {
+                    "alternateFor": "tuplet7", 
+                    "codepoint": "U+F4D3", 
+                    "description": "Tuplet 7 (light)", 
+                    "name": "tuplet7Light"
+                }, 
+                {
+                    "alternateFor": "tuplet8", 
+                    "codepoint": "U+F4D4", 
+                    "description": "Tuplet 8 (light)", 
+                    "name": "tuplet8Light"
+                }, 
+                {
+                    "alternateFor": "tuplet9", 
+                    "codepoint": "U+F4D5", 
+                    "description": "Tuplet 9 (light)", 
+                    "name": "tuplet9Light"
+                }, 
+                {
+                    "alternateFor": "tupletColon", 
+                    "codepoint": "U+F4D6", 
+                    "description": "Tuplet colon (light)", 
+                    "name": "tupletColonLight"
+                }
+            ], 
+            "type": "tupletsLight"
+        }, 
+        "ss07": {
+            "description": "Smaller optical size for subscript and superscript placement", 
+            "glyphs": [
+                {
+                    "alternateFor": "csymHalfDiminished", 
+                    "codepoint": "U+F4D7", 
+                    "description": "Half-diminished (subscript or superscript)", 
+                    "name": "csymHalfDiminishedSmall"
+                }, 
+                {
+                    "alternateFor": "csymDiminished", 
+                    "codepoint": "U+F4D8", 
+                    "description": "Diminished (subscript or superscript)", 
+                    "name": "csymDiminishedSmall"
+                }, 
+                {
+                    "alternateFor": "csymAugmented", 
+                    "codepoint": "U+F4D9", 
+                    "description": "Augmented (subscript or superscript)", 
+                    "name": "csymAugmentedSmall"
+                }, 
+                {
+                    "alternateFor": "csymMajorSeventh", 
+                    "codepoint": "U+F4DA", 
+                    "description": "Major seventh (subscript or superscript)", 
+                    "name": "csymMajorSeventhSmall"
+                }, 
+                {
+                    "alternateFor": "csymMinor", 
+                    "codepoint": "U+F4DB", 
+                    "description": "Minor (subscript or superscript)", 
+                    "name": "csymMinorSmall"
+                }, 
+                {
+                    "alternateFor": "csymAccidentalFlat", 
+                    "codepoint": "U+F4DC", 
+                    "description": "Flat (superscript or subscript)", 
+                    "name": "csymAccidentalFlatSmall"
+                }, 
+                {
+                    "alternateFor": "csymAccidentalNatural", 
+                    "codepoint": "U+F4DD", 
+                    "description": "Natural (superscript or subscript)", 
+                    "name": "csymAccidentalNaturalSmall"
+                }, 
+                {
+                    "alternateFor": "csymAccidentalSharp", 
+                    "codepoint": "U+F4DE", 
+                    "description": "Sharp (superscript or subscript)", 
+                    "name": "csymAccidentalSharpSmall"
+                }, 
+                {
+                    "alternateFor": "csymAccidentalDoubleSharp", 
+                    "codepoint": "U+F4DF", 
+                    "description": "Double sharp (superscript or subscript)", 
+                    "name": "csymAccidentalDoubleSharpSmall"
+                }, 
+                {
+                    "alternateFor": "csymAccidentalDoubleFlat", 
+                    "codepoint": "U+F4E0", 
+                    "description": "Double flat (superscript or subscript)", 
+                    "name": "csymAccidentalDoubleFlatSmall"
+                }, 
+                {
+                    "alternateFor": "csymAccidentalTripleSharp", 
+                    "codepoint": "U+F4E1", 
+                    "description": "Triple sharp (superscript or subscript)", 
+                    "name": "csymAccidentalTripleSharpSmall"
+                }, 
+                {
+                    "alternateFor": "csymAccidentalTripleFlat", 
+                    "codepoint": "U+F4E2", 
+                    "description": "Triple flat (superscript or subscript)", 
+                    "name": "csymAccidentalTripleFlatSmall"
+                }
+            ], 
+            "type": "chordSymbolsOpticalVariants"
+        }, 
+        "ss08": {
+            "description": "Oversized slash noteheads", 
+            "glyphs": [
+                {
+                    "alternateFor": "noteheadSlashVerticalEnds", 
+                    "codepoint": "U+F4E3", 
+                    "description": "Oversized slash with vertical ends", 
+                    "name": "noteheadSlashVerticalEndsOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashHorizontalEnds", 
+                    "codepoint": "U+F4E4", 
+                    "description": "Oversized slash with horizontal ends", 
+                    "name": "noteheadSlashHorizontalEndsOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashWhiteWhole", 
+                    "codepoint": "U+F4E5", 
+                    "description": "Oversized white slash whole", 
+                    "name": "noteheadSlashWhiteWholeOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashWhiteHalf", 
+                    "codepoint": "U+F4E6", 
+                    "description": "Oversized white slash half", 
+                    "name": "noteheadSlashWhiteHalfOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashDiamondWhite", 
+                    "codepoint": "U+F4E7", 
+                    "description": "Oversized large white diamond", 
+                    "name": "noteheadSlashDiamondWhiteOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashVerticalEndsSmall", 
+                    "codepoint": "U+F4E8", 
+                    "description": "Oversized small slash with vertical ends", 
+                    "name": "noteheadSlashVerticalEndsSmallOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashX", 
+                    "codepoint": "U+F4E9", 
+                    "description": "Oversized large X notehead", 
+                    "name": "noteheadSlashXOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashVerticalEndsMuted", 
+                    "codepoint": "U+F4EA", 
+                    "description": "Oversized muted slash with vertical ends", 
+                    "name": "noteheadSlashVerticalEndsMutedOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashHorizontalEndsMuted", 
+                    "codepoint": "U+F4EB", 
+                    "description": "Oversized muted slash with horizontal ends", 
+                    "name": "noteheadSlashHorizontalEndsMutedOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashWhiteMuted", 
+                    "codepoint": "U+F4EC", 
+                    "description": "Oversized muted white slash", 
+                    "name": "noteheadSlashWhiteMutedOversized"
+                }, 
+                {
+                    "alternateFor": "noteheadSlashWhiteDoubleWhole", 
+                    "codepoint": "U+F4ED", 
+                    "description": "Oversized white slash double whole", 
+                    "name": "noteheadSlashWhiteDoubleWholeOversized"
+                }
+            ], 
+            "type": "slashesOversized"
+        }, 
+        "ss09": {
+            "description": "Large, narrow time signatures", 
+            "glyphs": [
+                {
+                    "alternateFor": "timeSig0", 
+                    "codepoint": "U+F506", 
+                    "description": "Time signature 0 (large, narrow)", 
+                    "name": "timeSig0Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig1", 
+                    "codepoint": "U+F507", 
+                    "description": "Time signature 1 (large, narrow)", 
+                    "name": "timeSig1Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig2", 
+                    "codepoint": "U+F508", 
+                    "description": "Time signature 2 (large, narrow)", 
+                    "name": "timeSig2Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig3", 
+                    "codepoint": "U+F509", 
+                    "description": "Time signature 3 (large, narrow)", 
+                    "name": "timeSig3Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig4", 
+                    "codepoint": "U+F50A", 
+                    "description": "Time signature 4 (large, narrow)", 
+                    "name": "timeSig4Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig5", 
+                    "codepoint": "U+F50B", 
+                    "description": "Time signature 5 (large, narrow)", 
+                    "name": "timeSig5Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig6", 
+                    "codepoint": "U+F50C", 
+                    "description": "Time signature 6 (large, narrow)", 
+                    "name": "timeSig6Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig7", 
+                    "codepoint": "U+F50D", 
+                    "description": "Time signature 7 (large, narrow)", 
+                    "name": "timeSig7Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig8", 
+                    "codepoint": "U+F50E", 
+                    "description": "Time signature 8 (large, narrow)", 
+                    "name": "timeSig8Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSig9", 
+                    "codepoint": "U+F50F", 
+                    "description": "Time signature 9 (large, narrow)", 
+                    "name": "timeSig9Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSigCommon", 
+                    "codepoint": "U+F510", 
+                    "description": "Common time (large, narrow)", 
+                    "name": "timeSigCommonNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigCutCommon", 
+                    "codepoint": "U+F511", 
+                    "description": "Cut time (large, narrow)", 
+                    "name": "timeSigCutCommonNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigPlus", 
+                    "codepoint": "U+F512", 
+                    "description": "Time signature + (large, narrow)", 
+                    "name": "timeSigPlusNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigPlusSmall", 
+                    "codepoint": "U+F513", 
+                    "description": "Time signature + (for numerators) (large, narrow)", 
+                    "name": "timeSigPlusSmallNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionalSlash", 
+                    "codepoint": "U+F514", 
+                    "description": "Time signature fraction slash (large, narrow)", 
+                    "name": "timeSigFractionalSlashNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigEquals", 
+                    "codepoint": "U+F515", 
+                    "description": "Time signature equals (large, narrow)", 
+                    "name": "timeSigEqualsNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigMinus", 
+                    "codepoint": "U+F516", 
+                    "description": "Time signature minus (large, narrow)", 
+                    "name": "timeSigMinusNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigMultiply", 
+                    "codepoint": "U+F517", 
+                    "description": "Time signature multiply (large, narrow)", 
+                    "name": "timeSigMultiplyNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigParensLeftSmall", 
+                    "codepoint": "U+F518", 
+                    "description": "Left parenthesis for numerator only (large, narrow)", 
+                    "name": "timeSigParensLeftSmallNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigParensRightSmall", 
+                    "codepoint": "U+F519", 
+                    "description": "Right parenthesis for numerator only (large, narrow)", 
+                    "name": "timeSigParensRightSmallNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigParensLeft", 
+                    "codepoint": "U+F51A", 
+                    "description": "Left parenthesis for whole time signature (large, narrow)", 
+                    "name": "timeSigParensLeftNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigParensRight", 
+                    "codepoint": "U+F51B", 
+                    "description": "Right parenthesis for whole time signature (large, narrow)", 
+                    "name": "timeSigParensRightNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigComma", 
+                    "codepoint": "U+F51C", 
+                    "description": "Time signature comma (large, narrow)", 
+                    "name": "timeSigCommaNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionQuarter", 
+                    "codepoint": "U+F51D", 
+                    "description": "Time signature fraction \u00bc (large, narrow)", 
+                    "name": "timeSigFractionQuarterNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionHalf", 
+                    "codepoint": "U+F51E", 
+                    "description": "Time signature fraction \u00bd (large, narrow)", 
+                    "name": "timeSigFractionHalfNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionThreeQuarters", 
+                    "codepoint": "U+F51F", 
+                    "description": "Time signature fraction \u00be (large, narrow)", 
+                    "name": "timeSigFractionThreeQuartersNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionOneThird", 
+                    "codepoint": "U+F520", 
+                    "description": "Time signature fraction \u2153 (large, narrow)", 
+                    "name": "timeSigFractionOneThirdNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigFractionTwoThirds", 
+                    "codepoint": "U+F521", 
+                    "description": "Time signature fraction \u2154 (large, narrow)", 
+                    "name": "timeSigFractionTwoThirdsNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigX", 
+                    "codepoint": "U+F522", 
+                    "description": "Open time signature (large, narrow)", 
+                    "name": "timeSigXNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigOpenPenderecki", 
+                    "codepoint": "U+F523", 
+                    "description": "Open time signature (Penderecki) (narrow, large)", 
+                    "name": "timeSigOpenPendereckiNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigBracketLeft", 
+                    "codepoint": "U+F524", 
+                    "description": "Left bracket for whole time signature (narrow, large)", 
+                    "name": "timeSigBracketLeftNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigBracketRight", 
+                    "codepoint": "U+F525", 
+                    "description": "Right bracket for whole time signature (large, narrow)", 
+                    "name": "timeSigBracketRightNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigBracketLeftSmall", 
+                    "codepoint": "U+F526", 
+                    "description": "Left bracket for numerator only (large, narrow)", 
+                    "name": "timeSigBracketLeftSmallNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigBracketRightSmall", 
+                    "codepoint": "U+F527", 
+                    "description": "Right bracket for numerator only (large, narrow)", 
+                    "name": "timeSigBracketRightSmallNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigSlash", 
+                    "codepoint": "U+F528", 
+                    "description": "Time signature slash separator (large, narrow)", 
+                    "name": "timeSigSlashNarrow"
+                }, 
+                {
+                    "alternateFor": "timeSigCut2", 
+                    "codepoint": "U+F529", 
+                    "description": "Cut time (Bach) (large, narrow)", 
+                    "name": "timeSigCut2Narrow"
+                }, 
+                {
+                    "alternateFor": "timeSigCut3", 
+                    "codepoint": "U+F52A", 
+                    "description": "Cut triple time (9/8) (large, narrow)", 
+                    "name": "timeSigCut3Narrow"
+                }
+            ], 
+            "type": "timeSigsLargeNarrow"
         }
     }
 }

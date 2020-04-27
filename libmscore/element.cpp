@@ -134,7 +134,7 @@ qreal Element::spatium() const
             }
       else {
             Staff* s = staff();
-            return s ? s->spatium(tick()) : score()->spatium();
+            return s ? s->spatium(this) : score()->spatium();
             }
       }
 
@@ -214,6 +214,17 @@ Element* Element::linkedClone()
       }
 
 //---------------------------------------------------------
+//   deleteLater
+//---------------------------------------------------------
+
+void Element::deleteLater()
+      {
+      if (selected())
+            score()->deselect(this);
+      masterScore()->deleteLater(this);
+      }
+
+//---------------------------------------------------------
 //   scanElements
 //---------------------------------------------------------
 
@@ -263,10 +274,20 @@ Staff* Element::staff() const
 //   staffType
 //---------------------------------------------------------
 
-StaffType* Element::staffType() const
+const StaffType* Element::staffType() const
       {
       Staff* s = staff();
-      return s ? s->staffType(tick()) : 0;
+      return s ? s->staffTypeForElement(this) : nullptr;
+      }
+
+//---------------------------------------------------------
+//   onTabStaff
+//---------------------------------------------------------
+
+bool Element::onTabStaff() const
+      {
+      const StaffType* stt = staffType();
+      return stt ? stt->isTabStaff() : false;
       }
 
 //---------------------------------------------------------
@@ -310,6 +331,16 @@ Fraction Element::rtick() const
             e = e->parent();
             }
       return Fraction(0, 1);
+      }
+
+//---------------------------------------------------------
+//   playTick
+//---------------------------------------------------------
+
+Fraction Element::playTick() const
+      {
+      // Play from the element's tick position by default.
+      return tick();
       }
 
 //---------------------------------------------------------
@@ -1383,6 +1414,26 @@ bool Element::isPrintable() const
       }
 
 //---------------------------------------------------------
+//   findAncestor
+//---------------------------------------------------------
+
+Element* Element::findAncestor(ElementType t)
+      {
+      Element* e = this;
+      while (e && e->type() != t)
+            e = e->parent();
+      return e;
+      }
+
+const Element* Element::findAncestor(ElementType t) const
+      {
+      const Element* e = this;
+      while (e && e->type() != t)
+            e = e->parent();
+      return e;
+      }
+
+//---------------------------------------------------------
 //   findMeasure
 //---------------------------------------------------------
 
@@ -1895,6 +1946,7 @@ void Element::startDrag(EditData& ed)
       eed->e = this;
       eed->pushProperty(Pid::OFFSET);
       eed->pushProperty(Pid::AUTOPLACE);
+      eed->initOffset = offset();
       ed.addData(eed);
       if (ed.modifiers & Qt::AltModifier)
             setAutoplace(false);
@@ -1910,10 +1962,13 @@ QRectF Element::drag(EditData& ed)
       if (!isMovable())
             return QRectF();
 
-      QRectF r(canvasBoundingRect());
+      const QRectF r0(canvasBoundingRect());
 
-      qreal x = ed.delta.x();
-      qreal y = ed.delta.y();
+      const ElementEditData* eed = ed.getData(this);
+
+      const QPointF offset0 = ed.moveDelta + eed->initOffset;
+      qreal x = offset0.x();
+      qreal y = offset0.y();
 
       qreal _spatium = spatium();
       if (ed.hRaster) {
@@ -1935,6 +1990,7 @@ QRectF Element::drag(EditData& ed)
             //
             // restrict move to page boundaries
             //
+            const QRectF r(canvasBoundingRect());
             Page* p = 0;
             Element* e = this;
             while (e) {
@@ -1967,7 +2023,7 @@ QRectF Element::drag(EditData& ed)
                         setOffset(QPointF(x, y));
                   }
             }
-      return canvasBoundingRect() | r;
+      return canvasBoundingRect() | r0;
       }
 
 //---------------------------------------------------------
@@ -1989,6 +2045,30 @@ void Element::endDrag(EditData& ed)
             score()->undoPropertyChanged(this, pd.id, pd.data, f);
             setGenerated(false);
             }
+      }
+
+//---------------------------------------------------------
+//   genericDragAnchorLines
+//---------------------------------------------------------
+
+QVector<QLineF> Element::genericDragAnchorLines() const
+      {
+      qreal xp = 0.0;
+      for (Element* e = parent(); e; e = e->parent())
+            xp += e->x();
+      qreal yp;
+      if (parent()->isSegment()) {
+            System* system = toSegment(parent())->measure()->system();
+            const int stIdx = staffIdx();
+            yp = system->staffCanvasYpage(stIdx);
+            if (placement() == Placement::BELOW)
+                  yp += system->staff(stIdx)->bbox().height();
+            }
+      else
+            yp = parent()->canvasPos().y();
+      QPointF p1(xp, yp);
+      QLineF anchorLine(p1, canvasPos());
+      return { anchorLine };
       }
 
 //---------------------------------------------------------
@@ -2364,7 +2444,7 @@ void Element::autoplaceSegmentElement(bool above, bool add)
                         si = firstVis;
                   }
             else {
-                  qreal mag = staff()->mag(tick());
+                  qreal mag = staff()->mag(this);
                   sp *= mag;
                   }
             qreal minDistance = _minDistance.val() * sp;

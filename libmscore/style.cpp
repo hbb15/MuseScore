@@ -275,6 +275,10 @@ static const StyleType styleTypes[] {
       { Sid::harmonyPlacement,         "harmonyPlacement",           int(Placement::ABOVE) },
       { Sid::romanNumeralPlacement,    "romanNumeralPlacement",      int(Placement::BELOW) },
       { Sid::nashvilleNumberPlacement, "nashvilleNumberPlacement",   int(Placement::ABOVE) },
+      { Sid::harmonyPlay,              "harmonyPlay",                true },
+      { Sid::harmonyVoiceLiteral,      "harmonyVoiceLiteral",        true },
+      { Sid::harmonyVoicing,           "harmonyVoicing",             int(Voicing::AUTO) },
+      { Sid::harmonyDuration,          "harmonyDuration",            int(HDuration::UNTIL_NEXT_CHORD_SYMBOL) },
 
       { Sid::chordSymbolAPosAbove,      "chordSymbolPosAbove",       QPointF(.0, -2.5) },
       { Sid::chordSymbolAPosBelow,      "chordSymbolPosBelow",       QPointF(.0, 3.5) },
@@ -498,7 +502,7 @@ static const StyleType styleTypes[] {
       { Sid::ottavaLineStyle,         "ottavaLineStyle",         QVariant(int(Qt::DashLine)) },
       { Sid::ottavaNumbersOnly,       "ottavaNumbersOnly",       true },
       { Sid::ottavaFontFace,          "ottavaFontFace",          "FreeSerif" },
-      { Sid::ottavaFontSize,          "ottavaFontSize",          12.0 },
+      { Sid::ottavaFontSize,          "ottavaFontSize",          10.0 },
       { Sid::ottavaFontSpatiumDependent, "ottavaFontSpatiumDependent", true },
       { Sid::ottavaFontStyle,         "ottavaFontStyle",         int(FontStyle::Normal) },
       { Sid::ottavaColor,             "ottavaColor",             QColor(0, 0, 0, 255) },
@@ -517,6 +521,7 @@ static const StyleType styleTypes[] {
       { Sid::tremoloStrokeWidth,      "tremoloLineWidth",        Spatium(0.5) },  // was 0.35
       { Sid::tremoloDistance,         "tremoloDistance",         Spatium(0.8) },
       { Sid::tremoloPlacement,        "tremoloPlacement",        int(TremoloPlacement::DEFAULT) },
+      { Sid::tremoloStrokeStyle,      "tremoloStrokeStyle",      int(TremoloStrokeStyle::DEFAULT) },
 
       { Sid::linearStretch,           "linearStretch",           QVariant(qreal(1.5)) },
       { Sid::crossMeasureValues,      "crossMeasureValues",      QVariant(false) },
@@ -2479,13 +2484,15 @@ const char* MStyle::valueType(const Sid i)
 //   value
 //---------------------------------------------------------
 
-QVariant MStyle::value(Sid idx) const
+const QVariant& MStyle::value(Sid idx) const
       {
-      if (!_values[int(idx)].isValid()) {
+      const QVariant& val = _values[int(idx)];
+      if (!val.isValid()) {
             qDebug("invalid style value %d %s", int(idx), MStyle::valueName(idx));
-            return QVariant();
+            static QVariant emptyVal;
+            return emptyVal;
             }
-      return _values[int(idx)];
+      return val;
       }
 
 //---------------------------------------------------------
