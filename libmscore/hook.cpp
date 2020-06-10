@@ -18,56 +18,81 @@
 #include "score.h"
 
 namespace Ms {
-
 //---------------------------------------------------------
 //   Hook
 //---------------------------------------------------------
 
 Hook::Hook(Score* s)
-  : Symbol(s, ElementFlag::NOTHING)
-      {
-      setZ(int(type()) * 100);
-      }
+    : Symbol(s, ElementFlag::NOTHING)
+{
+    setZ(int(type()) * 100);
+}
+
+//---------------------------------------------------------
+//   elementBase
+//---------------------------------------------------------
+
+Element* Hook::elementBase() const
+{
+  return parent();
+}
 
 //---------------------------------------------------------
 //   setHookType
 //---------------------------------------------------------
 
 void Hook::setHookType(int i)
-      {
-      _hookType = i;
-      switch(i) {
-            case 0:    break;
-            case 1:    setSym(SymId::flag8thUp);     break;
-            case 2:    setSym(SymId::flag16thUp);    break;
-            case 3:    setSym(SymId::flag32ndUp);    break;
-            case 4:    setSym(SymId::flag64thUp);    break;
-            case 5:    setSym(SymId::flag128thUp);   break;
-            case 6:    setSym(SymId::flag256thUp);   break;
-            case 7:    setSym(SymId::flag512thUp);   break;
-            case 8:    setSym(SymId::flag1024thUp);  break;
+{
+    _hookType = i;
+    switch (i) {
+    case 0:    break;
+    case 1:    setSym(SymId::flag8thUp);
+        break;
+    case 2:    setSym(SymId::flag16thUp);
+        break;
+    case 3:    setSym(SymId::flag32ndUp);
+        break;
+    case 4:    setSym(SymId::flag64thUp);
+        break;
+    case 5:    setSym(SymId::flag128thUp);
+        break;
+    case 6:    setSym(SymId::flag256thUp);
+        break;
+    case 7:    setSym(SymId::flag512thUp);
+        break;
+    case 8:    setSym(SymId::flag1024thUp);
+        break;
 
-            case -1:   setSym(SymId::flag8thDown);   break;
-            case -2:   setSym(SymId::flag16thDown);  break;
-            case -3:   setSym(SymId::flag32ndDown);  break;
-            case -4:   setSym(SymId::flag64thDown);  break;
-            case -5:   setSym(SymId::flag128thDown); break;
-            case -6:   setSym(SymId::flag256thDown); break;
-            case -7:   setSym(SymId::flag512thDown); break;
-            case -8:   setSym(SymId::flag1024thDown);break;
-            default:
-                  qDebug("no hook for subtype %d", i);
-                  break;
-            }
-      }
+    case -1:   setSym(SymId::flag8thDown);
+        break;
+    case -2:   setSym(SymId::flag16thDown);
+        break;
+    case -3:   setSym(SymId::flag32ndDown);
+        break;
+    case -4:   setSym(SymId::flag64thDown);
+        break;
+    case -5:   setSym(SymId::flag128thDown);
+        break;
+    case -6:   setSym(SymId::flag256thDown);
+        break;
+    case -7:   setSym(SymId::flag512thDown);
+        break;
+    case -8:   setSym(SymId::flag1024thDown);
+        break;
+    default:
+        qDebug("no hook for subtype %d", i);
+        break;
+    }
+}
 
 //---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
 
 void Hook::layout()
-      {
-      if (staff() && staff()->isNumericStaff( tick())) {
+{
+    setbbox(symBbox(_sym));
+}
 
             _numericLineThick=_numericHigth*score()->styleD(Sid::numericThickLine);
             _numericLineSpace=_numericHigth*(score()->styleD(Sid::numericDistanceBetweenLines)*-1);
@@ -89,26 +114,11 @@ void Hook::layout()
 //---------------------------------------------------------
 
 void Hook::draw(QPainter* painter) const
-      {
-
-
-      if (staff() && staff()->isNumericStaff( tick())) {
-            painter->setPen(QPen(curColor(), _numericLineThick));
-            for (int i = 0; i < qAbs(_hookType); ++i){
-
-                  painter->drawLine(QLineF(score()->styleD(Sid::numericOffsetLine)+(_numericLineWidht/2-(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2),
-                                           _numericHigthLine+(i*_numericLineSpace),
-                                           score()->styleD(Sid::numericOffsetLine)+(_numericLineWidht/2+(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2),
-                                           _numericHigthLine+(i*_numericLineSpace)));
-                  }
-            }
-      else{
-            // hide if belonging to the second chord of a cross-measure pair
-            if (chord() && chord()->crossMeasure() == CrossMeasure::SECOND)
-                  return;
-            Symbol::draw(painter);
-            }
-
-
-      }
+{
+    // hide if belonging to the second chord of a cross-measure pair
+    if (chord() && chord()->crossMeasure() == CrossMeasure::SECOND) {
+        return;
+    }
+    Symbol::draw(painter);
+}
 }

@@ -17,10 +17,9 @@
 #include "property.h"
 
 namespace Ms {
-
 class Text;
 class Spanner;
-enum class TupletNumberType  : char;
+enum class TupletNumberType : char;
 enum class TupletBracketType : char;
 
 //------------------------------------------------------------------------
@@ -34,31 +33,31 @@ enum class TupletBracketType : char;
 //!    A tuplet note has len of _baseLen * _normalNotes / _actualNotes.
 //------------------------------------------------------------------------
 
-class Tuplet final : public DurationElement {
-      std::vector<DurationElement*> _elements;
-      Direction _direction;
-      TupletNumberType _numberType;
-      TupletBracketType _bracketType;
-      Spatium _bracketWidth;
+class Tuplet final : public DurationElement
+{
+    std::vector<DurationElement*> _elements;
+    Direction _direction;
+    TupletNumberType _numberType;
+    TupletBracketType _bracketType;
+    Spatium _bracketWidth;
 
-      bool _hasBracket;
-      Fraction _ratio;
-      TDuration _baseLen;      // 1/8 for a triplet of 1/8
+    bool _hasBracket;
+    Fraction _ratio;
+    TDuration _baseLen;        // 1/8 for a triplet of 1/8
 
-      bool _isUp;
+    bool _isUp;
 
-      Fraction _tick;
+    Fraction _tick;
 
-      QPointF p1, p2;
-      QPointF _p1, _p2;       // user offset
-      mutable int _id;        // used during read/write
+    QPointF p1, p2;
+    QPointF _p1, _p2;         // user offset
+    mutable int _id;          // used during read/write
 
-      Text* _number;
-      QPointF bracketL[4];
-      QPointF bracketR[3];
+    Text* _number;
+    QPointF bracketL[4];
+    QPointF bracketR[3];
 
-      Fraction addMissingElement(const Fraction& startTick, const Fraction& endTick);
-
+<<<<<<< HEAD
       qreal _numericHigth;
       QPainterPath _SlurPath;
       QPainterPath _SlurShapePath;
@@ -68,89 +67,97 @@ class Tuplet final : public DurationElement {
       Tuplet(Score*);
       Tuplet(const Tuplet&);
       ~Tuplet();
+=======
+    Fraction addMissingElement(const Fraction& startTick, const Fraction& endTick);
+>>>>>>> merge
 
-      Tuplet* clone() const override    { return new Tuplet(*this);   }
-      ElementType type() const override { return ElementType::TUPLET; }
-      void setTrack(int val) override;
+public:
+    Tuplet(Score*);
+    Tuplet(const Tuplet&);
+    ~Tuplet();
 
-      void add(Element*) override;
-      void remove(Element*) override;
+    Tuplet* clone() const override { return new Tuplet(*this); }
+    ElementType type() const override { return ElementType::TUPLET; }
+    void setTrack(int val) override;
 
-      Text* number() const    { return _number; }
-      void setNumber(Text* t) { _number = t; }
-      void resetNumberProperty();
+    void add(Element*) override;
+    void remove(Element*) override;
 
-      bool isEditable() const override;
-      void startEditDrag(EditData&) override;
-      void editDrag(EditData&) override;
+    Text* number() const { return _number; }
+    void setNumber(Text* t) { _number = t; }
+    void resetNumberProperty();
 
-      void setSelected(bool f) override;
+    bool isEditable() const override;
+    void startEditDrag(EditData&) override;
+    void editDrag(EditData&) override;
 
-      Measure* measure() const override  { return toMeasure(parent()); }
+    void setSelected(bool f) override;
 
-      TupletNumberType numberType() const        { return _numberType;       }
-      TupletBracketType bracketType() const      { return _bracketType;      }
-      void setNumberType(TupletNumberType val)   { _numberType = val;        }
-      void setBracketType(TupletBracketType val) { _bracketType = val;       }
-      bool hasBracket() const                    { return _hasBracket;       }
-      void setHasBracket(bool b)                 { _hasBracket = b;          }
-      Spatium bracketWidth() const               { return _bracketWidth;     }
-      void setBracketWidth(Spatium s)            { _bracketWidth = s;        }
+    Measure* measure() const override { return toMeasure(parent()); }
 
-      Fraction ratio() const                     { return _ratio;         }
-      void setRatio(const Fraction& r)           { _ratio = r;            }
+    TupletNumberType numberType() const { return _numberType; }
+    TupletBracketType bracketType() const { return _bracketType; }
+    void setNumberType(TupletNumberType val) { _numberType = val; }
+    void setBracketType(TupletBracketType val) { _bracketType = val; }
+    bool hasBracket() const { return _hasBracket; }
+    void setHasBracket(bool b) { _hasBracket = b; }
+    Spatium bracketWidth() const { return _bracketWidth; }
+    void setBracketWidth(Spatium s) { _bracketWidth = s; }
 
-      const std::vector<DurationElement*>& elements() const { return _elements; }
-      void clear()                                          { _elements.clear(); }
-      bool contains(const DurationElement* el) const { return std::find(_elements.begin(), _elements.end(), el) != _elements.end(); }
+    Fraction ratio() const { return _ratio; }
+    void setRatio(const Fraction& r) { _ratio = r; }
 
-      void layout() override;
-      void scanElements(void* data, void (*func)(void*, Element*), bool all=true) override;
+    const std::vector<DurationElement*>& elements() const { return _elements; }
+    void clear() { _elements.clear(); }
+    bool contains(const DurationElement* el) const
+    {
+        return std::find(_elements.begin(), _elements.end(), el) != _elements.end();
+    }
 
-      void read(XmlReader&) override;
-      void write(XmlWriter&) const override;
-      bool readProperties(XmlReader&) override;
+    void layout() override;
+    void scanElements(void* data, void (* func)(void*, Element*), bool all=true) override;
 
-      void reset() override;
+    void read(XmlReader&) override;
+    void write(XmlWriter&) const override;
+    bool readProperties(XmlReader&) override;
 
-      void draw(QPainter*) const override;
-      int id() const                       { return _id;          }
-      void setId(int i) const              { _id = i;             }
+    void reset() override;
 
-      TDuration baseLen() const            { return _baseLen;     }
-      void setBaseLen(const TDuration& d)  { _baseLen = d;        }
+    void draw(QPainter*) const override;
+    int id() const { return _id; }
+    void setId(int i) const { _id = i; }
 
-      void dump() const override;
+    TDuration baseLen() const { return _baseLen; }
+    void setBaseLen(const TDuration& d) { _baseLen = d; }
 
-      void setDirection(Direction d)          { _direction = d; }
-      Direction direction() const             { return _direction; }
-      bool isUp() const                       { return _isUp; }
-      Fraction tick() const override  { return _tick; }
-      Fraction rtick() const override;
-      void setTick(const Fraction& v)         { _tick = v; }
-      Fraction elementsDuration();
-      void sortElements();
-      bool cross() const;
+    void dump() const override;
 
-      void setVisible(bool f) override;
+    void setDirection(Direction d) { _direction = d; }
+    Direction direction() const { return _direction; }
+    bool isUp() const { return _isUp; }
+    Fraction tick() const override { return _tick; }
+    Fraction rtick() const override;
+    void setTick(const Fraction& v) { _tick = v; }
+    Fraction elementsDuration();
+    void sortElements();
+    bool cross() const;
 
-      QVariant getProperty(Pid propertyId) const override;
-      bool setProperty(Pid propertyId, const QVariant& v) override;
-      QVariant propertyDefault(Pid id) const override;
+    void setVisible(bool f) override;
 
-      Shape shape() const override;
+    QVariant getProperty(Pid propertyId) const override;
+    bool setProperty(Pid propertyId, const QVariant& v) override;
+    QVariant propertyDefault(Pid id) const override;
 
-      Element::EditBehavior normalModeEditBehavior() const override { return Element::EditBehavior::Edit; }
-      int gripsCount() const override { return 2; }
-      Grip initialEditModeGrip() const override { return Grip::END; }
-      Grip defaultGrip() const override { return Grip::START; }
-      std::vector<QPointF> gripsPositions(const EditData&) const override;
+    Shape shape() const override;
 
-      void sanitizeTuplet();
-      void addMissingElements();
-      };
+    Element::EditBehavior normalModeEditBehavior() const override { return Element::EditBehavior::Edit; }
+    int gripsCount() const override { return 2; }
+    Grip initialEditModeGrip() const override { return Grip::END; }
+    Grip defaultGrip() const override { return Grip::START; }
+    std::vector<QPointF> gripsPositions(const EditData&) const override;
 
-
+    void sanitizeTuplet();
+    void addMissingElements();
+};
 }     // namespace Ms
 #endif
-

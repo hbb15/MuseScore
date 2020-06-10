@@ -18,60 +18,46 @@
 #include "measure.h"
 
 namespace Ms {
-
 //---------------------------------------------------------
 //   staffStyle
 //---------------------------------------------------------
 
 static const ElementStyle staffStyle {
-      { Sid::staffTextPlacement, Pid::PLACEMENT },
-      { Sid::staffTextMinDistance, Pid::MIN_DISTANCE },
-      };
+    { Sid::staffTextPlacement, Pid::PLACEMENT },
+    { Sid::staffTextMinDistance, Pid::MIN_DISTANCE },
+};
 
 //---------------------------------------------------------
 //   StaffText
 //---------------------------------------------------------
 
 StaffText::StaffText(Score* s, Tid tid)
-   : StaffTextBase(s, tid, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
-      {
-      initElementStyle(&staffStyle);
-      }
+    : StaffTextBase(s, tid, ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
+{
+    initElementStyle(&staffStyle);
+}
 
 //---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
 
 void StaffText::layout()
-      {
-      TextBase::layout();
-      autoplaceSegmentElement();
-      }
+{
+    TextBase::layout();
+    autoplaceSegmentElement();
+}
 
 //---------------------------------------------------------
 //   propertyDefault
 //---------------------------------------------------------
 
 QVariant StaffText::propertyDefault(Pid id) const
-      {
-      switch(id) {
-            case Pid::SUB_STYLE:
-                  return int(Tid::STAFF);
-            default:
-                  return StaffTextBase::propertyDefault(id);
-            }
-      }
-
-//---------------------------------------------------------
-//   getPropertyStyle
-//---------------------------------------------------------
-
-Sid StaffText::getPropertyStyle(Pid pid) const
-      {
-      if (pid == Pid::OFFSET)
-            return placeAbove() ? Sid::staffTextPosAbove : Sid::staffTextPosBelow;
-      return TextBase::getPropertyStyle(pid);
-      }
-
+{
+    switch (id) {
+    case Pid::SUB_STYLE:
+        return int(Tid::STAFF);
+    default:
+        return StaffTextBase::propertyDefault(id);
+    }
 }
-
+}

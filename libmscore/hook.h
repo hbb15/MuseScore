@@ -16,37 +16,28 @@
 #include "symbol.h"
 
 namespace Ms {
-
 class Chord;
 
 //---------------------------------------------------------
 //   @@ Hook
 //---------------------------------------------------------
 
-class Hook final : public Symbol {
-      int _hookType { 0 };
+class Hook final : public Symbol
+{
+    int _hookType { 0 };
 
-      qreal _numericLineWidht;
-      qreal _numericLineThick;
-      qreal _numericLineSpace;
-      qreal _numericHigthLine;
-      qreal _numericHigth;
+public:
+    Hook(Score* = 0);
 
-   public:
-      Hook(Score* = 0);
-
-      Hook* clone() const override        { return new Hook(*this); }
-      qreal mag() const override          { return parent()->mag(); }
-      ElementType type() const override   { return ElementType::HOOK; }
-      void setHookType(int v);
-      void setNumericHookDimension(qreal widht, qreal higth) {_numericLineWidht = widht; _numericHigth = higth;}
-      int hookType() const                { return _hookType; }
-      void layout() override;
-      void draw(QPainter*) const override;
-      Chord* chord() const                { return (Chord*)parent(); }
-      };
-
-
+    Hook* clone() const override { return new Hook(*this); }
+    qreal mag() const override { return parent()->mag(); }
+    Element* elementBase() const override;
+    ElementType type() const override { return ElementType::HOOK; }
+    void setHookType(int v);
+    int hookType() const { return _hookType; }
+    void layout() override;
+    void draw(QPainter*) const override;
+    Chord* chord() const { return (Chord*)parent(); }
+};
 }     // namespace Ms
 #endif
-

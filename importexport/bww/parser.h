@@ -33,11 +33,10 @@
 #include "writer.h"
 
 namespace Bww {
+class Lexer;
 
-  class Lexer;
-
-  struct NoteDescription
-  {
+struct NoteDescription
+{
     QString pitch;
     QString beam;
     QString type;
@@ -53,37 +52,37 @@ namespace Bww {
                     bool _tieStart = false, bool _tieStop = false,
                     StartStop _triplet = ST_NONE,
                     bool _grace = false)
-                      : pitch(_pitch), beam(_beam),
-                      type(_type), dots(_dots),
-                      tieStart(_tieStart), tieStop(_tieStop),
-                      triplet(_triplet),
-                      grace(_grace),
-                      beamState(ST_NONE),
-                      beamList(maxBeamLevel, BM_NONE)
+        : pitch(_pitch), beam(_beam),
+        type(_type), dots(_dots),
+        tieStart(_tieStart), tieStop(_tieStop),
+        triplet(_triplet),
+        grace(_grace),
+        beamState(ST_NONE),
+        beamList(maxBeamLevel, BM_NONE)
     {}
-  };
+};
 
-  struct MeasureDescription
-  {
+struct MeasureDescription
+{
     MeasureBeginFlags mbf;
     QList<NoteDescription> notes;
     MeasureEndFlags mef;
     int duration;
     MeasureDescription()
-      : duration(0)
+        : duration(0)
     {}
-  };
+};
 
-  /**
+/**
    The bww parser.
    */
 
-  class Parser
-  {
-  public:
+class Parser
+{
+public:
     Parser(Lexer& l, Writer& w);
     void parse();
-  private:
+private:
     void errorHandler(QString s);
     void parseBar(Bww::MeasureEndFlags& mef);
     void parseNote();
@@ -111,8 +110,7 @@ namespace Bww {
     bool inTriplet;                     ///< In a triplet
     QList<MeasureDescription> measures; ///< Parsed measures
     bool tsigFound;                     ///< A valid time signature was found
-  };
-
+};
 } // namespace Bww
 
 #endif // PARSER_H

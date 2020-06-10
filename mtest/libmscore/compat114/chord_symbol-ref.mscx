@@ -79,7 +79,7 @@
           <controller ctrl="93" value="30"/>
           <controller ctrl="91" value="30"/>
           </Channel>
-        <Channel name="Chord symbols">
+        <Channel name="harmony">
           <program value="73"/>
           <controller ctrl="93" value="30"/>
           <controller ctrl="91" value="30"/>
@@ -184,6 +184,7 @@
             <root>19</root>
             <extension>33</extension>
             <name>dim</name>
+            <family>Times New Roman</family>
             </Harmony>
           <Rest>
             <durationType>measure</durationType>
@@ -198,6 +199,7 @@
           <Harmony>
             <root>14</root>
             <name>7</name>
+            <family>Undefined</family>
             </Harmony>
           <Rest>
             <durationType>measure</durationType>

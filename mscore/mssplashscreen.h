@@ -18,15 +18,15 @@
 //=============================================================================
 
 namespace Ms {
-
 //---------------------------------------------------------
 //   MsSplashScreen
 //---------------------------------------------------------
 
-class MsSplashScreen : public QSplashScreen {
-   public:
-      MsSplashScreen(const QPixmap& pixmap) : QSplashScreen(pixmap) {}
-      void drawContents(QPainter* painter) override;
-      };
-
+class MsSplashScreen : public QSplashScreen
+{
+public:
+    MsSplashScreen(const QPixmap& pixmap)
+        : QSplashScreen(pixmap) {}
+    void drawContents(QPainter* painter) override;
+};
 }

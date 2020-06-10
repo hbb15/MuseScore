@@ -21,27 +21,30 @@
 #define MODULESSETUP_H
 
 #include <QList>
-#include "interfaces/abstractmodulesetup.h"
+
+#include "framework/global/modularity/imodulesetup.h"
 
 //---------------------------------------------------------
 //   ModulesSetup
 //---------------------------------------------------------
 
-class ModulesSetup {
-   public:
-      static ModulesSetup* instance() {
-            static ModulesSetup s;
-            return &s;
-            }
+class ModulesSetup
+{
+public:
+    static ModulesSetup* instance()
+    {
+        static ModulesSetup s;
+        return &s;
+    }
 
-      void setup();
+    void setup();
 
-   private:
-      Q_DISABLE_COPY(ModulesSetup)
+private:
+    Q_DISABLE_COPY(ModulesSetup)
 
-      ModulesSetup();
+    ModulesSetup();
 
-      QList<AbstractModuleSetup*> m_modulesSetupList;
-      };
+    QList<mu::framework::IModuleSetup*> m_modulesSetupList;
+};
 
 #endif // MODULESSETUP_H

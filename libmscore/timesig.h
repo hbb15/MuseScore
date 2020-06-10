@@ -20,7 +20,6 @@
 #include "numeric.h"
 
 namespace Ms {
-
 class MuseScoreView;
 class Segment;
 
@@ -29,16 +28,17 @@ class Segment;
 //---------------------------------------------------------
 
 enum class TimeSigType : char {
-      NORMAL,            // use sz/sn text
-      FOUR_FOUR,         // common time (4/4)
-      ALLA_BREVE,        // cut time (2/2)
-      };
+    NORMAL,              // use sz/sn text
+    FOUR_FOUR,           // common time (4/4)
+    ALLA_BREVE,          // cut time (2/2)
+};
 
 //---------------------------------------------------------------------------------------
 //   @@ TimeSig
 ///    This class represents a time signature.
 //---------------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 class TimeSig final : public Element {
       QString _numeratorString;     // calculated from actualSig() if !customText
       QString _denominatorString;
@@ -67,26 +67,41 @@ class TimeSig final : public Element {
       Fraction _sig;
       Fraction _stretch;      // localSig / globalSig
       Groups _groups;
+=======
+class TimeSig final : public Element
+{
+    QString _numeratorString;       // calculated from actualSig() if !customText
+    QString _denominatorString;
 
-      QSizeF _scale;
-      TimeSigType _timeSigType;
-      bool _showCourtesySig;
-      bool _largeParentheses;
+    std::vector<SymId> ns;
+    std::vector<SymId> ds;
+>>>>>>> merge
 
-   public:
-      TimeSig(Score* = 0);
+    QPointF pz;
+    QPointF pn;
+    QPointF pointLargeLeftParen;
+    QPointF pointLargeRightParen;
+    Fraction _sig;
+    Fraction _stretch;        // localSig / globalSig
+    Groups _groups;
 
-      QString ssig() const;
-      void setSSig(const QString&);
+    QSizeF _scale;
+    TimeSigType _timeSigType;
+    bool _showCourtesySig;
+    bool _largeParentheses;
 
-      TimeSig* clone() const override          { return new TimeSig(*this);   }
-      ElementType type() const override        { return ElementType::TIMESIG; }
+public:
+    TimeSig(Score* = 0);
 
-      TimeSigType timeSigType() const    { return _timeSigType; }
+    QString ssig() const;
+    void setSSig(const QString&);
 
-      bool operator==(const TimeSig&) const;
-      bool operator!=(const TimeSig& ts) const { return !(*this == ts); }
+    TimeSig* clone() const override { return new TimeSig(*this); }
+    ElementType type() const override { return ElementType::TIMESIG; }
 
+    TimeSigType timeSigType() const { return _timeSigType; }
+
+<<<<<<< HEAD
       qreal mag() const override;
       void draw(QPainter*) const override;
       void write(XmlWriter& xml) const override;
@@ -94,36 +109,46 @@ class TimeSig final : public Element {
       void layout() override;
       Shape shape() const override;
       void layout2();
+=======
+    bool operator==(const TimeSig&) const;
+    bool operator!=(const TimeSig& ts) const { return !(*this == ts); }
+>>>>>>> merge
 
-      Fraction sig() const               { return _sig; }
-      void setSig(const Fraction& f, TimeSigType st = TimeSigType::NORMAL);
-      int numerator() const              { return _sig.numerator(); }
-      int denominator() const            { return _sig.denominator(); }
+    qreal mag() const override;
+    void draw(QPainter*) const override;
+    void write(XmlWriter& xml) const override;
+    void read(XmlReader&) override;
+    void layout() override;
+    Shape shape() const override;
 
-      Fraction stretch() const           { return _stretch;   }
-      void setStretch(const Fraction& s) { _stretch = s;      }
-      int numeratorStretch() const       { return _stretch.numerator(); }
-      int denominatorStretch() const     { return _stretch.denominator(); }
+    Fraction sig() const { return _sig; }
+    void setSig(const Fraction& f, TimeSigType st = TimeSigType::NORMAL);
+    int numerator() const { return _sig.numerator(); }
+    int denominator() const { return _sig.denominator(); }
 
-      bool acceptDrop(EditData&) const override;
-      Element* drop(EditData&) override;
+    Fraction stretch() const { return _stretch; }
+    void setStretch(const Fraction& s) { _stretch = s; }
+    int numeratorStretch() const { return _stretch.numerator(); }
+    int denominatorStretch() const { return _stretch.denominator(); }
 
-      Segment* segment() const           { return (Segment*)parent(); }
-      Measure* measure() const           { return (Measure*)parent()->parent(); }
+    bool acceptDrop(EditData&) const override;
+    Element* drop(EditData&) override;
 
-      bool showCourtesySig() const       { return _showCourtesySig; }
-      void setShowCourtesySig(bool v)    { _showCourtesySig = v;    }
+    Segment* segment() const { return (Segment*)parent(); }
+    Measure* measure() const { return (Measure*)parent()->parent(); }
 
-      QString numeratorString() const    { return _numeratorString;   }
-      void setNumeratorString(const QString&);
+    bool showCourtesySig() const { return _showCourtesySig; }
+    void setShowCourtesySig(bool v) { _showCourtesySig = v; }
 
-      QString denominatorString() const  { return _denominatorString; }
-      void setDenominatorString(const QString&);
+    QString numeratorString() const { return _numeratorString; }
+    void setNumeratorString(const QString&);
 
-      void setLargeParentheses(bool v)    { _largeParentheses = v;    }
+    QString denominatorString() const { return _denominatorString; }
+    void setDenominatorString(const QString&);
 
-      void setScale(const QSizeF& s)      { _scale = s; }
+    void setLargeParentheses(bool v) { _largeParentheses = v; }
 
+<<<<<<< HEAD
       qreal numericGetWidth(StaffType* numeric, QString string)const;
       void set_numericVisible(bool s)      { _numericVisible = s; }
       bool get_numericVisible() const  { return _numericVisible; }
@@ -131,27 +156,28 @@ class TimeSig final : public Element {
       qreal get_numericXpos() const  { return _numericXpos; }
       void set_numericBarLinelength(qreal length)      { _numericBarLinelenght = length; }
 
+=======
+    void setScale(const QSizeF& s) { _scale = s; }
+>>>>>>> merge
 
-      void setFrom(const TimeSig*);
+    void setFrom(const TimeSig*);
 
-      QVariant getProperty(Pid propertyId) const override;
-      bool setProperty(Pid propertyId, const QVariant&) override;
-      QVariant propertyDefault(Pid id) const override;
-      Pid propertyId(const QStringRef& xmlName) const override;
+    QVariant getProperty(Pid propertyId) const override;
+    bool setProperty(Pid propertyId, const QVariant&) override;
+    QVariant propertyDefault(Pid id) const override;
+    Pid propertyId(const QStringRef& xmlName) const override;
 
-      const Groups& groups() const    { return _groups; }
-      void setGroups(const Groups& e) { _groups = e; }
+    const Groups& groups() const { return _groups; }
+    void setGroups(const Groups& e) { _groups = e; }
 
-      Fraction globalSig() const           { return (_sig * _stretch).reduced();  }
-      void setGlobalSig(const Fraction& f) { _stretch = (_sig / f).reduced(); }
+    Fraction globalSig() const { return (_sig * _stretch).reduced(); }
+    void setGlobalSig(const Fraction& f) { _stretch = (_sig / f).reduced(); }
 
-      bool isLocal() const                 { return _stretch != Fraction(1,1); }
+    bool isLocal() const { return _stretch != Fraction(1,1); }
 
-      Element* nextSegmentElement() override;
-      Element* prevSegmentElement() override;
-      QString accessibleInfo() const override;
-      };
-
+    Element* nextSegmentElement() override;
+    Element* prevSegmentElement() override;
+    QString accessibleInfo() const override;
+};
 }     // namespace Ms
 #endif
-

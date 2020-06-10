@@ -14,9 +14,9 @@
 #define __PIANOVIEW_H__
 
 #include "libmscore/pos.h"
+#include "pianorolledittool.h"
 
 namespace Ms {
-
 class Score;
 class Staff;
 class Chord;
@@ -24,153 +24,199 @@ class ChordRest;
 class Note;
 class NoteEvent;
 class PianoView;
+class NoteTweakerDialog;
 
 enum class NoteSelectType {
-      REPLACE = 0,
-      XOR,
-      ADD,
-      SUBTRACT,
-      FIRST
-      };
+    REPLACE = 0,
+    XOR,
+    ADD,
+    SUBTRACT,
+    FIRST
+};
 
 enum class DragStyle {
     NONE = 0,
+    CANCELLED,
     SELECTION_RECT,
-    MOVE_NOTES
-      };
+    NOTES
+};
 
 struct BarPattern {
-      QString name;
-      char isWhiteKey[12];  //Set to 1 for white keys, 0 for black
-      };
+    QString name;
+    char isWhiteKey[12];    //Set to 1 for white keys, 0 for black
+};
 
 //---------------------------------------------------------
 //   PianoItem
 //---------------------------------------------------------
 
-class PianoItem {
-      Note* _note;
-      PianoView* _pianoView;
-      
-      void paintNoteBlock(QPainter* painter, NoteEvent* evt);
-      QRect boundingRectTicks(NoteEvent* evt);
-      QRect boundingRectPixels(NoteEvent* evt);
-      bool intersectsBlock(int startTick, int endTick, int highPitch, int lowPitch, NoteEvent* evt);
-      
-   public:
-      PianoItem(Note*, PianoView*);
-      ~PianoItem() {}
-      Note* note() { return _note; }
-      void paint(QPainter* painter);
-      bool intersects(int startTick, int endTick, int highPitch, int lowPitch);
-      
-      QRect boundingRect();
-      
-      NoteEvent* getTweakNoteEvent();
-      };
+class PianoItem
+{
+    Note* _note;
+    PianoView* _pianoView;
+
+    void paintNoteBlock(QPainter* painter, NoteEvent* evt);
+    QRect boundingRectTicks(NoteEvent* evt);
+    QRect boundingRectPixels(NoteEvent* evt);
+    bool intersectsBlock(int startTick, int endTick, int highPitch, int lowPitch, NoteEvent* evt);
+
+public:
+    const static int NOTE_BLOCK_CORNER_RADIUS = 3;
+
+    PianoItem(Note*, PianoView*);
+    ~PianoItem() {}
+    Note* note() { return _note; }
+    void paint(QPainter* painter);
+    bool intersects(int startTick, int endTick, int highPitch, int lowPitch);
+
+    QRect boundingRect();
+
+    NoteEvent* getTweakNoteEvent();
+};
 
 //---------------------------------------------------------
 //   PianoView
 //---------------------------------------------------------
 
-class PianoView : public QGraphicsView {
-      Q_OBJECT
+class PianoView : public QGraphicsView
+{
+    Q_OBJECT
 
 public:
-      static const BarPattern barPatterns[];
+    static const BarPattern barPatterns[];
 
 private:
-      Staff* _staff;
-      Chord* _chord;
-      
-      Pos trackingPos;  //Track mouse position
-      Pos* _locator;
-      int _ticks;
-      TType _timeType;
-      int _noteHeight;
-      qreal _xZoom;
-      int _tuplet;  //Tuplet divisions
-      int _subdiv;  //Beat subdivisions
-      int _barPattern;
+    Staff* _staff;
+    Chord* _chord;
 
-      bool _playEventsView;
-      bool _mouseDown;
-      bool _dragStarted;
-      QPointF _mouseDownPos;
-      QPointF _lastMousePos;
-      DragStyle _dragStyle;
-      int _lastDragPitch;
-      bool _inProgressUndoEvent;
-      
-      QList<PianoItem*> _noteList;
-      quint8 _pitchHighlight[128];
+    Pos trackingPos;    //Track mouse position
+    Pos* _locator;
+    int _ticks;
+    TType _timeType;
+    int _noteHeight;
+    qreal _xZoom;
+    int _tuplet;    //Tuplet divisions
+    int _subdiv;    //Beat subdivisions
+    int _barPattern;
 
-      virtual void drawBackground(QPainter* painter, const QRectF& rect);
+    bool _playEventsView;
+    bool _mouseDown;
+    bool _dragStarted;
+    QString _dragNoteCache;
+    QPointF _mouseDownPos;
+    QPointF _lastMousePos;
+    QPointF _popupMenuPos;
+    DragStyle _dragStyle;
+    int _dragStartPitch;
+    bool _inProgressUndoEvent;
 
-      void addChord(Chord* _chord, int voice);
-      void updateBoundingSize();
-      void clearNoteData();
-      void selectNotes(int startTick, int endTick, int lowPitch, int highPitch, NoteSelectType selType);
-      void showPopupMenu(const QPoint& pos);
-      bool cutChordRest(ChordRest* e, int track, int cutTick, ChordRest*& cr0, ChordRest*& cr1);
+    //The length of the note we are using for editng purposes, expressed as a fraction of the measure.
+    // Note length will be (2^_editNoteLength) of a measure
+    int _editNoteLength = 0;
+    int _editNoteDots = 0;
+    int _editNoteVoice = 0;
+    PianoRollEditTool _editNoteTool = PianoRollEditTool::SELECT;
 
-      QAction* getAction(const char* id);
+    QList<PianoItem*> _noteList;
+    quint8 _pitchHighlight[128];
 
-   protected:
-      virtual void wheelEvent(QWheelEvent* event);
-      virtual void mousePressEvent(QMouseEvent* event);
-      virtual void mouseReleaseEvent(QMouseEvent* event);
-      virtual void mouseMoveEvent(QMouseEvent* event);
-      virtual void leaveEvent(QEvent*);
-      virtual void contextMenuEvent(QContextMenuEvent *event);
+    virtual void drawBackground(QPainter* painter, const QRectF& rect);
 
-   signals:
-      void xZoomChanged(qreal);
-      void tupletChanged(int);
-      void subdivChanged(int);
-      void barPatternChanged(int);
-      void noteHeightChanged(int);
-      void pitchChanged(int);
-      void trackingPosChanged(const Pos&);
-      void selectionChanged();
+    void addChord(Chord* _chord, int voice);
+    void updateBoundingSize();
+    void clearNoteData();
+    void selectNotes(int startTick, int endTick, int lowPitch, int highPitch, NoteSelectType selType);
+    void showPopupMenu(const QPoint& pos);
+    bool cutChordRest(ChordRest* targetCr, int track, Fraction cutTick, ChordRest*& cr0, ChordRest*& cr1);
+    void addNote(Fraction startTick, Fraction duration, int pitch, int track, bool command = true);
+    void handleSelectionClick();
+    void insertNote(int modifiers);
+    Fraction roundToStartBeat(int tick) const;
+    Fraction noteEditLength() const;
+    void changeChordLength(const QPointF& pos);
+    void eraseNote(const QPointF& pos);
+    void appendNoteToChord(const QPointF& pos);
+    void cutChord(const QPointF& pos);
+    void toggleTie(const QPointF& pos);
+    void toggleTie(Note*);
+    void dragSelectionNoteGroup();
+    void finishNoteGroupDrag();
 
-   public slots:
-      void moveLocator(int);
-      void updateNotes();
-      void setXZoom(int);
-      void setTuplet(int);
-      void setSubdiv(int);
-      void setBarPattern(int);
-      void togglePitchHighlight(int pitch);
+    QAction* getAction(const char* id);
 
-   public:
-      PianoView();
-      ~PianoView();
-      Staff* staff() { return _staff; }
-      void setStaff(Staff*, Pos* locator);
-      void ensureVisible(int tick);
-      int noteHeight() { return _noteHeight; }
-      qreal xZoom() { return _xZoom; }
-      int tuplet() { return _tuplet; }
-      int subdiv() { return _subdiv; }
-      int barPattern() { return _barPattern; }
-      QList<QGraphicsItem*> items() { return scene()->selectedItems(); }
+protected:
+    virtual void wheelEvent(QWheelEvent* event);
+    virtual void keyReleaseEvent(QKeyEvent* event);
+    virtual void mousePressEvent(QMouseEvent* event);
+    virtual void mouseReleaseEvent(QMouseEvent* event);
+    virtual void mouseMoveEvent(QMouseEvent* event);
+    virtual void leaveEvent(QEvent*);
+    virtual void contextMenuEvent(QContextMenuEvent* event);
 
-      int pixelXToTick(int pixX);
-      int tickToPixelX(int tick);
-      int pixelYToPitch(int pixY) { return (int)floor(128 - pixY / (qreal)_noteHeight); }
-      
-      PianoItem* pickNote(int tick, int pitch);
+signals:
+    void xZoomChanged(qreal);
+    void tupletChanged(int);
+    void subdivChanged(int);
+    void barPatternChanged(int);
+    void noteHeightChanged(int);
+    void pitchChanged(int);
+    void trackingPosChanged(const Pos&);
+    void selectionChanged();
+    void showNoteTweakerRequest();
 
-      QList<PianoItem*> getSelectedItems();
-      QList<PianoItem*> getItems();
-      
-      void zoomView(int step, bool horizontal, int centerX, int centerY);
+public slots:
+    void moveLocator(int);
+    void updateNotes();
+    void setXZoom(int);
+    void setTuplet(int);
+    void setSubdiv(int);
+    void setBarPattern(int);
+    void togglePitchHighlight(int pitch);
+    void showNoteTweaker();
+    void setNotesToVoice(int voice);
 
-      bool playEventsView() { return _playEventsView; }
-      };
+    QString serializeSelectedNotes();
+    void pasteNotes(const QString& copiedNotes, Fraction pasteStartTick, int pitchOffset, bool xIsOffset = false);
+    void drawDraggedNotes(QPainter* painter);
+    void drawDraggedNote(QPainter* painter, Fraction startTick, Fraction frac, int pitch, int track, QColor color);
 
+    void cutNotes();
+    void copyNotes();
+    void pasteNotesAtCursor();
 
+public:
+    PianoView();
+    ~PianoView();
+    Staff* staff() { return _staff; }
+    void setStaff(Staff*, Pos* locator);
+    void ensureVisible(int tick);
+    int noteHeight() { return _noteHeight; }
+    qreal xZoom() { return _xZoom; }
+    int tuplet() { return _tuplet; }
+    int subdiv() { return _subdiv; }
+    int barPattern() { return _barPattern; }
+    PianoRollEditTool editTool() const { return _editNoteTool; }
+    QList<QGraphicsItem*> items() { return scene()->selectedItems(); }
+    int editNoteDots() const { return _editNoteDots; }
+
+    void setEditNoteLength(int len) { _editNoteLength = len; }
+    void setEditNoteVoice(int voice) { _editNoteVoice = voice; }
+    void setEditNoteDots(int dot) { _editNoteDots = dot; }
+    void setEditNoteTool(PianoRollEditTool tool) { _editNoteTool = tool; }
+
+    int pixelXToTick(int pixX);
+    int tickToPixelX(int tick);
+    int pixelYToPitch(int pixY) { return (int)floor(128 - pixY / (qreal)_noteHeight); }
+    int pitchToPixelY(int pitch) { return (128 - pitch) * _noteHeight; }
+
+    PianoItem* pickNote(int tick, int pitch);
+
+    QList<PianoItem*> getSelectedItems();
+    QList<PianoItem*> getItems();
+
+    void zoomView(int step, bool horizontal, int centerX, int centerY);
+
+    bool playEventsView() { return _playEventsView; }
+};
 } // namespace Ms
 #endif
-

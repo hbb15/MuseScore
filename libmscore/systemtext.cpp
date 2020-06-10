@@ -13,60 +13,46 @@
 #include "systemtext.h"
 
 namespace Ms {
-
 //---------------------------------------------------------
 //   systemStyle
 //---------------------------------------------------------
 
 static const ElementStyle systemStyle {
-      { Sid::systemTextPlacement,                Pid::PLACEMENT              },
-      { Sid::systemTextMinDistance,              Pid::MIN_DISTANCE           },
-      };
+    { Sid::systemTextPlacement,                Pid::PLACEMENT },
+    { Sid::systemTextMinDistance,              Pid::MIN_DISTANCE },
+};
 
 //---------------------------------------------------------
 //   SystemText
 //---------------------------------------------------------
 
 SystemText::SystemText(Score* s, Tid tid)
-   : StaffTextBase(s, tid, ElementFlag::SYSTEM | ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
-      {
-      initElementStyle(&systemStyle);
-      }
+    : StaffTextBase(s, tid, ElementFlag::SYSTEM | ElementFlag::MOVABLE | ElementFlag::ON_STAFF)
+{
+    initElementStyle(&systemStyle);
+}
 
 //---------------------------------------------------------
 //   propertyDefault
 //---------------------------------------------------------
 
 QVariant SystemText::propertyDefault(Pid id) const
-      {
-      switch (id) {
-            case Pid::SUB_STYLE:
-                  return int(Tid::SYSTEM);
-            default:
-                  return TextBase::propertyDefault(id);
-            }
-      }
+{
+    switch (id) {
+    case Pid::SUB_STYLE:
+        return int(Tid::SYSTEM);
+    default:
+        return TextBase::propertyDefault(id);
+    }
+}
 
 //---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
 
 void SystemText::layout()
-      {
-      TextBase::layout();
-      autoplaceSegmentElement();
-      }
-
-//---------------------------------------------------------
-//   getPropertyStyle
-//---------------------------------------------------------
-
-Sid SystemText::getPropertyStyle(Pid pid) const
-      {
-      if (pid == Pid::OFFSET)
-            return placeAbove() ? Sid::systemTextPosAbove : Sid::systemTextPosBelow;
-      return TextBase::getPropertyStyle(pid);
-      }
-
+{
+    TextBase::layout();
+    autoplaceSegmentElement();
+}
 } // namespace Ms
-

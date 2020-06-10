@@ -20,32 +20,42 @@
 #ifndef __PIANOLEVELSCHOOSER_H__
 #define __PIANOLEVELSCHOOSER_H__
 
-#include <QObject>
-#include <QWidget>
+#include "ui_pianolevelschooser.h"
+
+#include "libmscore/staff.h"
 
 namespace Ms {
-
+class PianoView;
 
 //---------------------------------------------------------
 //   PianoLevelsChooser
 //---------------------------------------------------------
 
-class PianoLevelsChooser : public QWidget
+class PianoLevelsChooser : public QWidget, public Ui::PianoLevelsChooser
 {
     Q_OBJECT
 
-      QComboBox* levelsCombo;
-      int _levelsIndex;
-signals:
-      void levelsIndexChanged(int);
-
-public slots:
-      void setLevelsIndex(int index);
+    int _levelsIndex;
+    Staff* _staff;
+    PianoView* _pianoView = nullptr;
 
 public:
-    explicit PianoLevelsChooser(QWidget *parent = 0);
-};
+    Staff* staff() { return _staff; }
+    void setStaff(Staff* staff) { _staff = staff; }
+    void setPianoView(PianoView* pianoView);
 
+signals:
+    void levelsIndexChanged(int);
+    void notesChanged();
+
+public slots:
+    void updateSetboxValue();
+    void setLevelsIndex(int index);
+    void setEventDataPressed();
+
+public:
+    explicit PianoLevelsChooser(QWidget* parent = 0);
+};
 }
 
 #endif // __PIANOLEVELSCHOOSER_H__
