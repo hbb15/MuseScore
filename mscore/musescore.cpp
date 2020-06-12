@@ -137,7 +137,7 @@
 #include "awl/aslider.h"
 #include "extension.h"
 #include "thirdparty/qzip/qzipreader_p.h"
-#include "gui/miconengine.h"
+#include "global/gui/miconengine.h"
 
 #include "sparkle/autoUpdater.h"
 #if defined(WIN_SPARKLE_ENABLED)
@@ -177,7 +177,11 @@ Q_LOGGING_CATEGORY(undoRedo, "undoRedo", QtCriticalMsg);
 #include "widgets/telemetrypermissiondialog.h"
 #endif
 #include "telemetrymanager.h"
-#include "context/scorestateobserver.h"
+#include "global/context/scorestateobserver.h"
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)) //???
+# define endl Qt::endl
+#endif
 
 namespace Ms {
 MuseScore* mscore;
@@ -760,7 +764,7 @@ bool MuseScore::importExtension(QString path)
     infoMsgBox->setTextFormat(Qt::RichText);
     infoMsgBox->setMinimumSize(300, 100);
     infoMsgBox->setMaximumSize(300, 100);
-    infoMsgBox->setStandardButtons(0);
+    infoMsgBox->setStandardButtons({});
     infoMsgBox->setText(QString("<p align='center'>") + tr("Please wait; unpacking extension…") + QString("</p>"));
 
     //setup async run of long operations
@@ -1064,7 +1068,7 @@ MuseScore::MuseScore()
     QScreen* screen = QGuiApplication::primaryScreen();
     if (userDPI == 0.0) {
 #if defined(Q_OS_WIN)
-        if (QSysInfo::WindowsVersion <= QSysInfo::WV_WINDOWS7) {
+        if (QOperatingSystemVersion::current() <= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 7)) {
             _physicalDotsPerInch = screen->logicalDotsPerInch() * screen->devicePixelRatio();
         } else {
             _physicalDotsPerInch = screen->physicalDotsPerInch();  // physical resolution
@@ -1264,126 +1268,6 @@ MuseScore::MuseScore()
     a->setChecked(_midiinEnabled);
 #endif
 
-<<<<<<< HEAD
-      getAction("undo")->setEnabled(false);
-      getAction("redo")->setEnabled(false);
-      getAction("paste")->setEnabled(false);
-      getAction("swap")->setEnabled(false);
-      selectionChanged(SelState::NONE);
-
-      //---------------------------------------------------
-      //    File Tool Bar
-      //---------------------------------------------------
-
-      fileTools = addToolBar("");
-      fileTools->setObjectName("file-operations");
-      populateFileOperations();
-
-      //---------------------
-      //    Transport Tool Bar
-      //---------------------
-
-      transportTools = addToolBar("");
-      transportTools->setObjectName("transport-tools");
-      populatePlaybackControls();
-
-      //-------------------------------
-      //    Concert Pitch Tool Bar
-      //-------------------------------
-
-      cpitchTools = addToolBar("");
-      cpitchTools->setObjectName("pitch-tools");
-      a = getAction("concert-pitch");
-      a->setCheckable(true);
-      AccessibleToolButton* concertPitchButton = new AccessibleToolButton(cpitchTools, a);
-      concertPitchButton->setProperty("iconic-text", true);
-      cpitchTools->addWidget(concertPitchButton);
-
-      //-------------------------------
-      //    Image Capture Tool Bar
-      //-------------------------------
-
-      fotoTools = addToolBar("");
-      fotoTools->setObjectName("foto-tools");
-      fotoTools->addWidget(new AccessibleToolButton(fotoTools, getAction("fotomode")));
-
-      //-------------------------------
-      //    Feedback Tool Bar
-      //-------------------------------
-
-      {
-      feedbackTools = addToolBar("");
-      feedbackTools->setObjectName("feedback-tools");
-	  // Forbid to move or undock the toolbar...
-      feedbackTools->setMovable(false);
-      feedbackTools->setFloatable(false);
-      // Add a spacer to align the buttons to the right side.
-      QWidget* spacer = new QWidget(feedbackTools);
-      spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-      feedbackTools->addWidget(spacer);
-      // And, finally, add the buttons themselves.
-      AccessibleToolButton* feedbackButton = new AccessibleToolButton(feedbackTools, getAction("leave-feedback"));
-      feedbackButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-      feedbackTools->addWidget(feedbackButton);
-      }
-
-      addToolBarBreak();
-
-      //-------------------------------
-      //    Note Input Tool Bar
-      //-------------------------------
-
-      entryTools = addToolBar("");
-      entryTools->setObjectName("entry-tools");
-
-      populateNoteInputMenu();
-
-      //-------------------------------
-      //    Workspaces Tool Bar
-      //-------------------------------
-
-      {
-      workspacesTools = addToolBar("");
-      workspacesTools->setObjectName("workspaces-tools");
-
-      // Add a spacer to align the buttons to the right side.
-      QWidget* spacer = new QWidget(workspacesTools);
-      spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-      workspacesTools->addWidget(spacer);
-
-      WorkspaceComboBox* box = new WorkspaceComboBox(this);
-      workspacesTools->addWidget(box);
-
-      AccessibleToolButton* addWorkspaceButton = new AccessibleToolButton(workspacesTools, getAction("create-new-workspace"));
-      addWorkspaceButton->setMinimumHeight(24);
-      workspacesTools->addWidget(addWorkspaceButton);
-      }
-
-      addToolBarBreak();
-
-      //---------------------
-      //    Menus
-      //---------------------
-
-      QMenuBar* mb = menuBar();
-
-      //---------------------
-      //    Menu File
-      //---------------------
-
-      menuFile = mb->addMenu("");
-      menuFile->setObjectName("File");
-
-      menuFile->addAction(getAction("file-new"));
-      menuFile->addAction(getAction("file-open"));
-
-      openRecent = menuFile->addMenu("");
-
-      connect(openRecent, SIGNAL(aboutToShow()), SLOT(openRecentMenu()));
-      connect(openRecent, SIGNAL(triggered(QAction*)), SLOT(selectScore(QAction*)));
-
-      for (auto i : {
-=======
     getAction("undo")->setEnabled(false);
     getAction("redo")->setEnabled(false);
     getAction("paste")->setEnabled(false);
@@ -1506,7 +1390,6 @@ MuseScore::MuseScore()
     connect(openRecent, SIGNAL(triggered(QAction*)), SLOT(selectScore(QAction*)));
 
     for (auto i : {
->>>>>>> merge
             "",
             "file-save",
             "file-save-as",
@@ -1601,19 +1484,9 @@ MuseScore::MuseScore()
     menuView = mb->addMenu("");
     menuView->setObjectName("View");
 
-<<<<<<< HEAD
-      a = getAction("startcenter");
-      a->setCheckable(true);
-      menuView->addAction(a);
-
-      a = getAction("toggle-palette");
-      a->setCheckable(true);
-      menuView->addAction(a);
-=======
     a = getAction("toggle-palette");
     a->setCheckable(true);
     menuView->addAction(a);
->>>>>>> merge
 
     a = getAction("masterpalette");
     a->setCheckable(true);
@@ -3621,23 +3494,25 @@ void MuseScore::removeTab(int i)
 //---------------------------------------------------------
 
 void MuseScore::showInspector(bool visible)
-      {
-      QAction* a = getAction("inspector");
-      if (!_inspector) {
-            _inspector = new Inspector(getQmlUiEngine());
+{
+    QAction* a = getAction("inspector");
+    if (!_inspector) {
+        _inspector = new Inspector(getQmlUiEngine());
 
-            connect(_inspector, SIGNAL(visibilityChanged(bool)), a, SLOT(setChecked(bool)));
-            connect(_inspector, &Inspector::layoutUpdateRequested, [this] () {
-                 ScoreView* scoreView = currentScoreView();
-                 scoreView->updateGrips();
+        connect(_inspector, SIGNAL(visibilityChanged(bool)), a, SLOT(setChecked(bool)));
+        connect(_inspector, &Inspector::layoutUpdateRequested, [this]() {
+                ScoreView* scoreView = currentScoreView();
+                scoreView->updateGrips();
             });
-            addDockWidget(Qt::RightDockWidgetArea, _inspector);
-            }
-      if (_inspector)
-            reDisplayDockWidget(_inspector, visible);
-      if (visible)
-            updateInspector();
-      }
+        addDockWidget(Qt::RightDockWidgetArea, _inspector);
+    }
+    if (_inspector) {
+        reDisplayDockWidget(_inspector, visible);
+    }
+    if (visible) {
+        updateInspector();
+    }
+}
 
 //---------------------------------------------------------
 //   showPropertiesDialogByElementType
@@ -3650,7 +3525,6 @@ void MuseScore::showPropertiesDialogByElementType(const ElementType& type)
     }
 
     for (Element* selectedElement : cs->selection().elements()) {
-
         if (!selectedElement || selectedElement->type() != type) {
             continue;
         }
@@ -4513,10 +4387,12 @@ bool MuseScore::readLanguages(const QString& path)
         int line, column;
         QString err;
         if (!doc.setContent(&qf, false, &err, &line, &column)) {
+            QString error;
+            error = QString::asprintf(qPrintable(tr("Error reading language file %s at line %d column %d: %s\n")),
+                                      qPrintable(qf.fileName()), line, column, qPrintable(err));
             QMessageBox::warning(0,
                                  QWidget::tr("Load Languages Failed:"),
-                                 tr("Error reading language file %1 at line %2 column %3: %4")
-                                 .arg(qf.fileName()).arg(line).arg(column).arg(err),
+                                 error,
                                  QString(), QWidget::tr("Quit"), QString(), 0, 1);
             return false;
         }
@@ -4651,255 +4527,6 @@ void MuseScore::showModeText(const QString& s)
 //---------------------------------------------------------
 
 void MuseScore::changeState(ScoreState val)
-<<<<<<< HEAD
-      {
-      if (MScore::debugMode)
-            qDebug("MuseScore::changeState: %s", stateName(val));
-
-      // disallow change to edit modes if currently in play mode
-      if (_sstate == STATE_PLAY && (val == STATE_EDIT || val & STATE_ALLTEXTUAL_EDIT || val & STATE_NOTE_ENTRY))
-            return;
-
-      static const char* stdNames[] = {
-            "note-longa", "note-breve", "pad-note-1", "pad-note-2", "pad-note-4",
-            "pad-note-8", "pad-note-16", "pad-note-32", "pad-note-64", "pad-note-128",
-            "pad-note-256","pad-note-512","pad-note-1024","pad-rest", "rest"};
-      static const char* tabNames[] = {
-            "note-longa-TAB", "note-breve-TAB", "pad-note-1-TAB", "pad-note-2-TAB", "pad-note-4-TAB",
-            "pad-note-8-TAB", "pad-note-16-TAB", "pad-note-32-TAB", "pad-note-64-TAB", "pad-note-128-TAB",
-            "pad-note-256-TAB", "pad-note-512-TAB", "pad-note-1024-TAB", "pad-rest-TAB", "rest-TAB"};
-      bool intoTAB = (_sstate != STATE_NOTE_ENTRY_STAFF_TAB) && (val == STATE_NOTE_ENTRY_STAFF_TAB);
-      bool fromTAB = (_sstate == STATE_NOTE_ENTRY_STAFF_TAB) && (val != STATE_NOTE_ENTRY_STAFF_TAB);
-      bool intoNUMERIC = (_sstate != STATE_NOTE_ENTRY_STAFF_NUMERIC) && (val == STATE_NOTE_ENTRY_STAFF_NUMERIC);
-      bool fromNUMERIC = (_sstate == STATE_NOTE_ENTRY_STAFF_NUMERIC) && (val != STATE_NOTE_ENTRY_STAFF_NUMERIC);
-      // if activating TAB note entry, swap "pad-note-...-TAB" shorctuts into "pad-note-..." actions
-      if (intoTAB) {
-            for (unsigned i = 0; i < sizeof(stdNames)/sizeof(char*); ++i) {
-                  QAction* act = getAction(stdNames[i]);
-                  const Shortcut* srt = Shortcut::getShortcut(tabNames[i]);
-                  act->setShortcuts(srt->keys());
-                  }
-            }
-      // if de-ativating TAB note entry, restore shortcuts for "pad-note-..." actions
-      else if (fromTAB) {
-            for (unsigned i = 0; i < sizeof(stdNames)/sizeof(char*); ++i) {
-                  QAction* act = getAction(stdNames[i]);
-                  const Shortcut* srt = Shortcut::getShortcut(stdNames[i]);
-                  act->setShortcuts(srt->keys());
-                  }
-            }
-
-	  if (intoNUMERIC) {
-		  for (unsigned i = 0; i < sizeof(stdNames) / sizeof(char*); ++i) {
-			  QAction* act = getAction(stdNames[i]);
-			  const Shortcut* srt = Shortcut::getShortcut(tabNames[i]);
-			  act->setShortcuts(srt->keys());
-		  }
-	  }
-	  // if de-ativating TAB note entry, restore shortcuts for "pad-note-..." actions
-	  else if (fromNUMERIC) {
-		  for (unsigned i = 0; i < sizeof(stdNames) / sizeof(char*); ++i) {
-			  QAction* act = getAction(stdNames[i]);
-			  const Shortcut* srt = Shortcut::getShortcut(stdNames[i]);
-			  act->setShortcuts(srt->keys());
-		  }
-	  }
-
-      bool enable = (val != STATE_DISABLED) && (val != STATE_LOCK);
-
-      for (const Shortcut* s : Shortcut::shortcuts()) {
-            QAction* a = s->action();
-            if (!a)
-                  continue;
-            if (enable && (s->key() == "undo"))
-                  a->setEnabled((s->state() & val) && (cs ? cs->undoStack()->canUndo() : false));
-            else if (enable && (s->key() == "redo"))
-                  a->setEnabled((s->state() & val) && (cs ? cs->undoStack()->canRedo() : false));
-            else if (enable && (s->key() == "cut"))
-                  a->setEnabled(cs && cs->selection().state() != SelState::NONE);
-            else if (enable && (s->key() == "copy"))
-                  a->setEnabled(cs && (cs->selection().state() != SelState::NONE || val == STATE_FOTO));
-            else if (enable && (s->key() == "select-similar-range"))
-                  a->setEnabled(cs && cs->selection().state() == SelState::RANGE);
-            else if (enable && (s->key() == "synth-control" || s->key() == "toggle-mixer")) {
-                  Driver* driver = seq ? seq->driver() : 0;
-                  // a->setEnabled(driver && driver->getSynth());
-                  if (MScore::debugMode)
-                        qDebug("disable synth control");
-                  a->setEnabled(driver);
-                  }
-            else {
-                  a->setEnabled(s->state() & val);
-                  }
-            }
-
-      if (getAction("file-part-export")->isEnabled())
-            getAction("file-part-export")->setEnabled(cs && cs->masterScore()->excerpts().size() > 0);
-      if (getAction("join-measures")->isEnabled())
-            getAction("join-measures")->setEnabled(cs && cs->masterScore()->excerpts().size() == 0);
-      if (getAction("split-measure")->isEnabled())
-            getAction("split-measure")->setEnabled(cs && cs->masterScore()->excerpts().size() == 0);
-
-      // disabling top level menu entries does not
-      // work for MAC
-
-      QList<QObject*> ol = menuBar()->children();
-      foreach(QObject* o, ol) {
-            QMenu* menu = qobject_cast<QMenu*>(o);
-            if (!menu)
-                  continue;
-            QString s(menu->objectName());
-            if (s == "File" || s == "Help" || s == "Edit" || s == "Plugins" || s == "View")
-                  continue;
-            menu->setEnabled(enable);
-            }
-
-      menuWorkspaces->setEnabled(enable);
-
-      transportTools->setEnabled(enable && !noSeq && seq && seq->isRunning());
-      cpitchTools->setEnabled(enable);
-      mag->setEnabled(enable);
-      entryTools->setEnabled(enable);
-
-      if (_sstate == STATE_FOTO)
-            updateInspector();
-
-      //always hide drumtools to support hiding on switching docs, switching node entry mode off, etc.
-      //it will be shown later if (_sstate == STATE_NOTE_ENTRY_STAFF_DRUM)
-      showDrumTools(0, 0);
-
-      switch (val) {
-            case STATE_DISABLED:
-                  showModeText(tr("No score"));
-                  if (debugger)
-                        debugger->hide();
-                  showPianoKeyboard(false);
-                  break;
-            case STATE_NORMAL:
-                  _modeText->hide();
-                  break;
-            case STATE_NOTE_ENTRY:
-                  if (cv && !cv->noteEntryMode())
-                        cv->cmd("note-input");
-                  // fall through
-            case STATE_NOTE_ENTRY_STAFF_PITCHED:
-                  if (getAction("note-input-repitch")->isChecked()) {
-                        showModeText(tr("Repitch input mode"));
-                        cs->setNoteEntryMethod(NoteEntryMethod::REPITCH);
-                        val = STATE_NOTE_ENTRY_METHOD_REPITCH;
-                        }
-                  else if (getAction("note-input-rhythm")->isChecked()) {
-                        showModeText(tr("Rhythm input mode"));
-                        cs->setNoteEntryMethod(NoteEntryMethod::RHYTHM);
-                        val = STATE_NOTE_ENTRY_METHOD_RHYTHM;
-                        }
-                  else if (getAction("note-input-realtime-auto")->isChecked()) {
-                        showModeText(tr("Realtime (automatic) note input mode"));
-                        cs->setNoteEntryMethod(NoteEntryMethod::REALTIME_AUTO);
-                        val = STATE_NOTE_ENTRY_METHOD_REALTIME_AUTO;
-                        }
-                  else if (getAction("note-input-realtime-manual")->isChecked()) {
-                        showModeText(tr("Realtime (manual) note input mode"));
-                        cs->setNoteEntryMethod(NoteEntryMethod::REALTIME_MANUAL);
-                        val = STATE_NOTE_ENTRY_METHOD_REALTIME_MANUAL;
-                        }
-                  else if (getAction("note-input-timewise")->isChecked()) {
-                        showModeText(tr("Insert mode"));
-                        cs->setNoteEntryMethod(NoteEntryMethod::TIMEWISE);
-                        val = STATE_NOTE_ENTRY_METHOD_TIMEWISE;
-                        }
-                  else {
-                        showModeText(tr("Steptime note input mode"));
-                        cs->setNoteEntryMethod(NoteEntryMethod::STEPTIME);
-                        val = STATE_NOTE_ENTRY_METHOD_STEPTIME;
-                        }
-                  break;
-            case STATE_NOTE_ENTRY_STAFF_DRUM:
-                  {
-                  if (getAction("note-input-repitch")->isChecked())
-                        cs->setNoteEntryMethod(NoteEntryMethod::REPITCH);
-                  showModeText(tr("Drumset input mode"));
-                  InputState& is = cs->inputState();
-                  showDrumTools(is.drumset(), cs->staff(is.track() / VOICES));
-                  if (_drumTools)
-                        is.setDrumNote(_drumTools->selectedDrumNote());
-                  }
-                  break;
-            case STATE_NOTE_ENTRY_STAFF_TAB:
-                  showModeText(tr("TAB input mode"));
-                  break;
-            case STATE_NOTE_ENTRY_STAFF_NUMERIC:
-                  showModeText(tr("NUMERIC input mode"));
-                  break;
-            case STATE_EDIT:
-                  showModeText(tr("Edit mode"));
-                  break;
-            case STATE_TEXT_EDIT:
-                  showModeText(tr("Text edit mode"));
-                  break;
-            case STATE_LYRICS_EDIT:
-                  showModeText(tr("Lyrics edit mode"));
-                  break;
-            case STATE_HARMONY_FIGBASS_EDIT:
-                  showModeText(tr("Chord symbol/figured bass edit mode"));
-                  break;
-            case STATE_PLAY:
-                  showModeText(tr("Play"));
-                  break;
-            case STATE_FOTO:
-                  showModeText(tr("Image capture mode"));
-                  updateInspector();
-                  break;
-            case STATE_LOCK:
-                  showModeText(tr("Score locked"));
-                  break;
-            default:
-                  qFatal("MuseScore::changeState: illegal state %d", val);
-                  break;
-            }
-      if (paletteWidget)
-            paletteWidget->setDisabled(val == STATE_PLAY || val == STATE_DISABLED);
-      if (selectionWindow)
-            selectionWindow->setDisabled(val == STATE_PLAY || val == STATE_DISABLED);
-      QAction* a = getAction("note-input");
-      bool noteEntry = val & STATE_NOTE_ENTRY;
-      a->setChecked(noteEntry);
-      _sstate = val;
-
-      emit scoreStateChanged(_sstate);
-
-      Element* e = cv && (_sstate & STATE_ALLTEXTUAL_EDIT || _sstate == STATE_EDIT) ? cv->getEditElement() : 0;
-      if (!e) {
-            textTools()->hide();
-            if (textTools()->kbAction()->isChecked())
-                  textTools()->kbAction()->setChecked(false);
-            }
-      else {
-            if (e->isTextBase()) {
-                  textTools()->updateTools(cv->getEditData());
-                  if (!(e->isFiguredBass() || e->isHarmony())) {  // do not show text tools for f.b.
-                        if (timelineScrollArea() && timelineScrollArea()->isVisible()) {
-                              if (dockWidgetArea(timelineScrollArea()) != dockWidgetArea(textTools()) || timelineScrollArea()->isFloating()) {
-                                    QSizePolicy policy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-                                    textTools()->widget()->setSizePolicy(policy);
-                                    }
-                              else {
-                                    QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-                                    textTools()->widget()->setSizePolicy(policy);
-                                    }
-                              }
-                        else {
-                              QSizePolicy policy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-                              textTools()->widget()->setSizePolicy(policy);
-                              }
-                        if (timelineScrollArea())
-                              splitDockWidget(textTools(), timelineScrollArea(), Qt::Vertical);
-                        textTools()->show();
-                        }
-                  }
-            if (_inspector)
-                  _inspector->update(e->score());
-=======
 {
     if (MScore::debugMode) {
         qDebug("MuseScore::changeState: %s", stateName(val));
@@ -4920,6 +4547,8 @@ void MuseScore::changeState(ScoreState val)
         "pad-note-256-TAB", "pad-note-512-TAB", "pad-note-1024-TAB", "pad-rest-TAB", "rest-TAB" };
     bool intoTAB = (_sstate != STATE_NOTE_ENTRY_STAFF_TAB) && (val == STATE_NOTE_ENTRY_STAFF_TAB);
     bool fromTAB = (_sstate == STATE_NOTE_ENTRY_STAFF_TAB) && (val != STATE_NOTE_ENTRY_STAFF_TAB);
+    bool intoNUMERIC = (_sstate != STATE_NOTE_ENTRY_STAFF_NUMERIC) && (val == STATE_NOTE_ENTRY_STAFF_NUMERIC);
+    bool fromNUMERIC = (_sstate == STATE_NOTE_ENTRY_STAFF_NUMERIC) && (val != STATE_NOTE_ENTRY_STAFF_NUMERIC);
     // if activating TAB note entry, swap "pad-note-...-TAB" shorctuts into "pad-note-..." actions
     if (intoTAB) {
         for (unsigned i = 0; i < sizeof(stdNames) / sizeof(char*); ++i) {
@@ -4937,6 +4566,21 @@ void MuseScore::changeState(ScoreState val)
         }
     }
 
+    if (intoNUMERIC) {
+        for (unsigned i = 0; i < sizeof(stdNames) / sizeof(char*); ++i) {
+            QAction* act = getAction(stdNames[i]);
+            const Shortcut* srt = Shortcut::getShortcut(tabNames[i]);
+            act->setShortcuts(srt->keys());
+        }
+    }
+    // if de-ativating TAB note entry, restore shortcuts for "pad-note-..." actions
+    else if (fromNUMERIC) {
+        for (unsigned i = 0; i < sizeof(stdNames) / sizeof(char*); ++i) {
+            QAction* act = getAction(stdNames[i]);
+            const Shortcut* srt = Shortcut::getShortcut(stdNames[i]);
+            act->setShortcuts(srt->keys());
+        }
+    }
     bool enable = (val != STATE_DISABLED) && (val != STATE_LOCK);
 
     for (const Shortcut* s : Shortcut::shortcuts()) {
@@ -5066,6 +4710,9 @@ void MuseScore::changeState(ScoreState val)
     case STATE_NOTE_ENTRY_STAFF_TAB:
         showModeText(tr("TAB input mode"));
         break;
+    case STATE_NOTE_ENTRY_STAFF_NUMERIC:
+        showModeText(tr("NUMERIC input mode"));
+        break;
     case STATE_EDIT:
         showModeText(tr("Edit mode"));
         break;
@@ -5132,7 +4779,6 @@ void MuseScore::changeState(ScoreState val)
                     splitDockWidget(textTools(), timelineScrollArea(), Qt::Vertical);
                 }
                 textTools()->show();
->>>>>>> merge
             }
         }
         if (_inspector) {
@@ -6055,31 +5701,6 @@ void MuseScore::splitWindow(bool horizontal)
 //---------------------------------------------------------
 
 const char* stateName(ScoreState s)
-<<<<<<< HEAD
-      {
-      switch(s) {
-            case STATE_DISABLED:           return "STATE_DISABLED";
-            case STATE_NORMAL:             return "STATE_NORMAL";
-            case STATE_NOTE_ENTRY_STAFF_PITCHED: return "STATE_NOTE_ENTRY_STAFF_PITCHED";
-            case STATE_NOTE_ENTRY_STAFF_DRUM:    return "STATE_NOTE_ENTRY_STAFF_DRUM";
-            case STATE_NOTE_ENTRY_STAFF_TAB:     return "STATE_NOTE_ENTRY_STAFF_TAB";
-			case STATE_NOTE_ENTRY_STAFF_NUMERIC:     return "STATE_NOTE_ENTRY_STAFF_NUMERIC";
-            case STATE_NOTE_ENTRY:         return "STATE_NOTE_ENTRY";
-            case STATE_NOTE_ENTRY_METHOD_STEPTIME:          return "STATE_NOTE_ENTRY_METHOD_STEPTIME";
-            case STATE_NOTE_ENTRY_METHOD_REPITCH:           return "STATE_NOTE_ENTRY_METHOD_REPITCH";
-            case STATE_NOTE_ENTRY_METHOD_RHYTHM:            return "STATE_NOTE_ENTRY_METHOD_RHYTHM";
-            case STATE_NOTE_ENTRY_METHOD_REALTIME_AUTO:     return "STATE_NOTE_ENTRY_METHOD_REALTIME_AUTO";
-            case STATE_NOTE_ENTRY_METHOD_REALTIME_MANUAL:   return "STATE_NOTE_ENTRY_METHOD_REALTIME_MANUAL";
-            case STATE_EDIT:               return "STATE_EDIT";
-            case STATE_TEXT_EDIT:          return "STATE_TEXT_EDIT";
-            case STATE_LYRICS_EDIT:        return "STATE_LYRICS_EDIT";
-            case STATE_HARMONY_FIGBASS_EDIT: return "STATE_HARMONY_FIGBASS_EDIT";
-            case STATE_PLAY:               return "STATE_PLAY";
-            case STATE_FOTO:               return "STATE_FOTO";
-            default:                       return "??";
-            }
-      }
-=======
 {
     switch (s) {
     case STATE_DISABLED:           return "STATE_DISABLED";
@@ -6087,6 +5708,7 @@ const char* stateName(ScoreState s)
     case STATE_NOTE_ENTRY_STAFF_PITCHED: return "STATE_NOTE_ENTRY_STAFF_PITCHED";
     case STATE_NOTE_ENTRY_STAFF_DRUM:    return "STATE_NOTE_ENTRY_STAFF_DRUM";
     case STATE_NOTE_ENTRY_STAFF_TAB:     return "STATE_NOTE_ENTRY_STAFF_TAB";
+    case STATE_NOTE_ENTRY_STAFF_NUMERIC:     return "STATE_NOTE_ENTRY_STAFF_NUMERIC";
     case STATE_NOTE_ENTRY:         return "STATE_NOTE_ENTRY";
     case STATE_NOTE_ENTRY_METHOD_STEPTIME:          return "STATE_NOTE_ENTRY_METHOD_STEPTIME";
     case STATE_NOTE_ENTRY_METHOD_REPITCH:           return "STATE_NOTE_ENTRY_METHOD_REPITCH";
@@ -6102,7 +5724,6 @@ const char* stateName(ScoreState s)
     default:                       return "??";
     }
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   scorePageLayoutChanged
@@ -6502,14 +6123,14 @@ GreendotButton::GreendotButton(QWidget* parent)
 QRectF drawHandle(QPainter& p, const QPointF& pos, bool active)
 {
     p.save();
-    p.setPen(QPen(QColor(MScore::selectColor[0]), 2.0 / p.matrix().m11()));
+    p.setPen(QPen(QColor(MScore::selectColor[0]), 2.0 / p.worldTransform().toAffine().m11()));
     if (active) {
         p.setBrush(MScore::selectColor[0]);
     } else {
         p.setBrush(Qt::NoBrush);
     }
-    qreal w = 8.0 / p.matrix().m11();
-    qreal h = 8.0 / p.matrix().m22();
+    qreal w = 8.0 / p.worldTransform().toAffine().m11();
+    qreal h = 8.0 / p.worldTransform().toAffine().m22();
 
     QRectF r(-w / 2, -h / 2, w, h);
     r.translate(pos);
@@ -6809,11 +6430,11 @@ void MuseScore::endCmd(const bool isCmdFromInspector, const bool undoRedo)
     } else {
         selectionChanged(SelState::NONE);
     }
-    
+
     if (!isCmdFromInspector) {
         updateInspector();
     }
-    
+
     updatePaletteBeamMode();
 #ifdef SCRIPT_INTERFACE
     getPluginEngine()->endEndCmd(this);
@@ -8652,7 +8273,7 @@ inline static void showSplashMessage(MsSplashScreen* sc, QString&& message)
 void MuseScore::init(QStringList& argv)
 {
     mscoreGlobalShare = getSharePath();
-    iconPath = externalIcons ? mscoreGlobalShare + QString("icons/") :  QString(":/data/icons/");
+    iconPath = externalIcons ? mscoreGlobalShare + QString("icons/") : QString(":/data/icons/");
     MIconEngine::iconDirPath = iconPath;
 
     if (dataPath.isEmpty()) {

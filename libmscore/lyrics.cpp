@@ -43,6 +43,7 @@ Lyrics::Lyrics(Score* s)
     _even       = false;
     initElementStyle(&lyricsElementStyle);
     _no         = 0;
+    _staffShift = 0;
     _ticks      = Fraction(0,1);
     _syllabic   = Syllabic::SINGLE;
     _separator  = 0;
@@ -53,6 +54,7 @@ Lyrics::Lyrics(const Lyrics& l)
 {
     _even      = l._even;
     _no        = l._no;
+    _staffShift = l._staffShift;
     _ticks     = l._ticks;
     _syllabic  = l._syllabic;
     _separator = 0;
@@ -97,6 +99,7 @@ void Lyrics::write(XmlWriter& xml) const
     }
     xml.tag("ticks", _ticks.ticks(), 0);   // pre-3.1 compatibility: write integer ticks under <ticks> tag
     writeProperty(xml, Pid::LYRIC_TICKS);
+    writeProperty(xml, Pid::LYRICS_STAFF_SHIFT);
 
     TextBase::writeProperties(xml);
     xml.etag();
@@ -134,6 +137,8 @@ bool Lyrics::readProperties(XmlReader& e)
 
     if (tag == "no") {
         _no = e.readInt();
+    } else if (tag == "lyricsStaffShift") {
+        _staffShift = e.readInt();
     } else if (tag == "syllabic") {
         QString val(e.readElementText());
         if (val == "single") {
@@ -361,6 +366,10 @@ void Lyrics::layout()
 
 void Lyrics::layout2(int nAbove)
 {
+    int schift = staffIdx() + _staffShift;
+    if (score()->nstaves() <= schift)
+        schift = score()->nstaves() - 1;
+
     qreal lh = lineSpacing() * score()->styleD(Sid::lyricsLineHeight);
 
     if (placeBelow()) {
@@ -412,7 +421,11 @@ void Lyrics::paste(EditData& ed)
 #endif
     QString txt = QApplication::clipboard()->text(mode);
     QString regex = QString("[^\\S") + QChar(0xa0) + QChar(0x202F) + "]+";
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    QStringList sl = txt.split(QRegExp(regex), Qt::SkipEmptyParts);
+#else
     QStringList sl = txt.split(QRegExp(regex), QString::SkipEmptyParts);
+#endif
     if (sl.empty()) {
         return;
     }
@@ -545,6 +558,8 @@ QVariant Lyrics::getProperty(Pid propertyId) const
         return _ticks;
     case Pid::VERSE:
         return _no;
+    case Pid::LYRICS_STAFF_SHIFT:
+        return _staffShift;
     default:
         return TextBase::getProperty(propertyId);
     }
@@ -568,6 +583,9 @@ bool Lyrics::setProperty(Pid propertyId, const QVariant& v)
         break;
     case Pid::VERSE:
         _no = v.toInt();
+        break;
+    case Pid::LYRICS_STAFF_SHIFT:
+        _staffShift = v.toInt();
         break;
     default:
         if (!TextBase::setProperty(propertyId, v)) {
@@ -595,6 +613,8 @@ QVariant Lyrics::propertyDefault(Pid id) const
     case Pid::LYRIC_TICKS:
         return Fraction(0,1);
     case Pid::VERSE:
+        return 0;
+    case Pid::LYRICS_STAFF_SHIFT:
         return 0;
     case Pid::ALIGN:
         if (isMelisma()) {

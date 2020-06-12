@@ -229,8 +229,8 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
 
         // layout upstem noteheads
         if (upVoices > 1) {
-            qSort(upStemNotes.begin(), upStemNotes.end(),
-                  [](Note* n1, const Note* n2) ->bool { return n1->line() > n2->line(); });
+            std::sort(upStemNotes.begin(), upStemNotes.end(),
+                      [](Note* n1, const Note* n2) ->bool { return n1->line() > n2->line(); });
         }
         if (upVoices) {
             qreal hw = layoutChords2(upStemNotes, true);
@@ -239,8 +239,8 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
 
         // layout downstem noteheads
         if (downVoices > 1) {
-            qSort(downStemNotes.begin(), downStemNotes.end(),
-                  [](Note* n1, const Note* n2) ->bool { return n1->line() > n2->line(); });
+            std::sort(downStemNotes.begin(), downStemNotes.end(),
+                      [](Note* n1, const Note* n2) ->bool { return n1->line() > n2->line(); });
         }
         if (downVoices) {
             qreal hw = layoutChords2(downStemNotes, false);
@@ -355,8 +355,8 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
                         break;
                     }
                 }
-                qSort(overlapNotes.begin(), overlapNotes.end(),
-                      [](Note* n1, const Note* n2) ->bool { return n1->line() > n2->line(); });
+                std::sort(overlapNotes.begin(), overlapNotes.end(),
+                          [](Note* n1, const Note* n2) ->bool { return n1->line() > n2->line(); });
 
                 // determine nature of overlap
                 bool shareHeads = true;               // can all overlapping notes share heads?
@@ -587,8 +587,8 @@ void Score::layoutChords1(Segment* segment, int staffIdx)
             notes.insert(notes.end(), downStemNotes.begin(), downStemNotes.end());
         }
         if (upVoices + downVoices > 1) {
-            qSort(notes.begin(), notes.end(),
-                  [](Note* n1, const Note* n2) ->bool { return n1->line() > n2->line(); });
+            std::sort(notes.begin(), notes.end(),
+                      [](Note* n1, const Note* n2) ->bool { return n1->line() > n2->line(); });
         }
         layoutChords3(notes, staff, segment);
     }
@@ -1131,7 +1131,7 @@ void Score::layoutChords3(std::vector<Note*>& notes, const Staff* staff, Segment
         }
         nAcc = umi.size();
         if (nAcc > 1) {
-            qSort(umi);
+            std::sort(umi.begin(), umi.end());
         }
 
         // lay out columns
@@ -3186,16 +3186,19 @@ static void applyLyricsMax(Segment& s, int staffIdx, qreal yMax)
     if (!s.isChordRestType()) {
         return;
     }
-    Skyline& sk = s.measure()->system()->staff(staffIdx)->skyline();
     for (int voice = 0; voice < VOICES; ++voice) {
         ChordRest* cr = s.cr(staffIdx * VOICES + voice);
         if (cr && !cr->lyrics().empty()) {
             qreal lyricsMinBottomDistance = s.score()->styleP(Sid::lyricsMinBottomDistance);
             for (Lyrics* l : cr->lyrics()) {
                 if (l->autoplace() && l->placeBelow()) {
+                    int schift = staffIdx + l->getStaffShift();
+                    if (s.score()->nstaves() <= schift)
+                        schift = s.score()->nstaves() - 1;
                     l->rypos() += yMax - l->propertyDefault(Pid::OFFSET).toPointF().y();
                     if (l->addToSkyline()) {
                         QPointF offset = l->pos() + cr->pos() + s.pos() + s.measure()->pos();
+                        Skyline& sk = s.measure()->system()->staff(schift)->skyline();
                         sk.add(l->bbox().translated(offset).adjusted(0.0, 0.0, 0.0, lyricsMinBottomDistance));
                     }
                 }
@@ -3217,11 +3220,14 @@ static void applyLyricsMax(Measure* m, int staffIdx, qreal yMax)
 
 static void applyLyricsMin(ChordRest* cr, int staffIdx, qreal yMin)
 {
-    Skyline& sk = cr->measure()->system()->staff(staffIdx)->skyline();
     for (Lyrics* l : cr->lyrics()) {
         if (l->autoplace() && l->placeAbove()) {
+            int schift = staffIdx - l->getStaffShift();
+            if (0 > schift)
+                schift = 0;
             l->rypos() += yMin - l->propertyDefault(Pid::OFFSET).toPointF().y();
             if (l->addToSkyline()) {
+                Skyline& sk = cr->measure()->system()->staff(schift)->skyline();
                 QPointF offset = l->pos() + cr->pos() + cr->segment()->pos() + cr->segment()->measure()->pos();
                 sk.add(l->bbox().translated(offset));
             }
@@ -3844,6 +3850,7 @@ System* Score::collectSystem(LayoutContext& lc)
 
     layoutSystemElements(system, lc);
     system->layout2();     // compute staff distances
+    LyricsLayout3(system, lc);
 
     lm  = system->lastMeasure();
     if (lm) {
@@ -4259,13 +4266,12 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
 
     layoutLyrics(system);
 
-    // here are lyrics dashes and melisma
-    for (Spanner* sp : _unmanagedSpanner) {
-        if (sp->tick() >= etick || sp->tick2() <= stick) {
-            continue;
-        }
-        sp->layoutSystem(system);
-    }
+      // here are lyrics dashes and melisma
+      //for (Spanner* sp : _unmanagedSpanner) {
+      //     if (sp->tick() >= etick || sp->tick2() <= stick)
+      //            continue;
+      //      sp->layoutSystem(system);
+      //      }
 
     //
     // We need to known if we have FretDiagrams in the system to decide when to layout the Harmonies
@@ -4639,6 +4645,36 @@ void LayoutContext::collectPage()
                 }
             }
             m->layout2();
+
+            for (int track = 0; track < currentScore->ntracks(); ++track) {
+                for (Segment* segment = m->first(); segment; segment = segment->next()) {
+                    Element* e = segment->element(track);
+
+                    if (!e)
+                        continue;
+                    else if (e->isTimeSig() && segment->isTimeSigType()) {
+                        if (toTimeSig(e)->get_numericVisible()) {
+                            qreal w = 0.0;
+                            if (m->first() && m->first()->firstElement(0) && m->first()->isBeginBarLineType())
+                                w = m->first()->firstElement(0)->width();
+                            if (m->prevMeasure() && m->prevMeasure()->last() && m->prevMeasure()->last()->firstElement(0)
+                                && m->prevMeasure()->last()->isEndBarLineType())
+                                w = qMax(w, m->prevMeasure()->last()->firstElement(0)->width());
+                            if (m->prevMeasure() && m->prevMeasure()->last() && m->prevMeasure()->last()->prev()
+                                && m->prevMeasure()->last()->prev()->firstElement(0)
+                                && m->prevMeasure()->last()->prev()->isEndBarLineType())
+                                w = qMax(w, m->prevMeasure()->last()->prev()->firstElement(0)->width());
+                            TimeSig* sig1 = toTimeSig(e);
+                            sig1->set_numericXpos(-segment->rxpos() - w);
+                            sig1->layout2();
+                        }
+                    }
+                    else if (e->isKeySig()) {
+                        KeySig* sig1 = toKeySig(e);
+                        sig1->layout2();
+                    }
+                }
+            }
         }
     }
 

@@ -102,154 +102,6 @@ public:
     Segment* next1(SegmentType) const;
     Segment* next1MM(SegmentType) const;
 
-<<<<<<< HEAD
-      Segment* prev1() const;
-      Segment* prev1enabled() const;
-      Segment* prev1MM() const;
-      Segment* prev1MMenabled() const;
-      Segment* prev1(SegmentType) const;
-      Segment* prev1MM(SegmentType) const;
-
-      Segment* nextCR(int track = -1, bool sameStaff = false) const;
-
-      ChordRest* nextChordRest(int track, bool backwards = false) const;
-
-      Element* element(int track) const { return _elist[track];  }
-
-      // a variant of the above function, specifically designed to be called from QML
-      //@ returns the element at track 'track' (null if none)
-      Ms::Element* elementAt(int track) const;
-
-      const std::vector<Element*>& elist() const { return _elist; }
-      std::vector<Element*>& elist()             { return _elist; }
-
-      void removeElement(int track);
-      void setElement(int track, Element* el);
-      void scanElements(void* data, void (*func)(void*, Element*), bool all=true) override;
-
-      Measure* measure() const                   { return toMeasure(parent()); }
-      System* system() const                     { return toSystem(parent()->parent()); }
-      qreal x() const override                   { return ipos().x();         }
-      void setX(qreal v)                         { rxpos() = v;               }
-
-      void insertStaff(int staff);
-      void removeStaff(int staff);
-
-      void add(Element*) override;
-      void remove(Element*) override;
-      void swapElements(int i1, int i2);
-
-      void sortStaves(QList<int>& dst);
-      const char* subTypeName() const;
-
-      static const char* subTypeName(SegmentType);
-      static SegmentType segmentType(ElementType type);
-
-      SegmentType segmentType() const            { return _segmentType; }
-      void setSegmentType(SegmentType t);
-
-      bool empty() const                         { return flag(ElementFlag::EMPTY); }
-      bool written() const                       { return flag(ElementFlag::WRITTEN); }
-      void setWritten(bool val) const            { setFlag(ElementFlag::WRITTEN, val); }
-
-      void fixStaffIdx();
-
-      qreal stretch() const                      { return _stretch; }
-      void setStretch(qreal v)                   { _stretch = v;    }
-
-      Fraction rtick() const override    { return _tick;    }
-      void setRtick(const Fraction& v)           { Q_ASSERT(v >= Fraction(0,1));  _tick = v;       }
-      Fraction tick() const override;
-
-      Fraction ticks() const                     { return _ticks;   }
-      void setTicks(const Fraction& v)           { _ticks = v;      }
-
-      qreal widthInStaff(int staffIdx, SegmentType t = SegmentType::ChordRest) const;
-      Fraction ticksInStaff(int staffIdx) const;
-
-      bool splitsTuplet() const;
-
-      const std::vector<Element*>& annotations() const { return _annotations;        }
-      void clearAnnotations();
-      void removeAnnotation(Element* e);
-      bool hasAnnotationOrElement(ElementType type, int minTrack, int maxTrack) const;
-      Element* findAnnotation(ElementType type, int minTrack, int maxTrack);
-      std::vector<Element*> findAnnotations(ElementType type, int minTrack, int maxTrack);
-      bool hasElements() const;
-      bool hasElements(int minTrack, int maxTrack) const;
-
-      qreal dotPosX(int staffIdx) const          { return _dotPosX[staffIdx];  }
-      void setDotPosX(int staffIdx, qreal val)   { _dotPosX[staffIdx] = val;   }
-
-      Spatium extraLeadingSpace() const          { return _extraLeadingSpace;  }
-      void setExtraLeadingSpace(Spatium v)       { _extraLeadingSpace = v;     }
-
-      void write(XmlWriter&) const override;
-      void read(XmlReader&) override;
-
-      QVariant getProperty(Pid propertyId) const override;
-      bool setProperty(Pid propertyId, const QVariant&) override;
-      QVariant propertyDefault(Pid) const override;
-
-      bool operator<(const Segment&) const;
-      bool operator>(const Segment&) const;
-
-      virtual QString accessibleExtraInfo() const override;
-
-      Element* firstInNextSegments(int activeStaff); //<
-      Element* lastInPrevSegments(int activeStaff);   //<
-      Element* firstElement(int staff);              //<  These methods are used for navigation
-      Element* lastElement(int staff);               //<  for next-element and prev-element
-      Element* firstElementOfSegment(Segment* s, int activeStaff);
-      Element* nextElementOfSegment(Segment* s, Element* e, int activeStaff);
-      Element* prevElementOfSegment(Segment* s, Element* e, int activeStaff);
-      Element* lastElementOfSegment(Segment* s, int activeStaff);
-      Element* nextAnnotation(Element* e);
-      Element* prevAnnotation(Element* e);
-      Element* firstAnnotation(Segment* s, int activeStaff);
-      Element* lastAnnotation(Segment* s, int activeStaff);
-      Spanner* firstSpanner(int activeStaff);
-      Spanner* lastSpanner(int activeStaff);
-      bool notChordRestType(Segment* s);
-      using Element::nextElement;
-      Element* nextElement(int activeStaff);
-      using Element::prevElement;
-      Element* prevElement(int activeStaff);
-
-      std::vector<Shape> shapes()                     { return _shapes; }
-      const std::vector<Shape>& shapes() const        { return _shapes; }
-      const Shape& staffShape(int staffIdx) const     { return _shapes[staffIdx]; }
-      Shape& staffShape(int staffIdx)                 { return _shapes[staffIdx]; }
-      void createShapes();
-      void createShape(int staffIdx);
-      qreal minRight() const;
-      qreal minLeft(const Shape&) const;
-      qreal minLeft() const;
-      qreal minHorizontalDistance(Segment*, bool isSystemGap) const;
-      qreal minHorizontalCollidingDistance(Segment* ns) const;
-      qreal numericKeysigDistansAdjustReigth(const Segment* s) const;
-      qreal numericKeysigDistansAdjustLeft(const Segment* s) const;
-
-      // some helper function
-      ChordRest* cr(int track) const        { return toChordRest(_elist[track]); }
-      bool isType(const SegmentType t) const{ return int(_segmentType) & int(t); }
-      bool isBeginBarLineType() const       { return _segmentType == SegmentType::BeginBarLine; }
-      bool isClefType() const               { return _segmentType == SegmentType::Clef; }
-      bool isHeaderClefType() const         { return _segmentType == SegmentType::HeaderClef; }
-      bool isKeySigType() const             { return _segmentType == SegmentType::KeySig; }
-      bool isAmbitusType() const            { return _segmentType == SegmentType::Ambitus; }
-      bool isTimeSigType() const            { return _segmentType == SegmentType::TimeSig; }
-      bool isStartRepeatBarLineType() const { return _segmentType == SegmentType::StartRepeatBarLine; }
-      bool isBarLineType() const            { return _segmentType == SegmentType::BarLine; }
-      bool isBreathType() const             { return _segmentType == SegmentType::Breath; }
-      bool isChordRestType() const          { return _segmentType == SegmentType::ChordRest; }
-      bool isEndBarLineType() const         { return _segmentType == SegmentType::EndBarLine; }
-      bool isKeySigAnnounceType() const     { return _segmentType == SegmentType::KeySigAnnounce; }
-      bool isTimeSigAnnounceType() const    { return _segmentType == SegmentType::TimeSigAnnounce; }
-
-      static constexpr SegmentType durationSegmentsMask = SegmentType::ChordRest; // segment types which may have non-zero tick length
-      };
-=======
     Segment* prev1() const;
     Segment* prev1enabled() const;
     Segment* prev1MM() const;
@@ -393,8 +245,11 @@ public:
     bool isTimeSigAnnounceType() const { return _segmentType == SegmentType::TimeSigAnnounce; }
 
     static constexpr SegmentType durationSegmentsMask = SegmentType::ChordRest;   // segment types which may have non-zero tick length
+
+
+    qreal numericKeysigDistansAdjustReigth(const Segment* s) const;
+    qreal numericKeysigDistansAdjustLeft(const Segment* s) const;
 };
->>>>>>> merge
 
 //---------------------------------------------------------
 //   nextActive

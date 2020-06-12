@@ -50,16 +50,11 @@ class SysStaff
     qreal _yOff { 0 };              // offset of top staff line within bbox
     bool _show  { true };           // derived from Staff or false if empty
                                     // staff is hidden
-<<<<<<< HEAD
-	  qreal _distanceFirstStaff;
-   public:
-      //int idx     { 0    };
-      QList<InstrumentName*> instrumentNames;
-=======
+
+    qreal _distanceFirstStaff;
 public:
     //int idx     { 0    };
     QList<InstrumentName*> instrumentNames;
->>>>>>> merge
 
     const QRectF& bbox() const { return _bbox; }
     QRectF& bbox() { return _bbox; }
@@ -73,18 +68,12 @@ public:
     const Skyline& skyline() const { return _skyline; }
     Skyline& skyline() { return _skyline; }
 
-<<<<<<< HEAD
-	  void set_distanceFirstStaff(qreal h) { _distanceFirstStaff = h; }
-	  qreal get_distanceFirstStaff() { return _distanceFirstStaff; }
+    void set_distanceFirstStaff(qreal h) { _distanceFirstStaff = h; }
+    qreal get_distanceFirstStaff() { return _distanceFirstStaff; }
 
-      SysStaff() {}
-      ~SysStaff();
-      };
-=======
     SysStaff() {}
     ~SysStaff();
 };
->>>>>>> merge
 
 //---------------------------------------------------------
 //   System

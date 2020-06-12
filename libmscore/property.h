@@ -293,79 +293,6 @@ enum class Pid {
     FRAME_ROUND,
     FRAME_FG_COLOR,
 //200
-<<<<<<< HEAD
-      FRAME_BG_COLOR,
-      SIZE_SPATIUM_DEPENDENT,
-      ALIGN,
-      SYSTEM_FLAG,
-      BEGIN_TEXT,
-
-      BEGIN_TEXT_ALIGN,
-      BEGIN_TEXT_PLACE,
-      BEGIN_HOOK_TYPE,
-      BEGIN_HOOK_HEIGHT,
-      BEGIN_FONT_FACE,
-      BEGIN_FONT_SIZE,
-      BEGIN_FONT_STYLE,
-      BEGIN_TEXT_OFFSET,
-
-      CONTINUE_TEXT,
-      CONTINUE_TEXT_ALIGN,
-      CONTINUE_TEXT_PLACE,
-      CONTINUE_FONT_FACE,
-      CONTINUE_FONT_SIZE,
-      CONTINUE_FONT_STYLE,
-      CONTINUE_TEXT_OFFSET,
-      END_TEXT,
-
-      END_TEXT_ALIGN,
-      END_TEXT_PLACE,
-      END_HOOK_TYPE,
-      END_HOOK_HEIGHT,
-      END_FONT_FACE,
-      END_FONT_SIZE,
-      END_FONT_STYLE,
-      END_TEXT_OFFSET,
-
-      POS_ABOVE,
-
-      LOCATION_STAVES,
-      LOCATION_VOICES,
-      LOCATION_MEASURES,
-      LOCATION_FRACTIONS,
-      LOCATION_GRACE,
-      LOCATION_NOTE,
-
-      VOICE,
-      POSITION,
-
-      CLEF_TYPE_CONCERT,
-      CLEF_TYPE_TRANSPOSING,
-      KEY,
-      ACTION, // for Icon
-      MIN_DISTANCE,
-
-      ARPEGGIO_TYPE,
-      CHORD_LINE_TYPE,
-      CHORD_LINE_STRAIGHT,
-      TREMOLO_TYPE,
-      TREMOLO_PLACEMENT,
-      TREMOLO_STROKE_STYLE,
-      HARMONY_TYPE,
-
-      START_WITH_LONG_NAMES,
-      START_WITH_MEASURE_ONE,
-
-      PATH, // for ChordLine to make its shape changes undoable
-      
-      PREFER_SHARP_FLAT,
-
-      SET_KEY_TYPE,
-	  LYRICS_STAFF_SHIFT,
-
-      END
-      };
-=======
     FRAME_BG_COLOR,
     SIZE_SPATIUM_DEPENDENT,
     ALIGN,
@@ -433,9 +360,11 @@ enum class Pid {
 
     PREFER_SHARP_FLAT,
 
+    SET_KEY_TYPE,
+    LYRICS_STAFF_SHIFT,
+
     END
 };
->>>>>>> merge
 
 enum class P_TYPE : char {
     BOOL,

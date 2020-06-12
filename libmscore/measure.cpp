@@ -4059,6 +4059,10 @@ void Measure::addSystemHeader(bool isFirstSystem)
 
         needKeysig = needKeysig && (keyIdx.key() != Key::C || keyIdx.custom() || keyIdx.isAtonal());
 
+        if (staff && staff->isNumericStaff(tick())) {
+            needKeysig = true;
+        }
+
         if (needKeysig) {
             KeySig* keysig;
             if (!kSegment) {
@@ -4143,6 +4147,9 @@ void Measure::addSystemHeader(bool isFirstSystem)
                 bl->setSpanStaff(true);
                 bl->layout();
                 s->add(bl);
+            }
+            else {
+                bl->layout();
             }
         }
         s->createShapes();

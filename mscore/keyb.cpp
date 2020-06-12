@@ -66,32 +66,6 @@ void ScoreView::editCmd(const QString& cmd)
 //---------------------------------------------------------
 
 void MuseScore::updateInputState(Score* score)
-<<<<<<< HEAD
-      {
-      InputState& is = score->inputState();
-      if (is.noteEntryMode()) {
-            if (is.usingNoteEntryMethod(NoteEntryMethod::REPITCH)) {
-                  TDuration d = is.cr() ? is.cr()->durationType() : TDuration::DurationType::V_QUARTER;
-                  if (!d.isValid() || d.isZero() || d.isMeasure())
-                        d = TDuration::DurationType::V_QUARTER;
-                  is.setDuration(d);
-                  }
-            Staff* staff = score->staff(is.track() / VOICES);
-            switch (staff->staffType(is.tick())->group()) {
-                  case StaffGroup::STANDARD:
-                        changeState(STATE_NOTE_ENTRY_STAFF_PITCHED);
-                        break;
-                  case StaffGroup::TAB:
-					  changeState(STATE_NOTE_ENTRY_STAFF_TAB);
-                        break;
-				  case StaffGroup::NUMERIC:
-                        changeState(STATE_NOTE_ENTRY_STAFF_NUMERIC);
-                        break;
-                  case StaffGroup::PERCUSSION:
-                        changeState(STATE_NOTE_ENTRY_STAFF_DRUM);
-                        break;
-                  }
-=======
 {
     InputState& is = score->inputState();
     if (is.noteEntryMode()) {
@@ -99,7 +73,6 @@ void MuseScore::updateInputState(Score* score)
             TDuration d = is.cr() ? is.cr()->durationType() : TDuration::DurationType::V_QUARTER;
             if (!d.isValid() || d.isZero() || d.isMeasure()) {
                 d = TDuration::DurationType::V_QUARTER;
->>>>>>> merge
             }
             is.setDuration(d);
         }
@@ -110,6 +83,9 @@ void MuseScore::updateInputState(Score* score)
             break;
         case StaffGroup::TAB:
             changeState(STATE_NOTE_ENTRY_STAFF_TAB);
+            break;
+        case StaffGroup::NUMERIC:
+            changeState(STATE_NOTE_ENTRY_STAFF_NUMERIC);
             break;
         case StaffGroup::PERCUSSION:
             changeState(STATE_NOTE_ENTRY_STAFF_DRUM);

@@ -1263,18 +1263,11 @@ public:
     void cmdAddPitch(int note, bool addFlag, bool insert);
     void forAllLyrics(std::function<void(Lyrics*)> f);
 
-<<<<<<< HEAD
-      System* getNextSystem(LayoutContext&);
-      void hideEmptyStaves(System* system, bool isFirstSystem);
-      void layoutLyrics(System*);
-	  void LyricsLayout3(System*, LayoutContext&);
-      void createBeams(LayoutContext&, Measure*);
-=======
     System* getNextSystem(LayoutContext&);
     void hideEmptyStaves(System* system, bool isFirstSystem);
     void layoutLyrics(System*);
+    void LyricsLayout3(System*, LayoutContext&);
     void createBeams(LayoutContext&, Measure*);
->>>>>>> merge
 
     constexpr static double defaultTempo() { return _defaultTempo; }
 

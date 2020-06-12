@@ -107,37 +107,30 @@ QString getNumericDurationDotRest[3]={
 //---------------------------------------------------------
 
 void Rest::draw(QPainter* painter) const
-<<<<<<< HEAD
-      {
-      if (staff() && staff()->isNumericStaff(tick())) {
-
-            QColor c(curColor());
-            painter->setPen(c);
-
-            QFont font;
-            font.setFamily(score()->styleSt(Sid::numericFont));
-            font.setPointSizeF((score()->styleD(Sid::numericFontSize)* spatium()* MScore::pixelRatio / SPATIUM20));
-            painter->setFont(font);
-            painter->setPen(c);
-            painter->drawText(QPointF(0, _numericHigth*score()->styleD(Sid::numericHeightDisplacement)), _fretString);
-
-            painter->setPen(QPen(curColor(), _numericLineThick));
-            for (int i = 0; i < qAbs(durationType().hooks()); ++i){
-
-                  painter->drawLine(QLineF(_numericLineWidht/2-(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2, _numericHigthLine+(i*_numericLineSpace),
-                                           _numericLineWidht/2+(_numericLineWidht*score()->styleD(Sid::numericWideLine))/2, _numericHigthLine+(i*_numericLineSpace)));
-                  }
-            return;
-            }
-      const StaffType* stt = staff() ? staff()->staffTypeForElement(this) : nullptr;
-      if (
-         (stt && stt->isTabStaff()
-=======
 {
+    if (staff() && staff()->isNumericStaff(tick())) {
+
+        QColor c(curColor());
+        painter->setPen(c);
+
+        QFont font;
+        font.setFamily(score()->styleSt(Sid::numericFont));
+        font.setPointSizeF((score()->styleD(Sid::numericFontSize) * spatium() * MScore::pixelRatio / SPATIUM20));
+        painter->setFont(font);
+        painter->setPen(c);
+        painter->drawText(QPointF(0, _numericHigth * score()->styleD(Sid::numericHeightDisplacement)), _fretString);
+
+        painter->setPen(QPen(curColor(), _numericLineThick));
+        for (int i = 0; i < qAbs(durationType().hooks()); ++i) {
+
+            painter->drawLine(QLineF(_numericLineWidht / 2 - (_numericLineWidht * score()->styleD(Sid::numericWideLine)) / 2, _numericHigthLine + (i * _numericLineSpace),
+                _numericLineWidht / 2 + (_numericLineWidht * score()->styleD(Sid::numericWideLine)) / 2, _numericHigthLine + (i * _numericLineSpace)));
+        }
+        return;
+    }
     const StaffType* stt = staff() ? staff()->staffTypeForElement(this) : nullptr;
     if (
         (stt && stt->isTabStaff()
->>>>>>> merge
          // in tab staff, do not draw rests is rests are off OR if dur. symbols are on
          && (!stt->showRests() || stt->genDurations())
          && (!measure() || !measure()->isMMRest()))        // show multi measure rest always
@@ -445,52 +438,6 @@ void Rest::layout()
             } else {
                 _tabDur->setDuration(type, dots, tab);
             }
-<<<<<<< HEAD
-      if (staff() && staff()->isNumericStaff(tick())) {
-
-            setPos(0.0, 0.0);             // no rest is drawn: reset any position might be set for it
-			QFont font;
-			font.setFamily(score()->styleSt(Sid::numericFont));
-			font.setPointSizeF(score()->styleD(Sid::numericFontSize) * spatium() * MScore::pixelRatio / SPATIUM20);
-			_numeric.set_FretFont(font);
-            _fretString = "0";
-            _numericHigth = _numeric.textHeigth(_numeric.getFretFont(),_fretString);
-            _numericLineWidht= _numeric.textWidth(_numeric.getFretFont(), _fretString);
-            _fretString = "0"+
-                        getNumericDurationRest[int(durationType().type())]+
-                        getNumericDurationDotRest[int(durationType().dots())];
-            _numericWidht = _numeric.textWidth(_numeric.getFretFont(), _fretString);
-
-            staff()->set_numericHeight(_numericHigth);
-            _numericLineThick=_numericHigth*score()->styleD(Sid::numericThickLine);
-            _numericLineSpace=_numericHigth*(score()->styleD(Sid::numericDistanceBetweenLines)*-1);
-            _numericHigthLine=_numericHigth*score()->styleD(Sid::numericHeightDisplacement)-_numericHigth-_numericHigth*score()->styleD(Sid::numericHeigthLine);
-            qreal distance =_numericWidht * score()->styleD(Sid::numericRestDistanc);
-			QRectF hookbox = QRectF(0.0-distance/2, (_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick,
-                             _numericWidht+distance,(_numericHigth*score()->styleD(Sid::numericHeightDisplacement)+((_numericHigthLine)+((qAbs(durationType().hooks())-1)*_numericLineSpace)-_numericLineThick)*-1));
-            setbbox(hookbox);
-            return;
-
-
-            }
-
-      dotline = Rest::getDotline(durationType().type());
-
-      qreal yOff       = offset().y();
-      const Staff* stf = staff();
-      const StaffType*  st = stf->staffTypeForElement(this);
-      qreal lineDist = st ? st->lineDistance().val() : 1.0;
-      int userLine   = yOff == 0.0 ? 0 : lrint(yOff / (lineDist * _spatium));
-      int lines      = st ? st->lines() : 5;
-      int lineOffset = computeLineOffset(lines);
-
-      int yo;
-      _sym = getSymbol(durationType().type(), lineOffset / 2 + userLine, lines, &yo);
-      rypos() = (qreal(yo) + qreal(lineOffset) * .5) * lineDist * _spatium;
-      setbbox(symBbox(_sym));
-      layoutDots();
-      }
-=======
             _tabDur->setParent(this);
 // needed?        _tabDur->setTrack(track());
             _tabDur->layout();
@@ -507,6 +454,31 @@ void Rest::layout()
         }
     }
 
+    if (staff() && staff()->isNumericStaff(tick())) {
+
+        setPos(0.0, 0.0);             // no rest is drawn: reset any position might be set for it
+        QFont font;
+        font.setFamily(score()->styleSt(Sid::numericFont));
+        font.setPointSizeF(score()->styleD(Sid::numericFontSize) * spatium() * MScore::pixelRatio / SPATIUM20);
+        _numeric.set_FretFont(font);
+        _fretString = "0";
+        _numericHigth = _numeric.textHeigth(_numeric.getFretFont(), _fretString);
+        _numericLineWidht = _numeric.textWidth(_numeric.getFretFont(), _fretString);
+        _fretString = "0" +
+            getNumericDurationRest[int(durationType().type())] +
+            getNumericDurationDotRest[int(durationType().dots())];
+        _numericWidht = _numeric.textWidth(_numeric.getFretFont(), _fretString);
+
+        staff()->set_numericHeight(_numericHigth);
+        _numericLineThick = _numericHigth * score()->styleD(Sid::numericThickLine);
+        _numericLineSpace = _numericHigth * (score()->styleD(Sid::numericDistanceBetweenLines) * -1);
+        _numericHigthLine = _numericHigth * score()->styleD(Sid::numericHeightDisplacement) - _numericHigth - _numericHigth * score()->styleD(Sid::numericHeigthLine);
+        qreal distance = _numericWidht * score()->styleD(Sid::numericRestDistanc);
+        QRectF hookbox = QRectF(0.0 - distance / 2, (_numericHigthLine)+((qAbs(durationType().hooks()) - 1) * _numericLineSpace) - _numericLineThick,
+            _numericWidht + distance, (_numericHigth * score()->styleD(Sid::numericHeightDisplacement) + ((_numericHigthLine)+((qAbs(durationType().hooks()) - 1) * _numericLineSpace) - _numericLineThick) * -1));
+        setbbox(hookbox);
+        return;
+    }
     dotline = Rest::getDotline(durationType().type());
 
     qreal yOff       = offset().y();
@@ -523,7 +495,6 @@ void Rest::layout()
     setbbox(symBbox(_sym));
     layoutDots();
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   layout
@@ -1212,36 +1183,6 @@ Shape Rest::shape() const
             shape.add(bbox());
         }
 #endif
-<<<<<<< HEAD
-            for (NoteDot* dot : _dots)
-                  shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()));
-            }
-      for (Element* e : el()) {
-            if (e->addToSkyline())
-                  shape.add(e->shape().translated(e->pos()));
-            }
-      return shape;
-      }
-
-//---------------------------------------------------------
-//   numericWidth
-//---------------------------------------------------------
-
-qreal Rest::numericGetWidthRest(StaffType* numeric, QString string) const
-      {
-      qreal val;
-      if (numeric) {
-            QFont f    = numeric->fretFont();
-            f.setPointSizeF(score()->styleD(Sid::numericFontSize));
-            QFontMetricsF fm(f, MScore::paintDevice());
-            val  = fm.width(string) * magS();
-            }
-      else
-            val = 5.0;
-      return val;
-      }
-
-=======
         for (NoteDot* dot : _dots) {
             shape.add(symBbox(SymId::augmentationDot).translated(dot->pos()));
         }
@@ -1253,5 +1194,21 @@ qreal Rest::numericGetWidthRest(StaffType* numeric, QString string) const
     }
     return shape;
 }
->>>>>>> merge
+//---------------------------------------------------------
+//   numericWidth
+//---------------------------------------------------------
+
+qreal Rest::numericGetWidthRest(StaffType* numeric, QString string) const
+{
+    qreal val;
+    if (numeric) {
+        QFont f = numeric->fretFont();
+        f.setPointSizeF(score()->styleD(Sid::numericFontSize));
+        QFontMetricsF fm(f, MScore::paintDevice());
+        val = fm.width(string) * magS();
+    }
+    else
+        val = 5.0;
+    return val;
+}
 }

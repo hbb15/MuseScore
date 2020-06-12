@@ -28,45 +28,6 @@ namespace Ms {
 //---------------------------------------------------------
 
 void SlurSegment::draw(QPainter* painter) const
-<<<<<<< HEAD
-      {
-      QPen pen(curColor());
-      qreal mag = staff() ? staff()->mag(slur()->tick()) : 1.0;
-
-      switch (slurTie()->lineType()) {
-            case 0:
-                  painter->setBrush(QBrush(pen.color()));
-                  pen.setCapStyle(Qt::RoundCap);
-                  pen.setJoinStyle(Qt::RoundJoin);
-                  pen.setWidthF(score()->styleP(Sid::SlurEndWidth) * mag);
-                  break;
-            case 1:
-                  painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
-                  pen.setStyle(Qt::DotLine);
-                  break;
-            case 2:
-                  painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
-                  pen.setStyle(Qt::DashLine);
-                  break;
-            case 3:
-                  painter->setBrush(Qt::NoBrush);
-                  pen.setWidthF(score()->styleP(Sid::SlurDottedWidth) * mag);
-                  pen.setStyle(Qt::CustomDashLine);
-                  QVector<qreal> dashes { 5.0, 5.0 };
-                  pen.setDashPattern(dashes);
-                  break;
-            }
-
-      if(slur()->staff() && slur()->staff()->isNumericStaff(slur()->tick())){
-
-            pen.setWidthF(score()->styleD(Sid::numericSlurThick));
-            }
-      painter->setPen(pen);
-      painter->drawPath(path);
-      }
-=======
 {
     QPen pen(curColor());
     qreal mag = staff() ? staff()->staffMag(slur()->tick()) : 1.0;
@@ -96,10 +57,13 @@ void SlurSegment::draw(QPainter* painter) const
         pen.setDashPattern(dashes);
         break;
     }
+    if (slur()->staff() && slur()->staff()->isNumericStaff(slur()->tick())) {
+
+        pen.setWidthF(score()->styleD(Sid::numericSlurThick));
+    }
     painter->setPen(pen);
     painter->drawPath(path);
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   searchCR
@@ -275,144 +239,6 @@ void SlurSegment::changeAnchor(EditData& ed, Element* element)
 //---------------------------------------------------------
 
 void SlurSegment::computeBezier(QPointF p6o)
-<<<<<<< HEAD
-      {
-      qreal _spatium  = spatium();
-      qreal shoulderW;              // height as fraction of slur-length
-      qreal shoulderH;
-      //
-      // pp1 and pp2 are the end points of the slur
-      //
-      QPointF pp1 = ups(Grip::START).p + ups(Grip::START).off;
-      QPointF pp2 = ups(Grip::END).p   + ups(Grip::END).off;
-
-      QPointF p2 = pp2 - pp1;
-      if ((p2.x() == 0.0) && (p2.y() == 0.0)) {
-            Measure* m1 = slur()->startCR()->segment()->measure();
-            Measure* m2 = slur()->endCR()->segment()->measure();
-            qDebug("zero slur at tick %d(%d) track %d in measure %d-%d  tick %d ticks %d",
-               m1->tick().ticks(), tick().ticks(), track(), m1->no(), m2->no(), slur()->tick().ticks(), slur()->ticks().ticks());
-            slur()->setBroken(true);
-            return;
-            }
-
-      qreal sinb = atan(p2.y() / p2.x());
-      QTransform t;
-      t.rotateRadians(-sinb);
-      p2  = t.map(p2);
-      p6o = t.map(p6o);
-
-      double smallH = 0.5;
-      qreal d = p2.x() / _spatium;
-      if (d <= 2.0) {
-            shoulderH = d * 0.5 * smallH * _spatium;
-            shoulderW = .6;
-            }
-      else {
-            qreal dd = log10(1.0 + (d - 2.0) * .5) * 2.0;
-            if (dd > 3.0)
-                  dd = 3.0;
-            shoulderH = (dd + smallH) * _spatium + _extraHeight;
-            if (d > 18.0)
-                  shoulderW = 0.7; // 0.8;
-            else if (d > 10)
-                  shoulderW = 0.6; // 0.7;
-            else
-                  shoulderW = 0.5; // 0.6;
-            }
-
-      shoulderH -= p6o.y();
-
-      qreal c    = p2.x();
-      qreal w = 0.0;
-      if(slur()->staff() && slur()->staff()->isNumericStaff(slur()->tick())){
-            shoulderH = slur()->get_numericHigth()*score()->styleD(Sid::numericSlurHeigth);
-            shoulderW = (c-slur()->get_numericHigth()*score()->styleD(Sid::numericSlurEckenform))/c;
-            }
-      else {
-            w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
-            }
-      if (!slur()->up())
-            shoulderH = -shoulderH;
-
-      qreal c1   = (c - c * shoulderW) * .5 + p6o.x();
-      qreal c2   = c1 + c * shoulderW       + p6o.x();
-
-      QPointF p5 = QPointF(c * .5, 0.0);
-
-      QPointF p3(c1, -shoulderH);
-      QPointF p4(c2, -shoulderH);
-
-      if (staff())
-            w *= staff()->mag(slur()->tick());
-      if ((c2 - c1) <= _spatium)
-            w *= .5;
-      QPointF th(0.0, w);    // thickness of slur
-
-      QPointF p3o = p6o + t.map(ups(Grip::BEZIER1).off);
-      QPointF p4o = p6o + t.map(ups(Grip::BEZIER2).off);
-
-      if (!p6o.isNull()) {
-            QPointF p6i = t.inverted().map(p6o);
-            ups(Grip::BEZIER1).off += p6i ;
-            ups(Grip::BEZIER2).off += p6i;
-            }
-
-      //-----------------------------------calculate p6
-      QPointF pp3  = p3 + p3o;
-      QPointF pp4  = p4 + p4o;
-      QPointF ppp4 = pp4 - pp3;
-
-      qreal r2 = atan(ppp4.y() / ppp4.x());
-      t.reset();
-      t.rotateRadians(-r2);
-      QPointF p6  = QPointF(t.map(ppp4).x() * .5, 0.0);
-
-      t.rotateRadians(2 * r2);
-      p6 = t.map(p6) + pp3 - p6o;
-      //-----------------------------------
-
-      path = QPainterPath();
-      path.moveTo(QPointF());
-      path.cubicTo(p3 + p3o - th, p4 + p4o - th, p2);
-      if (slur()->lineType() == 0)
-            path.cubicTo(p4 +p4o + th, p3 + p3o + th, QPointF());
-
-      th = QPointF(0.0, 3.0 * w);
-      shapePath = QPainterPath();
-      shapePath.moveTo(QPointF());
-      shapePath.cubicTo(p3 + p3o - th, p4 + p4o - th, p2);
-      shapePath.cubicTo(p4 +p4o + th, p3 + p3o + th, QPointF());
-
-      // translate back
-      t.reset();
-      t.translate(pp1.x(), pp1.y());
-      t.rotateRadians(sinb);
-      path                  = t.map(path);
-      shapePath             = t.map(shapePath);
-      ups(Grip::BEZIER1).p  = t.map(p3);
-      ups(Grip::BEZIER2).p  = t.map(p4);
-      ups(Grip::END).p      = t.map(p2) - ups(Grip::END).off;
-      ups(Grip::DRAG).p     = t.map(p5);
-      ups(Grip::SHOULDER).p = t.map(p6);
-
-      _shape.clear();
-      QPointF start = pp1;
-      int nbShapes  = 32;  // (pp2.x() - pp1.x()) / _spatium;
-      qreal minH    = qAbs(3 * w);
-      const CubicBezier b(pp1, ups(Grip::BEZIER1).pos(), ups(Grip::BEZIER2).pos(), ups(Grip::END).pos());
-      for (int i = 1; i <= nbShapes; i++) {
-            const QPointF point = b.pointAtPercent(i/float(nbShapes));
-            QRectF re     = QRectF(start, point).normalized();
-            if (re.height() < minH) {
-                  qreal d1 = (minH - re.height()) * .5;
-                  re.adjust(0.0, -d1, 0.0, d1);
-                  }
-            _shape.add(re);
-            start = point;
-            }
-      }
-=======
 {
     qreal _spatium  = spatium();
     qreal shoulderW;                // height as fraction of slur-length
@@ -462,11 +288,19 @@ void SlurSegment::computeBezier(QPointF p6o)
 
     shoulderH -= p6o.y();
 
+    qreal c = p2.x();
+    qreal w = 0.0;
+    if (slur()->staff() && slur()->staff()->isNumericStaff(slur()->tick())) {
+        shoulderH = slur()->get_numericHigth() * score()->styleD(Sid::numericSlurHeigth);
+        shoulderW = (c - slur()->get_numericHigth() * score()->styleD(Sid::numericSlurEckenform)) / c;
+    }
+    else {
+        w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
+    }
     if (!slur()->up()) {
         shoulderH = -shoulderH;
     }
 
-    qreal c    = p2.x();
     qreal c1   = (c - c * shoulderW) * .5 + p6o.x();
     qreal c2   = c1 + c * shoulderW + p6o.x();
 
@@ -475,7 +309,6 @@ void SlurSegment::computeBezier(QPointF p6o)
     QPointF p3(c1, -shoulderH);
     QPointF p4(c2, -shoulderH);
 
-    qreal w = score()->styleP(Sid::SlurMidWidth) - score()->styleP(Sid::SlurEndWidth);
     if (staff()) {
         w *= staff()->staffMag(slur()->tick());
     }
@@ -548,7 +381,6 @@ void SlurSegment::computeBezier(QPointF p6o)
         start = point;
     }
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   layoutSegment
@@ -760,101 +592,6 @@ void Slur::slurPosChord(SlurPos* sp)
 //---------------------------------------------------------
 
 void Slur::slurPos(SlurPos* sp)
-<<<<<<< HEAD
-      {
-      qreal _spatium = spatium();
-
-      if (endCR() == 0) {
-            sp->p1 = startCR()->pagePos();
-            sp->p1.rx() += startCR()->width();
-            sp->p2 = sp->p1;
-            sp->p2.rx() += 5 * _spatium;
-            sp->system1 = startCR()->measure()->system();
-            sp->system2 = sp->system1;
-            return;
-            }
-      bool useTablature  = staff() && staff()->isTabStaff(endCR()->tick());
-      bool staffHasStems = true;     // assume staff uses stems
-      const StaffType* stt = 0;
-      if (useTablature) {
-            stt           = staff()->staffType(tick());
-            staffHasStems = stt->stemThrough();   // if tab with stems beside, stems do not count for slur pos
-            }
-
-      // start and end cr, chord, and note
-      ChordRest* scr = startCR();
-      ChordRest* ecr = endCR();
-      Chord* sc      = 0;
-      Note* note1    = 0;
-      if (scr->isChord()) {
-            sc    = toChord(scr);
-            note1 = _up ? sc->upNote() : sc->downNote();
-            }
-      Chord* ec = 0;
-      Note* note2 = 0;
-      if (ecr->isChord()) {
-            ec   = toChord(ecr);
-            note2 = _up ? ec->upNote() : ec->downNote();
-            }
-
-      sp->system1 = scr->measure()->system();
-      sp->system2 = ecr->measure()->system();
-
-      if (sp->system1 == 0) {
-            qDebug("no system1");
-            return;
-            }
-
-      sp->p1 = scr->pos() + scr->segment()->pos() + scr->measure()->pos();
-      sp->p2 = ecr->pos() + ecr->segment()->pos() + ecr->measure()->pos();
-
-      // adjust for cross-staff
-      if (scr->vStaffIdx() != vStaffIdx() && sp->system1) {
-            qreal diff = sp->system1->staff(scr->vStaffIdx())->y() - sp->system1->staff(vStaffIdx())->y();
-            sp->p1.ry() += diff;
-            }
-      if (ecr->vStaffIdx() != vStaffIdx() && sp->system2) {
-            qreal diff = sp->system2->staff(ecr->vStaffIdx())->y() - sp->system2->staff(vStaffIdx())->y();
-            sp->p2.ry() += diff;
-            }
-
-      // account for centering or other adjustments (other than mirroring)
-      if (note1 && !note1->mirror())
-            sp->p1.rx() += note1->x();
-      if (note2 && !note2->mirror())
-            sp->p2.rx() += note2->x();
-
-      if(staff() && note1 && note2&& staff()->isNumericStaff(endCR()->tick())){
-            _numericHigth=note1->get_numericHigth();
-            sp->p1.rx() +=-note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
-            sp->p2.rx() += note2->get_numericWidth() + note1->get_numericHigth()*score()->styleD(Sid::numericSlurUberhang);
-            sp->p1.ry() = note1->y()+note1->get_numericHigth()*0.5+note1->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
-            sp->p2.ry() = note2->y()+note2->get_numericHigth()*0.5+note2->get_numericHigth()*score()->styleD(Sid::numericSlurShift);
-            return;
-            }
-      qreal xo, yo;
-
-      Stem* stem1 = sc && staffHasStems ? sc->stem() : 0;
-      Stem* stem2 = ec && staffHasStems ? ec->stem() : 0;
-
-      enum class SlurAnchor : char {
-            NONE, STEM
-            };
-      SlurAnchor sa1 = SlurAnchor::NONE;
-      SlurAnchor sa2 = SlurAnchor::NONE;
-      // if slur is 'embedded' between either stem or both (as it might happen with voices)
-      // link corresponding slur end to stem position
-      if ((scr->up() == ecr->up()) && !scr->beam() && !ecr->beam() && (_up == scr->up())) {
-            // both chords are facing same direction and slur is also in same direction
-            // and no beams
-            if (stem1)
-                  sa1 = SlurAnchor::STEM;
-            if (stem2)
-                  sa2 = SlurAnchor::STEM;
-            }
-      // also link start of slur to stem if start chord & slur are in same direction and there is a hook
-      if (scr->up() == _up && stem1 && sc->hook()) {
-=======
 {
     qreal _spatium = spatium();
 
@@ -920,7 +657,15 @@ void Slur::slurPos(SlurPos* sp)
     if (note2 && !note2->mirror()) {
         sp->p2.rx() += note2->x();
     }
-
+    
+    if (staff() && note1 && note2 && staff()->isNumericStaff(endCR()->tick())) {
+        _numericHigth = note1->get_numericHigth();
+        sp->p1.rx() += -note1->get_numericHigth() * score()->styleD(Sid::numericSlurUberhang);
+        sp->p2.rx() += note2->get_numericWidth() + note1->get_numericHigth() * score()->styleD(Sid::numericSlurUberhang);
+        sp->p1.ry() = note1->y() + note1->get_numericHigth() * 0.5 + note1->get_numericHigth() * score()->styleD(Sid::numericSlurShift);
+        sp->p2.ry() = note2->y() + note2->get_numericHigth() * 0.5 + note2->get_numericHigth() * score()->styleD(Sid::numericSlurShift);
+        return;
+    }
     qreal xo, yo;
 
     Stem* stem1 = sc && staffHasStems ? sc->stem() : 0;
@@ -937,7 +682,6 @@ void Slur::slurPos(SlurPos* sp)
         // both chords are facing same direction and slur is also in same direction
         // and no beams
         if (stem1) {
->>>>>>> merge
             sa1 = SlurAnchor::STEM;
         }
         if (stem2) {
@@ -1292,126 +1036,6 @@ static bool isDirectionMixture(Chord* c1, Chord* c2)
 //---------------------------------------------------------
 
 SpannerSegment* Slur::layoutSystem(System* system)
-<<<<<<< HEAD
-      {
-      Fraction stick = system->firstMeasure()->tick();
-      Fraction etick = system->lastMeasure()->endTick();
-
-      SlurSegment* slurSegment = toSlurSegment(getNextLayoutSystemSegment(system, [this]() { return new SlurSegment(score()); }));
-
-      SpannerSegmentType sst;
-      if (tick() >= stick) {
-            //
-            // this is the first call to layoutSystem,
-            // processing the first line segment
-            //
-            if (track2() == -1)
-                  setTrack2(track());
-            if (startCR() == 0 || startCR()->measure() == 0) {
-                  qDebug("Slur::layout(): track %d-%d  %p - %p tick %d-%d null start anchor",
-                     track(), track2(), startCR(), endCR(), tick().ticks(), tick2().ticks());
-                  return slurSegment;
-                  }
-            if (endCR() == 0) {     // sanity check
-                  setEndElement(startCR());
-                  setTick2(tick());
-                  }
-            switch (_slurDirection) {
-                  case Direction::UP:
-                        _up = true;
-                        break;
-                  case Direction::DOWN:
-                        _up = false;
-                        break;
-                  case Direction::AUTO:
-                        {
-                        //
-                        // assumption:
-                        // slurs have only chords or rests as start/end elements
-                        //
-                        if (startCR() == 0 || endCR() == 0) {
-                              _up = true;
-                              break;
-                              }
-                        Chord* c1 = startCR()->isChord() ? toChord(startCR()) : 0;
-                        Chord* c2 = endCR()->isChord()   ? toChord(endCR())   : 0;
-
-                        if (c1 && c1->beam() && c1->beam()->cross()) {
-                              // TODO: stem direction is not finalized, so we cannot use it here
-                              _up = true;
-                              break;
-                              }
-
-                        _up = !(startCR()->up());
-
-                        Measure* m1 = startCR()->measure();
-                        if ((endCR()->tick() - startCR()->tick()) > m1->ticks()) // long slurs are always above
-                              _up = true;
-                        else
-                              _up = !startCR()->up();
-
-                        if (staff() && staff()->isNumericStaff( tick())) {
-                              // slurs go above if start and end note have different stem directions,
-                              // but grace notes are exceptions
-                              _up = false;
-                              }
-                        else if (c1 && c2 && isDirectionMixture(c1, c2) && !c1->isGrace()) {
-                              // slurs go above if start and end note have different stem directions,
-                              // but grace notes are exceptions
-                              _up = true;
-                              }
-                        else if (m1->hasVoices(startCR()->staffIdx(), tick(), ticks()) && c1 && !c1->isGrace()) {
-                              // in polyphonic passage, slurs go on the stem side
-                              _up = startCR()->up();
-                              }
-                        else if (c1 && c2 && chordsHaveTie(c1, c2)) {
-                              // could confuse slur with tie, put slur on stem side
-                              _up = startCR()->up();
-                              }
-                        }
-                        break;
-                  }
-            sst = tick2() < etick ? SpannerSegmentType::SINGLE : SpannerSegmentType::BEGIN;
-            }
-      else if (tick() < stick && tick2() >= etick)
-            sst = SpannerSegmentType::MIDDLE;
-      else
-            sst = SpannerSegmentType::END;
-      slurSegment->setSpannerSegmentType(sst);
-
-      SlurPos sPos;
-      slurPos(&sPos);
-
-      switch (sst) {
-            case SpannerSegmentType::SINGLE:
-                  slurSegment->layoutSegment(sPos.p1, sPos.p2);
-                  break;
-            case SpannerSegmentType::BEGIN:
-                  slurSegment->layoutSegment(sPos.p1, QPointF(system->bbox().width(), sPos.p1.y()));
-                  break;
-            case SpannerSegmentType::MIDDLE: {
-                  qreal x1 = firstNoteRestSegmentX(system);
-                  qreal x2 = system->bbox().width();
-                  qreal y  = staffIdx() > system->staves()->size() ? system->y() : system->staff(staffIdx())->y();
-                  slurSegment->layoutSegment(QPointF(x1, y), QPointF(x2, y));
-                  }
-                  break;
-            case SpannerSegmentType::END:
-                  slurSegment->layoutSegment(QPointF(firstNoteRestSegmentX(system), sPos.p2.y()), sPos.p2);
-                  break;
-            }
-
-      return slurSegment;
-      }
-
-//---------------------------------------------------------
-//   layout
-//---------------------------------------------------------
-
-void Slur::layout()
-      {
-      if (track2() == -1)
-=======
 {
     Fraction stick = system->firstMeasure()->tick();
     Fraction etick = system->lastMeasure()->endTick();
@@ -1427,7 +1051,6 @@ void Slur::layout()
         // processing the first line segment
         //
         if (track2() == -1) {
->>>>>>> merge
             setTrack2(track());
         }
         if (startCR() == 0 || startCR()->measure() == 0) {
@@ -1473,8 +1096,11 @@ void Slur::layout()
             } else {
                 _up = !startCR()->up();
             }
-
-            if (c1 && c2 && isDirectionMixture(c1, c2) && !c1->isGrace()) {
+            if (staff() && staff()->isNumericStaff(tick())) {
+                // slurs go above if start and end note have different stem directions,
+                // but grace notes are exceptions
+                _up = false;
+            } else if (c1 && c2 && isDirectionMixture(c1, c2) && !c1->isGrace()) {
                 // slurs go above if start and end note have different stem directions,
                 // but grace notes are exceptions
                 _up = true;

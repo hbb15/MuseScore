@@ -57,19 +57,12 @@ class Tuplet final : public DurationElement
     QPointF bracketL[4];
     QPointF bracketR[3];
 
-<<<<<<< HEAD
-      qreal _numericHigth;
-      QPainterPath _SlurPath;
-      QPainterPath _SlurShapePath;
-      bool _hasSlur;
-
-   public:
-      Tuplet(Score*);
-      Tuplet(const Tuplet&);
-      ~Tuplet();
-=======
     Fraction addMissingElement(const Fraction& startTick, const Fraction& endTick);
->>>>>>> merge
+
+    qreal _numericHigth;
+    QPainterPath _SlurPath;
+    QPainterPath _SlurShapePath;
+    bool _hasSlur;
 
 public:
     Tuplet(Score*);

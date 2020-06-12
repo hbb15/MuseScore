@@ -59,20 +59,12 @@ public:
 //!    a Tie has a Note as startElement/endElement
 //---------------------------------------------------------
 
-<<<<<<< HEAD
-class Tie final : public SlurTie {
-      static Note* editStartNote;
-      static Note* editEndNote;
-      qreal _numericHigth;
-
-   public:
-      Tie(Score* = 0);
-=======
 class Tie final : public SlurTie
 {
     static Note* editStartNote;
     static Note* editEndNote;
->>>>>>> merge
+
+    qreal _numericHigth;
 
 public:
     Tie(Score* = 0);
@@ -92,20 +84,16 @@ public:
     TieSegment* layoutFor(System*);
     TieSegment* layoutBack(System*);
 
-<<<<<<< HEAD
-      SlurTieSegment* newSlurTieSegment() override { return new TieSegment(score()); }
-      qreal get_numericHigth()                      { return _numericHigth;   }
-      };
-=======
     TieSegment* frontSegment() { return toTieSegment(Spanner::frontSegment()); }
     const TieSegment* frontSegment() const { return toTieSegment(Spanner::frontSegment()); }
     TieSegment* backSegment() { return toTieSegment(Spanner::backSegment()); }
     const TieSegment* backSegment() const { return toTieSegment(Spanner::backSegment()); }
     TieSegment* segmentAt(int n) { return toTieSegment(Spanner::segmentAt(n)); }
     const TieSegment* segmentAt(int n) const { return toTieSegment(Spanner::segmentAt(n)); }
->>>>>>> merge
 
     SlurTieSegment* newSlurTieSegment() override { return new TieSegment(score()); }
+
+    qreal get_numericHigth() { return _numericHigth; }
 };
 }     // namespace Ms
 #endif

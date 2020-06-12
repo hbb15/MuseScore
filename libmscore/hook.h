@@ -26,6 +26,12 @@ class Hook final : public Symbol
 {
     int _hookType { 0 };
 
+    qreal _numericLineWidht;
+    qreal _numericLineThick;
+    qreal _numericLineSpace;
+    qreal _numericHigthLine;
+    qreal _numericHigth;
+
 public:
     Hook(Score* = 0);
 
@@ -38,6 +44,7 @@ public:
     void layout() override;
     void draw(QPainter*) const override;
     Chord* chord() const { return (Chord*)parent(); }
+    void setNumericHookDimension(qreal widht, qreal higth) { _numericLineWidht = widht; _numericHigth = higth; }
 };
 }     // namespace Ms
 #endif

@@ -719,6 +719,33 @@ qreal Chord::maxHeadWidth() const
 
 void Chord::addLedgerLines()
 {
+    if (staff() && (staff()->isNumericStaff(tick()))) {
+        int anzahl = notes()[0]->get_numericLedgerline();
+        if (anzahl < 0)
+            anzahl *= -1;
+        for (int n = 0; n < anzahl; n++) {
+            LedgerLine* h = new LedgerLine(score());
+            h->setParent(this);
+            h->setTrack(track());
+            h->setVisible(visible());
+            h->setLineWidth(notes()[0]->get_numericHigth() * score()->styleD(Sid::numericLedgerlineThick));
+            h->setLen(notes()[0]->get_numericWidth() * score()->styleD(Sid::numericLedgerlineLength));
+            qreal x = (notes()[0]->get_numericWidth() * 0.5) - (notes()[0]->get_numericWidth() * score()->styleD(Sid::numericLedgerlineLength) * 0.5) +
+                score()->styleD(Sid::numericLedgerlineShift);
+            if (notes()[0]->get_numericLedgerline() < 0)
+                h->setPos(x, notes()[0]->get_numericHigth() * score()->styleD(Sid::numericDistanceOctave) * 2.0 * (n + 1));
+            else
+                h->setPos(x, -notes()[0]->get_numericHigth() * score()->styleD(Sid::numericDistanceOctave) * 2.0 * (n + 1));
+            h->setNext(_ledgerLines);
+            _ledgerLines = h;
+        }
+
+
+        for (LedgerLine* ll = _ledgerLines; ll; ll = ll->next())
+            ll->layout();
+
+        return;
+    }
     // initialize for palette
     int track          = 0;                     // the track lines belong to
     // the line pos corresponding to the bottom line of the staff
@@ -1665,6 +1692,18 @@ void Chord::layoutStem()
         // if stems are through staff, use standard formatting
     }
 
+    if (staff() && (staff()->isNumericStaff(tick()))) {
+
+        if (_hook) {
+            QPointF p(0, 0);
+            p.ry() -= (_notes[0]->fretStringYShift()) * magS();
+            p.rx() = _notes[0]->bbox().x();
+
+            _hook->setPos(p);
+        }
+        return;
+    }
+    // not stem on Numeric
     //
     // NON-TAB (or TAB with stems through staff)
     //
@@ -1863,6 +1902,14 @@ void Chord::cmdUpdateNotes(AccidentalState* as)
         }
         updatePercussionNotes(this, drumset);
     }
+    else if (staffGroup == StaffGroup::NUMERIC) {
+        // ToDo
+        const Instrument* instrument = part()->instrument();
+        const Drumset* drumset = instrument->drumset();
+        if (!drumset)
+            qWarning("no drumset");
+        updatePercussionNotes(this, drumset);
+    }
 
     sortNotes();
 }
@@ -1902,6 +1949,8 @@ void Chord::layout()
     }
     if (onTabStaff()) {
         layoutTablature();
+    } else if (staff() && (staff()->isNumericStaff(tick()))) {
+        layoutNumeric();
     } else {
         layoutPitched();
     }

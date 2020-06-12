@@ -472,80 +472,6 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::FONT_SIZE,               false, "size",                  P_TYPE::REAL,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "size") },
 //200
-<<<<<<< HEAD
-      { Pid::FRAME_FG_COLOR,          false, "frameFgColor",          P_TYPE::COLOR,               DUMMY_QT_TRANSLATE_NOOP("propertyName", "frame foreground color") },
-      { Pid::FRAME_BG_COLOR,          false, "frameBgColor",          P_TYPE::COLOR,               DUMMY_QT_TRANSLATE_NOOP("propertyName", "frame background color") },
-      { Pid::SIZE_SPATIUM_DEPENDENT,  false, "sizeIsSpatiumDependent",P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "spatium dependent font") },
-      { Pid::ALIGN,                   false, "align",                 P_TYPE::ALIGN,               DUMMY_QT_TRANSLATE_NOOP("propertyName", "align")            },
-      { Pid::SYSTEM_FLAG,             false, "systemFlag",            P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "system flag")      },
-      { Pid::BEGIN_TEXT,              true,  "beginText",             P_TYPE::STRING,              DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin text")       },
-
-      { Pid::BEGIN_TEXT_ALIGN,        false, "beginTextAlign",        P_TYPE::ALIGN,               DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin text align") },
-      { Pid::BEGIN_TEXT_PLACE,        false, "beginTextPlace",        P_TYPE::TEXT_PLACE,          DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin text place") },
-      { Pid::BEGIN_HOOK_TYPE,         false, "beginHookType",         P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin hook type")  },
-      { Pid::BEGIN_HOOK_HEIGHT,       false, "beginHookHeight",       P_TYPE::SPATIUM,             DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin hook height") },
-      { Pid::BEGIN_FONT_FACE,         false, "beginFontFace",         P_TYPE::FONT,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin font face")  },
-      { Pid::BEGIN_FONT_SIZE,         false, "beginFontSize",         P_TYPE::REAL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin font size")  },
-      { Pid::BEGIN_FONT_STYLE,        false, "beginFontStyle",        P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin font style")  },
-      { Pid::BEGIN_TEXT_OFFSET,       false, "beginTextOffset",       P_TYPE::POINT_SP,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "begin text offset")  },
-
-      { Pid::CONTINUE_TEXT,           true,  "continueText",          P_TYPE::STRING,              DUMMY_QT_TRANSLATE_NOOP("propertyName", "continue text")    },
-      { Pid::CONTINUE_TEXT_ALIGN,     false, "continueTextAlign",     P_TYPE::ALIGN,               DUMMY_QT_TRANSLATE_NOOP("propertyName", "continue text align") },
-      { Pid::CONTINUE_TEXT_PLACE,     false, "continueTextPlace",     P_TYPE::TEXT_PLACE,          DUMMY_QT_TRANSLATE_NOOP("propertyName", "continue text place") },
-      { Pid::CONTINUE_FONT_FACE,      false, "continueFontFace",      P_TYPE::FONT,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "continue font face") },
-      { Pid::CONTINUE_FONT_SIZE,      false, "continueFontSize",      P_TYPE::REAL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "continue font size") },
-      { Pid::CONTINUE_FONT_STYLE,     false, "continueFontStyle",     P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "continue font style") },
-      { Pid::CONTINUE_TEXT_OFFSET,    false, "continueTextOffset",    P_TYPE::POINT_SP,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "continue text offset") },
-      { Pid::END_TEXT,                true,  "endText",               P_TYPE::STRING,              DUMMY_QT_TRANSLATE_NOOP("propertyName", "end text")         },
-
-      { Pid::END_TEXT_ALIGN,          false, "endTextAlign",          P_TYPE::ALIGN,               DUMMY_QT_TRANSLATE_NOOP("propertyName", "end text align")   },
-      { Pid::END_TEXT_PLACE,          false, "endTextPlace",          P_TYPE::TEXT_PLACE,          DUMMY_QT_TRANSLATE_NOOP("propertyName", "end text place")   },
-      { Pid::END_HOOK_TYPE,           false, "endHookType",           P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "end hook type")    },
-      { Pid::END_HOOK_HEIGHT,         false, "endHookHeight",         P_TYPE::SPATIUM,             DUMMY_QT_TRANSLATE_NOOP("propertyName", "end hook height")  },
-      { Pid::END_FONT_FACE,           false, "endFontFace",           P_TYPE::FONT,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "end font face")    },
-      { Pid::END_FONT_SIZE,           false, "endFontSize",           P_TYPE::REAL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "end font size")    },
-      { Pid::END_FONT_STYLE,          false, "endFontStyle",          P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName",  "end font style")  },
-      { Pid::END_TEXT_OFFSET,         false, "endTextOffset",         P_TYPE::POINT_SP,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "end text offset")  },
-
-      { Pid::POS_ABOVE,               false, "posAbove",              P_TYPE::SP_REAL,             DUMMY_QT_TRANSLATE_NOOP("propertyName", "position above")   },
-
-      { Pid::LOCATION_STAVES,         false, "staves",                P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "staves distance")  },
-      { Pid::LOCATION_VOICES,         false, "voices",                P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "voices distance")  },
-      { Pid::LOCATION_MEASURES,       false, "measures",              P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "measures distance") },
-      { Pid::LOCATION_FRACTIONS,      false, "fractions",             P_TYPE::FRACTION,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "position distance") },
-      { Pid::LOCATION_GRACE,          false, "grace",                 P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "grace note index") },
-      { Pid::LOCATION_NOTE,           false, "note",                  P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "note index")       },
-
-      { Pid::VOICE,                   false, "voice",                 P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "voice")            },
-      { Pid::POSITION,                false, "position",              P_TYPE::FRACTION,            DUMMY_QT_TRANSLATE_NOOP("propertyName", "position")         },
-
-      { Pid::CLEF_TYPE_CONCERT,       true,  "concertClefType",       P_TYPE::CLEF_TYPE,           DUMMY_QT_TRANSLATE_NOOP("propertyName", "concert clef type") },
-      { Pid::CLEF_TYPE_TRANSPOSING,   true,  "transposingClefType",   P_TYPE::CLEF_TYPE,           DUMMY_QT_TRANSLATE_NOOP("propertyName", "transposing clef type") },
-      { Pid::KEY,                     true,  "accidental",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "key")              },
-      { Pid::ACTION,                  false, "action",                P_TYPE::STRING,              0                                                           },
-      { Pid::MIN_DISTANCE,            false, "minDistance",           P_TYPE::SPATIUM,             DUMMY_QT_TRANSLATE_NOOP("propertyName", "autoplace minimum distance") },
-
-      { Pid::ARPEGGIO_TYPE,           true,  "subtype",               P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "arpeggio type")    },
-      { Pid::CHORD_LINE_TYPE,         true,  "subtype",               P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "chord line type")  },
-      { Pid::CHORD_LINE_STRAIGHT,     true,  "straight",              P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "straight chord line") },
-      { Pid::TREMOLO_TYPE,            true,  "subtype",               P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "tremolo type")     },
-      { Pid::TREMOLO_PLACEMENT,       false, "tremoloPlacement",      P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "tremolo placement") },
-      { Pid::TREMOLO_STROKE_STYLE,    true,  "strokeStyle",           P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "tremolo stroke style") },
-      { Pid::HARMONY_TYPE,            true,  "harmonyType",           P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "harmony type") },
-
-      { Pid::START_WITH_LONG_NAMES,   false, "startWithLongNames",    P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "start with long names")  },
-      { Pid::START_WITH_MEASURE_ONE,  true,  "startWithMeasureOne",   P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "start with measure one") },
-
-      { Pid::PATH,                    false, "path",                  P_TYPE::PATH,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "path") },
-
-      { Pid::PREFER_SHARP_FLAT,       true,  "preferSharpFlat",       P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "prefer sharps or flats") },
-
-      { Pid::SET_KEY_TYPE,           false,  "set_key_type",          P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "set Key Type")     },
-	  { Pid::LYRICS_STAFF_SHIFT,     false,  "lyricsStaffShift",      P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "Notenzeilen verschibung") },
-
-      { Pid::END, false, "++end++", P_TYPE::INT, DUMMY_QT_TRANSLATE_NOOP("propertyName", "<invalid property>") }
-      };
-=======
     { Pid::FONT_STYLE,              false, "fontStyle",             P_TYPE::INT,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "font style") },
 
@@ -679,9 +605,13 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::PREFER_SHARP_FLAT,       true,  "preferSharpFlat",       P_TYPE::INT,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "prefer sharps or flats") },
 
+    { Pid::SET_KEY_TYPE,           false,  "set_key_type",          P_TYPE::INT,
+      DUMMY_QT_TRANSLATE_NOOP("propertyName", "set Key Type") },
+    { Pid::LYRICS_STAFF_SHIFT,     false,  "lyricsStaffShift",      P_TYPE::INT,                
+      DUMMY_QT_TRANSLATE_NOOP("propertyName", "Notenzeilen verschibung") },
+
     { Pid::END, false, "++end++", P_TYPE::INT, DUMMY_QT_TRANSLATE_NOOP("propertyName", "<invalid property>") }
 };
->>>>>>> merge
 
 //---------------------------------------------------------
 //   propertyId

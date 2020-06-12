@@ -38,44 +38,26 @@ enum class TimeSigType : char {
 ///    This class represents a time signature.
 //---------------------------------------------------------------------------------------
 
-<<<<<<< HEAD
-class TimeSig final : public Element {
-      QString _numeratorString;     // calculated from actualSig() if !customText
-      QString _denominatorString;
-      QString _numeric_ns;
-      QString _numeric_ds;
-
-      qreal _numericlinethick;
-      qreal _numericXpos;
-	  qreal _numericHigthds;
-	  qreal _numericHigthns;
-      qreal _numericBarLinelenght;
-      bool _numericVisible;
-      bool _numericBegin;
-
-	  numeric _numeric;
-
-      std::vector<SymId> ns;
-      std::vector<SymId> ds;
-
-      QPointF pz;
-      QPointF pn;
-      QPointF pointLargeLeftParen;
-      QPointF pointLargeRightParen;
-      QLineF numericLine;
-      QLineF numericBarLine;
-      Fraction _sig;
-      Fraction _stretch;      // localSig / globalSig
-      Groups _groups;
-=======
 class TimeSig final : public Element
 {
     QString _numeratorString;       // calculated from actualSig() if !customText
     QString _denominatorString;
 
+    QString _numeric_ns;
+    QString _numeric_ds;
+    qreal _numericlinethick;
+    qreal _numericXpos;
+    qreal _numericHigthds;
+    qreal _numericHigthns;
+    qreal _numericBarLinelenght;
+    bool _numericVisible;
+    bool _numericBegin;
+    numeric _numeric;
+    QLineF numericLine;
+    QLineF numericBarLine;
+
     std::vector<SymId> ns;
     std::vector<SymId> ds;
->>>>>>> merge
 
     QPointF pz;
     QPointF pn;
@@ -101,24 +83,15 @@ public:
 
     TimeSigType timeSigType() const { return _timeSigType; }
 
-<<<<<<< HEAD
-      qreal mag() const override;
-      void draw(QPainter*) const override;
-      void write(XmlWriter& xml) const override;
-      void read(XmlReader&) override;
-      void layout() override;
-      Shape shape() const override;
-      void layout2();
-=======
     bool operator==(const TimeSig&) const;
     bool operator!=(const TimeSig& ts) const { return !(*this == ts); }
->>>>>>> merge
 
     qreal mag() const override;
     void draw(QPainter*) const override;
     void write(XmlWriter& xml) const override;
     void read(XmlReader&) override;
     void layout() override;
+    void layout2();
     Shape shape() const override;
 
     Fraction sig() const { return _sig; }
@@ -148,17 +121,7 @@ public:
 
     void setLargeParentheses(bool v) { _largeParentheses = v; }
 
-<<<<<<< HEAD
-      qreal numericGetWidth(StaffType* numeric, QString string)const;
-      void set_numericVisible(bool s)      { _numericVisible = s; }
-      bool get_numericVisible() const  { return _numericVisible; }
-      void set_numericXpos(qreal s)      { _numericXpos = s; }
-      qreal get_numericXpos() const  { return _numericXpos; }
-      void set_numericBarLinelength(qreal length)      { _numericBarLinelenght = length; }
-
-=======
     void setScale(const QSizeF& s) { _scale = s; }
->>>>>>> merge
 
     void setFrom(const TimeSig*);
 
@@ -178,6 +141,13 @@ public:
     Element* nextSegmentElement() override;
     Element* prevSegmentElement() override;
     QString accessibleInfo() const override;
+
+    qreal numericGetWidth(StaffType* numeric, QString string)const;
+    void set_numericVisible(bool s) { _numericVisible = s; }
+    bool get_numericVisible() const { return _numericVisible; }
+    void set_numericXpos(qreal s) { _numericXpos = s; }
+    qreal get_numericXpos() const { return _numericXpos; }
+    void set_numericBarLinelength(qreal length) { _numericBarLinelenght = length; }
 };
 }     // namespace Ms
 #endif

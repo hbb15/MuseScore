@@ -732,201 +732,11 @@ QString TRowLabels::cursorIsOn()
 //---------------------------------------------------------
 
 Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
-<<<<<<< HEAD
-  : QGraphicsView(parent)
-      {
-      setFocusPolicy(Qt::NoFocus);
-      setAlignment(Qt::Alignment((Qt::AlignLeft | Qt::AlignTop)));
-      setAttribute(Qt::WA_NoBackground);
-
-      // theming
-      _lightTheme.backgroundColor      = QColor(192, 192, 192);
-      _lightTheme.labelsColor1         = QColor(Qt::black);
-      _lightTheme.labelsColor2         = QColor(150, 150, 150);
-      _lightTheme.labelsColor3         = QColor(211, 211, 211);
-      _lightTheme.gridColor1           = QColor(150, 150, 150);
-      _lightTheme.gridColor2           = QColor(211, 211, 211);
-      _lightTheme.measureMetaColor     = QColor(0, 0, 0);
-      _lightTheme.selectionColor       = QColor(173, 216, 230);
-      _lightTheme.nonVisiblePenColor   = QColor(100, 150, 250);
-      _lightTheme.nonVisibleBrushColor = QColor(192, 192, 192);
-      _lightTheme.colorBoxColor        = QColor(Qt::darkGray);
-      _lightTheme.metaValuePenColor    = QColor(Qt::black);
-      _lightTheme.metaValueBrushColor  = QColor(Qt::gray);
-
-      _darkTheme.backgroundColor       = QColor(35, 35, 35);
-      _darkTheme.labelsColor1          = QColor(225, 225, 225);
-      _darkTheme.labelsColor2          = QColor(55, 55, 55);
-      _darkTheme.labelsColor3          = QColor(70, 70, 70);
-      _darkTheme.gridColor1            = QColor(50, 50, 50);
-      _darkTheme.gridColor2            = QColor(75, 75, 75);
-      _darkTheme.measureMetaColor      = QColor(200, 200, 200);
-      _darkTheme.selectionColor        = QColor(55, 70, 75);
-      _darkTheme.nonVisiblePenColor    = QColor(40, 60, 80);
-      _darkTheme.nonVisibleBrushColor  = QColor(55, 55, 55);
-      _darkTheme.colorBoxColor         = QColor(Qt::gray);
-      _darkTheme.metaValuePenColor     = QColor(Qt::lightGray);
-      _darkTheme.metaValueBrushColor   = QColor(Qt::darkGray);
-
-      _scrollArea = dockWidget;
-      QSplitter* split = static_cast<QSplitter*>(_scrollArea->widget());
-
-      _rowNames = new TRowLabels(dockWidget, this);
-      split->addWidget(_rowNames);
-      split->addWidget(this);
-      split->setChildrenCollapsible(false);
-      split->setStretchFactor(0, 0);
-      split->setStretchFactor(1, 0);
-
-      setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-
-      setScene(new QGraphicsScene);
-      setSceneRect(0, 0, 100, 100);
-      scene()->setBackgroundBrush(QBrush(activeTheme().backgroundColor));
-
-      connect(verticalScrollBar(),SIGNAL(valueChanged(int)),_rowNames->verticalScrollBar(),SLOT(setValue(int)));
-      connect(verticalScrollBar(),SIGNAL(valueChanged(int)),this,SLOT(handleScroll(int)));
-      connect(_rowNames, SIGNAL(swapMeta(uint,bool)), this, SLOT(swapMeta(uint,bool)));
-      connect(this, SIGNAL(moved(QPointF)), _rowNames, SLOT(mouseOver(QPointF)));
-
-      std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t1(tr("Tempo"), &Ms::Timeline::tempoMeta, true);
-      std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t2(tr("Time Signature"), &Ms::Timeline::timeMeta, true);
-      std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t3(tr("Rehearsal Mark"), &Ms::Timeline::rehearsalMeta, true);
-      std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t4(tr("Key Signature"), &Ms::Timeline::keyMeta, true);
-      std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t5(tr("Barlines"), &Ms::Timeline::barlineMeta, true);
-      std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t6(tr("Jumps and Markers"), &Ms::Timeline::jumpMarkerMeta, true);
-      std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t7(tr("Measures"), &Ms::Timeline::measureMeta, true);
-      _metas.push_back(t1);
-      _metas.push_back(t2);
-      _metas.push_back(t3);
-      _metas.push_back(t4);
-      _metas.push_back(t5);
-      _metas.push_back(t6);
-      _metas.push_back(t7);
-
-      std::tuple<QGraphicsItem*, int, QColor> ohi(nullptr, -1, QColor());
-      _oldHoverInfo = ohi;
-      std::tuple<int, qreal, Element*, Element*, bool> ri(0, 0, nullptr, nullptr, false);
-      _repeatInfo = ri;
-
-      static const char* leftRepeat[] = {
-                  "7 14 2 1",
-                  "# c #000000",
-                  ". c None",
-                  "##.#...",
-                  "##.#...",
-                  "##.#...",
-                  "##.#...",
-                  "##.#.##",
-                  "##.#.##",
-                  "##.#...",
-                  "##.#...",
-                  "##.#.##",
-                  "##.#.##",
-                  "##.#...",
-                  "##.#...",
-                  "##.#...",
-                  "##.#..."
-                  };
-
-      static const char* rightRepeat[] = {
-                  "7 14 2 1",
-                  "# c #000000",
-                  ". c None",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "##.#.##",
-                  "##.#.##",
-                  "...#.##",
-                  "...#.##",
-                  "##.#.##",
-                  "##.#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##"
-                  };
-
-      static const char* finalBarline[] = {
-                  "7 14 2 1",
-                  "# c #000000",
-                  ". c None",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##",
-                  "...#.##"
-                  };
-
-      static const char* startbarline[] = {
-                  "7 14 2 1",
-                  "# c #000000",
-                  ". c None",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#",
-                  "...##.#"
-                  };
-
-      static const char* doubleBarline[] = {
-                  "7 14 2 1",
-                  "# c #000000",
-                  ". c None",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#..",
-                  "..#.#.."
-                  };
-
-      QPixmap* leftRepeatPixmap = new QPixmap(leftRepeat);
-      QPixmap* rightRepeatPixmap = new QPixmap(rightRepeat);
-      QPixmap* finalBarlinePixmap = new QPixmap(finalBarline);
-      QPixmap* startBarlinePixmap = new QPixmap(startbarline);
-      QPixmap* doubleBarlinePixmap = new QPixmap(doubleBarline);
-
-      _barlines["Start repeat"] = leftRepeatPixmap;
-      _barlines["End repeat"] = rightRepeatPixmap;
-      _barlines["Final barline"] = finalBarlinePixmap;
-      _barlines["Start barline"] = startBarlinePixmap;
-      _barlines["Double barline"] = doubleBarlinePixmap;
-      }
-=======
     : QGraphicsView(parent)
 {
     setFocusPolicy(Qt::NoFocus);
     setAlignment(Qt::Alignment((Qt::AlignLeft | Qt::AlignTop)));
-    setAttribute(Qt::WA_NoBackground);
+    setAttribute(Qt::WA_OpaquePaintEvent);
 
     // theming
     _lightTheme.backgroundColor      = QColor(192, 192, 192);
@@ -1004,7 +814,7 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
     std::tuple<int, qreal, Element*, Element*, bool> ri(0, 0, nullptr, nullptr, false);
     _repeatInfo = ri;
 
-    static const char* leftRepeat[] = {
+    static const char* startRepeat[] = {
         "7 14 2 1",
         "# c #000000",
         ". c None",
@@ -1024,7 +834,7 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
         "##.#..."
     };
 
-    static const char* rightRepeat[] = {
+    static const char* endRepeat[] = {
         "7 14 2 1",
         "# c #000000",
         ". c None",
@@ -1044,7 +854,7 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
         "...#.##"
     };
 
-    static const char* finalBarline[] = {
+    static const char* endBarline[] = {
         "7 14 2 1",
         "# c #000000",
         ". c None",
@@ -1062,6 +872,26 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
         "...#.##",
         "...#.##",
         "...#.##"
+    };
+
+    static const char* startbarline[] = {
+        "7 14 2 1",
+        "# c #000000",
+        ". c None",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#",
+        "...##.#"
     };
 
     static const char* doubleBarline[] = {
@@ -1084,17 +914,84 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
         "..#.#.."
     };
 
-    QPixmap* leftRepeatPixmap = new QPixmap(leftRepeat);
-    QPixmap* rightRepeatPixmap = new QPixmap(rightRepeat);
-    QPixmap* finalBarlinePixmap = new QPixmap(finalBarline);
-    QPixmap* doubleBarlinePixmap = new QPixmap(doubleBarline);
+    static const char* reverseEndBarline[] = {
+        "7 14 2 1",
+        "# c #000000",
+        ". c None",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#...",
+        "##.#..."
+    };
 
-    _barlines["Start repeat"] = leftRepeatPixmap;
-    _barlines["End repeat"] = rightRepeatPixmap;
-    _barlines["Final barline"] = finalBarlinePixmap;
-    _barlines["Double barline"] = doubleBarlinePixmap;
+    static const char* heavyBarline[] = {
+        "6 14 2 1",
+        "# c #000000",
+        ". c None",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##..",
+        "..##.."
+    };
+
+    static const char* doubleHeavyBarline[] = {
+        "7 14 2 1",
+        "# c #000000",
+        ". c None",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##.",
+        ".##.##."
+    };
+
+    QPixmap* startRepeatPixmap = new QPixmap(startRepeat);
+    QPixmap* endRepeatPixmap = new QPixmap(endRepeat);
+    QPixmap* endBarlinePixmap = new QPixmap(endBarline);
+    QPixmap* startBarlinePixmap = new QPixmap(startbarline);
+    QPixmap* doubleBarlinePixmap = new QPixmap(doubleBarline);
+    QPixmap* reverseEndBarlinePixmap = new QPixmap(reverseEndBarline);
+    QPixmap* heavyBarlinePixmap = new QPixmap(heavyBarline);
+    QPixmap* doubleHeavyBarlinePixmap = new QPixmap(doubleHeavyBarline);
+
+    _barlines[BarLine::userTypeName(BarLineType::START_REPEAT)] = startRepeatPixmap;
+    _barlines[BarLine::userTypeName(BarLineType::END_REPEAT)] = endRepeatPixmap;
+    _barlines[BarLine::userTypeName(BarLineType::END)] = endBarlinePixmap;
+    _barlines["Start barline"] = startBarlinePixmap;
+    _barlines[BarLine::userTypeName(BarLineType::DOUBLE)] = doubleBarlinePixmap;
+    _barlines[BarLine::userTypeName(BarLineType::REVERSE_END)] = reverseEndBarlinePixmap;
+    _barlines[BarLine::userTypeName(BarLineType::HEAVY)] = heavyBarlinePixmap;
+    _barlines[BarLine::userTypeName(BarLineType::DOUBLE_HEAVY)] = doubleHeavyBarlinePixmap;
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   Timeline::drawGrid
@@ -1466,62 +1363,6 @@ void Timeline::keyMeta(Segment* seg, int* stagger, int pos)
 //---------------------------------------------------------
 
 void Timeline::barlineMeta(Segment* seg, int* stagger, int pos)
-<<<<<<< HEAD
-      {
-      if (!seg->isBeginBarLineType() && !seg->isEndBarLineType() && !seg->isBarLine() && !seg->isStartRepeatBarLineType())
-            return;
-
-      // Find position of repeat_meta in metas
-      int row = getMetaRow(tr("Barlines"));
-
-      QString repeatText = "";
-      BarLine* barline = toBarLine(seg->element(0));
-
-      if (barline) {
-            switch (barline->barLineType()) {
-                  case BarLineType::START_REPEAT:
-                        repeatText = QString("Start repeat");
-                        break;
-                  case BarLineType::END_REPEAT:
-                        repeatText = QString("End repeat");
-                        break;
-                  case BarLineType::END_START_REPEAT:
-                        // actually an end repeat followed by a start repeat, so nothing needs to be done here
-                        break;
-                  case BarLineType::DOUBLE:
-                        repeatText = QString("Double barline");
-                        break;
-                  case BarLineType::END:
-                        repeatText = QString("Final barline");
-                        break;
-                  case BarLineType::BEGIN:
-                        repeatText = QString("Start barline");
-                        break;
-                  default:
-                        break;
-                  }
-            _isBarline = true;
-            }
-      else
-            return;
-
-      Measure* measure = seg->measure();
-      ElementType elementType = ElementType::BAR_LINE;
-      Element* element = nullptr;
-
-      if (repeatText == "") {
-            _isBarline = false;
-            return;
-            }
-
-      int x = pos + (*stagger) * _spacing;
-      if (addMetaValue(x, pos, repeatText, row, elementType, element, seg, measure)) {
-            (*stagger)++;
-            _globalZValue++;
-            }
-      _isBarline = false;
-      }
-=======
 {
     if (!seg->isBeginBarLineType() && !seg->isEndBarLineType() && !seg->isBarLine()
         && !seg->isStartRepeatBarLineType()) {
@@ -1537,19 +1378,15 @@ void Timeline::barlineMeta(Segment* seg, int* stagger, int pos)
     if (barline) {
         switch (barline->barLineType()) {
         case BarLineType::START_REPEAT:
-            repeatText = QString("Start repeat");
-            break;
         case BarLineType::END_REPEAT:
-            repeatText = QString("End repeat");
-            break;
+        case BarLineType::DOUBLE:
+        case BarLineType::END:
+            repeatText = BarLine::userTypeName(barline->barLineType());
         case BarLineType::END_START_REPEAT:
             // actually an end repeat followed by a start repeat, so nothing needs to be done here
             break;
-        case BarLineType::DOUBLE:
-            repeatText = QString("Double barline");
-            break;
-        case BarLineType::END:
-            repeatText = QString("Final barline");
+        case BarLineType::BEGIN:
+            repeatText = QString("Start barline");
             break;
         default:
             break;
@@ -1575,7 +1412,6 @@ void Timeline::barlineMeta(Segment* seg, int* stagger, int pos)
     }
     _isBarline = false;
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   Timeline::jumpMarkerMeta
@@ -1732,128 +1568,6 @@ unsigned Timeline::getMetaRow(QString targetText)
 //   Timeline::addMetaValue
 //---------------------------------------------------------
 
-<<<<<<< HEAD
-bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementType elementType, Element* element, Segment* seg, Measure* measure, QString tooltip)
-      {
-      QGraphicsTextItem* graphicsTextItem = new QGraphicsTextItem(metaText);
-      qreal textWidth = graphicsTextItem->boundingRect().width();
-
-      QGraphicsPixmapItem* graphicsPixmapItem = nullptr;
-      if (_isBarline)
-            graphicsPixmapItem = new QGraphicsPixmapItem(*_barlines[metaText]);
-
-      if (graphicsPixmapItem) {
-            textWidth = 10;
-            if (textWidth > _gridWidth) {
-                  textWidth = _gridWidth;
-                  if (metaText == QString("End repeat") && std::get<4>(_repeatInfo))
-                        textWidth /= 2;
-                  }
-            }
-
-      if (textWidth + x > getWidth())
-            textWidth = getWidth() - x;
-
-      // Adjust x for end repeats
-      if ((metaText == QString("End repeat") || metaText == QString("Final barline") || metaText == QString("Start barline") || metaText == QString("Double barline") || std::get<2>(_repeatInfo)) && !_collapsedMeta) {
-            if (std::get<0>(_repeatInfo) > 0)
-                  x = pos + _gridWidth - std::get<1>(_repeatInfo) + std::get<0>(_repeatInfo) * _spacing;
-            else {
-                  x = pos + _gridWidth - textWidth;
-                  std::get<1>(_repeatInfo) = textWidth;
-                  }
-            // Check if extending past left side
-            if (x < 0) {
-                  textWidth = textWidth + x;
-                  x = 0;
-                  }
-            }
-
-      // Return if past width
-      if (x >= getWidth())
-            return false;
-
-      QGraphicsItem* itemToAdd;
-      if (graphicsPixmapItem) {
-            // Exact values required for repeat pixmap to work visually
-            if (textWidth != 10)
-                  graphicsPixmapItem = new QGraphicsPixmapItem();
-            if (metaText == QString("Start repeat"))
-                  std::get<4>(_repeatInfo) = true;
-            graphicsPixmapItem->setX(x + 2);
-            graphicsPixmapItem->setY(_gridHeight * row + verticalScrollBar()->value() + 3);
-            itemToAdd = graphicsPixmapItem;
-            }
-      else if (metaText == "\uE047" || metaText == "\uE048") {
-            graphicsTextItem->setX(x);
-            graphicsTextItem->setY(_gridHeight * row + verticalScrollBar()->value() - 2);
-            itemToAdd = graphicsTextItem;
-            }
-      else if (row == 0) {
-            graphicsTextItem->setX(x);
-            graphicsTextItem->setY(_gridHeight * row + verticalScrollBar()->value() - 6);
-            itemToAdd = graphicsTextItem;
-            }
-      else {
-            graphicsTextItem->setX(x);
-            graphicsTextItem->setY(_gridHeight * row + verticalScrollBar()->value() - 1);
-            itemToAdd = graphicsTextItem;
-            }
-
-      QFontMetrics f(QApplication::font());
-      QString partName = f.elidedText(graphicsTextItem->toPlainText(),
-                                      Qt::ElideRight,
-                                      textWidth);
-
-      // Set tool tip if elided
-      if (tooltip != "")
-            graphicsTextItem->setToolTip(tooltip);
-      else if (partName != metaText)
-            graphicsTextItem->setToolTip(graphicsTextItem->toPlainText());
-      graphicsTextItem->setPlainText(partName);
-
-      // Make text fit within rectangle
-      while (graphicsTextItem->boundingRect().width() > textWidth &&
-             graphicsTextItem->toPlainText() != "") {
-            QString text = graphicsTextItem->toPlainText();
-            text.chop(1);
-            graphicsTextItem->setPlainText(text);
-            }
-
-      QGraphicsRectItem* graphicsRectItem = new QGraphicsRectItem(x,
-                                                                  _gridHeight * row + verticalScrollBar()->value(),
-                                                                  textWidth,
-                                                                  _gridHeight);
-      if (tooltip != "")
-            graphicsRectItem->setToolTip(tooltip);
-      else if (partName != metaText)
-            graphicsRectItem->setToolTip(metaText);
-      else if (graphicsPixmapItem)
-            graphicsRectItem->setToolTip(tr(metaText.toLatin1().constData()));
-
-      setMetaData(graphicsRectItem, -1, elementType, measure, true, element, itemToAdd, seg);
-      setMetaData(itemToAdd, -1, elementType, measure, true, element, graphicsRectItem, seg);
-
-      graphicsRectItem->setZValue(_globalZValue);
-      itemToAdd->setZValue(_globalZValue);
-
-      graphicsRectItem->setPen(QPen(activeTheme().metaValuePenColor));
-      graphicsRectItem->setBrush(QBrush(activeTheme().metaValueBrushColor));
-
-      scene()->addItem(graphicsRectItem);
-      scene()->addItem(itemToAdd);
-
-      std::pair<QGraphicsItem*, int> pairTimeRect = std::make_pair(graphicsRectItem, row);
-      std::pair<QGraphicsItem*, int> pairTimeText = std::make_pair(itemToAdd, row);
-      _metaRows.push_back(pairTimeRect);
-      _metaRows.push_back(pairTimeText);
-
-      if (metaText == QString("End repeat"))
-            std::get<0>(_repeatInfo)++;
-
-      return true;
-      }
-=======
 bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementType elementType, Element* element,
                             Segment* seg, Measure* measure, QString tooltip)
 {
@@ -1869,7 +1583,7 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
         textWidth = 10;
         if (textWidth > _gridWidth) {
             textWidth = _gridWidth;
-            if (metaText == QString("End repeat") && std::get<4>(_repeatInfo)) {
+            if (metaText == BarLine::userTypeName(BarLineType::END_REPEAT) && std::get<4>(_repeatInfo)) {
                 textWidth /= 2;
             }
         }
@@ -1880,8 +1594,15 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
     }
 
     // Adjust x for end repeats
-    if ((metaText == QString("End repeat") || metaText == QString("Final barline")
-         || metaText == QString("Double barline") || std::get<2>(_repeatInfo)) && !_collapsedMeta) {
+    if ((metaText == BarLine::userTypeName(BarLineType::END_REPEAT) ||
+        metaText == BarLine::userTypeName(BarLineType::END) ||
+        metaText == BarLine::userTypeName(BarLineType::BEGIN) ||
+        metaText == BarLine::userTypeName(BarLineType::DOUBLE) ||
+        metaText == BarLine::userTypeName(BarLineType::REVERSE_END) ||
+        metaText == BarLine::userTypeName(BarLineType::HEAVY) ||
+        metaText == BarLine::userTypeName(BarLineType::DOUBLE_HEAVY) ||
+        std::get<2>(_repeatInfo))
+      && !_collapsedMeta) {
         if (std::get<0>(_repeatInfo) > 0) {
             x = pos + _gridWidth - std::get<1>(_repeatInfo) + std::get<0>(_repeatInfo) * _spacing;
         } else {
@@ -1906,7 +1627,7 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
         if (textWidth != 10) {
             graphicsPixmapItem = new QGraphicsPixmapItem();
         }
-        if (metaText == QString("Start repeat")) {
+        if (metaText == BarLine::userTypeName(BarLineType::START_REPEAT)) {
             std::get<4>(_repeatInfo) = true;
         }
         graphicsPixmapItem->setX(x + 2);
@@ -1953,10 +1674,8 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
                                                                 _gridHeight);
     if (tooltip != "") {
         graphicsRectItem->setToolTip(tooltip);
-    } else if (partName != metaText) {
+    } else if (partName != metaText || graphicsPixmapItem) {
         graphicsRectItem->setToolTip(metaText);
-    } else if (graphicsPixmapItem) {
-        graphicsRectItem->setToolTip(tr(metaText.toLatin1().constData()));
     }
 
     setMetaData(graphicsRectItem, -1, elementType, measure, true, element, itemToAdd, seg);
@@ -1976,13 +1695,12 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
     _metaRows.push_back(pairTimeRect);
     _metaRows.push_back(pairTimeText);
 
-    if (metaText == QString("End repeat")) {
+    if (metaText == BarLine::userTypeName(BarLineType::END_REPEAT)) {
         std::get<0>(_repeatInfo)++;
     }
 
     return true;
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   Timeline::setMetaData
@@ -2237,12 +1955,16 @@ void Timeline::drawSelection()
         if (element->isBarLine()) {
             staffIdx = -1;
             BarLine* barline = toBarLine(element);
-            if (barline
-                && (barline->barLineType() == BarLineType::END_REPEAT
-                    || barline->barLineType() == BarLineType::DOUBLE || barline->barLineType() == BarLineType::END)
-                && measure != _score->lastMeasure()) {
-                if (measure->prevMeasure()) {
-                    measure = measure->prevMeasure();
+            if (barline &&
+              (barline->barLineType() == BarLineType::END_REPEAT ||
+               barline->barLineType() == BarLineType::DOUBLE ||
+               barline->barLineType() == BarLineType::REVERSE_END ||
+               barline->barLineType() == BarLineType::HEAVY ||
+               barline->barLineType() == BarLineType::DOUBLE_HEAVY ||
+               barline->barLineType() == BarLineType::END) &&
+              measure != _score->lastMeasure()) {
+               if (measure->prevMeasure()) {
+                   measure = measure->prevMeasure();
                 }
             }
         }

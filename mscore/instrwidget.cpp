@@ -67,56 +67,6 @@ StaffListItem::StaffListItem()
 //---------------------------------------------------------
 
 void StaffListItem::initStaffTypeCombo(bool forceRecreate)
-<<<<<<< HEAD
-      {
-      if (_staffTypeCombo && !forceRecreate)    // do not init more than once
-            return;
-
-      // NOTE: DO NOT DELETE the old _staffTypeCombo if already created:
-      // a bug in Qt looses track of (and presumably deletes) the combo set into the item
-      // if the item is repositioned in the tree; in this case, the pointer to the combo
-      // is no longer valid and cannot be used to delete it
-      // Call initStaffTypeCombo(true) ONLY if the item has been repositioned
-      // or a memory leak may result
-
-      bool canUseTabs = false; // assume only normal staves are applicable
-      int numFrettedStrings = 0;
-      bool canUsePerc = false;
-      PartListItem* part = static_cast<PartListItem*>(QTreeWidgetItem::parent());
-
-      // PartListItem has different members filled out if used in New Score Wizard
-      // or in Instruments Wizard
-      if (part) {
-            const StringData* stringData = part->it ? &(part->it->stringData) :
-                        ( (part->part && part->part->instrument()) ? part->part->instrument()->stringData() : 0);
-            canUseTabs = stringData && stringData->frettedStrings() > 0;
-            if (canUseTabs)
-                  numFrettedStrings = stringData->frettedStrings();
-            canUsePerc = part->it ? part->it->useDrumset :
-                        ( (part->part && part->part->instrument()) ? part->part->instrument()->useDrumset() : false);
-            }
-      _staffTypeCombo = new QComboBox();
-      _staffTypeCombo->setAutoFillBackground(true);
-      int idx = 0;
-      for (const StaffType& st : StaffType::presets()) {
-            if ( (((st.group() == StaffGroup::STANDARD) || (st.group() == StaffGroup::NUMERIC)) && (!canUsePerc))    // percussion excludes standard
-                        || (st.group() == StaffGroup::PERCUSSION && canUsePerc)
-                        || (st.group() == StaffGroup::TAB && canUseTabs && st.lines() <= numFrettedStrings)) {
-                  _staffTypeCombo->addItem(st.name(), idx);
-                  }
-            ++idx;
-            }
-      customStandardIdx = _staffTypeCombo->count();
-      _staffTypeCombo->addItem(tr("Custom Standard"), CUSTOM_STAFF_TYPE_IDX);
-      customPercussionIdx = _staffTypeCombo->count();
-      _staffTypeCombo->addItem(tr("Custom Percussion"), CUSTOM_STAFF_TYPE_IDX);
-      customTablatureIdx = _staffTypeCombo->count();
-      _staffTypeCombo->addItem(tr("Custom Tablature"), CUSTOM_STAFF_TYPE_IDX);
-
-      treeWidget()->setItemWidget(this, 4, _staffTypeCombo);
-      connect(_staffTypeCombo, SIGNAL(currentIndexChanged(int)), SLOT(staffTypeChanged(int)) );
-      }
-=======
 {
     if (_staffTypeCombo && !forceRecreate) {    // do not init more than once
         return;
@@ -151,7 +101,7 @@ void StaffListItem::initStaffTypeCombo(bool forceRecreate)
     _staffTypeCombo->setAutoFillBackground(true);
     int idx = 0;
     for (const StaffType& st : StaffType::presets()) {
-        if ((st.group() == StaffGroup::STANDARD && (!canUsePerc))         // percussion excludes standard
+        if ((((st.group() == StaffGroup::STANDARD) || (st.group() == StaffGroup::NUMERIC)) && (!canUsePerc))         // percussion excludes standard
             || (st.group() == StaffGroup::PERCUSSION && canUsePerc)
             || (st.group() == StaffGroup::TAB && canUseTabs && st.lines() <= numFrettedStrings)) {
             _staffTypeCombo->addItem(st.name(), idx);
@@ -168,7 +118,6 @@ void StaffListItem::initStaffTypeCombo(bool forceRecreate)
     treeWidget()->setItemWidget(this, 4, _staffTypeCombo);
     connect(_staffTypeCombo, SIGNAL(currentIndexChanged(int)), SLOT(staffTypeChanged(int)));
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   setPartIdx
@@ -332,31 +281,6 @@ bool PartListItem::visible() const
 //---------------------------------------------------------
 
 void PartListItem::updateClefs()
-<<<<<<< HEAD
-      {
-      for (int i = 0; i < childCount(); ++i) {
-            StaffListItem* sli = static_cast<StaffListItem*>(child(i));
-            const StaffType* stfType = StaffType::preset(StaffTypes(sli->staffTypeIdx()));
-
-            ClefTypeList clefType;
-            switch (stfType->group()) {
-                  case StaffGroup::STANDARD:
-                        clefType = sli->defaultClefType();
-                        break;
-                  case StaffGroup::TAB:
-                        clefType = ClefTypeList(ClefType::TAB);
-                        break;
-                  case StaffGroup::NUMERIC:
-                        clefType = ClefTypeList(ClefType::TAB);
-                        break;
-                  case StaffGroup::PERCUSSION:
-                        clefType = ClefTypeList(ClefType::PERC);
-                        break;
-                  }
-            sli->setClefType(clefType);
-            }
-      }
-=======
 {
     for (int i = 0; i < childCount(); ++i) {
         StaffListItem* sli = static_cast<StaffListItem*>(child(i));
@@ -370,6 +294,9 @@ void PartListItem::updateClefs()
         case StaffGroup::TAB:
             clefType = ClefTypeList(ClefType::TAB);
             break;
+        case StaffGroup::NUMERIC:
+            clefType = ClefTypeList(ClefType::TAB);
+            break;
         case StaffGroup::PERCUSSION:
             clefType = ClefTypeList(ClefType::PERC);
             break;
@@ -377,7 +304,6 @@ void PartListItem::updateClefs()
         sli->setClefType(clefType);
     }
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   PartListItem
@@ -575,7 +501,7 @@ void InstrumentsWidget::genPartList(Score* cs)
             sli->setStaffType(s->staffType(Fraction(0,1)));          // TODO
         }
         pli->updateClefs();
-        partiturList->setItemExpanded(pli, true);
+        pli->setExpanded(true);
     }
     partiturList->resizeColumnToContents(2);    // adjust width of "Clef " and "Staff type" columns
     partiturList->resizeColumnToContents(4);
@@ -704,7 +630,7 @@ void InstrumentsWidget::on_addButton_clicked()
             sli->setStaffType(it->staffTypePreset);
         }
         pli->updateClefs();
-        partiturList->setItemExpanded(pli, true);
+        pli->setExpanded(true);
         partiturList->clearSelection();         // should not be necessary
         partiturList->setCurrentItem(pli);
     }
@@ -810,7 +736,7 @@ void InstrumentsWidget::on_upButton_clicked()
     QTreeWidgetItem* item = wi.front();
 
     if (item->type() == PART_LIST_ITEM) {
-        bool isExpanded = partiturList->isItemExpanded(item);
+        bool isExpanded = item->isExpanded();
         int idx = partiturList->indexOfTopLevelItem(item);
         // if part item not first, move one slot up
         if (idx) {
@@ -843,7 +769,7 @@ void InstrumentsWidget::on_upButton_clicked()
                 staffItem->initStaffTypeCombo(true);
                 staffItem->setStaffType(staffIdx[itemIdx]);
             }
-            partiturList->setItemExpanded(item1, isExpanded);
+            item1->setExpanded(isExpanded);
             partiturList->setCurrentItem(item1);
         }
     } else {
@@ -899,7 +825,7 @@ void InstrumentsWidget::on_downButton_clicked()
     }
     QTreeWidgetItem* item = wi.front();
     if (item->type() == PART_LIST_ITEM) {
-        bool isExpanded = partiturList->isItemExpanded(item);
+        bool isExpanded = item->isExpanded();
         int idx = partiturList->indexOfTopLevelItem(item);
         int n = partiturList->topLevelItemCount();
         // if part not last, move one slot down
@@ -934,7 +860,7 @@ void InstrumentsWidget::on_downButton_clicked()
                 staffItem->initStaffTypeCombo(true);
                 staffItem->setStaffType(staffIdx[itemIdx]);
             }
-            partiturList->setItemExpanded(item1, isExpanded);
+            item1->setExpanded(isExpanded);
             partiturList->setCurrentItem(item1);
         }
     } else {

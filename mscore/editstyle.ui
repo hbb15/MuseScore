@@ -252,11 +252,7 @@
        </size>
       </property>
       <property name="currentIndex">
-<<<<<<< HEAD
-       <number>34</number>
-=======
        <number>4</number>
->>>>>>> merge
       </property>
       <widget class="QWidget" name="PageScore">
        <layout class="QVBoxLayout" name="verticalLayout_20">
@@ -10542,7 +10538,6 @@
         </item>
        </layout>
       </widget>
-<<<<<<< HEAD
       <widget class="QWidget" name="PageNumericSystem">
        <layout class="QGridLayout" name="gridLayout_51">
         <item row="0" column="1">
@@ -12881,8 +12876,6 @@
         </item>
        </layout>
       </widget>
-=======
->>>>>>> merge
      </widget>
     </widget>
    </item>
@@ -12932,26 +12925,18 @@
  </widget>
  <customwidgets>
   <customwidget>
-<<<<<<< HEAD
    <class>Ms::FontStyleSelect</class>
    <extends>QWidget</extends>
-   <header>inspector/fontStyleSelect.h</header>
+   <header>../inspectors/view/ui/fontStyleSelect.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-=======
->>>>>>> merge
    <class>Awl::ColorLabel</class>
    <extends>QPushButton</extends>
    <header>awl/colorlabel.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-<<<<<<< HEAD
-   <class>Ms::AlignSelect</class>
-   <extends>QWidget</extends>
-   <header>inspector/alignSelect.h</header>
-=======
    <class>Ms::FontStyleSelect</class>
    <extends>QWidget</extends>
    <header>../inspectors/view/ui/fontStyleSelect.h</header>
@@ -12961,17 +12946,12 @@
    <class>Ms::AlignSelect</class>
    <extends>QWidget</extends>
    <header>../inspectors/view/ui/alignSelect.h</header>
->>>>>>> merge
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>Ms::OffsetSelect</class>
    <extends>QWidget</extends>
-<<<<<<< HEAD
-   <header>inspector/offsetSelect.h</header>
-=======
    <header>../inspectors/view/ui/offsetSelect.h</header>
->>>>>>> merge
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -12987,10 +12967,7 @@
   <tabstop>resetMinMMRestWidth</tabstop>
   <tabstop>hideEmptyStaves</tabstop>
   <tabstop>dontHideStavesInFirstSystem</tabstop>
-<<<<<<< HEAD
-=======
   <tabstop>alwaysShowBrackets</tabstop>
->>>>>>> merge
   <tabstop>crossMeasureValues</tabstop>
   <tabstop>hideInstrumentNameIfOneInstrument</tabstop>
   <tabstop>swingOff</tabstop>
@@ -13052,12 +13029,6 @@
   <tabstop>evenFooterR</tabstop>
   <tabstop>showMeasureNumber</tabstop>
   <tabstop>showFirstMeasureNumber</tabstop>
-<<<<<<< HEAD
-  <tabstop>showAllStaffsMeasureNumber</tabstop>
-  <tabstop>showEverySystemMeasureNumber</tabstop>
-  <tabstop>showIntervalMeasureNumber</tabstop>
-  <tabstop>intervalMeasureNumber</tabstop>
-=======
   <tabstop>showAllStavesMeasureNumber</tabstop>
   <tabstop>showEverySystemMeasureNumber</tabstop>
   <tabstop>showIntervalMeasureNumber</tabstop>
@@ -13066,7 +13037,6 @@
   <tabstop>resetMeasureNumberVPlacement</tabstop>
   <tabstop>measureNumberHPlacement</tabstop>
   <tabstop>resetMeasureNumberHPlacement</tabstop>
->>>>>>> merge
   <tabstop>bracketWidth</tabstop>
   <tabstop>akkoladeWidth</tabstop>
   <tabstop>bracketDistance</tabstop>

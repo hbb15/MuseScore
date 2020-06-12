@@ -510,108 +510,6 @@ int System::firstVisibleStaff() const
 //---------------------------------------------------------
 
 void System::layout2()
-<<<<<<< HEAD
-      {
-      Box* vb = vbox();
-      if (vb) {
-            vb->layout();
-            setbbox(vb->bbox());
-            return;
-            }
-
-      setPos(0.0, 0.0);
-      QList<std::pair<int,SysStaff*>> visibleStaves;
-
-      for (int i = 0; i < _staves.size(); ++i) {
-            Staff*    s  = score()->staff(i);
-            SysStaff* ss = _staves[i];
-            if (s->show() && ss->show())
-                  visibleStaves.append(std::pair<int,SysStaff*>(i, ss));
-            else
-                  ss->setbbox(QRectF());  // already done in layout() ?
-            }
-
-      qreal _spatium            = spatium();
-      qreal y                   = 0.0;
-      qreal minVerticalDistance = score()->styleP(Sid::minVerticalDistance);
-      qreal staffDistance       = score()->styleP(Sid::staffDistance);
-      qreal akkoladeDistance    = score()->styleP(Sid::akkoladeDistance);
-      qreal numerictimesigStart=0.0;
-      int numericAnzalStaff=0;
-      Staff* numericFirstStaff  = 0;
-      TimeSig* numericTimesig = 0;
-	  Fraction tickk = tick();
-	  if (nextSegmentElement())
-		  tickk = nextSegmentElement()->tick();
-	  int si = firstVisibleSysStaff();
-	  SysStaff* sfirstVisibleSysStaff = si < 0 ? nullptr : staff(si);
-	  sfirstVisibleSysStaff->set_distanceFirstStaff(0);
-
-
-      if (visibleStaves.empty()) {
-            qDebug("====no visible staves, staves %d, score staves %d", _staves.size(), score()->nstaves());
-            return;
-            }
-
-      for (auto i = visibleStaves.begin();; ++i) {
-            SysStaff* ss  = i->second;
-            int si1       = i->first;
-            Staff* staff  = score()->staff(si1);
-            auto ni       = i + 1;
-
-			ss->set_distanceFirstStaff(y);
-            if(staff && staff->isNumericStaff(tickk)){
-                  numericAnzalStaff++;
-                  staffDistance       = score()->styleP(Sid::numericStaffDistans);
-                  if (numericAnzalStaff==1){
-                        numericFirstStaff = staff;
-                        numericTimesig = numericFirstStaff->nextTimeSig(tickk);
-                        numerictimesigStart = y;
-                        }
-                  else {
-
-                        if(numericAnzalStaff>1){
-                              TimeSig* sig = staff->nextTimeSig(tickk);
-                              while (sig) {
-                                    sig->set_numericVisible(false);
-                                    sig = staff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
-                                    }
-                              }
-                        }
-                  if(numericTimesig){
-                        numericTimesig->set_numericVisible(true);
-                        numericTimesig->rypos() =(y - numerictimesigStart)/2;
-                        numericTimesig->set_numericBarLinelength(y - numerictimesigStart);
-                        TimeSig* sig = numericFirstStaff->nextTimeSig(tickk + Fraction::fromTicks(1));
-                        while (sig) {
-                              sig->set_numericVisible(true);
-                              sig->rypos() =(y - numerictimesigStart)/2;
-                              sig->set_numericBarLinelength(y - numerictimesigStart);
-                              sig = numericFirstStaff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
-                              }
-                        }
-
-                  }
-            else {
-                  numericAnzalStaff=0;
-                  numericFirstStaff=0;
-                  numericTimesig = 0;
-                  staffDistance       = score()->styleP(Sid::staffDistance);
-                  }
-
-            qreal dist = staff->height();
-            qreal yOffset;
-            qreal h;
-            if (staff->lines(Fraction(0, 1)) == 1) {
-                  yOffset = _spatium * BARLINE_SPAN_1LINESTAFF_TO * 0.5;
-                  h = _spatium * (BARLINE_SPAN_1LINESTAFF_TO - BARLINE_SPAN_1LINESTAFF_FROM) * 0.5;
-                  }
-            else {
-                  yOffset = 0.0;
-                  h = staff->height();
-                  }
-            if (ni == visibleStaves.end()) {
-=======
 {
     Box* vb = vbox();
     if (vb) {
@@ -639,6 +537,17 @@ void System::layout2()
     qreal staffDistance       = score()->styleP(Sid::staffDistance);
     qreal akkoladeDistance    = score()->styleP(Sid::akkoladeDistance);
 
+    qreal numerictimesigStart = 0.0;
+    int numericAnzalStaff = 0;
+    Staff* numericFirstStaff = 0;
+    TimeSig* numericTimesig = 0;
+    Fraction tickk = tick();
+    if (nextSegmentElement())
+        tickk = nextSegmentElement()->tick();
+    int si = firstVisibleSysStaff();
+    SysStaff* sfirstVisibleSysStaff = si < 0 ? nullptr : staff(si);
+    sfirstVisibleSysStaff->set_distanceFirstStaff(0);
+
     if (visibleStaves.empty()) {
         qDebug("====no visible staves, staves %d, score staves %d", _staves.size(), score()->nstaves());
         return;
@@ -650,6 +559,46 @@ void System::layout2()
         Staff* staff  = score()->staff(si1);
         auto ni       = i + 1;
 
+
+        ss->set_distanceFirstStaff(y);
+        if (staff && staff->isNumericStaff(tickk)) {
+            numericAnzalStaff++;
+            staffDistance = score()->styleP(Sid::numericStaffDistans);
+            if (numericAnzalStaff == 1) {
+                numericFirstStaff = staff;
+                numericTimesig = numericFirstStaff->nextTimeSig(tickk);
+                numerictimesigStart = y;
+            }
+            else {
+
+                if (numericAnzalStaff > 1) {
+                    TimeSig* sig = staff->nextTimeSig(tickk);
+                    while (sig) {
+                        sig->set_numericVisible(false);
+                        sig = staff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
+                    }
+                }
+            }
+            if (numericTimesig) {
+                numericTimesig->set_numericVisible(true);
+                numericTimesig->rypos() = (y - numerictimesigStart) / 2;
+                numericTimesig->set_numericBarLinelength(y - numerictimesigStart);
+                TimeSig* sig = numericFirstStaff->nextTimeSig(tickk + Fraction::fromTicks(1));
+                while (sig) {
+                    sig->set_numericVisible(true);
+                    sig->rypos() = (y - numerictimesigStart) / 2;
+                    sig->set_numericBarLinelength(y - numerictimesigStart);
+                    sig = numericFirstStaff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
+                }
+            }
+
+        }
+        else {
+            numericAnzalStaff = 0;
+            numericFirstStaff = 0;
+            numericTimesig = 0;
+            staffDistance = score()->styleP(Sid::staffDistance);
+        }
         qreal dist = staff->height();
         qreal yOffset;
         qreal h;
@@ -661,7 +610,6 @@ void System::layout2()
             h = staff->height();
         }
         if (ni == visibleStaves.end()) {
->>>>>>> merge
 //                  ss->setYOff(staff->lines(0) == 1 ? _spatium * staff->mag(0) : 0.0);
             ss->setYOff(yOffset);
             ss->bbox().setRect(_leftMargin, y - yOffset, width() - _leftMargin, h);

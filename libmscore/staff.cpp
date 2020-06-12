@@ -157,7 +157,11 @@ void Staff::swapBracket(int oldIdx, int newIdx)
     fillBrackets(idx);
     _brackets[oldIdx]->setColumn(newIdx);
     _brackets[newIdx]->setColumn(oldIdx);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    _brackets.swapItemsAt(oldIdx, newIdx);
+#else
     _brackets.swap(oldIdx, newIdx);
+#endif
     cleanBrackets();
 }
 
@@ -175,7 +179,11 @@ void Staff::changeBracketColumn(int oldColumn, int newColumn)
         int newIdx = i + step;
         _brackets[oldIdx]->setColumn(newIdx);
         _brackets[newIdx]->setColumn(oldIdx);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+        _brackets.swapItemsAt(oldIdx, newIdx);
+#else
         _brackets.swap(oldIdx, newIdx);
+#endif
     }
     cleanBrackets();
 }
@@ -310,34 +318,12 @@ QString Staff::partName() const
 //---------------------------------------------------------
 
 ClefTypeList Staff::clefType(const Fraction& tick) const
-<<<<<<< HEAD
-      {
-      ClefTypeList ct = clefs.clef(tick.ticks());
-      if (ct._concertClef == ClefType::INVALID) {
-            switch (staffType(tick)->group()) {
-                  case StaffGroup::TAB:
-                  case StaffGroup::NUMERIC:
-                        {
-                        ClefType sct = ClefType(score()->styleI(Sid::tabClef));
-                        ct = staffType(tick)->lines() <= 4 ?  ClefTypeList(sct == ClefType::TAB ? ClefType::TAB4 : ClefType::TAB4_SERIF) : ClefTypeList(sct == ClefType::TAB ? ClefType::TAB : ClefType::TAB_SERIF);
-                        }
-                        break;
-                  case StaffGroup::STANDARD:
-                        ct = defaultClefType();
-                        break;
-                  case StaffGroup::PERCUSSION:
-                        ct = ClefTypeList(ClefType::PERC);
-                        break;
-                  }
-            }
-      return ct;
-      }
-=======
 {
     ClefTypeList ct = clefs.clef(tick.ticks());
     if (ct._concertClef == ClefType::INVALID) {
         switch (staffType(tick)->group()) {
         case StaffGroup::TAB:
+        case StaffGroup::NUMERIC:
         {
             ClefType sct = ClefType(score()->styleI(Sid::tabClef));
             ct = staffType(tick)->lines() <= 4 ? ClefTypeList(
@@ -355,7 +341,6 @@ ClefTypeList Staff::clefType(const Fraction& tick) const
     }
     return ct;
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   Staff::clef

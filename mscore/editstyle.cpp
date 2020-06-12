@@ -38,704 +38,6 @@ namespace Ms {
 //---------------------------------------------------------
 
 EditStyle::EditStyle(Score* s, QWidget* parent)
-<<<<<<< HEAD
-   : QDialog(parent), cs(s)
-      {
-      setObjectName("EditStyle");
-      setupUi(this);
-      setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-      buttonApplyToAllParts = buttonBox->addButton(tr("Apply to all Parts"), QDialogButtonBox::ApplyRole);
-      //buttonApplyToAllParts->setEnabled(!cs->isMaster()); // set in showEvent() now
-      buttonTogglePagelist->setIcon(QIcon(*icons[int(Icons::goNext_ICON)]));
-      setModal(true);
-
-      // create button groups for every set of radio button widgets
-      // use this group widgets in list styleWidgets
-      // This works for groups which represent an int enumeration.
-
-      QButtonGroup* fretNumGroup = new QButtonGroup(this);
-      fretNumGroup->addButton(radioFretNumLeft, 0);
-      fretNumGroup->addButton(radioFretNumRight, 1);
-
-      QButtonGroup* ksng = new QButtonGroup(this);
-      ksng->addButton(radioKeySigNatNone, int(KeySigNatural::NONE));
-      ksng->addButton(radioKeySigNatBefore, int(KeySigNatural::BEFORE));
-      ksng->addButton(radioKeySigNatAfter, int(KeySigNatural::AFTER));
-
-      QButtonGroup* ctg = new QButtonGroup(this);
-      ctg->addButton(clefTab1, int(ClefType::TAB));
-      ctg->addButton(clefTab2, int(ClefType::TAB_SERIF));
-
-      QButtonGroup* fbAlign = new QButtonGroup(this);
-      fbAlign->addButton(radioFBTop, 0);
-      fbAlign->addButton(radioFBBottom, 1);
-
-      QButtonGroup* fbStyle = new QButtonGroup(this);
-      fbStyle->addButton(radioFBModern, 0);
-      fbStyle->addButton(radioFBHistoric, 1);
-
-
-      const char* styles[] = {
-            QT_TRANSLATE_NOOP("EditStyleBase", "Continuous"),
-            QT_TRANSLATE_NOOP("EditStyleBase", "Dashed"),
-            QT_TRANSLATE_NOOP("EditStyleBase", "Dotted"),
-            QT_TRANSLATE_NOOP("EditStyleBase", "Dash-dotted"),
-            QT_TRANSLATE_NOOP("EditStyleBase", "Dash-dot-dotted")
-            };
-      int dta = 1;
-      voltaLineStyle->clear();
-      ottavaLineStyle->clear();
-      pedalLineStyle->clear();
-      for (const char* p : styles) {
-            QString trs = qApp->translate("EditStyleBase", p);
-            voltaLineStyle->addItem(trs, dta);
-            ottavaLineStyle->addItem(trs, dta);
-            pedalLineStyle->addItem(trs, dta);
-            ++dta;
-            }
-
-      styleWidgets = {
-      //   idx                --- showPercent      --- widget          --- resetButton
-      { Sid::figuredBassAlignment,    false, fbAlign,                 0                    },
-      { Sid::figuredBassStyle,        false, fbStyle,                 0                    },
-      { Sid::figuredBassFontSize,     false, doubleSpinFBSize,        0                    },
-      { Sid::figuredBassYOffset,      false, doubleSpinFBVertPos,     0                    },
-      { Sid::figuredBassLineHeight,   true,  spinFBLineHeight,        0                    },
-      { Sid::tabClef,                 false, ctg,                     0                    },
-      { Sid::keySigNaturals,          false, ksng,                    0                    },
-      { Sid::voltaLineStyle,          false, voltaLineStyle,          resetVoltaLineStyle  },
-      { Sid::ottavaLineStyle,         false, ottavaLineStyle,         resetOttavaLineStyle },
-      { Sid::pedalLineStyle,          false, pedalLineStyle,          resetPedalLineStyle  },
-
-      { Sid::staffUpperBorder,        false, staffUpperBorder,        resetStaffUpperBorder  },
-      { Sid::staffLowerBorder,        false, staffLowerBorder,        resetStaffLowerBorder  },
-      { Sid::staffDistance,           false, staffDistance,           resetStaffDistance     },
-      { Sid::akkoladeDistance,        false, akkoladeDistance,        resetAkkoladeDistance  },
-      { Sid::minSystemDistance,       false, minSystemDistance,       resetMinSystemDistance },
-      { Sid::maxSystemDistance,       false, maxSystemDistance,       resetMaxSystemDistance },
-
-      { Sid::lyricsPlacement,         false, lyricsPlacement,         resetLyricsPlacement         },
-      { Sid::lyricsPosAbove,          false, lyricsPosAbove,          resetLyricsPosAbove          },
-      { Sid::lyricsPosBelow,          false, lyricsPosBelow,          resetLyricsPosBelow          },
-      { Sid::lyricsMinTopDistance,    false, lyricsMinTopDistance,    resetLyricsMinTopDistance    },
-      { Sid::lyricsMinBottomDistance, false, lyricsMinBottomDistance, resetLyricsMinBottomDistance },
-      { Sid::lyricsMinDistance,       false, lyricsMinDistance,       resetLyricsMinDistance       },
-      { Sid::lyricsLineHeight,        true,  lyricsLineHeight,        resetLyricsLineHeight        },
-      { Sid::lyricsDashMinLength,     false, lyricsDashMinLength,     resetLyricsDashMinLength     },
-      { Sid::lyricsDashMaxLength,     false, lyricsDashMaxLength,     resetLyricsDashMaxLength     },
-      { Sid::lyricsDashMaxDistance,   false, lyricsDashMaxDistance,   resetLyricsDashMaxDistance   },
-      { Sid::lyricsDashForce,         false, lyricsDashForce,         resetLyricsDashForce         },
-      { Sid::lyricsAlignVerseNumber,  false, lyricsAlignVerseNumber,  resetLyricsAlignVerseNumber  },
-      { Sid::lyricsLineThickness,     false, lyricsLineThickness,     resetLyricsLineThickness     },
-      { Sid::lyricsMelismaPad,        false, lyricsMelismaPad,        resetLyricsMelismaPad        },
-      { Sid::lyricsMelismaAlign,      false, lyricsMelismaAlign,      resetLyricsMelismaAlign      },
-      { Sid::lyricsDashPad,           false, lyricsDashPad,           resetLyricsDashPad           },
-      { Sid::lyricsDashLineThickness, false, lyricsDashLineThickness, resetLyricsDashLineThickness },
-      { Sid::lyricsDashYposRatio,     false, lyricsDashYposRatio,     resetLyricsDashYposRatio     },
-
-      { Sid::systemFrameDistance,     false, systemFrameDistance,     resetSystemFrameDistance },
-      { Sid::frameSystemDistance,     false, frameSystemDistance,     resetFrameSystemDistance },
-      { Sid::minMeasureWidth,         false, minMeasureWidth_2,       resetMinMeasureWidth },
-      { Sid::measureSpacing,          false, measureSpacing,          resetMeasureSpacing },
-
-      { Sid::barWidth,                false, barWidth,                resetBarWidth },
-      { Sid::endBarWidth,             false, endBarWidth,             resetEndBarWidth },
-      { Sid::endBarDistance,          false, endBarDistance,          resetEndBarDistance },
-      { Sid::doubleBarWidth,          false, doubleBarWidth,          resetDoubleBarWidth },
-      { Sid::doubleBarDistance,       false, doubleBarDistance,       resetDoubleBarDistance },
-      { Sid::repeatBarlineDotSeparation, false, repeatBarlineDotSeparation, resetRepeatBarlineDotSeparation },
-
-      { Sid::barGraceDistance,        false, barGraceDistance,        resetBarGraceDistance },
-      { Sid::chordExtensionMag,       false, extensionMag,            resetExtensionMag },
-      { Sid::chordExtensionAdjust,    false, extensionAdjust,         resetExtensionAdjust },
-      { Sid::chordModifierMag,        false, modifierMag,             resetModifierMag },
-      { Sid::chordModifierAdjust,     false, modifierAdjust,          resetModifierAdjust },
-      { Sid::useStandardNoteNames,    false, useStandardNoteNames,    0 },
-      { Sid::useGermanNoteNames,      false, useGermanNoteNames,      0 },
-      { Sid::useFullGermanNoteNames,  false, useFullGermanNoteNames,  0 },
-      { Sid::useSolfeggioNoteNames,   false, useSolfeggioNoteNames,   0 },
-      { Sid::useFrenchNoteNames,      false, useFrenchNoteNames,      0 },
-      { Sid::automaticCapitalization, false, automaticCapitalization, 0 },
-
-      { Sid::lowerCaseMinorChords,    false, lowerCaseMinorChords,    0 },
-
-      { Sid::lowerCaseBassNotes,      false, lowerCaseBassNotes,      0 },
-      { Sid::allCapsNoteNames,        false, allCapsNoteNames,        0 },
-      { Sid::concertPitch,            false, concertPitch,            0 },
-      { Sid::createMultiMeasureRests, false, multiMeasureRests,       0 },
-      { Sid::minEmptyMeasures,        false, minEmptyMeasures,        0 },
-      { Sid::minMMRestWidth,          false, minMeasureWidth,         resetMinMMRestWidth },
-      { Sid::hideEmptyStaves,         false, hideEmptyStaves,         0 },
-      { Sid::dontHideStavesInFirstSystem, false, dontHideStavesInFirstSystem,             0 },
-      { Sid::hideInstrumentNameIfOneInstrument, false, hideInstrumentNameIfOneInstrument, 0 },
-      { Sid::accidentalNoteDistance,  false, accidentalNoteDistance,  0 },
-      { Sid::accidentalDistance,      false, accidentalDistance,      0 },
-
-      { Sid::minNoteDistance,         false, minNoteDistance,         resetMinNoteDistance },
-      { Sid::barNoteDistance,         false, barNoteDistance,         resetBarNoteDistance },
-      { Sid::barAccidentalDistance,   false, barAccidentalDistance,   resetBarAccidentalDistance },
-      { Sid::multiMeasureRestMargin,  false, multiMeasureRestMargin,  resetMultiMeasureRestMargin },
-      { Sid::noteBarDistance,         false, noteBarDistance,         resetNoteBarDistance },
-      { Sid::clefLeftMargin,          false, clefLeftMargin,          resetClefLeftMargin },
-      { Sid::keysigLeftMargin,        false, keysigLeftMargin,        resetKeysigLeftMargin },
-      { Sid::timesigLeftMargin,       false, timesigLeftMargin,       resetTimesigLeftMargin },
-      { Sid::midClefKeyRightMargin,   false, clefKeyRightMargin,      resetClefKeyRightMargin },
-      { Sid::clefKeyDistance,         false, clefKeyDistance,         resetClefKeyDistance },
-      { Sid::clefTimesigDistance,     false, clefTimesigDistance,     resetClefTimesigDistance },
-      { Sid::keyTimesigDistance,      false, keyTimesigDistance,      resetKeyTimesigDistance },
-      { Sid::keyBarlineDistance,      false, keyBarlineDistance,      resetKeyBarlineDistance },
-      { Sid::systemHeaderDistance,    false, systemHeaderDistance,    resetSystemHeaderDistance },
-      { Sid::systemHeaderTimeSigDistance,    false, systemHeaderTimeSigDistance,    resetSystemHeaderTimeSigDistance },
-
-      { Sid::clefBarlineDistance,     false, clefBarlineDistance,     resetClefBarlineDistance },
-      { Sid::timesigBarlineDistance,  false, timesigBarlineDistance,  resetTimesigBarlineDistance },
-      { Sid::staffLineWidth,          false, staffLineWidth,          resetStaffLineWidth },
-      { Sid::beamWidth,               false, beamWidth,               0 },
-      { Sid::beamMinLen,              false, beamMinLen,              0 },
-
-      { Sid::hairpinPlacement,        false, hairpinPlacement,        resetHairpinPlacement },
-      { Sid::hairpinPosAbove,         false, hairpinPosAbove,         resetHairpinPosAbove },
-      { Sid::hairpinPosBelow,         false, hairpinPosBelow,         resetHairpinPosBelow },
-      { Sid::hairpinLineWidth,        false, hairpinLineWidth,        resetHairpinLineWidth },
-      { Sid::hairpinHeight,           false, hairpinHeight,           resetHairpinHeight },
-      { Sid::hairpinContHeight,       false, hairpinContinueHeight,   resetHairpinContinueHeight },
-
-      { Sid::dotNoteDistance,         false, noteDotDistance,         0 },
-      { Sid::dotDotDistance,          false, dotDotDistance,          0 },
-      { Sid::stemWidth,               false, stemWidth,               0 },
-      { Sid::ledgerLineWidth,         false, ledgerLineWidth,         0 },
-      { Sid::ledgerLineLength,        false, ledgerLineLength,        0 },
-      { Sid::shortStemProgression,    false, shortStemProgression,    0 },
-      { Sid::shortestStem,            false, shortestStem,            0 },
-      { Sid::ArpeggioNoteDistance,    false, arpeggioNoteDistance,    0 },
-      { Sid::ArpeggioLineWidth,       false, arpeggioLineWidth,       0 },
-      { Sid::ArpeggioHookLen,         false, arpeggioHookLen,         0 },
-      { Sid::ArpeggioHiddenInStdIfTab,false, arpeggioHiddenInStdIfTab,0 },
-      { Sid::SlurEndWidth,            false, slurEndLineWidth,        resetSlurEndLineWidth    },
-      { Sid::SlurMidWidth,            false, slurMidLineWidth,        resetSlurMidLineWidth    },
-      { Sid::SlurDottedWidth,         false, slurDottedLineWidth,     resetSlurDottedLineWidth },
-      { Sid::SlurMinDistance,         false, slurMinDistance,         resetSlurMinDistance     },
-      { Sid::MinTieLength,            false, minTieLength,            resetMinTieLength        },
-      { Sid::bracketWidth,            false, bracketWidth,            0 },
-      { Sid::bracketDistance,         false, bracketDistance,         0 },
-      { Sid::akkoladeWidth,           false, akkoladeWidth,           0 },
-      { Sid::akkoladeBarDistance,     false, akkoladeBarDistance,     0 },
-      { Sid::dividerLeft,             false, dividerLeft,             0 },
-      { Sid::dividerLeftX,            false, dividerLeftX,            0 },
-      { Sid::dividerLeftY,            false, dividerLeftY,            0 },
-      { Sid::dividerRight,            false, dividerRight,            0 },
-      { Sid::dividerRightX,           false, dividerRightX,           0 },
-      { Sid::dividerRightY,           false, dividerRightY,           0 },
-      { Sid::propertyDistanceHead,    false, propertyDistanceHead,    resetPropertyDistanceHead },
-      { Sid::propertyDistanceStem,    false, propertyDistanceStem,    resetPropertyDistanceStem },
-      { Sid::propertyDistance,        false, propertyDistance,        resetPropertyDistance },
-      { Sid::voltaPosAbove,           false, voltaPosAbove,           resetVoltaPosAbove },
-      { Sid::voltaHook,               false, voltaHook,               resetVoltaHook },
-      { Sid::voltaLineWidth,          false, voltaLineWidth,          resetVoltaLineWidth  },
-
-      { Sid::ottavaPosAbove,          false, ottavaPosAbove,          resetOttavaPosAbove  },
-      { Sid::ottavaPosBelow,          false, ottavaPosBelow,          resetOttavaPosBelow  },
-      { Sid::ottavaHookAbove,         false, ottavaHookAbove,         resetOttavaHookAbove },
-      { Sid::ottavaHookBelow,         false, ottavaHookBelow,         resetOttavaHookBelow },
-      { Sid::ottavaLineWidth,         false, ottavaLineWidth,         resetOttavaLineWidth },
-
-      { Sid::pedalPlacement,          false, pedalLinePlacement,      resetPedalLinePlacement  },
-      { Sid::pedalPosAbove,           false, pedalLinePosAbove,       resetPedalLinePosAbove   },
-      { Sid::pedalPosBelow,           false, pedalLinePosBelow,       resetPedalLinePosBelow   },
-      { Sid::pedalLineWidth,          false, pedalLineWidth,          resetPedalLineWidth  },
-
-      { Sid::trillPlacement,          false, trillLinePlacement,      resetTrillLinePlacement  },
-      { Sid::trillPosAbove,           false, trillLinePosAbove,       resetTrillLinePosAbove   },
-      { Sid::trillPosBelow,           false, trillLinePosBelow,       resetTrillLinePosBelow   },
-
-      { Sid::vibratoPlacement,        false, vibratoLinePlacement,      resetVibratoLinePlacement  },
-      { Sid::vibratoPosAbove,         false, vibratoLinePosAbove,       resetVibratoLinePosAbove   },
-      { Sid::vibratoPosBelow,         false, vibratoLinePosBelow,       resetVibratoLinePosBelow   },
-
-      { Sid::harmonyFretDist,         false, harmonyFretDist,         0 },
-      { Sid::minHarmonyDistance,      false, minHarmonyDistance,      0 },
-      { Sid::maxHarmonyBarDistance,   false, maxHarmonyBarDistance,   0 },
-
-      { Sid::tupletVHeadDistance,     false, tupletVHeadDistance,     resetTupletVHeadDistance      },
-      { Sid::tupletVStemDistance,     false, tupletVStemDistance,     resetTupletVStemDistance      },
-      { Sid::tupletStemLeftDistance,  false, tupletStemLeftDistance,  resetTupletStemLeftDistance   },
-      { Sid::tupletStemRightDistance, false, tupletStemRightDistance, resetTupletStemRightDistance  },
-      { Sid::tupletNoteLeftDistance,  false, tupletNoteLeftDistance,  resetTupletNoteLeftDistance   },
-      { Sid::tupletNoteRightDistance, false, tupletNoteRightDistance, resetTupletNoteRightDistance  },
-      { Sid::tupletBracketWidth,      false, tupletBracketWidth,      resetTupletBracketWidth       },
-      { Sid::tupletBracketHookHeight, false, tupletBracketHookHeight, resetTupletBracketHookHeight  },
-      { Sid::tupletDirection,         false, tupletDirection,         resetTupletDirection          },
-      { Sid::tupletNumberType,        false, tupletNumberType,        resetTupletNumberType         },
-      { Sid::tupletBracketType,       false, tupletBracketType,       resetTupletBracketType        },
-      { Sid::tupletMaxSlope,          false, tupletMaxSlope,          resetTupletMaxSlope           },
-      { Sid::tupletOufOfStaff,        false, tupletOutOfStaff,        0                             },
-
-      { Sid::repeatBarTips,            false, showRepeatBarTips,            resetShowRepeatBarTips },
-      { Sid::startBarlineSingle,       false, showStartBarlineSingle,       resetShowStartBarlineSingle },
-      { Sid::startBarlineMultiple,     false, showStartBarlineMultiple,     resetShowStartBarlineMultiple },
-      { Sid::dividerLeftSym,           false, dividerLeftSym,               0 },
-      { Sid::dividerRightSym,          false, dividerRightSym,              0 },
-
-      { Sid::showMeasureNumber,        false, showMeasureNumber,            0 },
-      { Sid::showMeasureNumberOne,     false, showFirstMeasureNumber,       0 },
-      { Sid::measureNumberInterval,    false, intervalMeasureNumber,        0 },
-      { Sid::measureNumberSystem,      false, showEverySystemMeasureNumber, 0 },
-      { Sid::measureNumberAllStaffs,   false, showAllStaffsMeasureNumber,   0 },
-
-      { Sid::beamDistance,             true,  beamDistance,                 0 },
-      { Sid::beamNoSlope,              false, beamNoSlope,                  0 },
-      { Sid::graceNoteMag,             true,  graceNoteSize,                resetGraceNoteSize  },
-      { Sid::smallStaffMag,            true,  smallStaffSize,               resetSmallStaffSize },
-      { Sid::smallNoteMag,             true,  smallNoteSize,                resetSmallNoteSize  },
-      { Sid::smallClefMag,             true,  smallClefSize,                resetSmallClefSize  },
-      { Sid::lastSystemFillLimit,      true,  lastSystemFillThreshold,      resetLastSystemFillThreshold },
-      { Sid::genClef,                  false, genClef,                      0 },
-      { Sid::genKeysig,                false, genKeysig,                    0 },
-      { Sid::genCourtesyTimesig,       false, genCourtesyTimesig,           0 },
-      { Sid::genCourtesyKeysig,        false, genCourtesyKeysig,            0 },
-      { Sid::genCourtesyClef,          false, genCourtesyClef,              0 },
-      { Sid::swingRatio,               false, swingBox,                     0 },
-      { Sid::chordsXmlFile,            false, chordsXmlFile,                0 },
-      { Sid::dotMag,                   true,  dotMag,                       0 },
-      { Sid::articulationMag,          true,  articulationMag,              resetArticulationMag },
-      { Sid::shortenStem,              false, shortenStem,                  0 },
-      { Sid::showHeader,               false, showHeader,                   0 },
-      { Sid::headerFirstPage,          false, showHeaderFirstPage,          0 },
-      { Sid::headerOddEven,            false, headerOddEven,                0 },
-      { Sid::evenHeaderL,              false, evenHeaderL,                  0 },
-      { Sid::evenHeaderC,              false, evenHeaderC,                  0 },
-      { Sid::evenHeaderR,              false, evenHeaderR,                  0 },
-      { Sid::oddHeaderL,               false, oddHeaderL,                   0 },
-      { Sid::oddHeaderC,               false, oddHeaderC,                   0 },
-      { Sid::oddHeaderR,               false, oddHeaderR,                   0 },
-      { Sid::showFooter,               false, showFooter,                   0 },
-      { Sid::footerFirstPage,          false, showFooterFirstPage,          0 },
-      { Sid::footerOddEven,            false, footerOddEven,                0 },
-      { Sid::evenFooterL,              false, evenFooterL,                  0 },
-      { Sid::evenFooterC,              false, evenFooterC,                  0 },
-      { Sid::evenFooterR,              false, evenFooterR,                  0 },
-      { Sid::oddFooterL,               false, oddFooterL,                   0 },
-      { Sid::oddFooterC,               false, oddFooterC,                   0 },
-      { Sid::oddFooterR,               false, oddFooterR,                   0 },
-
-      { Sid::ottavaNumbersOnly,        false, ottavaNumbersOnly,            resetOttavaNumbersOnly },
-      { Sid::capoPosition,             false, capoPosition,                 0 },
-      { Sid::fretNumMag,               true,  fretNumMag,                   0 },
-      { Sid::fretNumPos,               false, fretNumGroup,                 0 },
-      { Sid::fretY,                    false, fretY,                        0 },
-      { Sid::barreLineWidth,           false, barreLineWidth,               0 },
-      { Sid::fretMag,                  false, fretMag,                      0 },
-      { Sid::fretDotSize,              false, fretDotSize,                  0 },
-      { Sid::fretStringSpacing,        false, fretStringSpacing,            0 },
-      { Sid::fretFretSpacing,          false, fretFretSpacing,              0 },
-      { Sid::scaleBarlines,            false, scaleBarlines,                resetScaleBarlines},
-      { Sid::crossMeasureValues,       false, crossMeasureValues,           0 },
-
-      { Sid::MusicalSymbolFont,        false, musicalSymbolFont,            0 },
-      { Sid::MusicalTextFont,          false, musicalTextFont,              0 },
-      { Sid::autoplaceHairpinDynamicsDistance, false, autoplaceHairpinDynamicsDistance, resetAutoplaceHairpinDynamicsDistance },
-
-      { Sid::dynamicsPlacement,       false, dynamicsPlacement,          resetDynamicsPlacement },
-      { Sid::dynamicsPosAbove,        false, dynamicsPosAbove,           resetDynamicsPosAbove },
-      { Sid::dynamicsPosBelow,        false, dynamicsPosBelow,           resetDynamicsPosBelow },
-      { Sid::dynamicsMinDistance,     false, dynamicsMinDistance,        resetDynamicsMinDistance },
-
-      { Sid::tempoPlacement,          false, tempoTextPlacement,          resetTempoTextPlacement },
-      { Sid::tempoPosAbove,           false, tempoTextPosAbove,           resetTempoTextPosAbove },
-      { Sid::tempoPosBelow,           false, tempoTextPosBelow,           resetTempoTextPosBelow },
-      { Sid::tempoMinDistance,        false, tempoTextMinDistance,        resetTempoTextMinDistance },
-
-      { Sid::rehearsalMarkPlacement,   false, rehearsalMarkPlacement,     resetRehearsalMarkPlacement },
-      { Sid::rehearsalMarkPosAbove,    false, rehearsalMarkPosAbove,      resetRehearsalMarkPosAbove },
-      { Sid::rehearsalMarkPosBelow,    false, rehearsalMarkPosBelow,      resetRehearsalMarkPosBelow },
-      { Sid::rehearsalMarkMinDistance, false, rehearsalMarkMinDistance,   resetRehearsalMarkMinDistance },
-
-      { Sid::autoplaceVerticalAlignRange, false, autoplaceVerticalAlignRange, resetAutoplaceVerticalAlignRange },
-      { Sid::minVerticalDistance,         false, minVerticalDistance,         resetMinVerticalDistance },
-      { Sid::textLinePlacement,           false, textLinePlacement,           resetTextLinePlacement },
-      { Sid::textLinePosAbove,            false, textLinePosAbove,            resetTextLinePosAbove },
-      { Sid::textLinePosBelow,            false, textLinePosBelow,            resetTextLinePosBelow },
-
-      { Sid::fermataPosAbove,         false, fermataPosAbove,       resetFermataPosAbove    },
-      { Sid::fermataPosBelow,         false, fermataPosBelow,       resetFermataPosBelow    },
-      { Sid::fermataMinDistance,      false, fermataMinDistance,    resetFermataMinDistance },
-
-      { Sid::staffTextPlacement,      false, staffTextPlacement,    resetStaffTextPlacement   },
-      { Sid::staffTextPosAbove,       false, staffTextPosAbove,     resetStaffTextPosAbove    },
-      { Sid::staffTextPosBelow,       false, staffTextPosBelow,     resetStaffTextPosBelow    },
-      { Sid::staffTextMinDistance,    false, staffTextMinDistance,  resetStaffTextMinDistance },
-
-      { Sid::bendLineWidth,     false, bendLineWidth,     resetBendLineWidth     },
-      { Sid::bendArrowWidth,    false, bendArrowWidth,    resetBendArrowWidth    },
-
-      { Sid::numericHeightDisplacement,        false, numericHeightDisplacement,          resetNumericHeightDisplacement      },
-      { Sid::numericDistanceOctave,            false, numericDistanceOctave,              resetNumericDistanceOctave          },
-      { Sid::numericHeigthLine,                false, numericHeigthLine,                  resetNumericHeigthLine              },
-      { Sid::numericOffsetLine,                false, numericOffsetLine,                  resetnumericOffsetLine              },
-      { Sid::numericDistanceBetweenLines,      false, numericDistanceBetweenLines,        resetNumericDistanceBetweenLines    },
-      { Sid::numericWideLine,                  false, numericWideLine,                    resetNumericWideLine                },
-      { Sid::numericThickLine,                 false, numericThickLine,                   resetNumericThickLine               },
-      { Sid::numericSizeSignSharp,             false, numericSizeSignSharp,               resetNumericSizeSignSharp           },
-      { Sid::numericSizeSignFlat,              false, numericSizeSignFlat,                resetNumericSizeSignFlat            },
-      { Sid::numericDistanceSignSharp,         false, numericDistanceSignSharp,           resetNumericDistanceSignSharp       },
-      { Sid::numericDistanceSignFlat,          false, numericDistanceSignFlat,            resetNumericDistanceSignFlat        },
-      { Sid::numericHeigthSignSharp,           false, numericHeigthSignSharp,             resetNumericHeigthSignSharp         },
-      { Sid::numericHeigthSignFlat,            false, numericHeigthSignFlat,              resetNumericHeigthSignFlat          },
-      { Sid::numericFont,                      false, numericFont,                        resetNumericFont                    },
-      { Sid::numericSlurEckenform,             false, numericSlurEckenform,               resetNumericSlurEckenform           },
-      { Sid::numericSlurThick,                 false, numericSlurThick,                   resetNumericSlurThick               },
-      { Sid::numericSlurHeigth,                false, numericSlurHeigth,                  resetNumericSlurHeigth              },
-      { Sid::numericSlurUberhang,              false, numericSlurUberhang,                resetNumericSlurUberhang            },
-      { Sid::numericSlurShift,                 false, numericSlurShift,                   resetNumericSlurShift               },
-      { Sid::numericLedgerlineThick,           false, numericLedgerlineThick,             resetNumericLedgerlineThick         },
-      { Sid::numericLedgerlineLength,          false, numericLedgerlineLength,            resetNumericLedgerlineLength        },
-      { Sid::numericLedgerlineShift,           false, numericLedgerlineShift,             resetNumericLedgerlineShift         },
-      { Sid::numericStaffDistans,              false, numericStaffDistans,                resetNumericStaffDistans            },
-      { Sid::numericTimeSigSize,               false, numericTimeSigSize,                 resetNumericTimeSigSize             },
-      { Sid::numericTimeSigDistance,           false, numericTimeSigDistance,             resetNumericTimeSigDistance         },
-      { Sid::numericTimeSigLineThick,          false, numericTimeSigLineThick,            resetNumericTimeSigLineThick        },
-      { Sid::numericTimeSigLineSize,           false, numericTimeSigLineSize,             resetNumericTimeSigLineSize         },
-      { Sid::numericTimeSigFont,               false, numericTimeSigFont,                 resetNumericTimeSigFont             },
-      { Sid::numericKeySigFont,                false, numericKeySigFont,                  resetNumericKeySigFont              },
-      { Sid::numericKeySigSize,                false, numericKeySigSize,                  resetNumericKeySigSize              },
-      { Sid::numericKeySigHorizontalShift,     false, numericKeySigHorizontalShift,       resetNumericKeySigHorizontalShift   },
-      { Sid::numericKeySigHigth,               false, numericKeySigHigth,                 resetNumericKeySigHigth             },
-      { Sid::numericKeysigNoteDistancLeft,     false, numericKeysigNoteDistancLeft,       resetNumericKeysigNoteDistancLeft   },
-      { Sid::numericKeysigNoteDistancReigth,   false, numericKeysigNoteDistancReigth,     resetNumericKeysigNoteDistancReigth }, 
-      { Sid::numericBarlineLength,             false, numericBarlineLength,               resetNumericBarlineLength           },
-      { Sid::numericFontSize,                  false, numericFontSize,                    resetNumericFontSize                },
-      { Sid::numericRestDistanc,               false, numericRestDistanc,                 resetNumericRestDistanc             },
-      { Sid::numericNoteDistanc,               false, numericNoteDistanc,                 resetNumericNoteDistanc             },
-      { Sid::numericAccidentalFont,            false, numericAccidentalFont,              resetNumericAccidentalFont          },
-      { Sid::numericTupletSlurEcke,            false, numericTupletSlurEcke,              resetNumericTupletSlurEcke          },
-      { Sid::numericTupletSlurhigth,           false, numericTupletSlurhigth,             resetNumericTupletSlurhigth         },
-      { Sid::numericTupletSlurdistans,         false, numericTupletSlurdistans,           resetNumericTupletSlurdistans       },
-      { Sid::numericTupletSlurshift,           false, numericTupletSlurshift,             resetNumericTupletSlurshift         },
-      { Sid::numericTupletSluruberhang,        false, numericTupletSluruberhang,          resetNumericTupletSluruberhang      },
-      { Sid::numericTupletNummerHigth,         false, numericTupletNummerHigth,           resetNumericTupletNummerHigth       },
-      { Sid::numericTupletSlurThickness,       false, numericTupletSlurThickness,         resetNumericTupletSlurThickness     },
-      { Sid::numericTupletNummerFontSize,      false, numericTupletNummerFontSize,        resetNumericTupletNummerFontSize    },
-      { Sid::numericTupletNummerFont,          false, numericTupletNummerFont,            resetNumericTupletNummerFont        },
-      };
-
-      for (QComboBox* cb : std::vector<QComboBox*> {
-            lyricsPlacement, textLinePlacement, hairpinPlacement, pedalLinePlacement,
-            trillLinePlacement, vibratoLinePlacement, dynamicsPlacement,
-            tempoTextPlacement, staffTextPlacement, rehearsalMarkPlacement
-            }) {
-            cb->clear();
-            cb->addItem(tr("Above"), int(Placement::ABOVE));
-            cb->addItem(tr("Below"), int(Placement::BELOW));
-            }
-
-      autoplaceVerticalAlignRange->clear();
-      autoplaceVerticalAlignRange->addItem(tr("Segment"), int(VerticalAlignRange::SEGMENT));
-      autoplaceVerticalAlignRange->addItem(tr("Measure"), int(VerticalAlignRange::MEASURE));
-      autoplaceVerticalAlignRange->addItem(tr("System"),  int(VerticalAlignRange::SYSTEM));
-
-      tupletNumberType->clear();
-      tupletNumberType->addItem(tr("Number"), int(TupletNumberType::SHOW_NUMBER));
-      tupletNumberType->addItem(tr("Ratio"), int(TupletNumberType::SHOW_RELATION));
-      tupletNumberType->addItem(tr("None", "no tuplet number type"), int(TupletNumberType::NO_TEXT));
-
-      tupletBracketType->clear();
-      tupletBracketType->addItem(tr("Automatic"), int(TupletBracketType::AUTO_BRACKET));
-      tupletBracketType->addItem(tr("Bracket"), int(TupletBracketType::SHOW_BRACKET));
-      tupletBracketType->addItem(tr("None", "no tuplet bracket type"), int(TupletBracketType::SHOW_NO_BRACKET));
-
-      pageList->setCurrentRow(0);
-      numericListPage->setCurrentRow(0);
-      accidentalsGroup->setVisible(false); // disable, not yet implemented
-
-      musicalSymbolFont->clear();
-      int idx = 0;
-      for (auto i : ScoreFont::scoreFonts()) {
-            musicalSymbolFont->addItem(i.name(), i.name());
-            ++idx;
-            }
-
-      static const SymId ids[] = {
-            SymId::systemDivider, SymId::systemDividerLong, SymId::systemDividerExtraLong
-            };
-      for (SymId id : ids) {
-            const QString& un = Sym::id2userName(id);
-            const char* n  = Sym::id2name(id);
-            dividerLeftSym->addItem(un,  QVariant(QString(n)));
-            dividerRightSym->addItem(un, QVariant(QString(n)));
-            }
-
-      // figured bass init
-      QList<QString> fbFontNames = FiguredBass::fontNames();
-      for (const QString& family: fbFontNames)
-            comboFBFont->addItem(family);
-      comboFBFont->setCurrentIndex(0);
-      connect(comboFBFont, SIGNAL(currentIndexChanged(int)), SLOT(on_comboFBFont_currentIndexChanged(int)));
-
-      // keep in sync with implementation in Page::replaceTextMacros (page.cpp)
-      // jumping thru hoops here to make the job of translators easier, yet have a nice display
-      QString toolTipHeaderFooter
-            = QString("<html><head></head><body><p><b>")
-            + tr("Special symbols in header/footer")
-            + QString("</b></p>")
-            + QString("<table><tr><td>$p</td><td>-</td><td><i>")
-            + tr("Page number, except on first page")
-            + QString("</i></td></tr><tr><td>$N</td><td>-</td><td><i>")
-            + tr("Page number, if there is more than one page")
-            + QString("</i></td></tr><tr><td>$P</td><td>-</td><td><i>")
-            + tr("Page number, on all pages")
-            + QString("</i></td></tr><tr><td>$n</td><td>-</td><td><i>")
-            + tr("Number of pages")
-            + QString("</i></td></tr><tr><td>$f</td><td>-</td><td><i>")
-            + tr("File name")
-            + QString("</i></td></tr><tr><td>$F</td><td>-</td><td><i>")
-            + tr("File path+name")
-            + QString("</i></td></tr><tr><td>$i</td><td>-</td><td><i>")
-            + tr("Part name, except on first page")
-            + QString("</i></td></tr><tr><td>$I</td><td>-</td><td><i>")
-            + tr("Part name, on all pages")
-            + QString("</i></td></tr><tr><td>$d</td><td>-</td><td><i>")
-            + tr("Current date")
-            + QString("</i></td></tr><tr><td>$D</td><td>-</td><td><i>")
-            + tr("Creation date")
-            + QString("</i></td></tr><tr><td>$m</td><td>-</td><td><i>")
-            + tr("Last modification time")
-            + QString("</i></td></tr><tr><td>$M</td><td>-</td><td><i>")
-            + tr("Last modification date")
-            + QString("</i></td></tr><tr><td>$C</td><td>-</td><td><i>")
-            + tr("Copyright, on first page only")
-            + QString("</i></td></tr><tr><td>$c</td><td>-</td><td><i>")
-            + tr("Copyright, on all pages")
-            + QString("</i></td></tr><tr><td>$$</td><td>-</td><td><i>")
-            + tr("The $ sign itself")
-            + QString("</i></td></tr><tr><td>$:tag:</td><td>-</td><td><i>")
-            + tr("Metadata tag, see below")
-            + QString("</i></td></tr></table><p>")
-            + tr("Available metadata tags and their current values")
-            + QString("<br />")
-            + tr("(in File > Score Properties…):")
-            + QString("</p><table>");
-      // show all tags for current score/part, see also Score::init()
-      if (!cs->isMaster()) {
-            QMapIterator<QString, QString> j(cs->masterScore()->metaTags());
-            while (j.hasNext()) {
-                  j.next();
-                  toolTipHeaderFooter += QString("<tr><td>%1</td><td>-</td><td>%2</td></tr>").arg(j.key()).arg(j.value());
-                  }
-            }
-      QMapIterator<QString, QString> i(cs->metaTags());
-      while (i.hasNext()) {
-            i.next();
-            toolTipHeaderFooter += QString("<tr><td>%1</td><td>-</td><td>%2</td></tr>").arg(i.key()).arg(i.value());
-            }
-      toolTipHeaderFooter += QString("</table></body></html>");
-      showHeader->setToolTip(toolTipHeaderFooter);
-      showHeader->setToolTipDuration(5000); // leaving the default value of -1 calculates the duration automatically and it takes too long
-      showFooter->setToolTip(toolTipHeaderFooter);
-      showFooter->setToolTipDuration(5000);
-
-      connect(buttonBox,           SIGNAL(clicked(QAbstractButton*)), SLOT(buttonClicked(QAbstractButton*)));
-      connect(headerOddEven,       SIGNAL(toggled(bool)),             SLOT(toggleHeaderOddEven(bool)));
-      connect(footerOddEven,       SIGNAL(toggled(bool)),             SLOT(toggleFooterOddEven(bool)));
-      connect(chordDescriptionFileButton, SIGNAL(clicked()),          SLOT(selectChordDescriptionFile()));
-      connect(chordsStandard,      SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
-      connect(chordsJazz,          SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
-      connect(chordsCustom,        SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
-      connect(chordsXmlFile,       SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
-      connect(chordDescriptionFile,&QLineEdit::editingFinished,       [=]() { setChordStyle(true); });
-      //chordDescriptionFile->setEnabled(false);
-
-      chordDescriptionFileButton->setIcon(*icons[int(Icons::fileOpen_ICON)]);
-
-      connect(swingOff,            SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
-      connect(swingEighth,         SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
-      connect(swingSixteenth,      SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
-
-      connect(concertPitch,        SIGNAL(toggled(bool)),             SLOT(concertPitchToggled(bool)));
-      connect(hideEmptyStaves,     SIGNAL(clicked(bool)), dontHideStavesInFirstSystem, SLOT(setEnabled(bool)));
-      connect(lyricsDashMinLength, SIGNAL(valueChanged(double)),      SLOT(lyricsDashMinLengthValueChanged(double)));
-      connect(lyricsDashMaxLength, SIGNAL(valueChanged(double)),      SLOT(lyricsDashMaxLengthValueChanged(double)));
-      connect(minSystemDistance,   SIGNAL(valueChanged(double)),      SLOT(systemMinDistanceValueChanged(double)));
-      connect(maxSystemDistance,   SIGNAL(valueChanged(double)),      SLOT(systemMaxDistanceValueChanged(double)));
-
-      QSignalMapper* mapper  = new QSignalMapper(this);     // reset style signals
-      QSignalMapper* mapper2 = new QSignalMapper(this);     // value change signals
-
-      for (const StyleWidget& sw : styleWidgets) {
-            const char* type = MStyle::valueType(sw.idx);
-
-            if (!strcmp("Direction", type)) {
-                  QComboBox* cb = qobject_cast<QComboBox*>(sw.widget);
-                  fillComboBoxDirection(cb);
-                  }
-            if (sw.reset) {
-                  sw.reset->setIcon(*icons[int(Icons::reset_ICON)]);
-                  connect(sw.reset, SIGNAL(clicked()), mapper, SLOT(map()));
-                  mapper->setMapping(sw.reset, int(sw.idx));
-                  }
-            if (qobject_cast<QSpinBox*>(sw.widget))
-                  connect(qobject_cast<QSpinBox*>(sw.widget), SIGNAL(valueChanged(int)), mapper2, SLOT(map()));
-            else if (qobject_cast<QDoubleSpinBox*>(sw.widget))
-                  connect(qobject_cast<QDoubleSpinBox*>(sw.widget), SIGNAL(valueChanged(double)), mapper2, SLOT(map()));
-            else if (qobject_cast<QFontComboBox*>(sw.widget))
-                  connect(qobject_cast<QFontComboBox*>(sw.widget), SIGNAL(currentFontChanged(const QFont&)), mapper2, SLOT(map()));
-            else if (qobject_cast<QComboBox*>(sw.widget))
-                  connect(qobject_cast<QComboBox*>(sw.widget), SIGNAL(currentIndexChanged(int)), mapper2, SLOT(map()));
-            else if (qobject_cast<QRadioButton*>(sw.widget))
-                  connect(qobject_cast<QRadioButton*>(sw.widget), SIGNAL(toggled(bool)), mapper2, SLOT(map()));
-            else if (qobject_cast<QPushButton*>(sw.widget))
-                  connect(qobject_cast<QPushButton*>(sw.widget), SIGNAL(toggled(bool)), mapper2, SLOT(map()));
-            else if (qobject_cast<QToolButton*>(sw.widget))
-                  connect(qobject_cast<QToolButton*>(sw.widget), SIGNAL(toggled(bool)), mapper2, SLOT(map()));
-            else if (qobject_cast<QGroupBox*>(sw.widget))
-                  connect(qobject_cast<QGroupBox*>(sw.widget), SIGNAL(toggled(bool)), mapper2, SLOT(map()));
-            else if (qobject_cast<QCheckBox*>(sw.widget))
-                  connect(qobject_cast<QCheckBox*>(sw.widget), SIGNAL(stateChanged(int)), mapper2, SLOT(map()));
-            else if (qobject_cast<QTextEdit*>(sw.widget))
-                  connect(qobject_cast<QTextEdit*>(sw.widget), SIGNAL(textChanged()), mapper2, SLOT(map()));
-            else if (qobject_cast<QButtonGroup*>(sw.widget))
-                  connect(qobject_cast<QButtonGroup*>(sw.widget), SIGNAL(buttonClicked(int)), mapper2, SLOT(map()));
-            else if (qobject_cast<AlignSelect*>(sw.widget))
-                  connect(qobject_cast<AlignSelect*>(sw.widget), SIGNAL(alignChanged(Align)), mapper2, SLOT(map()));
-            else if (qobject_cast<OffsetSelect*>(sw.widget))
-                  connect(qobject_cast<OffsetSelect*>(sw.widget), SIGNAL(offsetChanged(const QPointF&)), mapper2, SLOT(map()));
-            else if (FontStyleSelect* fontStyle = qobject_cast<FontStyleSelect*>(sw.widget))
-                  connect(fontStyle, &FontStyleSelect::fontStyleChanged, mapper2, QOverload<>::of(&QSignalMapper::map));
-            else {
-                  qFatal("unhandled gui widget type %s valueType %s",
-                     sw.widget->metaObject()->className(),
-                     MStyle::valueName(sw.idx)
-                  );
-                  }
-
-            mapper2->setMapping(sw.widget, int(sw.idx));
-            }
-
-      int topBottomMargin = automaticCapitalization->rect().height() - preferences.getInt(PREF_UI_THEME_FONTSIZE);
-      topBottomMargin /= 2;
-      topBottomMargin = topBottomMargin > 4 ? topBottomMargin - 4 : 0;
-      automaticCapitalization->layout()->setContentsMargins(9, topBottomMargin, 9, topBottomMargin);
-
-      connect(mapper,  SIGNAL(mapped(int)), SLOT(resetStyleValue(int)));
-      connect(mapper2, SIGNAL(mapped(int)), SLOT(valueChanged(int)));
-      textStyles->clear();
-      for (auto ss : allTextStyles()) {
-            QListWidgetItem* item = new QListWidgetItem(s->getTextStyleUserName(ss));
-            item->setData(Qt::UserRole, int(ss));
-            textStyles->addItem(item);
-            }
-
-      textStyleFrameType->clear();
-      textStyleFrameType->addItem(tr("None", "no frame for text"), int(FrameType::NO_FRAME));
-      textStyleFrameType->addItem(tr("Rectangle"), int(FrameType::SQUARE));
-      textStyleFrameType->addItem(tr("Circle"), int(FrameType::CIRCLE));
-
-      resetTextStyleName->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleName, &QToolButton::clicked, [=](){ resetUserStyleName(); });
-      connect(styleName, &QLineEdit::textEdited, [=]() { editUserStyleName(); });
-      connect(styleName, &QLineEdit::editingFinished, [=]() { endEditUserStyleName(); });
-
-      // font face
-      resetTextStyleFontFace->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFontFace, &QToolButton::clicked,
-         [=](){ resetTextStyle(Pid::FONT_FACE); }
-         );
-      connect(textStyleFontFace, &QFontComboBox::currentFontChanged,
-         [=](){ textStyleValueChanged(Pid::FONT_FACE, QVariant(textStyleFontFace->currentFont().family())); }
-         );
-
-      // font size
-      resetTextStyleFontSize->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFontSize, &QToolButton::clicked,
-         [=](){ resetTextStyle(Pid::FONT_SIZE); }
-         );
-      connect(textStyleFontSize, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-         [=](){ textStyleValueChanged(Pid::FONT_SIZE, QVariant(textStyleFontSize->value())); }
-         );
-
-      // font style
-      resetTextStyleFontStyle->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFontStyle, &QToolButton::clicked,
-         [=](){ resetTextStyle(Pid::FONT_STYLE); }
-         );
-      connect(textStyleFontStyle, &FontStyleSelect::fontStyleChanged,
-         [=](){ textStyleValueChanged(Pid::FONT_STYLE, QVariant(int(textStyleFontStyle->fontStyle()))); }
-         );
-
-      // align
-      resetTextStyleAlign->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleAlign, &QToolButton::clicked, [=](){ resetTextStyle(Pid::ALIGN); });
-      connect(textStyleAlign, &AlignSelect::alignChanged,
-         [=](){ textStyleValueChanged(Pid::ALIGN, QVariant::fromValue(textStyleAlign->align())); }
-         );
-
-      // offset
-      resetTextStyleOffset->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleOffset, &QToolButton::clicked, [=](){ resetTextStyle(Pid::OFFSET); });
-      connect(textStyleOffset, &OffsetSelect::offsetChanged,
-         [=](){ textStyleValueChanged(Pid::OFFSET, QVariant(textStyleOffset->offset())); }
-         );
-
-      // spatium dependent
-      resetTextStyleSpatiumDependent->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleSpatiumDependent, &QToolButton::clicked, [=](){ resetTextStyle(Pid::SIZE_SPATIUM_DEPENDENT); });
-      connect(textStyleSpatiumDependent, &QCheckBox::toggled,
-         [=](){ textStyleValueChanged(Pid::SIZE_SPATIUM_DEPENDENT, textStyleSpatiumDependent->isChecked()); }
-         );
-
-      resetTextStyleFrameType->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFrameType, &QToolButton::clicked, [=](){ resetTextStyle(Pid::FRAME_TYPE); });
-      connect(textStyleFrameType, QOverload<int>::of(&QComboBox::currentIndexChanged),
-         [=](){ textStyleValueChanged(Pid::FRAME_TYPE, textStyleFrameType->currentIndex()); }
-         );
-
-      resetTextStyleFramePadding->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFramePadding, &QToolButton::clicked, [=](){ resetTextStyle(Pid::FRAME_PADDING); });
-      connect(textStyleFramePadding, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-         [=](){ textStyleValueChanged(Pid::FRAME_PADDING, textStyleFramePadding->value()); }
-         );
-
-      resetTextStyleFrameBorder->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFrameBorder, &QToolButton::clicked, [=](){ resetTextStyle(Pid::FRAME_WIDTH); });
-      connect(textStyleFrameBorder, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-         [=](){ textStyleValueChanged(Pid::FRAME_WIDTH, textStyleFrameBorder->value()); }
-         );
-
-      resetTextStyleFrameBorderRadius->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFrameBorderRadius, &QToolButton::clicked, [=](){ resetTextStyle(Pid::FRAME_ROUND); });
-      connect(textStyleFrameBorderRadius, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-         [=](){ textStyleValueChanged(Pid::FRAME_ROUND, textStyleFrameBorderRadius->value()); }
-         );
-
-      resetTextStyleFrameForeground->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFrameForeground, &QToolButton::clicked, [=](){ resetTextStyle(Pid::FRAME_FG_COLOR); });
-      connect(textStyleFrameForeground, &Awl::ColorLabel::colorChanged,
-         [=](){ textStyleValueChanged(Pid::FRAME_FG_COLOR, textStyleFrameForeground->color()); }
-         );
-
-      resetTextStyleFrameBackground->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleFrameBackground, &QToolButton::clicked, [=](){ resetTextStyle(Pid::FRAME_BG_COLOR); });
-      connect(textStyleFrameBackground, &Awl::ColorLabel::colorChanged,
-         [=](){ textStyleValueChanged(Pid::FRAME_BG_COLOR, textStyleFrameBackground->color()); }
-         );
-
-      resetTextStyleColor->setIcon(*icons[int(Icons::reset_ICON)]);
-      connect(resetTextStyleColor, &QToolButton::clicked, [=](){ resetTextStyle(Pid::COLOR); });
-      connect(textStyleColor, &Awl::ColorLabel::colorChanged,
-         [=](){ textStyleValueChanged(Pid::COLOR, textStyleColor->color()); }
-         );
-
-      connect(textStyles, SIGNAL(currentRowChanged(int)), SLOT(textStyleChanged(int)));
-      textStyles->setCurrentRow(0);
-
-      QRect scr = QGuiApplication::primaryScreen()->availableGeometry();
-      QRect dlg = this->frameGeometry();
-      isTooBig  = dlg.width() > scr.width() || dlg.height() > scr.height();
-      if (isTooBig)
-            this->setMinimumSize(scr.width() / 2, scr.height() / 2);
-      hasShown = false;
-      MuseScore::restoreGeometry(this);
-      }
-=======
     : QDialog(parent), cs(s)
 {
     setObjectName("EditStyle");
@@ -1069,6 +371,55 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
 
         { Sid::bendLineWidth,     false, bendLineWidth,     resetBendLineWidth },
         { Sid::bendArrowWidth,    false, bendArrowWidth,    resetBendArrowWidth },
+
+        { Sid::numericHeightDisplacement,        false, numericHeightDisplacement,          resetNumericHeightDisplacement },
+        { Sid::numericDistanceOctave,            false, numericDistanceOctave,              resetNumericDistanceOctave },
+        { Sid::numericHeigthLine,                false, numericHeigthLine,                  resetNumericHeigthLine },
+        { Sid::numericOffsetLine,                false, numericOffsetLine,                  resetnumericOffsetLine },
+        { Sid::numericDistanceBetweenLines,      false, numericDistanceBetweenLines,        resetNumericDistanceBetweenLines },
+        { Sid::numericWideLine,                  false, numericWideLine,                    resetNumericWideLine },
+        { Sid::numericThickLine,                 false, numericThickLine,                   resetNumericThickLine },
+        { Sid::numericSizeSignSharp,             false, numericSizeSignSharp,               resetNumericSizeSignSharp },
+        { Sid::numericSizeSignFlat,              false, numericSizeSignFlat,                resetNumericSizeSignFlat },
+        { Sid::numericDistanceSignSharp,         false, numericDistanceSignSharp,           resetNumericDistanceSignSharp },
+        { Sid::numericDistanceSignFlat,          false, numericDistanceSignFlat,            resetNumericDistanceSignFlat },
+        { Sid::numericHeigthSignSharp,           false, numericHeigthSignSharp,             resetNumericHeigthSignSharp },
+        { Sid::numericHeigthSignFlat,            false, numericHeigthSignFlat,              resetNumericHeigthSignFlat },
+        { Sid::numericFont,                      false, numericFont,                        resetNumericFont },
+        { Sid::numericSlurEckenform,             false, numericSlurEckenform,               resetNumericSlurEckenform },
+        { Sid::numericSlurThick,                 false, numericSlurThick,                   resetNumericSlurThick },
+        { Sid::numericSlurHeigth,                false, numericSlurHeigth,                  resetNumericSlurHeigth },
+        { Sid::numericSlurUberhang,              false, numericSlurUberhang,                resetNumericSlurUberhang },
+        { Sid::numericSlurShift,                 false, numericSlurShift,                   resetNumericSlurShift },
+        { Sid::numericLedgerlineThick,           false, numericLedgerlineThick,             resetNumericLedgerlineThick },
+        { Sid::numericLedgerlineLength,          false, numericLedgerlineLength,            resetNumericLedgerlineLength },
+        { Sid::numericLedgerlineShift,           false, numericLedgerlineShift,             resetNumericLedgerlineShift },
+        { Sid::numericStaffDistans,              false, numericStaffDistans,                resetNumericStaffDistans },
+        { Sid::numericTimeSigSize,               false, numericTimeSigSize,                 resetNumericTimeSigSize },
+        { Sid::numericTimeSigDistance,           false, numericTimeSigDistance,             resetNumericTimeSigDistance },
+        { Sid::numericTimeSigLineThick,          false, numericTimeSigLineThick,            resetNumericTimeSigLineThick },
+        { Sid::numericTimeSigLineSize,           false, numericTimeSigLineSize,             resetNumericTimeSigLineSize },
+        { Sid::numericTimeSigFont,               false, numericTimeSigFont,                 resetNumericTimeSigFont },
+        { Sid::numericKeySigFont,                false, numericKeySigFont,                  resetNumericKeySigFont },
+        { Sid::numericKeySigSize,                false, numericKeySigSize,                  resetNumericKeySigSize },
+        { Sid::numericKeySigHorizontalShift,     false, numericKeySigHorizontalShift,       resetNumericKeySigHorizontalShift },
+        { Sid::numericKeySigHigth,               false, numericKeySigHigth,                 resetNumericKeySigHigth },
+        { Sid::numericKeysigNoteDistancLeft,     false, numericKeysigNoteDistancLeft,       resetNumericKeysigNoteDistancLeft },
+        { Sid::numericKeysigNoteDistancReigth,   false, numericKeysigNoteDistancReigth,     resetNumericKeysigNoteDistancReigth },
+        { Sid::numericBarlineLength,             false, numericBarlineLength,               resetNumericBarlineLength },
+        { Sid::numericFontSize,                  false, numericFontSize,                    resetNumericFontSize },
+        { Sid::numericRestDistanc,               false, numericRestDistanc,                 resetNumericRestDistanc },
+        { Sid::numericNoteDistanc,               false, numericNoteDistanc,                 resetNumericNoteDistanc },
+        { Sid::numericAccidentalFont,            false, numericAccidentalFont,              resetNumericAccidentalFont },
+        { Sid::numericTupletSlurEcke,            false, numericTupletSlurEcke,              resetNumericTupletSlurEcke },
+        { Sid::numericTupletSlurhigth,           false, numericTupletSlurhigth,             resetNumericTupletSlurhigth },
+        { Sid::numericTupletSlurdistans,         false, numericTupletSlurdistans,           resetNumericTupletSlurdistans },
+        { Sid::numericTupletSlurshift,           false, numericTupletSlurshift,             resetNumericTupletSlurshift },
+        { Sid::numericTupletSluruberhang,        false, numericTupletSluruberhang,          resetNumericTupletSluruberhang },
+        { Sid::numericTupletNummerHigth,         false, numericTupletNummerHigth,           resetNumericTupletNummerHigth },
+        { Sid::numericTupletSlurThickness,       false, numericTupletSlurThickness,         resetNumericTupletSlurThickness },
+        { Sid::numericTupletNummerFontSize,      false, numericTupletNummerFontSize,        resetNumericTupletNummerFontSize },
+        { Sid::numericTupletNummerFont,          false, numericTupletNummerFont,            resetNumericTupletNummerFont },
     };
 
     for (QComboBox* cb : std::vector<QComboBox*> {
@@ -1103,6 +454,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
     tupletBracketType->addItem(tr("None", "no tuplet bracket type"), int(TupletBracketType::SHOW_NO_BRACKET));
 
     pageList->setCurrentRow(0);
+    numericListPage->setCurrentRow(0);
     accidentalsGroup->setVisible(false);   // disable, not yet implemented
 
     musicalSymbolFont->clear();
@@ -1398,7 +750,6 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
     hasShown = false;
     MuseScore::restoreGeometry(this);
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   PAGES

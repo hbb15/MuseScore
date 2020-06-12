@@ -86,42 +86,6 @@ qreal Stem::stemLen() const
 //-------------------------------------------------------------------
 
 void Stem::layout()
-<<<<<<< HEAD
-      {
-      qreal l    = _len + _userLen;
-      qreal _up  = up() ? -1.0 : 1.0;
-      l         *= _up;
-
-      qreal y1 = 0.0;                           // vertical displacement to match note attach point
-      const Staff* stf = staff();
-      if (chord()) {
-            setMag(chord()->mag());
-            Fraction tick = chord()->tick();
-            const StaffType* st = stf ? stf->staffType(tick) : 0;
-            if (st && st->isTabStaff() ) {            // TAB staves
-                  if (st->stemThrough()) {
-                        // if stems through staves, gets Y pos. of stem-side note relative to chord other side
-                        qreal lineDist = st->lineDistance().val() * spatium();
-                        y1             = (chord()->downString() - chord()->upString()) * _up * lineDist;
-                        // if fret marks above lines, raise stem beginning by 1/2 line distance
-                        if (!st->onLines())
-                              y1 -= lineDist * 0.5;
-                        // shorten stem by 1/2 lineDist to clear the note and a little more to keep 'air' between stem and note
-                        lineDist *= 0.7 * mag();
-                        y1       += _up * lineDist;
-                        }
-                  // in other TAB types, no correction
-                  }
-            else if (staff() && staff()->isNumericStaff(chord()->tick())){
-
-            }
-            else {                              // non-TAB
-                  // move stem start to note attach point
-                  Note* n  = up() ? chord()->downNote() : chord()->upNote();
-                  y1      += (up() ? n->stemUpSE().y() : n->stemDownNW().y());
-                  rypos() = n->rypos();
-                  }
-=======
 {
     qreal l    = _len + _userLen;
     qreal _up  = up() ? -1.0 : 1.0;
@@ -137,18 +101,22 @@ void Stem::layout()
             if (st->stemThrough()) {
                 // if stems through staves, gets Y pos. of stem-side note relative to chord other side
                 qreal lineDist = st->lineDistance().val() * spatium();
-                y1             = (chord()->downString() - chord()->upString()) * _up * lineDist;
+                y1 = (chord()->downString() - chord()->upString()) * _up * lineDist;
                 // if fret marks above lines, raise stem beginning by 1/2 line distance
                 if (!st->onLines()) {
                     y1 -= lineDist * 0.5;
                 }
                 // shorten stem by 1/2 lineDist to clear the note and a little more to keep 'air' between stem and note
                 lineDist *= 0.7 * mag();
-                y1       += _up * lineDist;
->>>>>>> merge
+                y1 += _up * lineDist;
             }
             // in other TAB types, no correction
-        } else {                                // non-TAB
+
+        }
+        else if (staff() && staff()->isNumericStaff(chord()->tick())) {
+
+        }
+         else {                                // non-TAB
             // move stem start to note attach point
             Note* n  = up() ? chord()->downNote() : chord()->upNote();
             y1      += (up() ? n->stemUpSE().y() : n->stemDownNW().y());

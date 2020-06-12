@@ -24,18 +24,11 @@ namespace Ms {
 extern Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionError);
 
 const char* g_groupNames[STAFF_GROUP_MAX] = {
-<<<<<<< HEAD
-      QT_TRANSLATE_NOOP("staff group header name", "STANDARD STAFF"),
-      QT_TRANSLATE_NOOP("staff group header name", "PERCUSSION STAFF"),
-      QT_TRANSLATE_NOOP("staff group header name", "TABLATURE STAFF"),
-      QT_TRANSLATE_NOOP("staff group header name", "NUMERIC STAFF"),
-      };
-=======
     QT_TRANSLATE_NOOP("staff group header name", "STANDARD STAFF"),
     QT_TRANSLATE_NOOP("staff group header name", "PERCUSSION STAFF"),
-    QT_TRANSLATE_NOOP("staff group header name", "TABLATURE STAFF")
+    QT_TRANSLATE_NOOP("staff group header name", "TABLATURE STAFF"),
+    QT_TRANSLATE_NOOP("staff group header name", "NUMERIC STAFF")
 };
->>>>>>> merge
 
 //---------------------------------------------------------
 //   noteHeadSchemes
@@ -58,111 +51,6 @@ NoteHead::Scheme noteHeadSchemes[] = {
 //---------------------------------------------------------
 
 EditStaffType::EditStaffType(QWidget* parent, Staff* st)
-<<<<<<< HEAD
-   : QDialog(parent)
-      {
-      setObjectName("EditStaffType");
-      setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-      setupUi(this);
-
-      staff     = st;
-      staffType = *staff->staffType(Fraction(0,1));
-      Instrument* instr = staff->part()->instrument();
-
-      // template combo
-
-      templateCombo->clear();
-      // standard group also as fall-back (but excluded by percussion)
-      bool bStandard    = !(instr != nullptr && instr->drumset() != nullptr);
-      bool bPerc        = (instr != nullptr && instr->drumset() != nullptr);
-      bool bTab         = (instr != nullptr && instr->stringData() != nullptr && instr->stringData()->frettedStrings() > 0);
-      int idx           = 0;
-      for (const StaffType& t : StaffType::presets()) {
-            if ( (((t.group() == StaffGroup::STANDARD) || (t.group() == StaffGroup::NUMERIC)) && bStandard)
-                        || (t.group() == StaffGroup::PERCUSSION && bPerc)
-                        || (t.group() == StaffGroup::TAB && bTab && t.lines() <= instr->stringData()->frettedStrings()))
-                  templateCombo->addItem(t.name(), idx);
-            idx++;
-            }
-      templateCombo->setCurrentIndex(-1);
-
-      // tab page configuration
-      QList<QString> fontNames = StaffType::fontNames(false);
-      foreach (const QString& fn, fontNames)   // fill fret font name combo
-            fretFontName->addItem(fn);
-      fretFontName->setCurrentIndex(0);
-      fontNames = StaffType::fontNames(true);
-      foreach(const QString& fn, fontNames)   // fill duration font name combo
-            durFontName->addItem(fn);
-      durFontName->setCurrentIndex(0);
-
-      for (auto i : noteHeadSchemes)
-            noteHeadScheme->addItem(NoteHead::scheme2userName(i), NoteHead::scheme2name(i));
-
-      // load a sample standard score in preview
-      MasterScore* sc = new MasterScore(MScore::defaultStyle());
-      if (readScore(sc, QString(":/data/std_sample.mscx"), false) == Score::FileError::FILE_NO_ERROR)
-            standardPreview->setScore(sc);
-      else {
-            Q_ASSERT_X(false, "EditStaffType::EditStaffType", "Error in opening sample standard file for preview");
-            }
-
-      // load a sample tabulature score in preview
-      sc = new MasterScore(MScore::defaultStyle());
-      if (readScore(sc, QString(":/data/tab_sample.mscx"), false) == Score::FileError::FILE_NO_ERROR)
-            tabPreview->setScore(sc);
-      else {
-            Q_ASSERT_X(false, "EditStaffType::EditStaffType", "Error in opening sample tab file for preview");
-            }
-      tabPreview->adjustSize();
-
-      setValues();
-
-      connect(name,           SIGNAL(textEdited(const QString&)), SLOT(nameEdited(const QString&)));
-      connect(lines,          SIGNAL(valueChanged(int)),          SLOT(updatePreview()));
-      connect(lineDistance,   SIGNAL(valueChanged(double)),       SLOT(updatePreview()));
-      connect(showBarlines,   SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(genClef,        SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(genTimesig,     SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(noteHeadScheme, SIGNAL(currentIndexChanged(int)),   SLOT(updatePreview()));
-
-      connect(genKeysigPitched,           SIGNAL(toggled(bool)),  SLOT(updatePreview()));
-      connect(showLedgerLinesPitched,     SIGNAL(toggled(bool)),  SLOT(updatePreview()));
-      connect(stemlessPitched,            SIGNAL(toggled(bool)),  SLOT(updatePreview()));
-      connect(genKeysigPercussion,        SIGNAL(toggled(bool)),  SLOT(updatePreview()));
-      connect(showLedgerLinesPercussion,  SIGNAL(toggled(bool)),  SLOT(updatePreview()));
-      connect(stemlessPercussion,         SIGNAL(toggled(bool)),  SLOT(updatePreview()));
-
-      connect(noteValuesSymb,       SIGNAL(toggled(bool)),              SLOT(tabStemsToggled(bool)));
-      connect(noteValuesStems,      SIGNAL(toggled(bool)),              SLOT(tabStemsToggled(bool)));
-      connect(valuesRepeatNever,    SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(valuesRepeatSystem,   SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(valuesRepeatMeasure,  SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(valuesRepeatAlways,   SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(stemBesideRadio,      SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(stemThroughRadio,     SIGNAL(toggled(bool)),              SLOT(tabStemThroughToggled(bool)));
-      connect(stemAboveRadio,       SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(stemBelowRadio,       SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(minimShortRadio,      SIGNAL(toggled(bool)),              SLOT(tabMinimShortToggled(bool)));
-      connect(minimSlashedRadio,    SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(showRests,            SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(durFontName,          SIGNAL(currentIndexChanged(int)),   SLOT(durFontNameChanged(int)));
-      connect(durFontSize,          SIGNAL(valueChanged(double)),       SLOT(updatePreview()));
-      connect(durY,                 SIGNAL(valueChanged(double)),       SLOT(updatePreview()));
-      connect(fretFontName,         SIGNAL(currentIndexChanged(int)),   SLOT(fretFontNameChanged(int)));
-      connect(fretFontSize,         SIGNAL(valueChanged(double)),       SLOT(updatePreview()));
-      connect(fretY,                SIGNAL(valueChanged(double)),       SLOT(updatePreview()));
-
-      connect(linesThroughRadio,    SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(onLinesRadio,         SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(showTabFingering,     SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(upsideDown,           SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(numbersRadio,         SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-      connect(showBackTied,         SIGNAL(toggled(bool)),              SLOT(updatePreview()));
-
-      connect(templateReset,        SIGNAL(clicked()),                  SLOT(resetToTemplateClicked()));
-      connect(addToTemplates,       SIGNAL(clicked()),                  SLOT(addToTemplatesClicked()));
-=======
     : QDialog(parent)
 {
     setObjectName("EditStaffType");
@@ -183,7 +71,7 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
         = (instr != nullptr && instr->stringData() != nullptr && instr->stringData()->frettedStrings() > 0);
     int idx           = 0;
     for (const StaffType& t : StaffType::presets()) {
-        if ((t.group() == StaffGroup::STANDARD && bStandard)
+        if ((((t.group() == StaffGroup::STANDARD) || (t.group() == StaffGroup::NUMERIC)) && bStandard)
             || (t.group() == StaffGroup::PERCUSSION && bPerc)
             || (t.group() == StaffGroup::TAB && bTab && t.lines() <= instr->stringData()->frettedStrings())) {
             templateCombo->addItem(t.name(), idx);
@@ -271,7 +159,6 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
 
     connect(templateReset,        SIGNAL(clicked()),                  SLOT(resetToTemplateClicked()));
     connect(addToTemplates,       SIGNAL(clicked()),                  SLOT(addToTemplatesClicked()));
->>>>>>> merge
 //      connect(groupCombo,           SIGNAL(currentIndexChanged(int)),   SLOT(staffGroupChanged(int)));
     addToTemplates->setVisible(false);
 
@@ -314,95 +201,6 @@ void EditStaffType::setValues()
     groupName->setText(qApp->translate("staff group header name", g_groupNames[i]));
 //      groupCombo->setCurrentIndex(i);
 
-<<<<<<< HEAD
-      name->setText(staffType.name());
-      lines->setValue(staffType.lines());
-      lineDistance->setValue(staffType.lineDistance().val());
-      genClef->setChecked(staffType.genClef());
-      showBarlines->setChecked(staffType.showBarlines());
-      genTimesig->setChecked(staffType.genTimesig());
-
-      switch (group) {
-            case StaffGroup::STANDARD:
-                  genKeysigPitched->setChecked(staffType.genKeysig());
-                  showLedgerLinesPitched->setChecked(staffType.showLedgerLines());
-                  stemlessPitched->setChecked(staffType.stemless());
-                  noteHeadScheme->setCurrentIndex(int(staffType.noteHeadScheme()));
-                  break;
-
-            case StaffGroup::TAB:
-            case StaffGroup::NUMERIC:
-                  {
-                  upsideDown->setChecked(staffType.upsideDown());
-                  showTabFingering->setChecked(staffType.showTabFingering());
-                  int idx = fretFontName->findText(staffType.fretFontName(), Qt::MatchFixedString);
-                  if (idx == -1)
-                        idx = 0;          // if name not found, use first name
-                  fretFontName->setCurrentIndex(idx);
-                  fretFontSize->setValue(staffType.fretFontSize());
-                  fretY->setValue(staffType.fretFontUserY());
-
-                  numbersRadio->setChecked(staffType.useNumbers());
-                  lettersRadio->setChecked(!staffType.useNumbers());
-                  onLinesRadio->setChecked(staffType.onLines());
-                  aboveLinesRadio->setChecked(!staffType.onLines());
-                  linesThroughRadio->setChecked(staffType.linesThrough());
-                  linesBrokenRadio->setChecked(!staffType.linesThrough());
-                  showBackTied->setChecked(staffType.showBackTied());
-
-                  idx = durFontName->findText(staffType.durationFontName(), Qt::MatchFixedString);
-                  if (idx == -1)
-                        idx = 0;          // if name not found, use first name
-                  durFontName->setCurrentIndex(idx);
-                  durFontSize->setValue(staffType.durationFontSize());
-                  durY->setValue(staffType.durationFontUserY());
-                  // convert combined values of genDurations and slashStyle/stemless into noteValuesx radio buttons
-                  // Sbove/Below, Beside/Through and minim are only used if stems-and-beams
-                  // but set them from stt values anyway, to ensure preset matching
-                  stemAboveRadio->setChecked(!staffType.stemsDown());
-                  stemBelowRadio->setChecked(staffType.stemsDown());
-                  stemBesideRadio->setChecked(!staffType.stemThrough());
-                  stemThroughRadio->setChecked(staffType.stemThrough());
-                  TablatureMinimStyle minimStyle = staffType.minimStyle();
-                  minimNoneRadio->setChecked(minimStyle == TablatureMinimStyle::NONE);
-                  minimShortRadio->setChecked(minimStyle == TablatureMinimStyle::SHORTER);
-                  minimSlashedRadio->setChecked(minimStyle == TablatureMinimStyle::SLASHED);
-                  TablatureSymbolRepeat symRepeat = staffType.symRepeat();
-                  valuesRepeatNever->setChecked(symRepeat == TablatureSymbolRepeat::NEVER);
-                  valuesRepeatSystem->setChecked(symRepeat == TablatureSymbolRepeat::SYSTEM);
-                  valuesRepeatMeasure->setChecked(symRepeat == TablatureSymbolRepeat::MEASURE);
-                  valuesRepeatAlways->setChecked(symRepeat == TablatureSymbolRepeat::ALWAYS);
-                  if (staffType.genDurations()) {
-                        noteValuesNone->setChecked(false);
-                        noteValuesSymb->setChecked(true);
-                        noteValuesStems->setChecked(false);
-                        }
-                  else {
-                        if (staffType.stemless()) {
-                              noteValuesNone->setChecked(true);
-                              noteValuesSymb->setChecked(false);
-                              noteValuesStems->setChecked(false);
-                              }
-                        else {
-                              noteValuesNone->setChecked(false);
-                              noteValuesSymb->setChecked(false);
-                              noteValuesStems->setChecked(true);
-                              }
-                        }
-                  showRests->setChecked(staffType.showRests());
-                  // adjust compatibility across different settings
-                  tabStemThroughCompatibility(stemThroughRadio->isChecked());
-                  tabMinimShortCompatibility(minimShortRadio->isChecked());
-                  tabStemsCompatibility(noteValuesStems->isChecked());
-                  }
-                  break;
-
-            case StaffGroup::PERCUSSION:
-                  genKeysigPercussion->setChecked(staffType.genKeysig());
-                  showLedgerLinesPercussion->setChecked(staffType.showLedgerLines());
-                  stemlessPercussion->setChecked(staffType.stemless());
-                  break;
-=======
     name->setText(staffType.name());
     lines->setValue(staffType.lines());
     lineDistance->setValue(staffType.lineDistance().val());
@@ -419,6 +217,7 @@ void EditStaffType::setValues()
         break;
 
     case StaffGroup::TAB:
+    case StaffGroup::NUMERIC:
     {
         upsideDown->setChecked(staffType.upsideDown());
         showTabFingering->setChecked(staffType.showTabFingering());
@@ -474,7 +273,6 @@ void EditStaffType::setValues()
                 noteValuesNone->setChecked(false);
                 noteValuesSymb->setChecked(false);
                 noteValuesStems->setChecked(true);
->>>>>>> merge
             }
         }
         showRests->setChecked(staffType.showRests());
@@ -770,34 +568,6 @@ void EditStaffType::updatePreview()
 //---------------------------------------------------------
 
 QString EditStaffType::createUniqueStaffTypeName(StaffGroup group)
-<<<<<<< HEAD
-      {
-      QString sn;
-      for (int idx = 1; ; ++idx) {
-            switch (group) {
-                  case StaffGroup::STANDARD:
-                        sn = QString("Standard-%1 [*]").arg(idx);
-                        break;
-                  case StaffGroup::PERCUSSION:
-                        sn = QString("Perc-%1 [*]").arg(idx);
-                        break;
-                  case StaffGroup::TAB:
-                        sn = QString("Tab-%1 [*]").arg(idx);
-                        break;
-                  case StaffGroup::NUMERIC:
-                        sn = QString("Num-%1 [*]").arg(idx);
-                        break;
-                  }
-            bool found = false;
-            for (const StaffType& st : StaffType::presets()) {
-                  if (st.name() == sn) {
-                        found = true;
-                        break;
-                        }
-                  }
-            if (!found)
-                  break;
-=======
 {
     QString sn;
     for (int idx = 1;; ++idx) {
@@ -811,13 +581,15 @@ QString EditStaffType::createUniqueStaffTypeName(StaffGroup group)
         case StaffGroup::TAB:
             sn = QString("Tab-%1 [*]").arg(idx);
             break;
+        case StaffGroup::NUMERIC:
+            sn = QString("Num-%1 [*]").arg(idx);
+            break;
         }
         bool found = false;
         for (const StaffType& st : StaffType::presets()) {
             if (st.name() == sn) {
                 found = true;
                 break;
->>>>>>> merge
             }
         }
         if (!found) {

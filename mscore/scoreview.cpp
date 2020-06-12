@@ -1163,7 +1163,7 @@ static void drawDebugInfo(QPainter& p, const Element* _e)
     e->shape().paint(p);
 
     p.setPen(QPen(Qt::red, 0.0));               // red x at 0,0 of bbox
-    qreal w = 5.0 / p.matrix().m11();
+    qreal w = 5.0 / p.worldTransform().toAffine().m11();
     qreal h = w;
     qreal x = 0;   // e->bbox().x();
     qreal y = 0;   // e->bbox().y();
@@ -1200,7 +1200,7 @@ static void drawDebugInfo(QPainter& p, const Element* _e)
 
 void ScoreView::drawElements(QPainter& painter, QList<Element*>& el, Element* editElement)
 {
-    qStableSort(el.begin(), el.end(), elementLessThan);
+    std::stable_sort(el.begin(), el.end(), elementLessThan);
     for (const Element* e : el) {
         e->itemDiscovered = 0;
 
@@ -1457,7 +1457,7 @@ void ScoreView::paint(const QRect& r, QPainter& p)
 
         QPen pen;
         pen.setColor(MScore::selectColor[0]);
-        pen.setWidthF(2.0 / p.matrix().m11());
+        pen.setWidthF(2.0 / p.worldTransform().toAffine().m11());
 
         pen.setStyle(Qt::SolidLine);
 
@@ -3038,63 +3038,6 @@ void ScoreView::startNoteEntry()
                         if (!cr) {
                             continue;
                         }
-<<<<<<< HEAD
-                  if (topLeft)
-                        _score->select(topLeft, SelectType::SINGLE);
-                  }
-            }
-
-      Element* el = _score->selection().element();
-      if (!el)
-            el = _score->selection().firstChordRest();
-      if (el == 0 || (el->type() != ElementType::CHORD && el->type() != ElementType::REST && el->type() != ElementType::NOTE)) {
-            // if no note/rest is selected, start with voice 0
-            int track = is.track() == -1 ? 0 : (is.track() / VOICES) * VOICES;
-            // try to find an appropriate measure to start in
-            Fraction tick = el ? el->tick() : Fraction(0,1);
-            el = _score->searchNote(tick, track);
-            if (!el)
-                  el = _score->searchNote(Fraction(0,1), track);
-            }
-      if (!el)
-            return;
-      if (el->type() == ElementType::CHORD) {
-            Chord* c = static_cast<Chord*>(el);
-            note = c->selectedNote();
-            if (note == 0)
-                  note = c->upNote();
-            el = note;
-            }
-      TDuration d(is.duration());
-      if (!d.isValid() || d.isZero() || d.type() == TDuration::DurationType::V_MEASURE)
-            is.setDuration(TDuration(TDuration::DurationType::V_QUARTER));
-      is.setAccidentalType(AccidentalType::NONE);
-
-      _score->select(el, SelectType::SINGLE, 0);
-      is.setRest(false);
-      is.setNoteEntryMode(true);
-      adjustCanvasPosition(el, false);
-
-      getAction("pad-rest")->setChecked(false);
-      setMouseTracking(true);
-      shadowNote->setVisible(true);
-      _score->setUpdateAll();
-      _score->update();
-
-      Staff* staff = _score->staff(is.track() / VOICES);
-      switch (staff->staffType(is.tick())->group()) {
-            case StaffGroup::STANDARD:
-                  break;
-            case StaffGroup::NUMERIC:
-                  //break;
-            case StaffGroup::TAB: {
-                  int strg = 0;
-                  // assume topmost string as current string
-                  // if entering note entry with a note selected and the note has a string
-                  // set InputState::_string to note physical string
-                  if (el->type() == ElementType::NOTE) {
-                        strg = (static_cast<Note*>(el))->string();
-=======
                     } else {
                         cr = static_cast<ChordRest*>(e);
                     }
@@ -3125,7 +3068,6 @@ void ScoreView::startNoteEntry()
                             topLeft = cr;
                             tlTick = crTick;
                             tlY = crY;
->>>>>>> merge
                         }
                     } else {
                         topLeft = cr;
@@ -3187,6 +3129,8 @@ void ScoreView::startNoteEntry()
     switch (staff->staffType(is.tick())->group()) {
     case StaffGroup::STANDARD:
         break;
+    case StaffGroup::NUMERIC:
+        //break;
     case StaffGroup::TAB: {
         int strg = 0;                           // assume topmost string as current string
         // if entering note entry with a note selected and the note has a string
@@ -3906,39 +3850,6 @@ void ScoreView::cmdEnterRest(const TDuration& d)
 //---------------------------------------------------------
 
 ScoreState ScoreView::mscoreState() const
-<<<<<<< HEAD
-      {
-      if (fotoMode())
-            return STATE_FOTO;
-      if (state == ViewState::NOTE_ENTRY) {
-            const InputState is = _score->inputState();
-            Staff* staff = _score->staff(is.track() / VOICES);
-            switch( staff->staffType(is.tick())->group()) {
-                  case StaffGroup::STANDARD:
-                        return STATE_NOTE_ENTRY_STAFF_PITCHED;
-                  case StaffGroup::TAB:
-					  return STATE_NOTE_ENTRY_STAFF_TAB;
-                  case StaffGroup::NUMERIC:
-                        return STATE_NOTE_ENTRY_STAFF_NUMERIC;
-                  case StaffGroup::PERCUSSION:
-                        return STATE_NOTE_ENTRY_STAFF_DRUM;
-                  }
-            }
-      if (state == ViewState::EDIT || state == ViewState::DRAG_EDIT) {
-            if (editData.element && editData.element->isLyrics())
-                  return STATE_LYRICS_EDIT;
-            else if (editData.element &&
-                  ( (editData.element->isHarmony()) || editData.element->isFiguredBass()) )
-                  return STATE_HARMONY_FIGBASS_EDIT;
-            else if (editData.element && editData.element->isTextBase())
-                  return STATE_TEXT_EDIT;
-            return STATE_EDIT;
-            }
-      if (state == ViewState::PLAY)
-            return STATE_PLAY;
-      return STATE_NORMAL;
-      }
-=======
 {
     if (fotoMode()) {
         return STATE_FOTO;
@@ -3949,6 +3860,8 @@ ScoreState ScoreView::mscoreState() const
         switch (staff->staffType(is.tick())->group()) {
         case StaffGroup::STANDARD:
             return STATE_NOTE_ENTRY_STAFF_PITCHED;
+        case StaffGroup::NUMERIC:
+            return STATE_NOTE_ENTRY_STAFF_NUMERIC;
         case StaffGroup::TAB:
             return STATE_NOTE_ENTRY_STAFF_TAB;
         case StaffGroup::PERCUSSION:
@@ -3971,7 +3884,6 @@ ScoreState ScoreView::mscoreState() const
     }
     return STATE_NORMAL;
 }
->>>>>>> merge
 
 //---------------------------------------------------------
 //   startUndoRedo
@@ -5265,7 +5177,7 @@ QList<Element*> ScoreView::elementsNear(QPointF p)
         }
     }
     if (!ll.empty()) {
-        qSort(ll.begin(), ll.end(), elementLower);
+        std::sort(ll.begin(), ll.end(), elementLower);
     }
     return ll;
 }

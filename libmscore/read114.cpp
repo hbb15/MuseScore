@@ -1302,7 +1302,11 @@ static void readVolta114(XmlReader& e, Volta* volta)
         const QStringRef& tag(e.name());
         if (tag == "endings") {
             QString s = e.readElementText();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+            QStringList sl = s.split(",", Qt::SkipEmptyParts);
+#else
             QStringList sl = s.split(",", QString::SkipEmptyParts);
+#endif
             volta->endings().clear();
             for (const QString& l : sl) {
                 int i = l.simplified().toInt();
@@ -1590,312 +1594,6 @@ static void readHarmony114(XmlReader& e, Harmony* h)
 //---------------------------------------------------------
 
 static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
-<<<<<<< HEAD
-      {
-      Segment* segment = 0;
-      qreal _spatium = m->spatium();
-
-      QList<Chord*> graceNotes;
-
-      //sort tuplet elements. needed for nested tuplets #22537
-      for (Tuplet* t : e.tuplets())
-            t->sortElements();
-      e.tuplets().clear();
-      e.setTrack(staffIdx * VOICES);
-
-      m->createStaves(staffIdx);
-
-      // tick is obsolete
-      if (e.hasAttribute("tick"))
-            e.setTick(Fraction::fromTicks(m->score()->fileDivision(e.intAttribute("tick"))));
-
-      if (e.hasAttribute("len")) {
-            QStringList sl = e.attribute("len").split('/');
-            if (sl.size() == 2)
-                  m->setTicks(Fraction(sl[0].toInt(), sl[1].toInt()));
-            else
-                  qDebug("illegal measure size <%s>", qPrintable(e.attribute("len")));
-            m->score()->sigmap()->add(m->tick().ticks(), SigEvent(m->ticks(), m->timesig()));
-            m->score()->sigmap()->add(m->endTick().ticks(), SigEvent(m->timesig()));
-            }
-
-      Staff* staff = m->score()->staff(staffIdx);
-      Fraction timeStretch(staff->timeStretch(m->tick()));
-
-      // keep track of tick of previous element
-      // this allows markings that need to apply to previous element to do so
-      // even though we may have already advanced to next tick position
-      Fraction lastTick = e.tick();
-
-      while (e.readNextStartElement()) {
-            const QStringRef& tag(e.name());
-
-            if (tag == "move")
-                  e.setTick(e.readFraction() + m->tick());
-            else if (tag == "tick") {
-                  e.setTick(Fraction::fromTicks(m->score()->fileDivision(e.readInt())));
-                  lastTick = e.tick();
-                  }
-            else if (tag == "BarLine") {
-                  BarLine* barLine = new BarLine(m->score());
-                  barLine->setTrack(e.track());
-                  barLine->resetProperty(Pid::BARLINE_SPAN);
-                  barLine->resetProperty(Pid::BARLINE_SPAN_FROM);
-                  barLine->resetProperty(Pid::BARLINE_SPAN_TO);
-
-                  while (e.readNextStartElement()) {
-                        const QStringRef& tg(e.name());
-                        if (tg == "subtype") {
-                              BarLineType t = BarLineType::NORMAL;
-                              switch (e.readInt()) {
-                                    default:
-                                    case 0:
-                                          t = BarLineType::NORMAL;
-                                          break;
-                                    case 1:
-                                          t = BarLineType::DOUBLE;
-                                          break;
-                                    case 2:
-                                          t = BarLineType::START_REPEAT;
-                                          break;
-                                    case 3:
-                                          t = BarLineType::END_REPEAT;
-                                          break;
-                                    case 4:
-                                          t = BarLineType::BROKEN;
-                                          break;
-                                    case 5:
-                                          t = BarLineType::END;
-                                          break;
-                                    case 6:
-                                          t = BarLineType::BEGIN;
-                                          break;
-                                    case 7:
-                                          t = BarLineType::END_START_REPEAT;
-                                          break;
-                                    }
-                              barLine->setBarLineType(t);
-                              }
-                        else if (!barLine->Element::readProperties(e))
-                              e.unknown();
-                        }
-
-                  //
-                  //  StartRepeatBarLine: always at the beginning tick of a measure, always BarLineType::START_REPEAT
-                  //  BarLine:            in the middle of a measure, has no semantic
-                  //  EndBarLine:         at the end tick of a measure
-                  //  BeginBarLine:       first segment of a measure
-
-                  SegmentType st;
-                  if ((e.tick() != m->tick()) && (e.tick() != m->endTick()))
-                        st = SegmentType::BarLine;
-                  else if (barLine->barLineType() == BarLineType::START_REPEAT && e.tick() == m->tick())
-                        st = SegmentType::StartRepeatBarLine;
-                  else if (e.tick() == m->tick() && segment == 0)
-                        st = SegmentType::BeginBarLine;
-                  else
-                        st = SegmentType::EndBarLine;
-                  segment = m->getSegment(st, e.tick());
-                  segment->add(barLine);
-                  }
-            else if (tag == "Chord") {
-                  Chord* chord = new Chord(m->score());
-                  chord->setTrack(e.track());
-                  readChord(m, chord, e);
-                  if (!chord->segment())
-                        chord->setParent(m->getSegment(SegmentType::ChordRest, e.tick()));
-                  segment = chord->segment();
-                  if (chord->noteType() != NoteType::NORMAL) {
-                        graceNotes.push_back(chord);
-                        }
-                  else {
-                        segment->add(chord);
-                        Q_ASSERT(segment->segmentType() == SegmentType::ChordRest);
-
-                        for (int i = 0; i < graceNotes.size(); ++i) {
-                              Chord* gc = graceNotes[i];
-                              gc->setGraceIndex(i);
-                              chord->add(gc);
-                              }
-                        graceNotes.clear();
-                        Fraction crticks = chord->actualTicks();
-
-                        if (chord->tremolo()) {
-                              Tremolo* tremolo = chord->tremolo();
-                              if (tremolo->twoNotes()) {
-                                    int track = chord->track();
-                                    Segment* ss = 0;
-                                    for (Segment* ps = m->first(SegmentType::ChordRest); ps; ps = ps->next(SegmentType::ChordRest)) {
-                                          if (ps->tick() >= e.tick())
-                                                break;
-                                          if (ps->element(track))
-                                                ss = ps;
-                                          }
-                                    Chord* pch = 0;       // previous chord
-                                    if (ss) {
-                                          ChordRest* cr = toChordRest(ss->element(track));
-                                          if (cr && cr->type() == ElementType::CHORD)
-                                                pch = toChord(cr);
-                                          }
-                                    if (pch) {
-                                          tremolo->setParent(pch);
-                                          pch->setTremolo(tremolo);
-                                          chord->setTremolo(0);
-                                          // force duration to half
-                                          Fraction pts(timeStretch * pch->globalTicks());
-                                          pch->setTicks(pts * Fraction(1,2));
-                                          chord->setTicks(crticks * Fraction(1,2));
-                                          }
-                                    else {
-                                          qDebug("tremolo: first note not found");
-                                          }
-                                    crticks = crticks * Fraction(1,2);
-                                    }
-                              else {
-                                    tremolo->setParent(chord);
-                                    }
-                              }
-                        lastTick = e.tick();
-                        e.incTick(crticks);
-                        }
-                  }
-            else if (tag == "Rest") {
-                  Rest* rest = new Rest(m->score());
-                  rest->setDurationType(TDuration::DurationType::V_MEASURE);
-                  rest->setTicks(m->timesig()/timeStretch);
-                  rest->setTrack(e.track());
-                  readRest(m, rest, e);
-                  if (!rest->segment())
-                        rest->setParent(m->getSegment(SegmentType::ChordRest, e.tick()));
-                  segment = rest->segment();
-                  segment->add(rest);
-
-                  if (!rest->ticks().isValid())     // hack
-                        rest->setTicks(m->timesig()/timeStretch);
-
-                  lastTick = e.tick();
-                  e.incTick(rest->actualTicks());
-                  }
-            else if (tag == "Breath") {
-                  Breath* breath = new Breath(m->score());
-                  breath->setTrack(e.track());
-                  Fraction tick = e.tick();
-                  breath->read(e);
-                  // older scores placed the breath segment right after the chord to which it applies
-                  // rather than before the next chordrest segment with an element for the staff
-                  // result would be layout too far left if there are other segments due to notes in other staves
-                  // we need to find tick of chord to which this applies, and add its duration
-                  Fraction prevTick;
-                  if (e.tick() < tick)
-                        prevTick = e.tick();    // use our own tick if we explicitly reset to earlier position
-                  else
-                        prevTick = lastTick;    // otherwise use tick of previous tick/chord/rest tag
-                  // find segment
-                  Segment* prev = m->findSegment(SegmentType::ChordRest, prevTick);
-                  if (prev) {
-                        // find chordrest
-                        ChordRest* lastCR = toChordRest(prev->element(e.track()));
-                        if (lastCR)
-                              tick = prevTick + lastCR->actualTicks();
-                        }
-                  segment = m->getSegment(SegmentType::Breath, tick);
-                  segment->add(breath);
-                  }
-            else if (tag == "endSpanner") {
-                  int id = e.attribute("id").toInt();
-                  Spanner* spanner = e.findSpanner(id);
-                  if (spanner) {
-                        spanner->setTicks(e.tick() - spanner->tick());
-                        // if (spanner->track2() == -1)
-                              // the absence of a track tag [?] means the
-                              // track is the same as the beginning of the slur
-                        if (spanner->track2() == -1)
-                              spanner->setTrack2(spanner->track() ? spanner->track() : e.track());
-                        }
-                  else {
-                        // remember "endSpanner" values
-                        SpannerValues sv;
-                        sv.spannerId = id;
-                        sv.track2    = e.track();
-                        sv.tick2     = e.tick();
-                        e.addSpannerValues(sv);
-                        }
-                  e.readNext();
-                  }
-            else if (tag == "Slur") {
-                  Slur *sl = new Slur(m->score());
-                  sl->setTick(e.tick());
-                  readSlur206(e, sl);
-                  //
-                  // check if we already saw "endSpanner"
-                  //
-                  int id = e.spannerId(sl);
-                  const SpannerValues* sv = e.spannerValues(id);
-                  if (sv) {
-                        sl->setTick2(sv->tick2);
-                        sl->setTrack2(sv->track2);
-                        }
-                  m->score()->addSpanner(sl);
-                  }
-            else if (tag == "HairPin"
-               || tag == "Pedal"
-               || tag == "Ottava"
-               || tag == "Trill"
-               || tag == "TextLine"
-               || tag == "Volta") {
-                  Spanner* sp = toSpanner(Element::name2Element(tag, m->score()));
-                  sp->setTrack(e.track());
-                  sp->setTick(e.tick());
-                  // ?? sp->setAnchor(Spanner::Anchor::SEGMENT);
-                  if (tag == "Volta")
-                        readVolta114(e, toVolta(sp));
-                  else
-                        readTextLine206(e, toTextLineBase(sp));
-                  m->score()->addSpanner(sp);
-                  //
-                  // check if we already saw "endSpanner"
-                  //
-                  int id = e.spannerId(sp);
-                  const SpannerValues* sv = e.spannerValues(id);
-                  if (sv) {
-                        sp->setTicks(sv->tick2 - sp->tick());
-                        sp->setTrack2(sv->track2);
-                        }
-                  }
-            else if (tag == "RepeatMeasure") {
-                  RepeatMeasure* rm = new RepeatMeasure(m->score());
-                  rm->setTrack(e.track());
-                  readRest(m, rm, e);
-                  segment = m->getSegment(SegmentType::ChordRest, e.tick());
-                  segment->add(rm);
-                  if (rm->actualTicks().isZero()) // might happen with 1.3 scores
-                        rm->setTicks(m->ticks());
-                  lastTick = e.tick();
-                  e.incTick(m->ticks());
-                  }
-            else if (tag == "Clef") {
-                  Clef* clef = new Clef(m->score());
-                  clef->setTrack(e.track());
-                  readClef(clef, e);
-                  if (m->score()->mscVersion() < 113)
-                        clef->setOffset(QPointF());
-                  clef->setGenerated(false);
-                  // MS3 doesn't support wrong clef for staff type: Default to G
-                  bool isDrumStaff = staff->isDrumStaff(e.tick());
-                  if (clef->clefType() == ClefType::TAB
-                      || (clef->clefType() == ClefType::PERC && !isDrumStaff)
-                      || (clef->clefType() != ClefType::PERC && isDrumStaff)) {
-                        clef->setClefType(ClefType::G);
-                        staff->clefList().erase(e.tick().ticks());
-                        staff->clefList().insert(std::pair<int,ClefType>(e.tick().ticks(), ClefType::G));
-                        }
-
-                  // there may be more than one clef segment for same tick position
-                  // the first clef may be missing and is added later in layout
-
-                  bool header;
-                  if (e.tick() != m->tick())
-=======
 {
     Segment* segment = 0;
     qreal _spatium = m->spatium();
@@ -1975,6 +1673,9 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                         t = BarLineType::END;
                         break;
                     case 6:
+                        t = BarLineType::BEGIN;
+                        break;
+                    case 7:
                         t = BarLineType::END_START_REPEAT;
                         break;
                     }
@@ -2210,7 +1911,6 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e)
                     if (s->isKeySigType() || s->isTimeSigType()) {
                         // hack: there may be other segment types which should
                         // generate a clef at current position
->>>>>>> merge
                         header = false;
                         break;
                     }

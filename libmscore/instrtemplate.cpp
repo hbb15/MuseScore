@@ -478,15 +478,21 @@ void InstrumentTemplate::read(XmlReader& e)
             if (i == n) {
                 articulation.append(a);
             }
-        } else if (tag == "stafftype") {
+        }
+        else if (tag == "stafftype") {
             int staffIdx = readStaffIdx(e);
             QString xmlPresetName = e.attribute("staffTypePreset", "");
             QString stfGroup = e.readElementText();
             if (stfGroup == "percussion") {
                 staffGroup = StaffGroup::PERCUSSION;
-            } else if (stfGroup == "tablature") {
+            }
+            else if (stfGroup == "tablature") {
                 staffGroup = StaffGroup::TAB;
-            } else {
+            }
+            else if (stfGroup == "numeric") {
+                staffGroup = StaffGroup::NUMERIC;
+            }
+        else {
                 staffGroup = StaffGroup::STANDARD;
             }
             staffTypePreset = 0;

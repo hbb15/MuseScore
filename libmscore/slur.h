@@ -52,39 +52,10 @@ public:
 //   @@ Slur
 //---------------------------------------------------------
 
-<<<<<<< HEAD
-class Slur final : public SlurTie {
-
-      void slurPosChord(SlurPos*);
-      qreal _numericHigth;
-
-   public:
-      Slur(Score* = 0);
-      ~Slur() {}
-
-      Slur* clone() const override        { return new Slur(*this); }
-      ElementType type() const override { return ElementType::SLUR; }
-      void write(XmlWriter& xml) const override;
-      void layout() override;
-      SpannerSegment* layoutSystem(System*) override;
-      void setTrack(int val) override;
-      void slurPos(SlurPos*) override;
-
-      SlurSegment* frontSegment()               { return toSlurSegment(Spanner::frontSegment()); }
-      const SlurSegment* frontSegment() const   { return toSlurSegment(Spanner::frontSegment()); }
-      SlurSegment* backSegment()                { return toSlurSegment(Spanner::backSegment());  }
-      const SlurSegment* backSegment() const    { return toSlurSegment(Spanner::backSegment());  }
-      SlurSegment* segmentAt(int n)             { return toSlurSegment(Spanner::segmentAt(n));   }
-      const SlurSegment* segmentAt(int n) const { return toSlurSegment(Spanner::segmentAt(n));   }
-
-      SlurTieSegment* newSlurTieSegment() override { return new SlurSegment(score()); }
-      qreal get_numericHigth()                      { return _numericHigth;   }
-      };
-
-=======
 class Slur final : public SlurTie
 {
     void slurPosChord(SlurPos*);
+    qreal _numericHigth;
 
 public:
     Slur(Score* = 0);
@@ -106,7 +77,8 @@ public:
     const SlurSegment* segmentAt(int n) const { return toSlurSegment(Spanner::segmentAt(n)); }
 
     SlurTieSegment* newSlurTieSegment() override { return new SlurSegment(score()); }
+
+    qreal get_numericHigth() { return _numericHigth; }
 };
->>>>>>> merge
 }     // namespace Ms
 #endif

@@ -299,6 +299,20 @@ private:
 
     QString _fretString;
 
+    qreal _fretStringYShift;
+    qreal _numericWidth;
+    qreal _numericWidth2;
+    qreal _numericHigth;
+    qreal _trackthick = 1.0;
+    QPointF _numericaccidentalPos;
+    QPointF _numericTextPos;
+    QPointF _numericKlammerPos;
+    numeric _numeric;
+    int _numericLedgerline;
+    bool _fretHidden = false;
+    bool _drawFlat = false;
+    bool _drawSharp = false;
+
     void startDrag(EditData&) override;
     QRectF drag(EditData& ed) override;
     void endDrag(EditData&) override;
@@ -376,6 +390,18 @@ public:
     void setFixed(bool v) { _fixed = v; }
     int fixedLine() const { return _fixedLine; }
     void setFixedLine(int v) { _fixedLine = v; }
+
+    void numeric_setKeysigNote(KeySig* sig);
+    qreal fretStringYShift() const { return _fretStringYShift; }
+    qreal get_numericWidth() { return _numericWidth; }
+    qreal get_numericWidth2() { return _numericWidth2; }
+    qreal get_numericHigth() { return _numericHigth; }
+    int get_numericLedgerline() { return _numericLedgerline; }
+    int get_numericGroundPitch();
+    QString getNumericString(int numkro);
+    int setAccidentalTypeBack(int defaultdirection);
+    int getNumericTrans(Key key) const;
+    int getNumericOktave() const;
 
     int tpc() const;
     int tpc1() const { return _tpc[0]; }                  // non transposed tpc

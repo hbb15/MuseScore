@@ -54,6 +54,8 @@ private:
     bool isMelisma() const;
     void undoChangeProperty(Pid id, const QVariant&, PropertyFlags ps) override;
 
+    int _staffShift;
+
 protected:
     int _no;                  ///< row index
     bool _even;
@@ -75,6 +77,7 @@ public:
 
     void layout() override;
     void layout2(int);
+    void layout3();
 
     void write(XmlWriter& xml) const override;
     void read(XmlReader&) override;
@@ -101,6 +104,8 @@ public:
     QVariant getProperty(Pid propertyId) const override;
     bool setProperty(Pid propertyId, const QVariant&) override;
     QVariant propertyDefault(Pid id) const override;
+
+    int getStaffShift() { return _staffShift; }
 };
 
 //---------------------------------------------------------
