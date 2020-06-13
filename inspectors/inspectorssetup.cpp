@@ -36,6 +36,10 @@ void InspectorsSetup::registerResources()
 #include "utils/doubleinputvalidator.h"
 #include "utils/intinputvalidator.h"
 #include "models/abstractinspectormodel.h"
+
+#include "view/ui/fretcanvas.h"
+#include "view/ui/gridcanvas.h"
+
 #include "types/stemtypes.h"
 #include "types/noteheadtypes.h"
 #include "types/beamtypes.h"
@@ -56,7 +60,9 @@ void InspectorsSetup::registerResources()
 #include "types/articulationtypes.h"
 #include "types/ambitustypes.h"
 #include "types/chordsymboltypes.h"
-#include "view/ui/fretcanvas.h"
+#include "types/scoreappearancetypes.h"
+#include "types/bendtypes.h"
+#include "types/tremolobartypes.h"
 
 void InspectorsSetup::registerUiTypes()
 {
@@ -104,4 +110,9 @@ void InspectorsSetup::registerUiTypes()
     qmlRegisterUncreatableType<ChordSymbolTypes>("MuseScore.Inspectors", 3, 3, "ChordSymbolTypes",
                                                  "Not creatable as it is an enum type");
     qmlRegisterType<Ms::FretCanvas>("MuseScore.Inspectors", 3, 3, "FretCanvas");
+    qmlRegisterUncreatableType<ScoreAppearanceTypes>("MuseScore.Inspectors", 3, 3, "ScoreAppearanceTypes",
+                                                     "Not creatable as it is an enum type");
+    qmlRegisterType<Ms::GridCanvas>("MuseScore.Inspectors", 3, 3, "GridCanvas");
+    qmlRegisterUncreatableType<BendTypes>("MuseScore.Inspectors", 3, 3, "BendTypes", "Not creatable as it is an enum type");
+    qmlRegisterUncreatableType<TremoloBarTypes>("MuseScore.Inspectors", 3, 3, "TremoloBarTypes", "Not creatable as it is an enum type");
 }

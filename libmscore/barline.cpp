@@ -209,15 +209,15 @@ public:
 //---------------------------------------------------------
 
 const std::vector<BarLineTableItem> BarLine::barLineTable {
-    { BarLineType::NORMAL,           QT_TRANSLATE_NOOP("Palette", "Normal barline"),           "normal" },
-    { BarLineType::DOUBLE,           QT_TRANSLATE_NOOP("Palette", "Double barline"),           "double" },
-    { BarLineType::START_REPEAT,     QT_TRANSLATE_NOOP("Palette", "Start repeat barline"),     "start-repeat" },
-    { BarLineType::END_REPEAT,       QT_TRANSLATE_NOOP("Palette", "End repeat barline"),       "end-repeat" },
-    { BarLineType::BROKEN,           QT_TRANSLATE_NOOP("Palette", "Dashed barline"),           "dashed" },
-    { BarLineType::END,              QT_TRANSLATE_NOOP("Palette", "Final barline"),            "end" },
+    { BarLineType::NORMAL,           Sym::symUserNames[int(SymId::barlineSingle)],        "normal" },
+    { BarLineType::DOUBLE,           Sym::symUserNames[int(SymId::barlineDouble)],        "double" },
+    { BarLineType::START_REPEAT,     Sym::symUserNames[int(SymId::repeatLeft)],           "start-repeat" },
+    { BarLineType::END_REPEAT,       Sym::symUserNames[int(SymId::repeatRight)],          "end-repeat" },
+    { BarLineType::BROKEN,           Sym::symUserNames[int(SymId::barlineDashed)],        "dashed" },
+    { BarLineType::END,              Sym::symUserNames[int(SymId::barlineFinal)],         "end" },
     { BarLineType::BEGIN,            QT_TRANSLATE_NOOP("Palette", "Start barline"),    "begin" },
-    { BarLineType::END_START_REPEAT, QT_TRANSLATE_NOOP("Palette", "End-start repeat barline"), "end-start-repeat" },
-    { BarLineType::DOTTED,           QT_TRANSLATE_NOOP("Palette", "Dotted barline"),           "dotted" },
+    { BarLineType::END_START_REPEAT, Sym::symUserNames[int(SymId::repeatRightLeft)],      "end-start-repeat" },
+    { BarLineType::DOTTED,           Sym::symUserNames[int(SymId::barlineDotted)],        "dotted" },
     { BarLineType::REVERSE_END,      Sym::symUserNames[int(SymId::barlineReverseFinal)],  "reverse-end" },
     { BarLineType::HEAVY,            Sym::symUserNames[int(SymId::barlineHeavy)],         "heavy" },
     { BarLineType::DOUBLE_HEAVY,     Sym::symUserNames[int(SymId::barlineHeavyHeavy)],    "double-heavy" },
