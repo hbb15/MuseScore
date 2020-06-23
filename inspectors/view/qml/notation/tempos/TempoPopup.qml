@@ -1,6 +1,7 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import MuseScore.Inspectors 3.3
+import MuseScore.UiComponents 1.0
 import "../../common"
 
 StyledPopup {
@@ -41,6 +42,7 @@ StyledPopup {
                 isIndeterminate: model ? model.tempo.isUndefined : false
                 currentValue: model ? model.tempo.value : 0
                 iconMode: iconModeEnum.hidden
+                measureUnitsSymbol: qsTr("BPM")
 
                 onValueEdited: { model.tempo.value = newValue }
             }

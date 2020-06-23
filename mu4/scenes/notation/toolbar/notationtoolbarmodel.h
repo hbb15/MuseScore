@@ -55,7 +55,6 @@ private:
 
     void onNotationChanged();
     void updateState();
-    void disabledAll();
 
     struct ActionItem {
         actions::Action action;

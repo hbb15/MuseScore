@@ -1,5 +1,6 @@
 import QtQuick 2.9
 import QtQuick.Layouts 1.3
+import MuseScore.UiComponents 1.0
 
 FlatButton {
     id: root
@@ -13,7 +14,7 @@ FlatButton {
     iconPixelSize: 16
 
     Layout.fillWidth: true
-    Layout.minimumWidth: popupAvailableWidth / 2
+    Layout.minimumWidth: (popupAvailableWidth - 4) / 2
 
     onVisibleChanged: {
         if (!visible) {

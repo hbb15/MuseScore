@@ -81,6 +81,10 @@ void NotationToolBarModel::load()
     m_notationChanged.onNotify(this, [this]() {
         onNotationChanged();
     });
+
+    globalContext()->isPlayingChanged().onNotify(this, [this]() {
+        updateState();
+    });
 }
 
 NotationToolBarModel::ActionItem& NotationToolBarModel::item(const actions::ActionName& name)
@@ -105,7 +109,7 @@ void NotationToolBarModel::onNotationChanged()
     m_inputStateChanged.resetOnNotify(this);
 
     if (notation) {
-        m_inputStateChanged = notation->inputStateChanged();
+        m_inputStateChanged = notation->interaction()->inputStateChanged();
         m_inputStateChanged.onNotify(this, [this]() {
             updateState();
         });
@@ -117,7 +121,8 @@ void NotationToolBarModel::onNotationChanged()
 void NotationToolBarModel::updateState()
 {
     std::shared_ptr<INotation> notation = globalContext()->currentNotation();
-    if (!notation) {
+    bool isPlaying = globalContext()->isPlaying();
+    if (!notation || isPlaying) {
         for (ActionItem& item : m_items) {
             item.enabled = false;
             item.checked = false;
@@ -128,7 +133,7 @@ void NotationToolBarModel::updateState()
             item.checked = false;
         }
 
-        auto is = notation->inputState();
+        auto is = notation->interaction()->inputState();
         if (is->isNoteEnterMode()) {
             item("domain/notation/note-input").checked = true;
 
@@ -142,7 +147,7 @@ void NotationToolBarModel::updateState()
         }
     }
 
-    item("domain/notation/file-open").enabled = true;
+    item("domain/notation/file-open").enabled = !isPlaying;
 
     emit dataChanged(index(0), index(rowCount() - 1));
 }

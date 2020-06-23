@@ -96,24 +96,49 @@ QT5_WRAP_UI (ui_headers
       palette/createPalette.ui
       scorecmp/scorecmp_tool.ui
       script/script_recorder.ui
+      widgets/offset_select.ui
+      widgets/align_select.ui
+      widgets/font_style_select.ui
       )
 
 if (APPLE)
-      QT5_ADD_RESOURCES (qrc_files musescore.qrc
-            qml.qrc # TODO: replace with qtquick_compiler_add_resources on Qt >= 5.11
-            musescorefonts-Mac.qrc shortcut-Mac.qrc
-            )
+      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
+            find_package(Qt5QuickCompiler)
+            qtquick_compiler_add_resources (qrc_files musescore.qrc
+                  qml.qrc
+                  musescorefonts-Mac.qrc shortcut-Mac.qrc
+                  )
+      else (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
+            QT5_ADD_RESOURCES (qrc_files musescore.qrc
+                 qml.qrc
+                 musescorefonts-Mac.qrc shortcut-Mac.qrc
+                 )
+      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
 else (APPLE)
-      QT5_ADD_RESOURCES (qrc_files musescore.qrc
-            qml.qrc # TODO: replace with qtquick_compiler_add_resources on Qt >= 5.11
-            musescorefonts-MScore.qrc
-            musescorefonts-Gootville.qrc
-            musescorefonts-Bravura.qrc
-            musescorefonts-MuseJazz.qrc
-            musescorefonts-Campania.qrc
-            musescorefonts-FreeSerif.qrc
-            musescorefonts-Free.qrc
-            shortcut.qrc)
+      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
+            find_package(Qt5QuickCompiler)
+            qtquick_compiler_add_resources (qrc_files musescore.qrc
+                  qml.qrc
+                  musescorefonts-MScore.qrc
+                  musescorefonts-Gootville.qrc
+                  musescorefonts-Bravura.qrc
+                  musescorefonts-MuseJazz.qrc
+                  musescorefonts-Campania.qrc
+                  musescorefonts-FreeSerif.qrc
+                  musescorefonts-Free.qrc
+                  shortcut.qrc)
+      else (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
+            QT5_ADD_RESOURCES (qrc_files musescore.qrc
+                  qml.qrc
+                  musescorefonts-MScore.qrc
+                  musescorefonts-Gootville.qrc
+                  musescorefonts-Bravura.qrc
+                  musescorefonts-MuseJazz.qrc
+                  musescorefonts-Campania.qrc
+                  musescorefonts-FreeSerif.qrc
+                  musescorefonts-Free.qrc
+                  shortcut.qrc)
+      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
 endif (APPLE)
 
 if (${CMAKE_SYSTEM} MATCHES "GNU-0.3")
@@ -260,6 +285,7 @@ add_library(mscoreapp STATIC
       ${DEBUGGER_SRC}
       ${MSCORE_MIXER_SRC}
       ${PIANOROLL_SRC}
+      ${WIDGETS_HEADER_FILE}
       ${WIDGETS_SOURCE_FILES}
       ${COCOABRIDGE}
       ${OMR_FILES}

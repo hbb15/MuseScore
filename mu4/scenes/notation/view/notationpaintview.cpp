@@ -47,6 +47,13 @@ NotationPaintView::NotationPaintView()
 
     // actions
     dispatcher()->reg("domain/notation/file-open", [this](const actions::ActionName&) { open(); });
+
+    // configuration
+    m_backgroundColor = configuration()->backgroundColor();
+    configuration()->backgroundColorChanged().onReceive(this, [this](const QColor& c) {
+        m_backgroundColor = c;
+        update();
+    });
 }
 
 //! NOTE Temporary method for tests
@@ -77,11 +84,12 @@ void NotationPaintView::open()
     });
 
     onInputStateChanged();
-    m_notation->inputStateChanged().onNotify(this, [this]() {
+    INotationInteraction* ninteraction = notationInteraction();
+    ninteraction->inputStateChanged().onNotify(this, [this]() {
         onInputStateChanged();
     });
 
-    m_notation->selectionChanged().onNotify(this, [this]() {
+    ninteraction->selectionChanged().onNotify(this, [this]() {
         onSelectionChanged();
     });
 
@@ -101,7 +109,7 @@ void NotationPaintView::onViewSizeChanged()
 
 void NotationPaintView::onInputStateChanged()
 {
-    INotationInputState* is = m_notation->inputState();
+    INotationInputState* is = notationInteraction()->inputState();
     if (is->isNoteEnterMode()) {
         setAcceptHoverEvents(true);
     } else {
@@ -113,7 +121,7 @@ void NotationPaintView::onInputStateChanged()
 
 void NotationPaintView::onSelectionChanged()
 {
-    QRectF selRect = m_notation->selection()->canvasBoundingRect();
+    QRectF selRect = notationInteraction()->selection()->canvasBoundingRect();
     if (!selRect.isValid()) {
         return;
     }
@@ -128,25 +136,24 @@ bool NotationPaintView::isNoteEnterMode() const
         return false;
     }
 
-    return m_notation->inputState()->isNoteEnterMode();
+    return notationInteraction()->inputState()->isNoteEnterMode();
 }
 
 void NotationPaintView::showShadowNote(const QPointF& pos)
 {
-    m_notation->showShadowNote(pos);
+    notationInteraction()->showShadowNote(pos);
     update();
 }
 
 void NotationPaintView::paint(QPainter* p)
 {
     QRect rect(0, 0, width(), height());
-    p->fillRect(rect, QColor("#D6E0E9"));
+    p->fillRect(rect, m_backgroundColor);
 
     p->setTransform(m_matrix);
 
     if (m_notation) {
         m_notation->paint(p, rect);
-        m_notation->paintShadowNote(p);
     } else {
         p->drawText(10, 10, "no notation");
     }
@@ -243,26 +250,41 @@ void NotationPaintView::zoom(qreal mag, const QPoint& pos)
 
 void NotationPaintView::wheelEvent(QWheelEvent* ev)
 {
+    if (!isInited()) {
+        return;
+    }
     m_inputController->wheelEvent(ev);
 }
 
 void NotationPaintView::mousePressEvent(QMouseEvent* ev)
 {
+    if (!isInited()) {
+        return;
+    }
     m_inputController->mousePressEvent(ev);
 }
 
 void NotationPaintView::mouseMoveEvent(QMouseEvent* ev)
 {
+    if (!isInited()) {
+        return;
+    }
     m_inputController->mouseMoveEvent(ev);
 }
 
 void NotationPaintView::mouseReleaseEvent(QMouseEvent* ev)
 {
+    if (!isInited()) {
+        return;
+    }
     m_inputController->mouseReleaseEvent(ev);
 }
 
 void NotationPaintView::hoverMoveEvent(QHoverEvent* ev)
 {
+    if (!isInited()) {
+        return;
+    }
     m_inputController->hoverMoveEvent(ev);
 }
 
@@ -281,7 +303,38 @@ QPoint NotationPaintView::toPhysical(const QPoint& p) const
     return m_matrix.map(p);
 }
 
+bool NotationPaintView::isInited() const
+{
+    if (m_notation) {
+        return true;
+    }
+    return false;
+}
+
 std::shared_ptr<INotation> NotationPaintView::notation() const
 {
     return m_notation;
+}
+
+mu::domain::notation::INotationInteraction* NotationPaintView::notationInteraction() const
+{
+    if (m_notation) {
+        return m_notation->interaction();
+    }
+    return nullptr;
+}
+
+qreal NotationPaintView::width() const
+{
+    return QQuickPaintedItem::width();
+}
+
+qreal NotationPaintView::height() const
+{
+    return QQuickPaintedItem::height();
+}
+
+qreal NotationPaintView::scale() const
+{
+    return QQuickPaintedItem::scale();
 }

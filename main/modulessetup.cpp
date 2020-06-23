@@ -29,6 +29,7 @@
 #include "mu4/extensions/extensionsmodule.h"
 #include "mu4/domain/notation/notationdomainmodule.h"
 #include "mu4/scenes/notation/notationscenemodule.h"
+#include "mu4/scenes/common/commonscenemodule.h"
 
 #ifdef BUILD_TELEMETRY_MODULE
 #include "framework/telemetry/telemetrysetup.h"
@@ -48,8 +49,6 @@ ModulesSetup::ModulesSetup()
 {
     m_modulesSetupList
 #ifdef BUILD_UI_MU4
-        << new mu::framework::UiModule()
-        << new mu::framework::UiComponentsModule()
         << new mu::actions::ActionsModule()
         << new mu::appshell::AppShellModule()
         << new mu::context::ContextModule()
@@ -57,6 +56,7 @@ ModulesSetup::ModulesSetup()
         << new mu::extensions::ExtensionsModule()
         << new mu::domain::notation::NotationDomainModule()
         << new mu::scene::notation::NotationSceneModule()
+        << new mu::scene::common::CommonSceneModule()
 #endif
 
 #ifdef BUILD_TELEMETRY_MODULE
@@ -68,6 +68,8 @@ ModulesSetup::ModulesSetup()
 #ifndef BUILD_UI_MU4
         << new InspectorsSetup()
 #endif
+        << new mu::framework::UiModule()
+        << new mu::framework::UiComponentsModule()
     ;
 }
 

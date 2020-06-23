@@ -85,7 +85,7 @@
 #include "selectnotedialog.h"
 #include "transposedialog.h"
 #include "metaedit.h"
-#include "view/ui/inspector.h"
+#include "view/widgets/inspectordockwidget.h"
 #ifdef OMR
 #include "omrpanel.h"
 #endif
@@ -3496,11 +3496,13 @@ void MuseScore::removeTab(int i)
 void MuseScore::showInspector(bool visible)
 {
     QAction* a = getAction("inspector");
-    if (!_inspector) {
-        _inspector = new Inspector(getQmlUiEngine());
+    auto uiEngine = mu::framework::ioc()->resolve<mu::framework::IUiEngine>("mscore");
+
+    if (!_inspector && uiEngine) {
+        _inspector = new InspectorDockWidget(uiEngine->qmlEngine());
 
         connect(_inspector, SIGNAL(visibilityChanged(bool)), a, SLOT(setChecked(bool)));
-        connect(_inspector, &Inspector::layoutUpdateRequested, [this]() {
+        connect(_inspector, &InspectorDockWidget::layoutUpdateRequested, [this]() {
                 ScoreView* scoreView = currentScoreView();
                 scoreView->updateGrips();
             });

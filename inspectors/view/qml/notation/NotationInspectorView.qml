@@ -1,6 +1,7 @@
 import QtQuick 2.9
 import QtQuick.Layouts 1.3
 import MuseScore.Inspectors 3.3
+import MuseScore.UiComponents 1.0
 
 import "../common"
 import "notes"
@@ -46,6 +47,7 @@ InspectorSectionView {
         width: parent.width
 
         columns: 2
+        columnSpacing: 4
 
         NoteSettings {
             popupPositionX: mapToGlobal(grid.x, grid.y).x - mapToGlobal(x, y).x
