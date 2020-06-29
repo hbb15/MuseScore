@@ -84,8 +84,10 @@ if (BUILD_UI_MU4)
         actions
         appshell
         context
+        shortcuts
         scores
         extensions
+        importexport
         notation
         notation_scene
         common_scene
