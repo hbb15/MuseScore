@@ -694,7 +694,7 @@ void BarLine::draw(QPainter* painter) const
     break;
 
     case BarLineType::DOUBLE_HEAVY: {
-        qreal lw2 = score()->styleP(Sid::endBarWidth)    * mag();
+        qreal lw2 = score()->styleP(Sid::endBarWidth) * mag();
         painter->setPen(QPen(curColor(), lw2, Qt::SolidLine, Qt::FlatCap));
         qreal x = lw2 * .5;
         painter->drawLine(QLineF(x, y1, x, y2));
@@ -1004,24 +1004,26 @@ Element* BarLine::drop(EditData& data)
 //---------------------------------------------------------
 
 void BarLine::setShowTips(bool val)
-      {
-      if (!score())
-            return;
+{
+    if (!score()) {
+        return;
+    }
 
-      score()->undoChangeStyleVal(Sid::repeatBarTips, val);
-      }
+    score()->undoChangeStyleVal(Sid::repeatBarTips, val);
+}
 
 //---------------------------------------------------------
 //   showTips
 //---------------------------------------------------------
 
 bool BarLine::showTips() const
-      {
-      if (!score())
-            return false;
+{
+    if (!score()) {
+        return false;
+    }
 
-      return score()->styleB(Sid::repeatBarTips);
-      }
+    return score()->styleB(Sid::repeatBarTips);
+}
 
 //---------------------------------------------------------
 //   gripsPositions
@@ -1360,7 +1362,7 @@ qreal BarLine::layoutWidth(Score* score, BarLineType type)
     case BarLineType::DOUBLE:
         w = score->styleP(Sid::doubleBarWidth) + score->styleP(Sid::doubleBarDistance);
         break;
-     case BarLineType::DOUBLE_HEAVY:
+    case BarLineType::DOUBLE_HEAVY:
         w = score->styleP(Sid::endBarWidth) * 2 + score->styleP(Sid::endBarDistance);
         break;
     case BarLineType::END_START_REPEAT:

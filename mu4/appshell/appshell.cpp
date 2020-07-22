@@ -54,9 +54,11 @@ int AppShell::run(int argc, char** argv, std::function<void()> moduleSetup)
     QCoreApplication::setOrganizationDomain("musescore.org");
     QCoreApplication::setApplicationVersion(QString::fromStdString(framework::Version::fullVersion()));
 
-    moduleSetup();
+    qSetMessagePattern("%{function}: %{message}");
 
     framework::settings()->load();
+
+    moduleSetup();
 
     QQmlApplicationEngine* engine = new QQmlApplicationEngine();
     //! NOTE Move ownership to UiEngine

@@ -28,11 +28,13 @@
 #include "libmscore/score.h"
 #include "sessionstatusobserver.h"
 
+#include "framework/ui/imainwindow.h"
+
 class InspectorDockWidget;
 
 namespace Ms {
 class UploadScoreDialog;
-class LoginManager;
+class CloudManager;
 class AboutBoxDialog;
 class AboutMusicXMLBoxDialog;
 class InsertMeasuresDialog;
@@ -126,15 +128,6 @@ extern const char* voiceActions[];
 extern bool mscoreFirstStart;
 
 //---------------------------------------------------------
-//   IconActions
-//---------------------------------------------------------
-
-struct IconAction {
-    IconType subtype;
-    const char* action;
-};
-
-//---------------------------------------------------------
 //   LanguageItem
 //---------------------------------------------------------
 
@@ -186,7 +179,7 @@ public:
 //   MuseScore
 //---------------------------------------------------------
 
-class MuseScore : public QMainWindow, public MuseScoreCore
+class MuseScore : public QMainWindow, public MuseScoreCore, public mu::framework::IMainWindow
 {
     Q_OBJECT
 
@@ -353,7 +346,8 @@ class MuseScore : public QMainWindow, public MuseScoreCore
     Startcenter* startcenter             { 0 };
     QWidget* loginDialog                 { 0 };
     UploadScoreDialog* uploadScoreDialog { 0 };
-    LoginManager* _loginManager        { 0 };
+    CloudManager* _loginManager        { 0 };
+    QProgressDialog* _progressDialog   { 0 };
     QFileDialog* loadScoreDialog       { 0 };
     QFileDialog* saveScoreDialog       { 0 };
     QFileDialog* loadStyleDialog       { 0 };
@@ -447,7 +441,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore
     void undoRedo(bool undo);
     void showPalette(bool);
     void showInspector(bool);
-    void showPropertiesDialogByElementType(const ElementType &type);
+    void showPropertiesDialogByElementType(const ElementType& type);
     void showOmrPanel(bool);
     void showNavigator(bool);
     void showTimeline(bool);
@@ -586,6 +580,10 @@ public slots:
 public:
     MuseScore();
     ~MuseScore();
+
+    QMainWindow* qMainWindow() override { return this; }
+    void stackUnder(QWidget* w) override { QMainWindow::stackUnder(w); }
+
     bool checkDirty(MasterScore*);
     IPlayPanel* playPanelInterface() const;
     PlayPanel* getPlayPanel() const { return playPanel; }
@@ -692,7 +690,6 @@ public:
     QString getAudioFile(const QString&);
     QString getDrumsetFilename(bool open);
     QString getPluginFilename(bool open);
-    QString getPaletteFilename(bool open, const QString& name = "");
     QString getWallpaper(const QString& caption);
 
     bool hRaster() const { return hRasterAction->isChecked(); }
@@ -734,8 +731,8 @@ public:
     bool saveAudio(Score*, QIODevice*, std::function<bool(float)> updateProgress = nullptr);
     bool saveAudio(Score*, const QString& name);
     bool canSaveMp3();
-    bool saveMp3(Score*, const QString& name);
-    bool saveMp3(Score*, QIODevice*, bool& wasCanceled);
+    bool saveMp3(Score*, const QString& name, int preferedMp3Bitrate = -1);
+    bool saveMp3(Score*, QIODevice*, bool& wasCanceled, int preferedMp3Bitrate = -1);
     bool saveSvg(Score*, const QString& name);
     bool saveSvg(Score*, QIODevice*, int pageNum = 0, bool drawPageBackground = false);
     bool savePng(Score*, QIODevice*, int pageNum = 0, bool drawPageBackground = false);
@@ -788,59 +785,6 @@ public:
     void allowShowMidiPanel(const QString& file);
     void setMidiReopenInProgress(const QString& file);
 
-    static Palette* newTempoPalette(bool defaultPalette = false);
-    static Palette* newTextPalette(bool defaultPalette = false);
-    static Palette* newTimePalette();
-    static Palette* newRepeatsPalette();
-    static Palette* newBreaksPalette();
-    static Palette* newBeamPalette();
-    static Palette* newDynamicsPalette(bool defaultPalette = false);
-    static Palette* newFramePalette();
-    static Palette* newFingeringPalette();
-    static Palette* newTremoloPalette();
-    static Palette* newNoteHeadsPalette();
-    static Palette* newArticulationsPalette();
-    static Palette* newOrnamentsPalette();
-    static Palette* newAccordionPalette();
-    static Palette* newBracketsPalette();
-    static Palette* newBreathPalette();
-    static Palette* newArpeggioPalette();
-    static Palette* newClefsPalette(bool defaultPalette = false);
-    static Palette* newGraceNotePalette();
-    static Palette* newBagpipeEmbellishmentPalette();
-    static Palette* newKeySigPalette();
-    static Palette* newAccidentalsPalette(bool defaultPalette = false);
-    static Palette* newBarLinePalette();
-    static Palette* newLinesPalette();
-    static Palette* newFretboardDiagramPalette();
-
-    static PalettePanel* newTempoPalettePanel(bool defaultPalette = false);
-    static PalettePanel* newTextPalettePanel(bool defaultPalette = false);
-    static PalettePanel* newTimePalettePanel();
-    static PalettePanel* newRepeatsPalettePanel();
-    static PalettePanel* newBreaksPalettePanel();
-    static PalettePanel* newBeamPalettePanel();
-    static PalettePanel* newDynamicsPalettePanel(bool defaultPalette = false);
-    static PalettePanel* newFramePalettePanel();
-    static PalettePanel* newFingeringPalettePanel();
-    static PalettePanel* newTremoloPalettePanel();
-    static PalettePanel* newNoteHeadsPalettePanel();
-    static PalettePanel* newArticulationsPalettePanel();
-    static PalettePanel* newOrnamentsPalettePanel();
-    static PalettePanel* newAccordionPalettePanel();
-    static PalettePanel* newBracketsPalettePanel();
-    static PalettePanel* newBreathPalettePanel();
-    static PalettePanel* newArpeggioPalettePanel();
-    static PalettePanel* newClefsPalettePanel(bool defaultPalette = false);
-    static PalettePanel* newGraceNotePalettePanel();
-    static PalettePanel* newBagpipeEmbellishmentPalettePanel();
-    static PalettePanel* newKeySigPalettePanel();
-    static PalettePanel* newAccidentalsPalettePanel(bool defaultPalette = false);
-    static PalettePanel* newBarLinePalettePanel();
-    static PalettePanel* newLinesPalettePanel();
-    static PalettePanel* newFretboardDiagramPalettePanel();
-    static PaletteTree* newMasterPaletteTree();
-
     WorkspaceDialog* workspaceDialog() { return _workspaceDialog; }
     void updateIcons();
     void updateMenus();
@@ -874,7 +818,7 @@ public:
 
     void showLoginDialog();
     void showUploadScoreDialog();
-    LoginManager* loginManager() { return _loginManager; }
+    CloudManager* loginManager() { return _loginManager; }
     QHelpEngine* helpEngine() const { return _helpEngine; }
 
     virtual void updateInspector() override;

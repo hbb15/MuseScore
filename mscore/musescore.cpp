@@ -17,11 +17,18 @@
 
 #include "framework/global/modularity/ioc.h"
 #include "framework/ui/iuiengine.h"
+#include "framework/global/settings.h"
+
+#include "mu4/scenes/palette/internal/palette/palettecreator.h"
+#include "mu4/scenes/palette/internal/palette/masterpalette.h"
+#include "mu4/cloud/internal/cloudmanager.h"
+#include "mp3exporter.h"
+#include "mu3paletteadapter.h"
 
 #include "config.h"
 
-#include "cloud/loginmanager.h"
 #include "cloud/uploadscoredialog.h"
+#include "cloud/logindialog.h"
 
 #include "musescoredialogs.h"
 #include "scoreview.h"
@@ -44,7 +51,7 @@
 #include "libmscore/page.h"
 #include "mixer/mixer.h"
 #include "selectionwindow.h"
-#include "palette.h"
+#include "palette/palette.h"
 #include "palette/palettemodel.h"
 #include "palette/palettewidget.h"
 #include "palette/paletteworkspace.h"
@@ -54,6 +61,7 @@
 #include "libmscore/note.h"
 #include "libmscore/staff.h"
 #include "libmscore/harmony.h"
+#include "libmscore/tempotext.h"
 #include "magbox.h"
 #include "libmscore/sig.h"
 #include "libmscore/undo.h"
@@ -543,6 +551,8 @@ void MuseScore::preferencesChanged(bool fromWorkspace)
     if (seq) {
         seq->preferencesChanged();
     }
+
+    mu::framework::settings()->reload();
 }
 
 //---------------------------------------------------------
@@ -1060,6 +1070,10 @@ void MuseScore::populatePlaybackControls()
 MuseScore::MuseScore()
     : QMainWindow()
 {
+    mu::framework::ioc()->registerExportNoDelete<mu::framework::IMainWindow>("mscore", this);
+    mu::framework::ioc()->registerExport<mu::scene::palette::IPaletteAdapter>("mscore", new MU3PaletteAdapter());
+    mu::framework::ioc()->registerExport<mu::cloud::IMp3Exporter>("mscore", new Mp3Exporter());
+
     _tourHandler = new TourHandler(this);
     qApp->installEventFilter(_tourHandler);
     _tourHandler->loadTours();
@@ -2051,7 +2065,11 @@ MuseScore::MuseScore()
             Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
     if (!converterMode && !pluginMode) {
-        _loginManager = new LoginManager(getAction(saveOnlineMenuItem), this);
+        _progressDialog = new QProgressDialog(this);
+        _loginManager = new CloudManager(getAction(saveOnlineMenuItem), _progressDialog, this);
+        _loginManager->init();
+
+        connect(_loginManager, &CloudManager::loginDialogRequested, this, &MuseScore::showLoginDialog);
     }
 
     connect(qApp, &QGuiApplication::focusWindowChanged, this, &MuseScore::onFocusWindowChanged);
@@ -2071,6 +2089,10 @@ MuseScore::~MuseScore()
     // be deleted before paletteWorkspace.
     delete paletteWidget;
     paletteWidget = nullptr;
+
+    mu::framework::ioc()->unregisterExport<mu::framework::IMainWindow>();
+    mu::framework::ioc()->unregisterExport<mu::scene::palette::IPaletteAdapter>();
+    mu::framework::ioc()->unregisterExport<mu::cloud::IMp3Exporter>();
 }
 
 //---------------------------------------------------------
@@ -2105,6 +2127,18 @@ void MuseScore::onFocusWindowChanged(QWindow* w)
 
     _lastFocusWindow = w;
     _lastFocusWindowIsQQuickView = qobject_cast<QQuickView*>(_lastFocusWindow);
+}
+
+//---------------------------------------------------------
+//   showLoginDialog
+//---------------------------------------------------------
+
+void MuseScore::showLoginDialog()
+{
+    if (loginDialog == nullptr) {
+        loginDialog = new LoginDialog(loginManager());
+    }
+    loginDialog->setVisible(true);
 }
 
 //---------------------------------------------------------
@@ -5845,7 +5879,7 @@ PaletteWorkspace* MuseScore::getPaletteWorkspace()
 {
     if (!paletteWorkspace) {
         PaletteTreeModel* emptyModel = new PaletteTreeModel(new PaletteTree);
-        PaletteTreeModel* masterPaletteModel = new PaletteTreeModel(MuseScore::newMasterPaletteTree());
+        PaletteTreeModel* masterPaletteModel = new PaletteTreeModel(PaletteCreator::newMasterPaletteTree());
 
         paletteWorkspace = new PaletteWorkspace(emptyModel, masterPaletteModel, /* parent */ this);
         emptyModel->setParent(paletteWorkspace);
@@ -7378,7 +7412,7 @@ bool MuseScore::canSaveMp3()
 //   saveMp3
 //---------------------------------------------------------
 
-bool MuseScore::saveMp3(Score* score, const QString& name)
+bool MuseScore::saveMp3(Score* score, const QString& name, int preferedMp3Bitrate)
 {
     QFile file(name);
     if (!file.open(QIODevice::WriteOnly)) {
@@ -7391,7 +7425,7 @@ bool MuseScore::saveMp3(Score* score, const QString& name)
         return false;
     }
     bool wasCanceled = false;
-    bool res = saveMp3(score, &file, wasCanceled);
+    bool res = saveMp3(score, &file, wasCanceled, preferedMp3Bitrate);
     file.close();
     if (wasCanceled || !res) {
         file.remove();
@@ -7399,7 +7433,7 @@ bool MuseScore::saveMp3(Score* score, const QString& name)
     return res;
 }
 
-bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled)
+bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled, int preferedMp3Bitrate)
 {
 #ifndef USE_LAME
     Q_UNUSED(score);
@@ -7459,7 +7493,9 @@ bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled)
 
     int oldSampleRate = MScore::sampleRate;
     int sampleRate = preferences.getInt(PREF_EXPORT_AUDIO_SAMPLERATE);
-    exporter.setBitrate(preferences.getInt(PREF_EXPORT_MP3_BITRATE));
+
+    preferedMp3Bitrate = preferedMp3Bitrate > 0 ? preferedMp3Bitrate : preferences.getInt(PREF_EXPORT_MP3_BITRATE);
+    exporter.setBitrate(preferedMp3Bitrate);
 
     int inSamples = exporter.initializeStream(channels, sampleRate);
     if (inSamples < 0) {
@@ -8335,6 +8371,7 @@ void MuseScore::init(QStringList& argv)
 
     Shortcut::init();
     preferences.init();
+    mu::framework::settings()->load();
 
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
@@ -8773,5 +8810,194 @@ void MuseScore::scoreUnrolled(MasterScore* original)
 {
     MasterScore* score = original->unrollRepeats();
     setCurrentScoreView(appendScore(score));
+}
+
+//---------------------------------------------------------
+//   showMasterPalette
+//---------------------------------------------------------
+
+void MuseScore::showMasterPalette(const QString& s)
+{
+    QAction* a = getAction("masterpalette");
+
+    if (masterPalette == 0) {
+        masterPalette = new MasterPalette(this);
+        connect(masterPalette, SIGNAL(closed(bool)), a, SLOT(setChecked(bool)));
+        mscore->stackUnder(masterPalette);
+    }
+    // when invoked via other actions, the main "masterpalette" action is not toggled automatically
+    if (!s.isEmpty()) {
+        // display if not already
+        if (!a->isChecked()) {
+            a->setChecked(true);
+        } else {
+            // master palette is open; close only if command match current item
+            if (s == masterPalette->selectedItem()) {
+                a->setChecked(false);
+            }
+            // otherwise switch tabs
+        }
+    }
+    masterPalette->setVisible(a->isChecked());
+    if (!s.isEmpty()) {
+        masterPalette->selectItem(s);
+    }
+}
+
+//---------------------------------------------------------
+//   showPalette
+//---------------------------------------------------------
+
+void MuseScore::showPalette(bool visible)
+{
+    QAction* a = getAction("toggle-palette");
+    if (!paletteWidget) {
+        WorkspacesManager::currentWorkspace()->read();
+        preferencesChanged();
+        updateIcons();
+
+        QQmlEngine* engine = nullptr;
+        auto uiengine = mu::framework::ioc()->resolve<mu::framework::IUiEngine>("mscore");
+        if (uiengine) {
+            engine = uiengine->qmlEngine();
+        }
+        paletteWidget = new PaletteWidget(getPaletteWorkspace(), engine, this);
+        a = getAction("toggle-palette");
+        connect(paletteWidget, &PaletteWidget::visibilityChanged, a, &QAction::setChecked);
+        addDockWidget(Qt::LeftDockWidgetArea, paletteWidget);
+    }
+    reDisplayDockWidget(paletteWidget, visible);
+    a->setChecked(visible);
+}
+
+//---------------------------------------------------------
+//   setDefaultPalette
+//---------------------------------------------------------
+
+void MuseScore::setDefaultPalette()
+{
+    std::unique_ptr<PaletteTree> defaultPalette(new PaletteTree);
+
+    defaultPalette->append(PaletteCreator::newClefsPalettePanel(true));
+    defaultPalette->append(PaletteCreator::newKeySigPalettePanel());
+    defaultPalette->append(PaletteCreator::newTimePalettePanel());
+    defaultPalette->append(PaletteCreator::newBracketsPalettePanel());
+    defaultPalette->append(PaletteCreator::newAccidentalsPalettePanel(true));
+    defaultPalette->append(PaletteCreator::newArticulationsPalettePanel());
+    defaultPalette->append(PaletteCreator::newOrnamentsPalettePanel());
+    defaultPalette->append(PaletteCreator::newBreathPalettePanel());
+    defaultPalette->append(PaletteCreator::newGraceNotePalettePanel());
+    defaultPalette->append(PaletteCreator::newNoteHeadsPalettePanel());
+    defaultPalette->append(PaletteCreator::newLinesPalettePanel());
+    defaultPalette->append(PaletteCreator::newBarLinePalettePanel());
+    defaultPalette->append(PaletteCreator::newArpeggioPalettePanel());
+    defaultPalette->append(PaletteCreator::newTremoloPalettePanel());
+    defaultPalette->append(PaletteCreator::newTextPalettePanel(true));
+    defaultPalette->append(PaletteCreator::newTempoPalettePanel(true));
+    defaultPalette->append(PaletteCreator::newDynamicsPalettePanel(true));
+    defaultPalette->append(PaletteCreator::newFingeringPalettePanel());
+    defaultPalette->append(PaletteCreator::newRepeatsPalettePanel());
+    defaultPalette->append(PaletteCreator::newFretboardDiagramPalettePanel());
+    defaultPalette->append(PaletteCreator::newAccordionPalettePanel());
+    defaultPalette->append(PaletteCreator::newBagpipeEmbellishmentPalettePanel());
+    defaultPalette->append(PaletteCreator::newBreaksPalettePanel());
+    defaultPalette->append(PaletteCreator::newFramePalettePanel());
+    defaultPalette->append(PaletteCreator::newBeamPalettePanel());
+
+    this->getPaletteWorkspace()->setUserPaletteTree(std::move(defaultPalette));
+}
+
+//---------------------------------------------------------
+//   addTempo
+//---------------------------------------------------------
+
+void MuseScore::addTempo()
+{
+    ChordRest* cr = cs->getSelectedChordRest();
+    if (!cr) {
+        return;
+    }
+//      double bps = 2.0;
+
+    SigEvent event = cs->sigmap()->timesig(cr->tick());
+    Fraction f = event.nominal();
+    QString text("<sym>metNoteQuarterUp</sym> = 80");
+    switch (f.denominator()) {
+    case 1:
+        text = "<sym>metNoteWhole</sym> = 80";
+        break;
+    case 2:
+        text = "<sym>metNoteHalfUp</sym> = 80";
+        break;
+    case 4:
+        text = "<sym>metNoteQuarterUp</sym> = 80";
+        break;
+    case 8:
+        if (f.numerator() % 3 == 0) {
+            text = "<sym>metNoteQuarterUp</sym><sym>space</sym><sym>metAugmentationDot</sym> = 80";
+        } else {
+            text = "<sym>metNote8thUp</sym> = 80";
+        }
+        break;
+    case 16:
+        if (f.numerator() % 3 == 0) {
+            text = "<sym>metNote8thUp</sym><sym>space</sym><sym>metAugmentationDot</sym> = 80";
+        } else {
+            text = "<sym>metNote16thUp</sym> = 80";
+        }
+        break;
+    case 32:
+        if (f.numerator() % 3 == 0) {
+            text = "<sym>metNote16thUp</sym><sym>space</sym><sym>metAugmentationDot</sym> = 80";
+        } else {
+            text = "<sym>metNote32ndUp</sym> = 80";
+        }
+        break;
+    case 64:
+        if (f.numerator() % 3 == 0) {
+            text = "<sym>metNote32ndUp</sym><sym>space</sym><sym>metAugmentationDot</sym> = 80";
+        } else {
+            text = "<sym>metNote64thUp</sym> = 80";
+        }
+        break;
+    default:
+        break;
+    }
+
+    TempoText* tt = new TempoText(cs);
+    cs->startCmd();
+    tt->setParent(cr->segment());
+    tt->setTrack(0);
+    tt->setXmlText(text);
+    tt->setFollowText(true);
+    //tt->setTempo(bps);
+    cs->undoAddElement(tt);
+    cs->select(tt, SelectType::SINGLE, 0);
+    cs->endCmd();
+    Measure* m = tt->findMeasure();
+    if (m && m->hasMMRest() && tt->links()) {
+        Measure* mmRest = m->mmRest();
+        for (ScoreElement* se : *tt->links()) {
+            TempoText* tt1 = toTempoText(se);
+            if (tt != tt1 && tt1->findMeasure() == mmRest) {
+                tt = tt1;
+                break;
+            }
+        }
+    }
+    cv->startEditMode(tt);
+}
+
+//---------------------------------------------------------
+//   showKeyEditor
+//---------------------------------------------------------
+
+void MuseScore::showKeyEditor()
+{
+    if (keyEditor == 0) {
+        keyEditor = new KeyEditor(0);
+    }
+    keyEditor->show();
+    keyEditor->raise();
 }
 } // namespace Ms

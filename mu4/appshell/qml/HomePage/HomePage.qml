@@ -5,11 +5,12 @@ import MuseScore.Dock 1.0
 import MuseScore.UiComponents 1.0
 import MuseScore.Scores 1.0
 import MuseScore.Extensions 1.0
+import MuseScore.Cloud 1.0
 
 DockPage {
     id: homePage
 
-    objectName: "home"
+    objectName: "Home"
 
     panels: [
         DockPanel {
@@ -17,24 +18,29 @@ DockPage {
             objectName: "resourcesPanel"
 
             width: 200
-            color: ui.theme.window
+            color: ui.theme.backgroundColor
 
-            HomeMenu {
+            Column {
+                anchors.fill: parent
 
-                model: [
-                    { "name": "scores", "title": "Scores" },
-                    { "name": "extensions", "title": "Add-ons" },
-                    { "name": "audio", "title": "Audio & VST" },
-                    { "name": "feautured", "title": "Featured" },
-                    { "name": "learn", "title": "Learn" },
-                    { "name": "support", "title": "Support" },
-                    { "name": "account", "title": "Account" }
-                ]
+                Rectangle {
+                    height: 72
+                    width: parent.width
+                    color: ui.theme.backgroundColor
 
-                onSelected: {
-                    homeCentral.load(name)
+                    AccountInfo {
+                        width: parent.width
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
 
+                HomeMenu {
+                    width: parent.width
+
+                    onSelected: {
+                        homeCentral.load(name)
+                    }
+                }
             }
         }
     ]

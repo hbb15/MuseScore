@@ -242,7 +242,7 @@ public:
 
     Shape shape() const override;
     void undoChangeProperty(Pid id, const QVariant& newValue);
-    void undoChangeProperty(Pid id, const QVariant &newValue, PropertyFlags ps) override;
+    void undoChangeProperty(Pid id, const QVariant& newValue, PropertyFlags ps) override;
 };
 }     // namespace Ms
 #endif

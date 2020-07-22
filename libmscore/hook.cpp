@@ -34,7 +34,7 @@ Hook::Hook(Score* s)
 
 Element* Hook::elementBase() const
 {
-  return parent();
+    return parent();
 }
 
 //---------------------------------------------------------

@@ -24,7 +24,7 @@
 
 #include "modularity/imoduleexport.h"
 #include "ret.h"
-#include "io/filepath.h"
+#include "io/path.h"
 #include "async/notification.h"
 #include "inotationinteraction.h"
 #include "notationtypes.h"
@@ -44,6 +44,8 @@ public:
     virtual Ret load(const io::path& path) = 0;
     virtual Ret load(const io::path& path, const std::shared_ptr<INotationReader>& reader) = 0;
     virtual io::path path() const = 0;
+
+    virtual Ret createNew(const ScoreCreateOptions& scoreInfo) = 0;
 
     virtual void setViewSize(const QSizeF& vs) = 0;
     virtual void paint(QPainter* p, const QRect& r) = 0;

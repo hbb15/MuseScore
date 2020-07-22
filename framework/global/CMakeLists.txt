@@ -30,8 +30,8 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/iinteractive.h
     ${CMAKE_CURRENT_LIST_DIR}/ilauncher.h
     ${CMAKE_CURRENT_LIST_DIR}/iglobalconfiguration.h
-    ${CMAKE_CURRENT_LIST_DIR}/io/filepath.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/io/filepath.h
+    ${CMAKE_CURRENT_LIST_DIR}/io/path.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/io/path.h
     ${CMAKE_CURRENT_LIST_DIR}/log.h
     ${CMAKE_CURRENT_LIST_DIR}/dataformatter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/dataformatter.h
@@ -43,6 +43,9 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/version.h
     ${CMAKE_CURRENT_LIST_DIR}/stringutils.cpp
     ${CMAKE_CURRENT_LIST_DIR}/stringutils.h
+    ${CMAKE_CURRENT_LIST_DIR}/ptrutils.h
+    ${CMAKE_CURRENT_LIST_DIR}/realfn.h
+    ${CMAKE_CURRENT_LIST_DIR}/runtime.h
     ${CMAKE_CURRENT_LIST_DIR}/translation.cpp
     ${CMAKE_CURRENT_LIST_DIR}/translation.h
     ${CMAKE_CURRENT_LIST_DIR}/ret.cpp
@@ -50,6 +53,10 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/retval.h
     ${CMAKE_CURRENT_LIST_DIR}/uri.cpp
     ${CMAKE_CURRENT_LIST_DIR}/uri.h
+    ${CMAKE_CURRENT_LIST_DIR}/smuflranges.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/smuflranges.h
+    ${CMAKE_CURRENT_LIST_DIR}/widgetstatestore.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/widgetstatestore.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/globalconfiguration.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/globalconfiguration.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/launcher.cpp

@@ -20,14 +20,10 @@ InspectorSectionView {
 
         spacing: 16
 
-        Column {
-            spacing: 8
+        InspectorPropertyView {
+            titleText: qsTr("Font")
 
-            width: parent.width
-
-            StyledTextLabel {
-                text: qsTr("Font")
-            }
+            propertyItem: root.model ? root.model.fontFamily : null
 
             StyledComboBox {
                 id: fontFamilyComboBox
@@ -61,16 +57,13 @@ InspectorSectionView {
             height: childrenRect.height
             width: parent.width
 
-            Column {
+            InspectorPropertyView {
                 anchors.left: parent.left
                 anchors.right: parent.horizontalCenter
                 anchors.rightMargin: 2
 
-                spacing: 8
-
-                StyledTextLabel {
-                    text: qsTr("Style")
-                }
+                titleText: qsTr("Style")
+                propertyItem: root.model ? root.model.fontStyle : null
 
                 RadioButtonGroup {
                     height: 30
@@ -84,11 +77,12 @@ InspectorSectionView {
 
                     delegate: FlatToogleButton {
 
-                        backgroundColor: "#00000000"
                         icon: modelData["iconRole"]
 
                         checked: root.model && !root.model.fontStyle.isUndefined ? root.model.fontStyle.value & modelData["valueRole"]
                                                                                  : false
+
+                        backgroundColor: ui.theme.backgroundColor
 
                         onToggled: {
                             root.model.fontStyle.value = checked ? root.model.fontStyle.value & ~modelData["valueRole"]
@@ -98,16 +92,13 @@ InspectorSectionView {
                 }
             }
 
-            Column {
+            InspectorPropertyView {
                 anchors.left: parent.horizontalCenter
                 anchors.leftMargin: 2
                 anchors.right: parent.right
 
-                spacing: 8
-
-                StyledTextLabel {
-                    text: qsTr("Size")
-                }
+                titleText: qsTr("Size")
+                propertyItem: root.model ? root.model.fontSize : null
 
                 StyledComboBox {
                     width: parent.width
@@ -139,14 +130,9 @@ InspectorSectionView {
             }
         }
 
-        Column {
-            spacing: 8
-
-            width: parent.width
-
-            StyledTextLabel {
-                text: qsTr("Alignment")
-            }
+        InspectorPropertyView {
+            titleText: qsTr("Alignment")
+            propertyItem: root.model ? root.model.horizontalAlignment : null
 
             Item {
                 height: childrenRect.height
@@ -171,12 +157,12 @@ InspectorSectionView {
 
                         width: 30
 
-                        backgroundColor: "#00000000"
-
                         ButtonGroup.group: horizontalAlignmentButtonList.radioButtonGroup
 
                         checked: root.model && !root.model.horizontalAlignment.isUndefined ? root.model.horizontalAlignment.value === modelData["typeRole"]
                                                                                            : false
+
+                        backgroundColor: ui.theme.backgroundColor
 
                         onToggled: {
                             root.model.horizontalAlignment.value = modelData["typeRole"]
@@ -208,12 +194,12 @@ InspectorSectionView {
 
                         width: 30
 
-                        backgroundColor: "#00000000"
-
                         ButtonGroup.group: verticalAlignmentButtonList.radioButtonGroup
 
                         checked: root.model && !root.model.verticalAlignment.isUndefined ? root.model.verticalAlignment.value === modelData["typeRole"]
                                                                                          : false
+
+                        backgroundColor: ui.theme.backgroundColor
 
                         onToggled: {
                             root.model.verticalAlignment.value = modelData["typeRole"]

@@ -18,10 +18,15 @@ QtObject {
         r["musescore://settings"] = function(d) { return {type: "dock" }};
         r["musescore://devtools"] = function(d) { return {type: "dock" }};
 
-        // DevTools
-        r["musescore://devtools/launcher/sample"] = function(d) { return {
-                path: "DevTools/Launcher/SampleDialog.qml", params: {color: d.params.color}
+        // Scores
+        r["musescore://scores/newscore"] = function(d) { return {
+                path: "MuseScore/Scores/NewScoreDialog.qml"
             }};
+
+        // DevTools
+        r["musescore://devtools/launcher/sample"] = function(d) {
+            return {path: "DevTools/Launcher/SampleDialog.qml", params: d.params}
+        };
 
         _resolver = r;
     }

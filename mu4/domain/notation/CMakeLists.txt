@@ -57,11 +57,20 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/mscznotationreader.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationreadersregister.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationreadersregister.h
+    ${CMAKE_CURRENT_LIST_DIR}/internal/msczmetareader.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/msczmetareader.h
     )
+
+set(FREETYPE_LIB )
+if (USE_SYSTEM_FREETYPE)
+     set(FREETYPE_LIB freetype)
+else (USE_SYSTEM_FREETYPE)
+     set(FREETYPE_LIB mscore_freetype)
+endif (USE_SYSTEM_FREETYPE)
 
 set(MODULE_LINK
     Qt5::Svg
-    freetype
+    ${FREETYPE_LIB}
     qzip
     z
     libmscore

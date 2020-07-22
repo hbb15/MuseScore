@@ -33,7 +33,7 @@ public:
         UnknownError    = 1,
 
         // not error, just codes
-        UserAbort       = 3,  // abort by user
+        Cancel          = 3,  // abort by user
 
         // Global errors
         GlobalFirst     = 20,
@@ -42,6 +42,9 @@ public:
 
         UiFirst         = 100,
         UiLast          = 199,
+
+        AudioFirst      = 300,
+        AudioLast       = 399,
 
         NotationFirst   = 1000,
         NotationLast    = 1299
@@ -74,6 +77,11 @@ private:
 inline mu::Ret make_ret(Ret::Code e)
 {
     return Ret(static_cast<int>(e));
+}
+
+inline bool check_ret(const Ret& r, Ret::Code c)
+{
+    return r.code() == int(c);
 }
 }
 
