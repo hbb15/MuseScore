@@ -1596,7 +1596,7 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
     // Adjust x for end repeats
     if ((metaText == BarLine::userTypeName(BarLineType::END_REPEAT)
          || metaText == BarLine::userTypeName(BarLineType::END)
-        metaText == BarLine::userTypeName(BarLineType::BEGIN) ||
+         || metaText == BarLine::userTypeName(BarLineType::BEGIN)
          || metaText == BarLine::userTypeName(BarLineType::DOUBLE)
          || metaText == BarLine::userTypeName(BarLineType::REVERSE_END)
          || metaText == BarLine::userTypeName(BarLineType::HEAVY)
