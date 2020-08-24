@@ -1143,7 +1143,7 @@ void Rest::editDrag(EditData& editData)
     }
     triggerLayout();
 }
-}
+
 
 //---------------------------------------------------------
 //   getPropertyStyle
@@ -1168,5 +1168,21 @@ bool Rest::shouldNotBeDrawn() const
         return true;
     }
     return false;
+}//---------------------------------------------------------
+//   numericWidth
+//---------------------------------------------------------
+
+qreal Rest::numericGetWidthRest(StaffType* numeric, QString string) const
+{
+    qreal val;
+    if (numeric) {
+        QFont f = numeric->fretFont();
+        f.setPointSizeF(score()->styleD(Sid::numericFontSize));
+        QFontMetricsF fm(f, MScore::paintDevice());
+        val = fm.width(string) * magS();
+    }
+    else
+        val = 5.0;
+    return val;
 }
 }
