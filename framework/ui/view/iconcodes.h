@@ -28,8 +28,6 @@
 
 namespace mu {
 namespace framework {
-
-
 /**
  * @brief The IconCode class simplifies access to the icons from the icon font
  *
@@ -45,6 +43,7 @@ class IconCode
 public:
     enum class Code : char16_t {
         LIST_ADD = 0xE811,
+        TRASH = 0xE812,
         SMALL_ARROW_UP = 0xEF10,
         SMALL_ARROW_RIGHT = 0xEF11,
         SMALL_ARROW_DOWN = 0xEF12,
@@ -192,7 +191,8 @@ public:
 
         CHORD_SYMBOL = 0xF352,
         GUITAR_BEND = 0xF353,
-        GUITAR_TREMOLO_BAR = 0xF355,
+        MULTIMEASURE_REST = 0xF355,
+        GUITAR_TREMOLO_BAR = 0xF35C,
 
         AUTO,
         NONE,

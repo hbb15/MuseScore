@@ -21,15 +21,23 @@
 #include "modularity/ioc.h"
 #include "internal/scenenotationconfiguration.h"
 #include "view/notationpaintview.h"
-#include "toolbar/notationtoolbarmodel.h"
+#include "view/notationaccessibilitymodel.h"
+#include "view/zoomcontrolmodel.h"
+#include "view/notationtoolbarmodel.h"
+#include "ui/iinteractiveuriregister.h"
+#include "ui/uitypes.h"
+#include "internal/widgets/editstyle.h"
+#include "view/notationswitchlistmodel.h"
+#include "view/widgets/measureproperties.h"
 
 using namespace mu::scene::notation;
+using namespace mu::framework;
 
 static SceneNotationConfiguration* m_configuration = new SceneNotationConfiguration();
 
-static void notation_view_init_qrc()
+static void notationscene_init_qrc()
 {
-    Q_INIT_RESOURCE(notation_view);
+    Q_INIT_RESOURCE(notationscene);
 }
 
 std::string NotationSceneModule::moduleName() const
@@ -44,17 +52,31 @@ void NotationSceneModule::registerExports()
 
 void NotationSceneModule::resolveImports()
 {
+    auto ir = framework::ioc()->resolve<framework::IInteractiveUriRegister>(moduleName());
+    if (ir) {
+        ir->registerUri(Uri("musescore://notation/style"),
+                        ContainerMeta(ContainerType::QWidgetDialog, EditStyle::metaTypeId()));
+
+        ir->registerUri(Uri("musescore://notation/measureproperties"),
+                        framework::ContainerMeta(framework::ContainerType::QWidgetDialog,
+                                                 qRegisterMetaType<MeasurePropertiesDialog>("MeasurePropertiesDialog")));
+    }
 }
 
 void NotationSceneModule::registerResources()
 {
-    notation_view_init_qrc();
+    notationscene_init_qrc();
 }
 
 void NotationSceneModule::registerUiTypes()
 {
     qmlRegisterType<NotationPaintView>("MuseScore.NotationScene", 1, 0, "NotationPaintView");
     qmlRegisterType<NotationToolBarModel>("MuseScore.NotationScene", 1, 0, "NotationToolBarModel");
+    qmlRegisterType<NotationAccessibilityModel>("MuseScore.NotationScene", 1, 0, "NotationAccessibilityModel");
+    qmlRegisterType<ZoomControlModel>("MuseScore.NotationScene", 1, 0, "ZoomControlModel");
+    qmlRegisterType<NotationSwitchListModel>("MuseScore.NotationScene", 1, 0, "NotationSwitchListModel");
+
+    qRegisterMetaType<EditStyle>("EditStyle");
 }
 
 void NotationSceneModule::onInit()

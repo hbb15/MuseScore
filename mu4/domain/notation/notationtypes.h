@@ -37,6 +37,7 @@ using DurationType = Ms::TDuration::DurationType;
 using SelectType = Ms::SelectType;
 using Pad = Ms::Pad;
 using PitchMode = Ms::UpDownMode;
+using StyleId = Ms::Sid;
 
 enum class DragMode {
     BothXY = 0,
@@ -71,7 +72,10 @@ struct Meta {
     QString arranger;
     size_t partsCount = 0;
     QPixmap thumbnail;
+    QDate creationDate;
 };
+
+using MetaList = QList<Meta>;
 
 struct ScoreCreateOptions {
     QString title;
@@ -93,7 +97,6 @@ struct ScoreCreateOptions {
 
     QString templatePath;
 };
-
 }
 }
 }

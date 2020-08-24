@@ -1,6 +1,5 @@
 import QtQuick 2.1
 import QtGraphicalEffects 1.0
-import MuseScore.Inspectors 3.3
 
 Item {
     id: root
@@ -29,6 +28,6 @@ Item {
 
         anchors.fill: image
         source: image
-        color: ui.theme.fontColor
+        color: ui.theme.fontPrimaryColor
     }
 }

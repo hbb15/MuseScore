@@ -51,6 +51,7 @@
 #include "pitchspelling.h"
 #include "repeat.h"
 #include "rest.h"
+#include "mmrest.h"
 #include "score.h"
 #include "segment.h"
 #include "select.h"
@@ -933,6 +934,7 @@ void Measure::remove(Element* e)
     case ElementType::CLEF:
     case ElementType::CHORD:
     case ElementType::REST:
+    case ElementType::MMREST:
     case ElementType::TIMESIG:
         for (Segment* segment = first(); segment; segment = segment->next()) {
             int staves = score()->nstaves();
@@ -1437,7 +1439,11 @@ Element* Measure::drop(EditData& data)
             firstStaff++;
         }
         Selection sel = score()->selection();
-        score()->undoAddBracket(staff, level, b->bracketType(), sel.staffEnd() - sel.staffStart());
+        if (sel.isRange()) {
+            score()->undoAddBracket(staff, level, b->bracketType(), sel.staffEnd() - sel.staffStart());
+        } else {
+            score()->undoAddBracket(staff, level, b->bracketType(), 1);
+        }
         delete b;
     }
     break;
@@ -1974,15 +1980,6 @@ void Measure::read(XmlReader& e, int staffIdx)
             e.setTrack(nextTrack++);
             e.setTick(tick());
             readVoice(e, staffIdx, irregular);
-        } else if (tag == "Image") {
-            if (MScore::noImages) {
-                e.skipCurrentElement();
-            } else {
-                Element* el = Element::name2Element(tag, score());
-                el->setTrack(staffIdx * VOICES);
-                el->read(e);
-                add(el);
-            }
         } else if (tag == "Marker" || tag == "Jump") {
             Element* el = Element::name2Element(tag, score());
             el->setTrack(e.track());
@@ -2155,33 +2152,43 @@ void Measure::readVoice(XmlReader& e, int staffIdx, bool irregular)
                 fermata = nullptr;
             }
         } else if (tag == "Rest") {
-            Rest* rest = new Rest(score());
-            rest->setDurationType(TDuration::DurationType::V_MEASURE);
-            rest->setTicks(timesig() / timeStretch);
-            rest->setTrack(e.track());
-            rest->read(e);
-            if (startingBeam) {
-                startingBeam->add(rest);         // also calls rest->setBeam(startingBeam)
-                startingBeam = nullptr;
-            }
-            segment = getSegment(SegmentType::ChordRest, e.tick());
-            segment->add(rest);
-            if (fermata) {
-                segment->add(fermata);
-                fermata = nullptr;
-            }
-
-            if (!rest->ticks().isValid()) {         // hack
+            if (isMMRest()) {
+                MMRest* mmr = new MMRest(score());
+                mmr->setTrack(e.track());
+                mmr->read(e);
+                segment = getSegment(SegmentType::ChordRest, e.tick());
+                segment->add(mmr);
+                e.incTick(mmr->actualTicks());
+            } else {
+                Rest* rest = new Rest(score());
+                rest->setDurationType(TDuration::DurationType::V_MEASURE);
                 rest->setTicks(timesig() / timeStretch);
-            }
+                rest->setTrack(e.track());
+                rest->read(e);
+                if (startingBeam) {
+                    startingBeam->add(rest); // also calls rest->setBeam(startingBeam)
+                    startingBeam = nullptr;
+                }
+                segment = getSegment(SegmentType::ChordRest, e.tick());
+                segment->add(rest);
+                if (fermata) {
+                    segment->add(fermata);
+                    fermata = nullptr;
+                }
 
-            if (tuplet) {
-                tuplet->add(rest);
+                if (!rest->ticks().isValid()) {    // hack
+                    rest->setTicks(timesig() / timeStretch);
+                }
+
+                if (tuplet) {
+                    tuplet->add(rest);
+                }
+                e.incTick(rest->actualTicks());
             }
-            e.incTick(rest->actualTicks());
         } else if (tag == "Breath") {
             Breath* breath = new Breath(score());
             breath->setTrack(e.track());
+            breath->setPlacement(breath->track() & 1 ? Placement::BELOW : Placement::ABOVE);
             breath->read(e);
             segment = getSegment(SegmentType::Breath, e.tick());
             segment->add(breath);
@@ -2310,18 +2317,15 @@ void Measure::readVoice(XmlReader& e, int staffIdx, bool irregular)
             fermata->setTrack(e.track());
             fermata->setPlacement(fermata->track() & 1 ? Placement::BELOW : Placement::ABOVE);
             fermata->read(e);
-        }
-        // There could be an Image here if the score was saved with an earlier version of MuseScore 3.
-        // This image would not have been visible upon reload. Let's read it in and add it directly
-        // to the measure so that it can be displayed.
-        else if (tag == "Image") {
+        } else if (tag == "Image") {
             if (MScore::noImages) {
                 e.skipCurrentElement();
             } else {
                 Element* el = Element::name2Element(tag, score());
                 el->setTrack(e.track());
                 el->read(e);
-                add(el);
+                segment = getSegment(SegmentType::ChordRest, e.tick());
+                segment->add(el);
             }
         }
         //----------------------------------------------------
@@ -2513,31 +2517,11 @@ bool Measure::isFirstInSystem() const
 
 void Measure::scanElements(void* data, void (* func)(void*, Element*), bool all)
 {
-    MeasureBase::scanElements(data, func, all);
-
-    int nstaves = score()->nstaves();
-    for (int staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
-        if (!all && !(visible(staffIdx) && score()->staff(staffIdx)->show())) {
-            continue;
+    for (ScoreElement* el : (*this)) {
+        if (el->isMeasure()) {
+            continue;  // do not scan Measures 'inside' mmrest measure
         }
-        MStaff* ms = _mstaves[staffIdx];
-        func(data, ms->lines());
-        if (ms->vspacerUp()) {
-            func(data, ms->vspacerUp());
-        }
-        if (ms->vspacerDown()) {
-            func(data, ms->vspacerDown());
-        }
-        if (ms->noText()) {
-            func(data, ms->noText());
-        }
-    }
-
-    for (Segment* s = first(); s; s = s->next()) {
-        if (!s->enabled()) {
-            continue;
-        }
-        s->scanElements(data, func, all);
+        el->scanElements(data, func, all);
     }
 }
 
@@ -2696,6 +2680,18 @@ void Measure::checkMultiVoices(int staffIdx)
 
 bool Measure::hasVoices(int staffIdx, Fraction stick, Fraction len) const
 {
+    Staff* st = score()->staff(staffIdx);
+    if (st->isTabStaff(stick)) {
+        // TODO: tab staves use different rules for stem directin etc
+        // see for example https://musescore.org/en/node/308371
+        // we should consider coming up with a more comprehensive solution
+        // but for now, we are forcing measures on tab staves to be consider as a whole -
+        // either they have voices or not
+        // (rather than checking tick ranges)
+        stick = tick();
+        len = stretchedLen(st);
+    }
+
     int strack = staffIdx * VOICES + 1;
     int etrack = staffIdx * VOICES + VOICES;
     Fraction etick = stick + len;
@@ -3457,8 +3453,8 @@ void Measure::stretchMeasure(qreal targetWidth)
             }
             ElementType t = e->type();
             int staffIdx    = e->staffIdx();
-            if (t == ElementType::REPEAT_MEASURE
-                || (t == ElementType::REST && (isMMRest() || toRest(e)->isFullMeasureRest()))) {
+            if (t == ElementType::REPEAT_MEASURE || (t == ElementType::MMREST)
+                || (t == ElementType::REST && toRest(e)->isFullMeasureRest())) {
                 //
                 // element has to be centered in free space
                 //    x1 - left measure position of free space
@@ -3477,14 +3473,15 @@ void Measure::stretchMeasure(qreal targetWidth)
                 qreal x2 = s2 ? s2->x() - s2->minLeft() : targetWidth;
 
                 if (isMMRest()) {
-                    Rest* rest = toRest(e);
+                    MMRest* mmrest = toMMRest(e);
                     //
                     // center multi measure rest
                     //
                     qreal d = score()->styleP(Sid::multiMeasureRestMargin);
                     qreal w = x2 - x1 - 2 * d;
 
-                    rest->layoutMMRest(w);
+                    mmrest->setWidth(w);
+                    mmrest->layout();
                     e->setPos(x1 - s.x() + d, e->staff()->height() * .5);             // center vertically in measure
                     s.createShape(staffIdx);
                 } else {       // if (rest->isFullMeasureRest()) {
@@ -4342,7 +4339,7 @@ static bool hasAccidental(Segment* s)
         }
         Chord* c = toChord(e);
         for (Note* n : c->notes()) {
-            if (n->accidental()) {
+            if (n->accidental() && n->accidental()->addToSkyline()) {
                 return true;
             }
         }
@@ -4370,10 +4367,10 @@ void Measure::computeMinWidth(Segment* s, qreal x, bool isSystemHeader)
         Segment* seg = findSegmentR(SegmentType::ChordRest, Fraction(0,1));
         const int nstaves = score()->nstaves();
         for (int st = 0; st < nstaves; ++st) {
-            Rest* mmRest = toRest(seg->element(staff2track(st)));
+            MMRest* mmRest = toMMRest(seg->element(staff2track(st)));
             if (mmRest) {
                 mmRest->rxpos() = 0;
-                mmRest->layoutMMRest(score()->styleP(Sid::minMMRestWidth) * mag());
+                mmRest->setWidth(score()->styleP(Sid::minMMRestWidth) * mag());
                 mmRest->segment()->createShapes();
             }
         }

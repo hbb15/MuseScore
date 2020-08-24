@@ -170,6 +170,7 @@ public:
     int treeChildCount() const override;
 
     void draw(QPainter*) const override;
+    Element* linkedClone() override;
     FretDiagram* clone() const override { return new FretDiagram(*this); }
 
     Segment* segment() const { return toSegment(parent()); }
@@ -230,7 +231,6 @@ public:
     Harmony* harmony() const { return _harmony; }
 
     void init(Ms::StringData*, Chord*);
-    void addLoaded(Element*);
     void add(Element*) override;
     void remove(Element*) override;
 

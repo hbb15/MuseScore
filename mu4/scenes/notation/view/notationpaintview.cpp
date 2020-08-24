@@ -36,18 +36,29 @@ NotationPaintView::NotationPaintView()
     setFlag(ItemHasContents, true);
     setFlag(ItemAcceptsDrops, true);
     setAcceptedMouseButtons(Qt::AllButtons);
+    setAntialiasing(true);
 
+    // view
     //! TODO
     double mag  = 0.267;//preferences.getDouble(PREF_SCORE_MAGNIFICATION) * (mscore->physicalDotsPerInch() / DPI);
     m_matrix = QTransform::fromScale(mag, mag);
-
-    m_inputController = new NotationViewInputController(this);
-
     connect(this, &QQuickPaintedItem::widthChanged, this, &NotationPaintView::onViewSizeChanged);
     connect(this, &QQuickPaintedItem::heightChanged, this, &NotationPaintView::onViewSizeChanged);
 
-    dispatcher()->reg(this, "copy", [this](const actions::ActionName&) {
-        LOGI() << "NotationPaintView copy";
+    // input
+    m_inputController = new NotationViewInputController(this);
+
+    // playback
+    m_playbackCursor = new PlaybackCursor();
+    m_playbackCursor->setColor(configuration()->playbackCursorColor());
+    m_playbackCursor->setVisible(false);
+
+    playbackController()->isPlayingChanged().onNotify(this, [this]() {
+        onPlayingChanged();
+    });
+
+    playbackController()->midiTickPlayed().onReceive(this, [this](uint32_t tick) {
+        movePlaybackCursor(tick);
     });
 
     // configuration
@@ -62,6 +73,17 @@ NotationPaintView::NotationPaintView()
     globalContext()->currentNotationChanged().onNotify(this, [this]() {
         onCurrentNotationChanged();
     });
+
+    // test
+    dispatcher()->reg(this, "copy", [this](const actions::ActionName&) {
+        LOGI() << "NotationPaintView copy";
+    });
+}
+
+NotationPaintView::~NotationPaintView()
+{
+    delete m_inputController;
+    delete m_playbackCursor;
 }
 
 bool NotationPaintView::canReceiveAction(const actions::ActionName& action) const
@@ -69,6 +91,7 @@ bool NotationPaintView::canReceiveAction(const actions::ActionName& action) cons
     if (action == "file-open") {
         return true;
     }
+
     return hasFocus();
 }
 
@@ -82,6 +105,9 @@ void NotationPaintView::onCurrentNotationChanged()
     }
 
     m_notation = globalContext()->currentNotation();
+    if (!m_notation) {
+        return;
+    }
 
     onViewSizeChanged(); //! NOTE Set view size to notation
 
@@ -156,6 +182,8 @@ void NotationPaintView::paint(QPainter* p)
 
     if (m_notation) {
         m_notation->paint(p, rect);
+
+        m_playbackCursor->paint(p);
     } else {
         p->drawText(10, 10, "no notation");
     }
@@ -216,24 +244,17 @@ void NotationPaintView::scrollHorizontal(int dx)
     update();
 }
 
-void NotationPaintView::zoomStep(qreal step, const QPoint& pos)
-{
-    qreal mag = m_matrix.m11();
-    mag *= qPow(1.1, step);
-    zoom(mag, pos);
-}
-
-void NotationPaintView::zoom(qreal mag, const QPoint& pos)
+void NotationPaintView::setZoom(int zoomPercentage, const QPoint& pos)
 {
     //! TODO Zoom to point not completed
-    mag = qBound(0.05, mag, 16.0);
-
+    qreal mag = static_cast<qreal>(zoomPercentage) / 100.0;
     qreal cmag = m_matrix.m11();
+
     if (qFuzzyCompare(mag, cmag)) {
         return;
     }
 
-    qreal deltamag = mag / mag;
+    qreal deltamag = mag / cmag;
 
     QPointF p1 = m_matrix.inverted().map(pos);
 
@@ -364,15 +385,18 @@ bool NotationPaintView::isInited() const
     return false;
 }
 
-std::shared_ptr<INotation> NotationPaintView::notation() const
-{
-    return m_notation;
-}
-
-mu::domain::notation::INotationInteraction* NotationPaintView::notationInteraction() const
+INotationInteraction* NotationPaintView::notationInteraction() const
 {
     if (m_notation) {
         return m_notation->interaction();
+    }
+    return nullptr;
+}
+
+INotationPlayback* NotationPaintView::notationPlayback() const
+{
+    if (m_notation) {
+        return m_notation->playback();
     }
     return nullptr;
 }
@@ -390,4 +414,26 @@ qreal NotationPaintView::height() const
 qreal NotationPaintView::scale() const
 {
     return QQuickPaintedItem::scale();
+}
+
+void NotationPaintView::onPlayingChanged()
+{
+    bool isPlaying = playbackController()->isPlaying();
+    m_playbackCursor->setVisible(isPlaying);
+
+    if (isPlaying) {
+        float playPosSec = playbackController()->playbackPosition();
+        int tick = m_notation->playback()->secToTick(playPosSec);
+        movePlaybackCursor(tick);
+    } else {
+        update();
+    }
+}
+
+void NotationPaintView::movePlaybackCursor(uint32_t tick)
+{
+    //LOGI() << "tick: " << tick;
+    QRect rec = m_notation->playback()->playbackCursorRectByTick(tick);
+    m_playbackCursor->move(rec);
+    update(); //! TODO set rect to optimization
 }

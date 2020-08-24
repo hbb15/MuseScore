@@ -335,7 +335,7 @@ public:
     virtual void startDrag(EditData&);
     virtual QRectF drag(EditData&);
     virtual void endDrag(EditData&);
-    /** Returns anchor lines displayed while dragging element in page coordinates. */
+    /** Returns anchor lines displayed while dragging element in canvas coordinates. */
     virtual QVector<QLineF> dragAnchorLines() const { return QVector<QLineF>(); }
     /**
      * A generic \ref dragAnchorLines() implementation which can be used in
@@ -363,7 +363,7 @@ public:
     void updateGrips(EditData&) const;
     virtual bool nextGrip(EditData&) const;
     virtual bool prevGrip(EditData&) const;
-    /** Returns anchor lines displayed while dragging element's grip in page coordinates. */
+    /** Returns anchor lines displayed while dragging element's grip in canvas coordinates. */
     virtual QVector<QLineF> gripAnchorLines(Grip) const { return QVector<QLineF>(); }
 
     virtual EditBehavior normalModeEditBehavior() const { return EditBehavior::SelectOnly; }
@@ -443,7 +443,7 @@ public:
 
     mutable bool itemDiscovered      { false };       ///< helper flag for bsp
 
-    virtual void scanElements(void* data, void (* func)(void*, Element*), bool all=true);
+    void scanElements(void* data, void (* func)(void*, Element*), bool all=true) override;
 
     virtual void reset() override;           // reset all properties & position to default
 

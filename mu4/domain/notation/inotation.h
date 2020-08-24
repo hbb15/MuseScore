@@ -19,33 +19,28 @@
 #ifndef MU_DOMAIN_INOTATION_H
 #define MU_DOMAIN_INOTATION_H
 
-#include <QRect>
-#include <string>
-
-#include "modularity/imoduleexport.h"
-#include "ret.h"
-#include "io/path.h"
 #include "async/notification.h"
+#include "internal/inotationundostack.h"
+#include "inotationstyle.h"
+#include "inotationplayback.h"
+#include "inotationelements.h"
 #include "inotationinteraction.h"
+#include "inotationaccessibility.h"
 #include "notationtypes.h"
-#include "inotationreader.h"
 
+class QString;
 class QPainter;
+class QRect;
+
 namespace mu {
 namespace domain {
 namespace notation {
-class INotation : MODULE_EXPORT_INTERFACE
+class INotation
 {
-    INTERFACE_ID(INotation)
-
 public:
-    ~INotation() = default;
+    virtual ~INotation() = default;
 
-    virtual Ret load(const io::path& path) = 0;
-    virtual Ret load(const io::path& path, const std::shared_ptr<INotationReader>& reader) = 0;
-    virtual io::path path() const = 0;
-
-    virtual Ret createNew(const ScoreCreateOptions& scoreInfo) = 0;
+    virtual Meta metaInfo() const = 0;
 
     virtual void setViewSize(const QSizeF& vs) = 0;
     virtual void paint(QPainter* p, const QRect& r) = 0;
@@ -53,9 +48,26 @@ public:
     // input (mouse)
     virtual INotationInteraction* interaction() const = 0;
 
+    // undo stack
+    virtual INotationUndoStack* undoStack() const = 0;
+
+    // styles
+    virtual INotationStyle* style() const = 0;
+
+    // playback (midi)
+    virtual INotationPlayback* playback() const = 0;
+
+    // elements
+    virtual INotationElements* elements() const = 0;
+
     // notify
     virtual async::Notification notationChanged() const = 0;
+
+    // accessibility
+    virtual INotationAccessibility* accessibility() const = 0;
 };
+
+using INotationPtr = std::shared_ptr<INotation>;
 }
 }
 }

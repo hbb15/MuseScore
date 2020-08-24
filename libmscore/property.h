@@ -196,6 +196,7 @@ enum class Pid {
     GROUPS,
     LINE_STYLE,
     LINE_WIDTH,
+    LINE_WIDTH_SPATIUM,
     LASSO_POS,
     LASSO_SIZE,
     TIME_STRETCH,
@@ -211,6 +212,7 @@ enum class Pid {
     OFFSET2,
     BREAK_MMR,
     MMREST_NUMBER_POS,
+    MMREST_NUMBER_VISIBLE,
     REPEAT_COUNT,
 
     USER_STRETCH,

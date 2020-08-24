@@ -19,45 +19,45 @@
 #ifndef MU_CONTEXT_GLOBALCONTEXT_H
 #define MU_CONTEXT_GLOBALCONTEXT_H
 
-#include <map>
 #include <vector>
+
 #include "../iglobalcontext.h"
 #include "shortcuts/ishortcutcontextresolver.h"
 #include "modularity/ioc.h"
-#include "ilauncher.h"
+#include "scenes/playback/iplaybackcontroller.h"
+#include "iinteractive.h"
 
 namespace mu {
 namespace context {
 class GlobalContext : public IGlobalContext, public shortcuts::IShortcutContextResolver
 {
-    INJECT(context, framework::ILauncher, launcher)
+    INJECT(context, framework::IInteractive, interactive)
+    INJECT(context, scene::playback::IPlaybackController, playbackController)
 
 public:
-    GlobalContext() = default;
+    void addMasterNotation(const domain::notation::IMasterNotationPtr& notation) override;
+    void removeMasterNotation(const domain::notation::IMasterNotationPtr& notation) override;
+    const std::vector<domain::notation::IMasterNotationPtr>& masterNotations() const override;
+    bool containsMasterNotation(const io::path& path) const override;
 
-    void addNotation(const std::shared_ptr<domain::notation::INotation>& notation) override;
-    void removeNotation(const std::shared_ptr<domain::notation::INotation>& notation) override;
-    const std::vector<std::shared_ptr<domain::notation::INotation> >& notations() const override;
-    bool containsNotation(const io::path& path) const override;
+    void setCurrentMasterNotation(const domain::notation::IMasterNotationPtr& notation) override;
+    domain::notation::IMasterNotationPtr currentMasterNotation() const override;
+    async::Notification currentMasterNotationChanged() const override;
 
-    void setCurrentNotation(const std::shared_ptr<domain::notation::INotation>& notation) override;
-    std::shared_ptr<domain::notation::INotation> currentNotation() const override;
+    void setCurrentNotation(const domain::notation::INotationPtr& notation) override;
+    domain::notation::INotationPtr currentNotation() const override;
     async::Notification currentNotationChanged() const override;
-
-    bool isPlaying() const override;
-    void setIsPlaying(bool arg) override;
-    async::Notification isPlayingChanged() const override;
 
     shortcuts::ShortcutContext currentShortcutContext() const;
 
 private:
+    std::vector<domain::notation::IMasterNotationPtr> m_masterNotations;
 
-    std::vector<std::shared_ptr<domain::notation::INotation> > m_notations;
-    std::shared_ptr<domain::notation::INotation> m_notation;
-    async::Notification m_notationChanged;
+    domain::notation::IMasterNotationPtr m_currentMasterNotation;
+    async::Notification m_currentMasterNotationChanged;
 
-    bool m_isPlaying = false;
-    async::Notification m_isPlayingChanged;
+    domain::notation::INotationPtr m_currentNotation;
+    async::Notification m_currentNotationChanged;
 };
 }
 }

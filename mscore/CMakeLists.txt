@@ -47,12 +47,12 @@ include_directories(
       ${PROJECT_SOURCE_DIR}/thirdparty
       ${PROJECT_SOURCE_DIR}/framework/global
       ${PROJECT_SOURCE_DIR}/importexport
-      ${PROJECT_SOURCE_DIR}/inspectors
       ${PROJECT_BINARY_DIR}
       ${QTSINGLEAPPLICATION_INCLUDE_DIRS}
       ${PROJECT_SOURCE_DIR}/mu4/scenes/palette/internal
       ${PROJECT_SOURCE_DIR}/mu4/scenes/palette/internal/widgets
       ${PROJECT_BINARY_DIR}/mu4/scenes/palette
+      ${PROJECT_SOURCE_DIR}/mu4/scenes/inspector
       ${PROJECT_SOURCE_DIR}/mu4/cloud/internal
       )
 
@@ -91,7 +91,7 @@ QT5_WRAP_UI (ui_headers
       synthcontrol.ui splitstaff.ui selectinstr.ui
       editstafftype.ui
       editpitch.ui editstringdata.ui editraster.ui mediadialog.ui albummanager.ui layer.ui realizeharmonydialog.ui
-      omrpanel.ui masterpalette.ui harmonyedit.ui pathlistdialog.ui
+      omrpanel.ui harmonyedit.ui pathlistdialog.ui
       resourceManager.ui stafftypetemplates.ui
       startcenter.ui scorePreview.ui scoreBrowser.ui templateBrowser.ui
       breaksdialog.ui
@@ -278,8 +278,14 @@ add_library(mscoreapp STATIC
 
       palette/palettewidget.cpp
       mu3paletteadapter.cpp
+      mu3inspectoradapter.cpp
+      mu3inspectoradapter.h
       mp3exporter.h
       mp3exporter.cpp
+      inspectordockwidget.cpp
+      inspectordockwidget.h
+      inspectorformwidget.cpp
+      inspectorformwidget.h
 
       ${CLOUD_SRC}
       ${IMPORTMIDIUI_SRC}
@@ -305,7 +311,7 @@ else (MSVC OR MINGW)
 endif (MSVC OR MINGW)
 
 target_link_libraries(mscoreapp
-      inspectors
+      inspector
       global
       global_old
       awl

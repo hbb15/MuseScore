@@ -24,12 +24,15 @@
 #include "modularity/imoduleexport.h"
 #include "async/channel.h"
 
+#include "retval.h"
+
 namespace mu {
 namespace scene {
 namespace notation {
 class ISceneNotationConfiguration : MODULE_EXPORT_INTERFACE
 {
     INTERFACE_ID(ISceneNotationConfigure)
+
 public:
     virtual ~ISceneNotationConfiguration() = default;
 
@@ -40,7 +43,16 @@ public:
     virtual QColor foregroundColor() const = 0;
     virtual async::Channel<QColor> foregroundColorChanged() const = 0;
 
+    virtual QColor playbackCursorColor() const = 0;
+
     virtual int selectionProximity() const = 0;
+
+    virtual ValCh<int> currentZoom() const = 0;
+    virtual void setCurrentZoom(int zoomPercentage) = 0;
+
+    virtual int fontSize() const = 0;
+
+    virtual QString stylesDirPath() const = 0;
 };
 }
 }

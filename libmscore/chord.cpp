@@ -463,6 +463,20 @@ QPointF Chord::stemPosBeam() const
 }
 
 //---------------------------------------------------------
+//   rightEdge
+//---------------------------------------------------------
+
+qreal Chord::rightEdge() const
+{
+    qreal right = 0.0;
+    for (Note* n : notes()) {
+        right = qMax(right, x() + n->x() + n->bboxRightPos());
+    }
+
+    return right;
+}
+
+//---------------------------------------------------------
 //   setTremolo
 //---------------------------------------------------------
 
@@ -1243,49 +1257,6 @@ qreal Chord::centerX() const
 }
 
 //---------------------------------------------------------
-//   scanElements
-//---------------------------------------------------------
-
-void Chord::scanElements(void* data, void (* func)(void*, Element*), bool all)
-{
-    for (Articulation* a : _articulations) {
-        func(data, a);
-    }
-    if (_hook) {
-        func(data, _hook);
-    }
-    if (_stem) {
-        func(data, _stem);
-    }
-    if (_stemSlash) {
-        func(data, _stemSlash);
-    }
-    if (_arpeggio) {
-        func(data, _arpeggio);
-    }
-    if (_tremolo && (tremoloChordType() != TremoloChordType::TremoloSecondNote)) {
-        func(data, _tremolo);
-    }
-    const Staff* st = staff();
-    if ((st && st->showLedgerLines(tick())) || !st) {       // also for palette
-        for (LedgerLine* ll = _ledgerLines; ll; ll = ll->next()) {
-            func(data, ll);
-        }
-    }
-    size_t n = _notes.size();
-    for (size_t i = 0; i < n; ++i) {
-        _notes.at(i)->scanElements(data, func, all);
-    }
-    for (Chord* chord : _graceNotes) {
-        chord->scanElements(data, func, all);
-    }
-    for (Element* e : el()) {
-        e->scanElements(data, func, all);
-    }
-    ChordRest::scanElements(data, func, all);
-}
-
-//---------------------------------------------------------
 //   processSiblings
 //---------------------------------------------------------
 
@@ -1540,8 +1511,8 @@ qreal Chord::minAbsStemLength() const
         return 0.0;
     }
 
-    const qreal sw = score()->styleS(Sid::tremoloStrokeWidth).val();
-    const qreal td = score()->styleS(Sid::tremoloDistance).val();
+    const qreal sw = score()->styleS(Sid::tremoloStrokeWidth).val() * mag();
+    const qreal td = score()->styleS(Sid::tremoloDistance).val() * mag();
     int beamLvl = beams();
     const qreal beamDist = beam() ? beam()->beamDist() : (sw * spatium());
 
@@ -1549,24 +1520,28 @@ qreal Chord::minAbsStemLength() const
     if (!_tremolo->twoNotes()) {
         _tremolo->layout();     // guarantee right "height value"
 
-        qreal height;
+        // distance between tremolo stroke(s) and chord
+        // choose the furthest/nearest note to calculate for unbeamed/beamed chords
+        // this is due to special layout mechanisms regarding beamed chords
+        // may be changed if beam layout code is improved/rewritten
+        qreal height = 0.0;
         if (up()) {
-            height = upPos() - _tremolo->pos().y();
+            height = (beam() ? upPos() : downPos()) - _tremolo->pos().y();
         } else {
-            height = _tremolo->pos().y() + _tremolo->height() - downPos();
+            height = _tremolo->pos().y() + _tremolo->minHeight() * spatium() - (beam() ? downPos() : upPos());
         }
         const bool hasHook = beamLvl && !beam();
         if (hasHook) {
             beamLvl += (up() ? 4 : 2);       // reserve more space for stem with both hook and tremolo
         }
-        const qreal additionalHeight = beamLvl ? 0 : sw* spatium();
+        const qreal additionalHeight = beamLvl ? 0 : (sw * spatium());
 
         return height + beamLvl * beamDist + additionalHeight;
     }
     // two-note tremolo
     else {
         if (_tremolo->chord1()->up() == _tremolo->chord2()->up()) {
-            const qreal tremoloMinHeight = ((_tremolo->lines() - 1) * td + sw) * spatium();
+            const qreal tremoloMinHeight = _tremolo->minHeight() * spatium();
             return tremoloMinHeight + beamLvl * beamDist + 2 * td * spatium();
         }
         return 0.0;
@@ -2042,7 +2017,7 @@ void Chord::layoutPitched()
         lhead    = qMax(lhead, -x1);
 
         Accidental* accidental = note->accidental();
-        if (accidental && !note->fixed()) {
+        if (accidental && accidental->addToSkyline() && !note->fixed()) {
             // convert x position of accidental to segment coordinate system
             qreal x = accidental->pos().x() + note->pos().x() + chordX;
             // distance from accidental to note already taken into account

@@ -48,6 +48,7 @@
 #include "lyrics.h"
 #include "marker.h"
 #include "measure.h"
+#include "mmrest.h"
 #include "mscore.h"
 #include "notedot.h"
 #include "note.h"
@@ -227,12 +228,20 @@ void Element::deleteLater()
 
 //---------------------------------------------------------
 //   scanElements
+/// If leaf node, apply `func` on this element (after checking if it is visible).
+/// Otherwise, recurse over all children (see ScoreElement::scanElements).
+/// Note: This function is overridden in some classes to skip certain children,
+/// or to apply `func` even to non-leaf nodes.
 //---------------------------------------------------------
 
 void Element::scanElements(void* data, void (* func)(void*, Element*), bool all)
 {
-    if (all || visible() || score()->showInvisible()) {
-        func(data, this);
+    if (treeChildCount() == 0) {
+        if (all || visible() || score()->showInvisible()) {
+            func(data, this);
+        }
+    } else {
+        ScoreElement::scanElements(data, func, all);
     }
 }
 
@@ -1104,6 +1113,7 @@ Element* Element::create(ElementType type, Score* score)
     case ElementType::FSYMBOL:           return new FSymbol(score);
     case ElementType::CHORD:             return new Chord(score);
     case ElementType::REST:              return new Rest(score);
+    case ElementType::MMREST:            return new MMRest(score);
     case ElementType::SPACER:            return new Spacer(score);
     case ElementType::STAFF_STATE:       return new StaffState(score);
     case ElementType::TEMPO_TEXT:        return new TempoText(score);
@@ -1778,6 +1788,7 @@ Element* Element::nextSegmentElement()
             }
             return p;
         case ElementType::REST:
+        case ElementType::MMREST:
             return p;
         case ElementType::CHORD: {
             Chord* c = toChord(p);
@@ -1825,6 +1836,7 @@ Element* Element::prevSegmentElement()
             }
             return p;
         case ElementType::REST:
+        case ElementType::MMREST:
             return p;
         case ElementType::CHORD: {
             Chord* c = toChord(p);

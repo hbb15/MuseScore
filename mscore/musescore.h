@@ -22,15 +22,14 @@
 
 #include "config.h"
 #include "globals.h"
-#include "singleapp/src/QtSingleApplication"
+#include "thirdparty/singleapp/src/QtSingleApplication"
 #include "updatechecker.h"
 #include "libmscore/musescoreCore.h"
 #include "libmscore/score.h"
 #include "sessionstatusobserver.h"
+#include "inspectordockwidget.h"
 
 #include "framework/ui/imainwindow.h"
-
-class InspectorDockWidget;
 
 namespace Ms {
 class UploadScoreDialog;
@@ -215,8 +214,8 @@ class MuseScore : public QMainWindow, public MuseScoreCore, public mu::framework
     ScoreComparisonTool* scoreCmpTool    { 0 };
     ScriptRecorderWidget* scriptRecorder { nullptr };
 
-    MagBox* mag;
-    QComboBox* viewModeCombo;
+    MagBox* mag                          { nullptr };
+    QComboBox* viewModeCombo             { nullptr };
     QAction* playId;
 
     QAction* pref;
@@ -319,7 +318,6 @@ class MuseScore : public QMainWindow, public MuseScoreCore, public mu::framework
 
     QPushButton* showMidiImportButton { 0 };
 
-    bool _midiinEnabled            { true };
     QList<QString> plugins;
     QString pluginPath;
 
@@ -437,7 +435,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore, public mu::framework
     int  pluginIdxFromPath(QString pluginPath);
 #endif
     void startDebugger();
-    void midiinToggled(bool);
+    void enableMidiIn(bool);
     void undoRedo(bool undo);
     void showPalette(bool);
     void showInspector(bool);
@@ -461,7 +459,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore, public mu::framework
     void updateUndoRedo();
     void changeScore(int);
     virtual void resizeEvent(QResizeEvent*);
-    void showModeText(const QString&);
+    void showModeText(const QString& s, bool informScreenReader = true);
     void addRecentScore(const QString& scorePath);
 
     void updateViewModeCombo();
@@ -498,7 +496,7 @@ private slots:
     void openRecentMenu();
     void selectScore(QAction*);
     void startPreferenceDialog();
-    void preferencesChanged(bool fromWorkspace = false);
+    void preferencesChanged(bool fromWorkspace = false, bool changeUI = true);
     void seqStarted();
     void seqStopped();
     void cmdAppendMeasures();
@@ -593,7 +591,7 @@ public:
     void midiCtrlReceived(int controller, int value);
     void showElementContext(Element* el);
     void cmdAppendMeasures(int);
-    bool midiinEnabled() const;
+    bool isMidiInEnabled() const;
 
     void incMag();
     void decMag();
@@ -749,8 +747,7 @@ public:
     bool exportScoreMetadata(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
     bool exportMp3AsJSON(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
     bool exportPartsPdfsToJSON(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
-    bool exportTransposedScoreToJSON(const QString& inFilePath, const QString& transposeOptions,
-                                     const QString& outFilePath = "/dev/stdout");
+    bool exportTransposedScoreToJSON(const QString& inFilePath, const QString& transposeOptions,const QString& outFilePath = "/dev/stdout");
     /////////////////////////////////////////////////
 
     void scoreUnrolled(MasterScore* original);

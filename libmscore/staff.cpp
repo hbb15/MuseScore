@@ -699,6 +699,9 @@ void Staff::write(XmlWriter& xml) const
     if (_hideSystemBarLine) {
         xml.tag("hideSystemBarLine", _hideSystemBarLine);
     }
+    if (_mergeMatchingRests) {
+        xml.tag("mergeMatchingRests", _mergeMatchingRests);
+    }
 
     for (const BracketItem* i : _brackets) {
         BracketType a = i->bracketType();
@@ -767,6 +770,8 @@ bool Staff::readProperties(XmlReader& e)
         setShowIfEmpty(e.readInt());
     } else if (tag == "hideSystemBarLine") {
         _hideSystemBarLine = e.readInt();
+    } else if (tag == "mergeMatchingRests") {
+        _mergeMatchingRests = e.readInt();
     } else if (tag == "keylist") {
         _keys.read(e, score());
     } else if (tag == "bracket") {
@@ -1090,7 +1095,11 @@ void Staff::staffTypeListChanged(const Fraction& tick)
     }
 
     if (range.second < 0) {
-        triggerLayout(score()->lastMeasure()->endTick());
+        // When reading a score and there is a Staff Change on the first
+        // measure, there are no measures yet and nothing to layout.
+        if (score()->lastMeasure()) {
+            triggerLayout(score()->lastMeasure()->endTick());
+        }
     } else {
         triggerLayout(Fraction::fromTicks(range.second));
     }
@@ -1166,6 +1175,7 @@ void Staff::init(const Staff* s)
     _cutaway           = s->_cutaway;
     _showIfEmpty       = s->_showIfEmpty;
     _hideSystemBarLine = s->_hideSystemBarLine;
+    _mergeMatchingRests = s->_mergeMatchingRests;
     _color             = s->_color;
     _userDist          = s->_userDist;
 }

@@ -3,8 +3,9 @@ import MuseScore.Ui 1.0
 import MuseScore.Dock 1.0
 import MuseScore.UiComponents 1.0
 
-import "./Launcher"
+import "./Interactive"
 import "./Audio"
+import "./NotationDialogs"
 
 
 DockPage {
@@ -18,14 +19,16 @@ DockPage {
             objectName: "devtoolsPanel"
 
             width: 200
-            color: ui.theme.backgroundColor
+            color: ui.theme.backgroundPrimaryColor
 
             DevToolsMenu {
 
                 model: [
-                    { "name": "launcher", "title": "Launcher" },
+                    { "name": "interactive", "title": "Interactive" },
                     { "name": "audio", "title": "Audio" },
-                    { "name": "sample", "title": "Sample" },
+                    { "name": "synth", "title": "Synth" },
+                    { "name": "midiports", "title": "Midi ports" },
+                    { "name": "mu3dialogs", "title": "MU3Dialogs" },
                 ]
 
                 onSelected: {
@@ -40,14 +43,16 @@ DockPage {
         id: devtoolsCentral
         objectName: "devtoolsCentral"
 
-        property var currentComp: launcherComp
+        property var currentComp: interactiveComp
 
         function load(name) {
             console.info("loadCentral: " + name)
             switch (name) {
-            case "launcher":      currentComp = launcherComp; break
-            case "audio":      currentComp = audioComp; break
-            case "sample":        currentComp = sampleComp; break
+            case "interactive": currentComp = interactiveComp; break
+            case "audio": currentComp = audioComp; break
+            case "synth": currentComp = synthSettingsComp; break
+            case "midiports": currentComp = midiPortsComp; break
+            case "mu3dialogs": currentComp = notationDialogs; break
             }
         }
 
@@ -62,8 +67,8 @@ DockPage {
     }
 
     Component {
-        id: launcherComp
-        LauncherTests {}
+        id: interactiveComp
+        InteractiveTests {}
     }
 
     Component{
@@ -72,15 +77,17 @@ DockPage {
     }
 
     Component {
-        id: sampleComp
+        id: synthSettingsComp
+        SynthSettings {}
+    }
 
-        Rectangle {
-            Text {
-                anchors.fill: parent
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                text: "Sample"
-            }
-        }
+    Component {
+        id: midiPortsComp
+        MidiPorts {}
+    }
+
+    Component {
+        id: notationDialogs
+        MU3Dialogs {}
     }
 }

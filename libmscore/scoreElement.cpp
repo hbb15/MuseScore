@@ -52,6 +52,8 @@ static const ElementName elementNames[] = {
     { ElementType::AMBITUS,              "Ambitus",              QT_TRANSLATE_NOOP("elementName", "Ambitus") },
     { ElementType::TIMESIG,              "TimeSig",              QT_TRANSLATE_NOOP("elementName", "Time Signature") },
     { ElementType::REST,                 "Rest",                 QT_TRANSLATE_NOOP("elementName", "Rest") },
+    { ElementType::MMREST,               "MMRest",
+      QT_TRANSLATE_NOOP("elementName", "Multimeasure Rest") },
     { ElementType::BREATH,               "Breath",               QT_TRANSLATE_NOOP("elementName", "Breath") },
     { ElementType::REPEAT_MEASURE,       "RepeatMeasure",        QT_TRANSLATE_NOOP("elementName", "Repeat Measure") },
     { ElementType::TIE,                  "Tie",                  QT_TRANSLATE_NOOP("elementName", "Tie") },
@@ -193,6 +195,19 @@ int ScoreElement::treeChildIdx(ScoreElement* child) const
         i++;
     }
     return -1;
+}
+
+//---------------------------------------------------------
+//   scanElements
+/// Recursively apply scanElements to all children.
+/// See also Element::scanElements.
+//---------------------------------------------------------
+
+void ScoreElement::scanElements(void* data, void (* func)(void*, Element*), bool all)
+{
+    for (ScoreElement* child : (*this)) {
+        child->scanElements(data, func, all);
+    }
 }
 
 //---------------------------------------------------------

@@ -182,7 +182,6 @@ static const StyleType styleTypes[] {
     { Sid::barNoteDistance,         "barNoteDistance",         Spatium(1.0) },       // was 1.2
 
     { Sid::barAccidentalDistance,   "barAccidentalDistance",   Spatium(.3) },
-    { Sid::multiMeasureRestMargin,  "multiMeasureRestMargin",  Spatium(1.2) },
     { Sid::noteBarDistance,         "noteBarDistance",         Spatium(1.0) },
     { Sid::measureSpacing,          "measureSpacing",          QVariant(1.2) },
     { Sid::staffLineWidth,          "staffLineWidth",          Spatium(0.08) },       // 0.09375
@@ -270,6 +269,8 @@ static const StyleType styleTypes[] {
     { Sid::harmonyFretDist,          "harmonyFretDist",        Spatium(1.0) },
     { Sid::minHarmonyDistance,       "minHarmonyDistance",     Spatium(0.5) },
     { Sid::maxHarmonyBarDistance,    "maxHarmonyBarDistance",  Spatium(3.0) },
+    { Sid::maxChordShiftAbove,       "maxChordShiftAbove",     Spatium(0.0) },
+    { Sid::maxChordShiftBelow,       "maxChordShiftBelow",     Spatium(0.0) },
 
     { Sid::harmonyPlacement,         "harmonyPlacement",           int(Placement::ABOVE) },
     { Sid::romanNumeralPlacement,    "romanNumeralPlacement",      int(Placement::BELOW) },
@@ -358,6 +359,8 @@ static const StyleType styleTypes[] {
     { Sid::fretStringSpacing,       "fretStringSpacing",       Spatium(0.7) },
     { Sid::fretFretSpacing,         "fretFretSpacing",         Spatium(0.8) },
     { Sid::fretOrientation,         "fretOrientation",         int(Orientation::VERTICAL) },
+    { Sid::maxFretShiftAbove,       "maxFretShiftAbove",       Spatium(0.0) },
+    { Sid::maxFretShiftBelow,       "maxFretShiftBelow",       Spatium(0.0) },
 
     { Sid::showPageNumber,          "showPageNumber",          QVariant(true) },
     { Sid::showPageNumberOne,       "showPageNumberOne",       QVariant(false) },
@@ -402,6 +405,14 @@ static const StyleType styleTypes[] {
     { Sid::minEmptyMeasures,        "minEmptyMeasures",        QVariant(2) },
     { Sid::minMMRestWidth,          "minMMRestWidth",          Spatium(4) },
     { Sid::mmRestNumberPos,         "mmRestNumberPos",         Spatium(-1.5) },
+    { Sid::mmRestNumberMaskHBar,    "mmRestNumberMaskHBar",    QVariant(true) },
+    { Sid::multiMeasureRestMargin,  "multiMeasureRestMargin",  Spatium(1.2) },
+    { Sid::mmRestHBarThickness,     "mmRestHBarThickness",     Spatium(0.7) },
+    { Sid::mmRestHBarVStrokeThickness, "mmRestHBarVStrokeThickness", Spatium(0.2) },
+    { Sid::mmRestHBarVStrokeHeight, "mmRestHBarVStrokeHeight", Spatium(2.0) },
+    { Sid::oldStyleMultiMeasureRests, "oldStyleMultiMeasureRests", QVariant(false) },
+    { Sid::mmRestOldStyleMaxMeasures, "mmRestOldStyleMaxMeasures", QVariant(9) },
+    { Sid::mmRestOldStyleSpacing,   "mmRestOldStyleSpacing",   Spatium(0.85) },
     { Sid::hideEmptyStaves,         "hideEmptyStaves",         QVariant(false) },
     { Sid::dontHideStavesInFirstSystem,
       "dontHidStavesInFirstSystm",    QVariant(true) },

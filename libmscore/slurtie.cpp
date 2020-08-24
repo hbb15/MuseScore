@@ -19,6 +19,7 @@
 #include "slurtie.h"
 #include "tie.h"
 #include "chord.h"
+#include "page.h"
 
 namespace Ms {
 //---------------------------------------------------------
@@ -79,7 +80,9 @@ QVector<QLineF> SlurTieSegment::gripAnchorLines(Grip grip) const
         break;
     }
 
-    result << QLineF(anchorPosition, gripsPositions().at(gripIndex));
+    const Page* p = system()->page();
+    const QPointF pageOffset = p ? p->pos() : QPointF();
+    result << QLineF(anchorPosition, gripsPositions().at(gripIndex)).translated(pageOffset);
 
     return result;
 }
@@ -102,6 +105,7 @@ void SlurTieSegment::move(const QPointF& s)
 
 void SlurTieSegment::spatiumChanged(qreal oldValue, qreal newValue)
 {
+    Element::spatiumChanged(oldValue, newValue);
     qreal diff = newValue / oldValue;
     for (UP& u : _ups) {
         u.off *= diff;

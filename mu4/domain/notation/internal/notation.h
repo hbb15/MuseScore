@@ -19,40 +19,29 @@
 #ifndef MU_DOMAIN_NOTATION_H
 #define MU_DOMAIN_NOTATION_H
 
-#include "../inotation.h"
-#include "async/asyncable.h"
-
-#include "modularity/ioc.h"
-#include "../inotationreadersregister.h"
-#include "retval.h"
-
+#include "inotation.h"
 #include "igetscore.h"
+#include "async/asyncable.h"
 
 namespace Ms {
 class MScore;
-class MasterScore;
+class Score;
 }
 
 namespace mu {
 namespace domain {
 namespace notation {
 class NotationInteraction;
-class Notation : public INotation, public IGetScore, public async::Asyncable
+class NotationPlayback;
+class Notation : virtual public INotation, public IGetScore, public async::Asyncable
 {
-    INJECT(notation, INotationReadersRegister, readers)
-
 public:
-    Notation();
-    ~Notation();
+    explicit Notation(Ms::Score* score = nullptr);
+    ~Notation() override;
 
-    //! NOTE Needed at the moment to initialize libmscore
     static void init();
 
-    Ret load(const io::path& path) override;
-    Ret load(const io::path& path, const std::shared_ptr<INotationReader>& reader) override;
-    io::path path() const override;
-
-    Ret createNew(const ScoreCreateOptions& scoreOptions) override;
+    Meta metaInfo() const override;
 
     void setViewSize(const QSizeF& vs) override;
     void paint(QPainter* p, const QRect& r) override;
@@ -60,26 +49,43 @@ public:
     // Input (mouse)
     INotationInteraction* interaction() const override;
 
+    INotationUndoStack* undoStack() const override;
+
+    INotationElements* elements() const override;
+
+    INotationStyle* style() const override;
+
+    // midi
+    INotationPlayback* playback() const override;
+
     // notify
     async::Notification notationChanged() const override;
 
-    // internal
-    Ms::Score* score() const;
-    QSizeF viewSize() const;
+    // accessibility
+    INotationAccessibility* accessibility() const override;
+
+protected:
+    Ms::Score* score() const override;
+    void setScore(Ms::Score* score);
+    Ms::MScore* scoreGlobal() const;
 
 private:
-
     friend class NotationInteraction;
 
-    Ret doLoadScore(Ms::MasterScore* score,const io::path& path,const std::shared_ptr<INotationReader>& reader) const;
-    void notifyAboutNotationChanged();
+    QSizeF viewSize() const;
 
-    mu::RetVal<Ms::MasterScore*> newScore(const ScoreCreateOptions& scoreInfo);
+    void notifyAboutNotationChanged();
 
     QSizeF m_viewSize;
     Ms::MScore* m_scoreGlobal = nullptr;
-    Ms::MasterScore* m_score = nullptr;
+    Ms::Score* m_score = nullptr;
     NotationInteraction* m_interaction = nullptr;
+    INotationUndoStack* m_undoStackController = nullptr;
+    INotationStyle* m_style = nullptr;
+    NotationPlayback* m_playback = nullptr;
+    INotationAccessibility* m_accessibility = nullptr;
+    INotationElements* m_elements = nullptr;
+
     async::Notification m_notationChanged;
 };
 }

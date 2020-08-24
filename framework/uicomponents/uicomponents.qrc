@@ -1,8 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>qml/MuseScore/UiComponents/qmldir</file>
-        <file>qml/MuseScore/UiComponents/SampleRectangle.qml</file>
-        <file>qml/MuseScore/UiComponents/FontIcon.qml</file>
         <file>qml/MuseScore/UiComponents/CheckBox.qml</file>
         <file>qml/MuseScore/UiComponents/StyledIconLabel.qml</file>
         <file>qml/MuseScore/UiComponents/FocusableItem.qml</file>
@@ -25,5 +23,9 @@
         <file>qml/MuseScore/UiComponents/ContextMenu.qml</file>
         <file>qml/MuseScore/UiComponents/StyledMenuItem.qml</file>
         <file>qml/MuseScore/UiComponents/RoundedRectangle.qml</file>
+        <file>qml/MuseScore/UiComponents/SearchField.qml</file>
+        <file>qml/MuseScore/UiComponents/StyledTabButton.qml</file>
+        <file>qml/MuseScore/UiComponents/PopupPanel.qml</file>
+        <file>qml/MuseScore/UiComponents/ProgressButton.qml</file>
     </qresource>
 </RCC>

@@ -1,6 +1,7 @@
 import QtQuick 2.7
 import MuseScore.Dock 1.0
 import MuseScore.Ui 1.0
+import MuseScore.Playback 1.0
 
 import "./HomePage"
 import "./NotationPage"
@@ -13,13 +14,14 @@ DockWindow {
 
     title: qsTrc("appshell", "MuseScore 4")
 
-    color: ui.theme.backgroundColor
+    color: ui.theme.backgroundPrimaryColor
 
-    currentPageUri: "musescore://home"
+    Component.onCompleted: {
+        api.launcher.open("musescore://home")
+    }
 
-    property var provider: LaunchProvider {
+    property var provider: InteractiveProvider {
         topParent: dockWindow
-        resolver: LaunchResolver{}
         onRequestedDockPage: {
             dockWindow.currentPageUri = uri
         }
@@ -51,7 +53,7 @@ DockWindow {
             height: 32
             color: dockWindow.color
 
-            PlayToolBar {
+            PlaybackToolBar {
                 color: dockWindow.color
             }
         }

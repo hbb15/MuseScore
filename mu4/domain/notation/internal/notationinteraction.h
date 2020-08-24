@@ -29,7 +29,6 @@
 #include "../inotationinteraction.h"
 #include "../inotationconfiguration.h"
 
-#include "igetscore.h"
 #include "scorecallbacks.h"
 #include "notationinputstate.h"
 #include "notationselection.h"
@@ -48,9 +47,10 @@ class Notation;
 class NotationInteraction : public INotationInteraction
 {
     INJECT(notation, INotationConfiguration, configuration)
+
 public:
     NotationInteraction(Notation* notation);
-    ~NotationInteraction();
+    ~NotationInteraction() override;
 
     void init();
     void paint(QPainter* p);
@@ -107,7 +107,6 @@ public:
     async::Notification textEditingChanged() const override;
 
 private:
-
     Ms::Score* score() const;
 
     void selectFirstTopLeftOrLast();

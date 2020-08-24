@@ -21,6 +21,8 @@
 #include "log.h"
 #include "settings.h"
 
+#include "io/path.h"
+
 using namespace mu;
 using namespace mu::scene::notation;
 using namespace mu::framework;
@@ -34,6 +36,10 @@ static const Settings::Key FOREGROUND_COLOR(module_name, "ui/canvas/foreground/c
 static const Settings::Key FOREGROUND_USE_USER_COLOR(module_name, "ui/canvas/foreground/useColor");
 
 static const Settings::Key SELECTION_PROXIMITY(module_name, "ui/canvas/misc/selectionProximity");
+
+static const Settings::Key CURRENT_ZOOM(module_name, "ui/canvas/misc/currentZoom");
+
+static const Settings::Key STYLES_DIR_KEY(module_name, "application/paths/myStyles");
 
 void SceneNotationConfiguration::init()
 {
@@ -53,6 +59,11 @@ void SceneNotationConfiguration::init()
     settings()->valueChanged(FOREGROUND_USE_USER_COLOR).onReceive(nullptr, [this](const Val& val) {
         LOGD() << "FOREGROUND_USE_USER_COLOR changed: " << val.toString();
         m_foregroundColorChanged.send(foregroundColor());
+    });
+
+    settings()->addItem(CURRENT_ZOOM, Val(100));
+    settings()->valueChanged(CURRENT_ZOOM).onReceive(nullptr, [this](const Val& val) {
+        m_currentZoomChanged.send(val.toInt());
     });
 
     settings()->addItem(SELECTION_PROXIMITY, Val(6));
@@ -86,7 +97,39 @@ Channel<QColor> SceneNotationConfiguration::foregroundColorChanged() const
     return m_foregroundColorChanged;
 }
 
+QColor SceneNotationConfiguration::playbackCursorColor() const
+{
+    //! TODO Figure out what color to use
+    QColor c("#ff0000");
+    c.setAlpha(50);
+    return c;
+}
+
 int SceneNotationConfiguration::selectionProximity() const
 {
     return settings()->value(SELECTION_PROXIMITY).toInt();
+}
+
+mu::ValCh<int> SceneNotationConfiguration::currentZoom() const
+{
+    mu::ValCh<int> zoom;
+    zoom.ch = m_currentZoomChanged;
+    zoom.val = settings()->value(CURRENT_ZOOM).toInt();
+
+    return zoom;
+}
+
+void SceneNotationConfiguration::setCurrentZoom(int zoomPercentage)
+{
+    settings()->setValue(CURRENT_ZOOM, Val(zoomPercentage));
+}
+
+int SceneNotationConfiguration::fontSize() const
+{
+    return uiConfiguration()->fontSize();
+}
+
+QString SceneNotationConfiguration::stylesDirPath() const
+{
+    return io::pathToQString(settings()->value(STYLES_DIR_KEY).toString());
 }

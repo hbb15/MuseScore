@@ -566,7 +566,8 @@ int Part::harmonyCount() const
     int count = 0;
     for (const Segment* seg = firstM->first(st); seg; seg = seg->next1(st)) {
         for (const Element* e : seg->annotations()) {
-            if ((e->isHarmony() || (e->isFretDiagram() && toFretDiagram(e)->harmony())) && e->track() >= startTrack() && e->track() < endTrack()){
+            if ((e->isHarmony() || (e->isFretDiagram() && toFretDiagram(e)->harmony())) && e->track() >= startTrack()
+                && e->track() < endTrack()) {
                 count++;
             }
         }
@@ -615,6 +616,8 @@ void Part::updateHarmonyChannels(bool isDoOnInstrumentChanged, bool checkRemoval
     if (!harmonyChannel() && harmonyCount() > 0) {
         Instrument* instr = instrument();
         Channel* c = new Channel(*instr->channel(0));
+        // default to program 0, which is piano in General MIDI
+        c->setProgram(0);
         c->setName(Channel::HARMONY_NAME);
         instr->appendChannel(c);
         onInstrumentChanged();

@@ -64,6 +64,19 @@ Excerpt::~Excerpt()
 }
 
 //---------------------------------------------------------
+//   nstaves
+//---------------------------------------------------------
+
+int Excerpt::nstaves() const
+{
+    int n { 0 };
+    for (Part* p : _parts) {
+        n += p->nstaves();
+    }
+    return n;
+}
+
+//---------------------------------------------------------
 //   read
 //---------------------------------------------------------
 
@@ -457,6 +470,22 @@ static void cloneTuplets(ChordRest* ocr, ChordRest* ncr, Tuplet* ot, TupletMap& 
 }
 
 //---------------------------------------------------------
+//   processLinkedClone
+//---------------------------------------------------------
+
+void Excerpt::processLinkedClone(Element* ne, Score* score, int strack)
+{
+    // reset offset as most likely it will not fit
+    PropertyFlags f = ne->propertyFlags(Pid::OFFSET);
+    if (f == PropertyFlags::UNSTYLED) {
+        ne->setPropertyFlags(Pid::OFFSET, PropertyFlags::STYLED);
+        ne->resetProperty(Pid::OFFSET);
+    }
+    ne->setTrack(strack == -1 ? 0 : strack);
+    ne->setScore(score);
+}
+
+//---------------------------------------------------------
 //   cloneStaves
 //---------------------------------------------------------
 
@@ -516,14 +545,7 @@ void Excerpt::cloneStaves(Score* oscore, Score* score, const QList<int>& map, QM
                         }
                         if ((e->track() == srcTrack && strack != -1) || (e->systemFlag() && srcTrack == 0)) {
                             Element* ne = e->linkedClone();
-                            // reset offset as most likely it will not fit
-                            PropertyFlags f = ne->propertyFlags(Pid::OFFSET);
-                            if (f == PropertyFlags::UNSTYLED) {
-                                ne->setPropertyFlags(Pid::OFFSET, PropertyFlags::STYLED);
-                                ne->resetProperty(Pid::OFFSET);
-                            }
-                            ne->setTrack(strack == -1 ? 0 : strack);
-                            ne->setScore(score);
+                            processLinkedClone(ne, score, strack);
                             if (!ns) {
                                 ns = nm->getSegment(oseg->segmentType(), oseg->tick());
                             }
@@ -548,8 +570,8 @@ void Excerpt::cloneStaves(Score* oscore, Score* score, const QList<int>& map, QM
                     for (int track : t) {
                         //Clone KeySig TimeSig and Clefs if voice 1 of source staff is not mapped to a track
                         Element* oef = oseg->element(srcTrack & ~3);
-                        if (oef && (oef->isTimeSig() || oef->isKeySig()) && oseg->rtick().isZero()
-                            && !(trackList.size() == (score->excerpt()->parts().size() * VOICES))) {
+                        if (oef && !oef->generated() && (oef->isTimeSig() || oef->isKeySig())
+                            && !(trackList.size() == (score->excerpt()->nstaves() * VOICES))) {
                             Element* ne = oef->linkedClone();
                             ne->setTrack(track & ~3);
                             ne->setScore(score);

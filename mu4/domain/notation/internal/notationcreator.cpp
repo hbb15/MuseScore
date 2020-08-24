@@ -18,11 +18,11 @@
 //=============================================================================
 #include "notationcreator.h"
 
-#include "notation.h"
+#include "masternotation.h"
 
 using namespace mu::domain::notation;
 
-std::shared_ptr<INotation> NotationCreator::newNotation()
+IMasterNotationPtr NotationCreator::newMasterNotation() const
 {
-    return std::make_shared<Notation>();
+    return std::make_shared<MasterNotation>();
 }

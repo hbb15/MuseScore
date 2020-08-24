@@ -74,10 +74,10 @@ void ScoreView::doDragElement(QMouseEvent* ev)
 
     QPointF pt(delta);
     if (qApp->keyboardModifiers() == Qt::ShiftModifier) {
-        pt.setX(editData.delta.x());
+        pt.setX(editData.element->offset().x());
         evtDelta.setX(0.0);
     } else if (qApp->keyboardModifiers() == Qt::ControlModifier) {
-        pt.setY(editData.delta.y());
+        pt.setY(editData.element->offset().y());
         evtDelta.setY(0.0);
     }
 
@@ -100,13 +100,7 @@ void ScoreView::doDragElement(QMouseEvent* ev)
 
     for (Element* e : sel.elements()) {
         QVector<QLineF> elAnchorLines = e->dragAnchorLines();
-        Element* const page = e->findAncestor(ElementType::PAGE);
-        const QPointF pageOffset((page ? page : e)->pos());
-
         if (!elAnchorLines.isEmpty()) {
-            for (QLineF& l : elAnchorLines) {
-                l.translate(pageOffset);
-            }
             anchorLines.append(elAnchorLines);
         }
     }

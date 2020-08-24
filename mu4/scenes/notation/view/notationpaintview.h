@@ -30,24 +30,27 @@
 #include "actions/actionable.h"
 #include "context/iglobalcontext.h"
 #include "async/asyncable.h"
+#include "scenes/playback/iplaybackcontroller.h"
 
 #include "notationviewinputcontroller.h"
+#include "playbackcursor.h"
 
 namespace mu {
 namespace scene {
 namespace notation {
 class NotationViewInputController;
-class NotationPaintView : public QQuickPaintedItem, public IControlledView, public async::Asyncable,
-    public actions::Actionable
+class NotationPaintView : public QQuickPaintedItem, public IControlledView, public async::Asyncable,public actions::Actionable
 {
     Q_OBJECT
 
     INJECT(notation_scene, ISceneNotationConfiguration, configuration)
     INJECT(notation_scene, actions::IActionsDispatcher, dispatcher)
     INJECT(notation_scene, context::IGlobalContext, globalContext)
+    INJECT(notation_scene, playback::IPlaybackController, playbackController)
 
 public:
     NotationPaintView();
+    ~NotationPaintView();
 
     // IControlledView
     qreal width() const override;
@@ -59,23 +62,22 @@ public:
     void moveCanvas(int dx, int dy) override;
     void scrollVertical(int dy) override;
     void scrollHorizontal(int dx) override;
-    void zoomStep(qreal step, const QPoint& pos) override;
+    void setZoom(int zoomPercentage, const QPoint& pos) override;
 
     bool isNoteEnterMode() const override;
     void showShadowNote(const QPointF& pos);
 
-    domain::notation::INotationInteraction* notationInteraction() const;
+    domain::notation::INotationInteraction* notationInteraction() const override;
+    domain::notation::INotationPlayback* notationPlayback() const override;
     // -----
 
 private slots:
     void onViewSizeChanged();
 
 private:
-
     bool canReceiveAction(const actions::ActionName& action) const override;
     void onCurrentNotationChanged();
     bool isInited() const;
-    std::shared_ptr<domain::notation::INotation> notation() const;
 
     // Draw
     void paint(QPainter* painter) override;
@@ -97,8 +99,6 @@ private:
     QRect toLogical(const QRect& r) const;
     QPoint toPhysical(const QPoint& p) const;
 
-    void zoom(qreal mag, const QPoint& pos);
-
     // ---
 
     qreal xoffset() const;
@@ -111,10 +111,14 @@ private:
     void onInputStateChanged();
     void onSelectionChanged();
 
+    void onPlayingChanged();
+    void movePlaybackCursor(uint32_t tick);
+
     QColor m_backgroundColor;
-    std::shared_ptr<domain::notation::INotation> m_notation;
+    domain::notation::INotationPtr m_notation;
     QTransform m_matrix;
     NotationViewInputController* m_inputController = nullptr;
+    PlaybackCursor* m_playbackCursor = nullptr;
 };
 }
 }

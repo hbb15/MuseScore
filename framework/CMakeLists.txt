@@ -5,9 +5,10 @@ add_subdirectory(uicomponents)
 add_subdirectory(actions)
 add_subdirectory(shortcuts)
 add_subdirectory(workspace)
-
-add_subdirectory(audio/engine)
-add_subdirectory(audio/midi)
+add_subdirectory(network)
+add_subdirectory(system)
+add_subdirectory(audio)
+add_subdirectory(midi)
 
 if (BUILD_TELEMETRY_MODULE)
       add_subdirectory(telemetry)
@@ -16,4 +17,9 @@ endif (BUILD_TELEMETRY_MODULE)
 
 if (BUILD_UNIT_TESTS)
     add_subdirectory(global/tests)
+    add_subdirectory(system/tests)
 endif(BUILD_UNIT_TESTS)
+
+if (BUILD_VST)
+    add_subdirectory(vst)
+endif(BUILD_VST)

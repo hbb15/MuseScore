@@ -20,14 +20,17 @@
 #define MU_NOTATIONSCENE_SCENENOTATIONCONFIGURATION_H
 
 #include "../iscenenotationconfiguration.h"
+#include "modularity/ioc.h"
+#include "ui/iuiconfiguration.h"
 
 namespace mu {
 namespace scene {
 namespace notation {
 class SceneNotationConfiguration : public ISceneNotationConfiguration
 {
-public:
+    INJECT(notation, framework::IUiConfiguration, uiConfiguration)
 
+public:
     void init();
 
     QColor backgroundColor() const override;
@@ -37,11 +40,21 @@ public:
     QColor defaultForegroundColor() const override;
     async::Channel<QColor> foregroundColorChanged() const override;
 
+    QColor playbackCursorColor() const override;
+
     int selectionProximity() const override;
+
+    ValCh<int> currentZoom() const override;
+    void setCurrentZoom(int zoomPercentage) override;
+
+    int fontSize() const override;
+
+    QString stylesDirPath() const override;
 
 private:
     async::Channel<QColor> m_backgroundColorChanged;
     async::Channel<QColor> m_foregroundColorChanged;
+    async::Channel<int> m_currentZoomChanged;
 };
 }
 }

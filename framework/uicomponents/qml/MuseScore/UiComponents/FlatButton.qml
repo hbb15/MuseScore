@@ -7,11 +7,12 @@ FocusableItem {
     property alias icon: buttonIcon.iconCode
     property alias text: textLabel.text
     property int iconPixelSize: buttonIcon.isEmpty ? 0 : 16
+    property alias backgroundColor: backgroundRect.color
 
     signal clicked
 
     height: contentWrapper.implicitHeight + 16
-    width: parent.width
+    width: contentWrapper.width + 16
 
     opacity: root.enabled ? 1.0 : 0.3
 
@@ -30,9 +31,9 @@ FocusableItem {
         id: contentWrapper
 
         anchors.verticalCenter: parent ? parent.verticalCenter : undefined
+        anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
 
         height: implicitHeight
-        width: parent.width
 
         spacing: 4
 
@@ -47,7 +48,6 @@ FocusableItem {
 
             anchors.horizontalCenter: parent.horizontalCenter
             height: text === "" ? 0 : implicitHeight
-            width: parent.width
 
             horizontalAlignment: Text.AlignHCenter
         }
@@ -74,7 +74,7 @@ FocusableItem {
                 target: backgroundRect
                 color: ui.theme.buttonColor
                 opacity: ui.theme.buttonOpacityHit
-                border.color: "#25000000"
+                border.color: ui.theme.strokeColor
                 border.width: 1
             }
         },
@@ -87,7 +87,7 @@ FocusableItem {
                 target: backgroundRect
                 color: ui.theme.buttonColor
                 opacity: ui.theme.buttonOpacityHover
-                border.color: "#25000000"
+                border.color: ui.theme.strokeColor
                 border.width: 1
             }
         }

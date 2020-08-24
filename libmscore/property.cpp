@@ -303,6 +303,8 @@ static constexpr PropertyMetaData propertyList[] = {
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "line style") },
     { Pid::LINE_WIDTH,              false, "lineWidth",             P_TYPE::SP_REAL,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "line width") },
+    { Pid::LINE_WIDTH_SPATIUM,      false, "lineWidth",             P_TYPE::SPATIUM,
+      DUMMY_QT_TRANSLATE_NOOP("propertyName", "line width (spatium)") },
     { Pid::LASSO_POS,               false, 0,                       P_TYPE::POINT_MM,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "lasso position") },
     { Pid::LASSO_SIZE,              false, 0,                       P_TYPE::SIZE_MM,
@@ -332,6 +334,8 @@ static constexpr PropertyMetaData propertyList[] = {
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "breaking multimeasure rest") },
     { Pid::MMREST_NUMBER_POS,       false, "mmRestNumberPos",       P_TYPE::SPATIUM,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "vertical position of multimeasure rest number") },
+    { Pid::MMREST_NUMBER_VISIBLE,   false, "mmRestNumberVisible",   P_TYPE::BOOL,
+      DUMMY_QT_TRANSLATE_NOOP("propertyName", "visibility of multimeasure rest number") },
     { Pid::REPEAT_COUNT,            true,  "endRepeat",             P_TYPE::INT,
       DUMMY_QT_TRANSLATE_NOOP("propertyName", "end repeat") },
 

@@ -35,7 +35,7 @@
 #include "fotomode.h"
 #include "tourhandler.h"
 
-#include "view/widgets/inspectordockwidget.h"
+#include "inspectordockwidget.h"
 
 #include "libmscore/articulation.h"
 #include "libmscore/barline.h"
@@ -56,6 +56,7 @@
 #include "libmscore/lasso.h"
 #include "libmscore/lyrics.h"
 #include "libmscore/measure.h"
+#include "libmscore/mmrest.h"
 #include "libmscore/navigate.h"
 #include "libmscore/notedot.h"
 #include "libmscore/note.h"
@@ -316,9 +317,10 @@ void ScoreView::objectPopup(const QPoint& pos, Element* obj)
     popup->addAction(getAction("paste"));
     popup->addAction(getAction("swap"));
     popup->addAction(getAction("delete"));
-    a = getAction("time-delete");
-    a->setEnabled(obj->isChordRest());
-    popup->addAction(a);
+    if (obj->isNote() || obj->isRest()) {
+        a = getAction("time-delete");
+        popup->addAction(a);
+    }
 
     QMenu* selMenu = popup->addMenu(tr("Select"));
     selMenu->addAction(getAction("select-similar"));
@@ -375,6 +377,13 @@ void ScoreView::objectPopup(const QPoint& pos, Element* obj)
         mscore->selectSimilarInRange(obj);
     } else if (cmd == "select-dialog") {
         mscore->selectElementDialog(obj);
+    } else if (cmd == "realize-chord-symbols") {
+        if (obj->isEditable()) {
+            if (obj->score()) {
+                obj->score()->select(obj, SelectType::ADD);
+            }
+            mscore->realizeChordSymbols();
+        }
     } else {
         _score->startCmd();
         elementPropertyAction(cmd, obj);
@@ -668,8 +677,8 @@ void ScoreView::moveControlCursor(const Fraction& tick)
     int controlX = _controlCursor->rect().x();
     double distance = realX - controlX;
 
-    if (seq->isPlaying()) {
-        //playbackCursor in front of the controlCursor
+    if (seq->isPlaying() && isCursorDistanceReasonable()) {
+        // playbackCursor in front of the controlCursor
         if (distance > _panSettings.rightDistance) {
             _controlModifier += _panSettings.controlModifierSteps;
         } else if (distance > _panSettings.rightDistance1 && _controlModifier < _panSettings.rightMod1) {
@@ -683,7 +692,7 @@ void ScoreView::moveControlCursor(const Fraction& tick)
         } else if (_controlModifier > _panSettings.rightMod3 && distance < _panSettings.rightDistance3) {
             _controlModifier = _panSettings.controlModifierBase;
         }
-        //playbackCursor behind the controlCursor
+        // playbackCursor behind the controlCursor
         else if (distance < _panSettings.leftDistance) {
             _controlModifier -= _panSettings.controlModifierSteps;
         } else if (_controlModifier < _panSettings.leftMod1 && distance > _panSettings.leftDistance1) {
@@ -694,7 +703,7 @@ void ScoreView::moveControlCursor(const Fraction& tick)
             _controlModifier = _panSettings.controlModifierBase;
         }
 
-        //enforce limits
+        // enforce limits
         if (_controlModifier < _panSettings.minContinuousModifier) {
             _controlModifier = _panSettings.minContinuousModifier;
         } else if (_controlModifier > _panSettings.maxContinuousModifier) {
@@ -716,7 +725,7 @@ void ScoreView::moveControlCursor(const Fraction& tick)
     } else { // reposition the cursor when the score is not playing
         double curOffset = _cursor->rect().x() - score()->firstMeasure()->pos().x();
         double length = score()->lastMeasure()->pos().x() - score()->firstMeasure()->pos().x();
-        _timeElapsed = (curOffset / length) * score()->duration() * 1000;
+        _timeElapsed = (curOffset / length) * score()->durationWithoutRepeats() * 1000;
         _controlModifier = _panSettings.controlModifierBase;
     }
 
@@ -737,13 +746,39 @@ void ScoreView::moveControlCursor(const Fraction& tick)
         _playbackCursorTimer.restart();
     }
 
-    //Calculate the position of the controlCursor based on the timeElapsed (which is not the real time that has passed)
+    // Calculate the position of the controlCursor based on the timeElapsed (which is not the real time that has passed)
     qreal x = score()->firstMeasure()->pos().x()
               + (score()->lastMeasure()->pos().x() - score()->firstMeasure()->pos().x())
-              * (_timeElapsed / (score()->duration() * 1000));
+              * (_timeElapsed / (score()->durationWithoutRepeats() * 1000));
     x -= score()->spatium();
     _controlCursor->setRect(QRectF(x, _cursor->rect().y(), _cursor->rect().width(), _cursor->rect().height()));
     update(_matrix.mapRect(_controlCursor->rect()).toRect().adjusted(-1,-1,1,1));
+}
+
+//---------------------------------------------------------
+//   isCursorDistanceReasonable
+//    check if the control cursor needs to be teleported
+//    to catch up with the playback cursor (for smooth panning)
+//---------------------------------------------------------
+
+bool ScoreView::isCursorDistanceReasonable()
+{
+    qreal viewWidth = canvasViewport().width();
+    qreal controlX = _controlCursor->rect().x();
+    qreal playbackX = _cursor->rect().x();
+    qreal cursorDistance = abs(controlX - playbackX);
+    double maxLeftDistance = viewWidth * (_panSettings.controlCursorScreenPos + 0.07); // 0.05 left margin + 0.02 for making this less sensitive
+    double maxRightDistance = viewWidth * (1 - _panSettings.controlCursorScreenPos + 0.15); // teleporting to the right is harder to trigger (we don't want to overdo it)
+
+    if (controlX < playbackX && _panSettings.teleportRightEnabled) {
+        return cursorDistance < maxRightDistance;
+    }
+
+    if (playbackX < controlX && _panSettings.teleportLeftEnabled) {
+        return cursorDistance < maxLeftDistance;
+    }
+
+    return true;
 }
 
 //---------------------------------------------------------
@@ -2250,7 +2285,11 @@ void ScoreView::cmd(const char* s)
             "next-track",
             "prev-track",
             "next-measure",
-            "prev-measure" }, [](ScoreView* cv, const QByteArray& cmd) {
+            "prev-measure",
+            "next-system",
+            "prev-system",
+            "empty-trailing-measure",
+            "top-staff" }, [](ScoreView* cv, const QByteArray& cmd) {
                 if (cv->score()->selection().isLocked()) {
                     LOGW() << "unable exec cmd: " << cmd << ", selection locked, reason: "
                            << cv->score()->selection().lockReason();
@@ -2277,6 +2316,9 @@ void ScoreView::cmd(const char* s)
                     cv->score()->endCmd();
                 } else {
                     Element* ele = cv->score()->move(cmd);
+                    if (cmd == "empty-trailing-measure") {
+                        cv->changeState(ViewState::NOTE_ENTRY);
+                    }
                     if (ele) {
                         cv->adjustCanvasPosition(ele, false);
                     }
@@ -2781,7 +2823,7 @@ void ScoreView::cmd(const char* s)
                 QAction* a = getAction(cmd);
                 if (cv->score()->styleB(Sid::concertPitch) != a->isChecked()) {
                     cv->score()->startCmd();
-                    cv->score()->cmdConcertPitchChanged(a->isChecked(), true);
+                    cv->score()->cmdConcertPitchChanged(a->isChecked());
                     cv->score()->endCmd();
                 }
             } },
@@ -3023,10 +3065,20 @@ void ScoreView::startNoteEntry()
             intersect.translate(-p->x(), -p->y());
             QList<Element*> el = p->items(intersect);
             ChordRest* lastSelected = score()->selection().currentCR();
+            if (lastSelected && lastSelected->voice()) {
+                // if last selected CR was not in voice 1,
+                // find CR in voice 1 instead
+                int track = trackZeroVoice(lastSelected->track());
+                Segment* s = lastSelected->segment();
+                if (s) {
+                    lastSelected = s->nextChordRest(track, true);
+                }
+            }
+
             for (Element* e : el) {
                 // loop through visible elements
                 // looking for the CR in voice 1 with earliest tick and highest staff position
-                // but stop we find the last selected CR
+                // but stop if we find the last selected CR
                 ElementType et = e->type();
                 if (et == ElementType::NOTE || et == ElementType::REST) {
                     if (e->voice()) {
@@ -3087,7 +3139,8 @@ void ScoreView::startNoteEntry()
         el = _score->selection().firstChordRest();
     }
     if (el == 0
-        || (el->type() != ElementType::CHORD && el->type() != ElementType::REST && el->type() != ElementType::NOTE)) {
+        || (el->type() != ElementType::CHORD && el->type() != ElementType::REST && el->type() != ElementType::MMREST
+            && el->type() != ElementType::NOTE)) {
         // if no note/rest is selected, start with voice 0
         int track = is.track() == -1 ? 0 : (is.track() / VOICES) * VOICES;
         // try to find an appropriate measure to start in
@@ -3651,6 +3704,8 @@ void ScoreView::adjustCanvasPosition(const Element* el, bool playBack, int staff
         m = static_cast<const Note*>(el)->chord()->measure();
     } else if (el->type() == ElementType::REST) {
         m = static_cast<const Rest*>(el)->measure();
+    } else if (el->type() == ElementType::MMREST) {
+        m = static_cast<const MMRest*>(el)->measure();
     } else if (el->type() == ElementType::CHORD) {
         m = static_cast<const Chord*>(el)->measure();
     } else if (el->type() == ElementType::SEGMENT) {
@@ -4899,8 +4954,12 @@ void ScoreView::cmdRepeatSelection()
         return;
     }
     if (!selection.isRange()) {
-        qDebug("wrong selection type");
-        return;
+        ChordRest* cr = _score->getSelectedChordRest();
+        if (!cr) {
+            return;
+        }
+
+        _score->select(cr, SelectType::RANGE);
     }
 
     if (!checkCopyOrCut()) {
@@ -5536,9 +5595,9 @@ static bool needViewportMove(Score* cs, ScoreView* cv)
     mEnd = mEnd ? mEnd->nextMeasureMM() : nullptr;
 
     const bool isExcerpt = !cs->isMaster();
-    const int startStaff = (isExcerpt || state.startStaff() < 0) ? 0 : state.startStaff();
-    const int endStaff = (isExcerpt || state.endStaff() < 0) ? (cs->nstaves() - 1) : state.endStaff();
-
+    const bool csStaves = (isExcerpt || (state.endStaff() < 0) || (state.endStaff() >= cs->nstaves()));
+    const int startStaff = csStaves ? 0 : state.startStaff();
+    const int endStaff = csStaves ? (cs->nstaves() - 1) : state.endStaff();
     for (Measure* m = mStart; m && m != mEnd; m = m->nextMeasureMM()) {
         for (int st = startStaff; st <= endStaff; ++st) {
             const StaffLines* l = m->staffLines(st);
@@ -5640,5 +5699,7 @@ void SmoothPanSettings::loadFromPreferences()
 //      advancedWeighting = preferences.getBool(PREF_PAN_WEIGHT_ADVANCED);
 //      cursorTimerDuration = preferences.getInt(PREF_PAN_SMART_TIMER_DURATION);
     controlCursorScreenPos = preferences.getDouble(PREF_PAN_CURSOR_POS);
+    teleportLeftEnabled = preferences.getBool(PREF_PAN_TELEPORT_LEFT);
+    teleportRightEnabled = preferences.getBool(PREF_PAN_TELEPORT_RIGHT);
 }
 } // namespace Ms

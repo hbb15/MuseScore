@@ -23,7 +23,7 @@
 #include "actions/iactionsdispatcher.h"
 #include "actions/actionable.h"
 #include "context/iglobalcontext.h"
-#include "../inotation.h"
+#include "inotation.h"
 
 namespace mu {
 namespace domain {

@@ -2092,7 +2092,7 @@ void Beam::layout2(std::vector<ChordRest*> crl, SpannerSegmentType, int frag)
 
 void Beam::spatiumChanged(qreal oldValue, qreal newValue)
 {
-    int idx = (_direction == Direction::AUTO || _direction == Direction::DOWN) ? 0 : 1;
+    int idx = (!_up) ? 0 : 1;
     if (_userModified[idx]) {
         qreal diff = newValue / oldValue;
         for (BeamFragment* f : fragments) {
@@ -2707,5 +2707,18 @@ void Beam::initBeamEditData(EditData& ed)
 void Beam::startDrag(EditData& editData)
 {
     initBeamEditData(editData);
+}
+
+//---------------------------------------------------------
+//   scanElements
+//---------------------------------------------------------
+
+void Beam::scanElements(void* data, void (* func)(void*, Element*), bool all)
+{
+    ChordRest* cr = toChordRest(treeParent());
+    if (!all && cr->measure()->stemless(cr->staffIdx())) {
+        return;
+    }
+    Element::scanElements(data, func, all);
 }
 }

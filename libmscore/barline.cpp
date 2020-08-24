@@ -1586,10 +1586,8 @@ void BarLine::scanElements(void* data, void (* func)(void*, Element*), bool all)
     if (width() == 0.0 && !all) {
         return;
     }
+    ScoreElement::scanElements(data, func, all);
     func(data, this);
-    for (Element* e : _el) {
-        e->scanElements(data, func, all);
-    }
 }
 
 //---------------------------------------------------------

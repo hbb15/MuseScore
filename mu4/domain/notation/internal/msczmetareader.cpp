@@ -122,9 +122,10 @@ MsczMetaReader::RawMeta MsczMetaReader::doReadBox(QXmlStreamReader& xmlReader) c
                     if (isTitle) {
                         meta.titleStyle = formatFromXml(xmlReader.readElementText(
                                                             QXmlStreamReader::IncludeChildElements));
-                    } if (isSubtitle) {
+                    }
+                    if (isSubtitle) {
                         meta.subtitleStyle = formatFromXml(xmlReader.readElementText(
-                                                            QXmlStreamReader::IncludeChildElements));
+                                                               QXmlStreamReader::IncludeChildElements));
                     } else if (isComposer) {
                         meta.composerStyle
                             = formatFromXml(xmlReader.readElementText(QXmlStreamReader::IncludeChildElements));
@@ -184,6 +185,8 @@ MsczMetaReader::RawMeta MsczMetaReader::doReadRawMeta(QXmlStreamReader& xmlReade
                 meta.copyright = xmlReader.readElementText();
             } else if (name == "translator") {
                 meta.translator = xmlReader.readElementText();
+            } else if (name == "creationDate") {
+                meta.creationDate = xmlReader.readElementText();
             } else {
                 xmlReader.skipCurrentElement();
             }
@@ -284,6 +287,7 @@ RetVal<Meta> MsczMetaReader::doReadMeta(QXmlStreamReader& xmlReader) const
     meta.val.translator = simplified(rawMeta.translator);
     meta.val.arranger = simplified(rawMeta.arranger);
     meta.val.partsCount = rawMeta.partsCount;
+    meta.val.creationDate = QDate::fromString(rawMeta.creationDate, "yyyy-MM-dd");
 
     return meta;
 }
@@ -388,7 +392,8 @@ std::string MsczMetaReader::cutXmlTags(const std::string& str) const
 
     for (size_t index = 0; str[index]; ++index) {
         if (str[index] == '<') {
-            for (; str[index + 1] && str[index] != '>'; ++index);
+            for (; str[index + 1] && str[index] != '>'; ++index) {
+            }
             continue;
         }
         fin += str[index];
