@@ -100,6 +100,7 @@ private:
     bool _playbackVoice[VOICES] { true, true, true, true };
 
     ChangeMap _velocities;           ///< cached value
+    ChangeMap _velocityMultiplications;         ///< cached value
     PitchList _pitchOffsets;        ///< cached value
 
     void fillBrackets(int);
@@ -245,6 +246,7 @@ public:
     //===========
 
     ChangeMap& velocities() { return _velocities; }
+    ChangeMap& velocityMultiplications() { return _velocityMultiplications; }
     PitchList& pitchOffsets() { return _pitchOffsets; }
 
     int pitchOffset(const Fraction& tick) { return _pitchOffsets.pitchOffset(tick.ticks()); }

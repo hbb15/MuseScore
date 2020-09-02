@@ -20,14 +20,18 @@
 #define MU_VST_VSTSCANNER_H
 
 #include "plugin.h"
+#include "modularity/imoduleexport.h"
 
 namespace mu {
 namespace vst {
-class VSTScanner
+class VSTScanner : MODULE_EXPORT_INTERFACE
 {
+    INTERFACE_ID(VSTScanner)
+
 public:
-    //! construct with setted path
+    //! construct with paths
     explicit VSTScanner(std::string paths);
+    explicit VSTScanner();
 
     //! current paths for scan
     std::string paths() const;

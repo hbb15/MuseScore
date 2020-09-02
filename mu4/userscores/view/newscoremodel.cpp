@@ -7,7 +7,7 @@
 
 using namespace mu::userscores;
 using namespace mu::actions;
-using namespace mu::domain::notation;
+using namespace mu::notation;
 
 NewScoreModel::NewScoreModel(QObject* parent)
     : QObject(parent)
@@ -21,8 +21,7 @@ bool NewScoreModel::create()
     scoreOptions.composer = m_composer;
 
     // TODO: Temporary solution
-    scoreOptions.templatePath = io::pathToQString(
-        globalConfiguration()->sharePath() + "/templates/02-Choral/05-SATB_Closed_Score_+_Organ.mscx");
+    scoreOptions.templatePath = globalConfiguration()->sharePath() + "/templates/02-Choral/05-SATB_Closed_Score_+_Organ.mscx";
 
     fillDefault(scoreOptions);
 

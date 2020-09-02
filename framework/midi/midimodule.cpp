@@ -28,6 +28,7 @@
 #include "internal/synthesizersregister.h"
 #include "internal/midiconfiguration.h"
 #include "internal/soundfontsprovider.h"
+
 #include "internal/midiportdatasender.h"
 
 #include "view/synthssettingsmodel.h"
@@ -36,26 +37,34 @@
 
 #include "internal/synthesizercontroller.h"
 
+#include "ui/iuiengine.h"
 #include "devtools/midiportdevmodel.h"
 
 using namespace mu::midi;
 
 #ifdef Q_OS_LINUX
 #include "internal/platform/lin/alsamidioutport.h"
+#include "internal/platform/lin/alsamidiinport.h"
 static std::shared_ptr<IMidiOutPort> midiOutPort = std::make_shared<AlsaMidiOutPort>();
-#endif
+static std::shared_ptr<IMidiInPort> midiInPort = std::make_shared<AlsaMidiInPort>();
 
-#ifdef Q_OS_WIN
+#elif defined(Q_OS_WIN)
 #include "internal/platform/win/winmidioutport.h"
+#include "internal/platform/win/winmidiinport.h"
 static std::shared_ptr<IMidiOutPort> midiOutPort = std::make_shared<WinMidiOutPort>();
-#endif
+static std::shared_ptr<IMidiInPort> midiInPort = std::make_shared<WinMidiInPort>();
 
-#ifdef Q_OS_MACOS
-//#include "internal/platform/osx/coremidioutport.h"
-//static std::shared_ptr<IMidiOutPort> midiOutPort = std::make_shared<CoreMidiOutPort>();
+#elif defined(Q_OS_MACOS)
+#include "internal/platform/osx/coremidioutport.h"
+#include "internal/platform/osx/coremidiinport.h"
+static std::shared_ptr<IMidiOutPort> midiOutPort = std::make_shared<CoreMidiOutPort>();
+static std::shared_ptr<IMidiInPort> midiInPort = std::make_shared<CoreMidiInPort>();
 
+#else
 #include "internal/dummymidioutport.h"
+#include "internal/dummymidiinport.h"
 static std::shared_ptr<IMidiOutPort> midiOutPort = std::make_shared<DummyMidiOutPort>();
+static std::shared_ptr<IMidiInPort> midiInPort = std::make_shared<DummyMidiInPort>();
 #endif
 
 static SynthesizerController s_synthesizerController;
@@ -76,14 +85,18 @@ void MidiModule::registerExports()
     framework::ioc()->registerExport<ISequencer>(moduleName(), new Sequencer());
     framework::ioc()->registerExport<IMidiConfiguration>(moduleName(), new MidiConfiguration());
     framework::ioc()->registerExport<ISoundFontsProvider>(moduleName(), new SoundFontsProvider());
-    framework::ioc()->registerExport<IMidiOutPort>(moduleName(), midiOutPort);
     framework::ioc()->registerExport<IMidiPortDataSender>(moduleName(), new MidiPortDataSender());
+    framework::ioc()->registerExport<IMidiOutPort>(moduleName(), midiOutPort);
+    framework::ioc()->registerExport<IMidiInPort>(moduleName(), midiInPort);
 }
 
 void MidiModule::registerUiTypes()
 {
     qmlRegisterType<SynthsSettingsModel>("MuseScore.Midi", 1, 0, "SynthsSettingsModel");
     qmlRegisterType<MidiPortDevModel>("MuseScore.Midi", 1, 0, "MidiPortDevModel");
+
+    //! NOTE No Qml, as it will be, need to uncomment
+    //framework::ioc()->resolve<framework::IUiEngine>(moduleName())->addSourceImportPath(mu4_midi_QML_IMPORT);
 }
 
 void MidiModule::onInit()

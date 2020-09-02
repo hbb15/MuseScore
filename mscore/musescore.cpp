@@ -19,8 +19,8 @@
 #include "framework/ui/iuiengine.h"
 #include "framework/global/settings.h"
 
-#include "mu4/scenes/palette/internal/palette/palettecreator.h"
-#include "mu4/scenes/palette/internal/palette/masterpalette.h"
+#include "mu4/palette/internal/palette/palettecreator.h"
+#include "mu4/palette/internal/palette/masterpalette.h"
 #include "mu4/cloud/internal/cloudmanager.h"
 #include "mp3exporter.h"
 #include "mu3paletteadapter.h"
@@ -78,8 +78,8 @@
 #include "timeline.h"
 
 #include "importmidi_ui/importmidi_panel.h"
-#include "mu4/domain/importexport/internal/midiimport/importmidi_instrument.h"
-#include "mu4/domain/importexport/internal/midiimport/importmidi_operations.h"
+#include "mu4/importexport/internal/midiimport/importmidi_instrument.h"
+#include "mu4/importexport/internal/midiimport/importmidi_operations.h"
 
 #include "scorecmp/scorecmp.h"
 #include "script/recorderwidget.h"
@@ -638,6 +638,18 @@ void MuseScore::onLongOperationFinished()
 }
 
 //---------------------------------------------------------
+//   moveControlCursor
+//---------------------------------------------------------
+
+void MuseScore::moveControlCursor()
+{
+    if (!cv) {
+        return;
+    }
+    cv->moveControlCursorNearCursor();
+}
+
+//---------------------------------------------------------
 //   importExtension
 //---------------------------------------------------------
 
@@ -1091,9 +1103,9 @@ MuseScore::MuseScore()
     : QMainWindow()
 {
     mu::framework::ioc()->registerExportNoDelete<mu::framework::IMainWindow>("mscore", this);
-    mu::framework::ioc()->registerExport<mu::scene::palette::IPaletteAdapter>("mscore", new MU3PaletteAdapter());
+    mu::framework::ioc()->registerExport<mu::palette::IPaletteAdapter>("mscore", new MU3PaletteAdapter());
     mu::framework::ioc()->registerExport<mu::cloud::IMp3Exporter>("mscore", new Mp3Exporter());
-    mu::framework::ioc()->registerExport<mu::scene::inspector::IInspectorAdapter>("mscore", new MU3InspectorAdapter());
+    mu::framework::ioc()->registerExport<mu::inspector::IInspectorAdapter>("mscore", new MU3InspectorAdapter());
 
     _tourHandler = new TourHandler(this);
     qApp->installEventFilter(_tourHandler);
@@ -2111,9 +2123,9 @@ MuseScore::~MuseScore()
     paletteWidget = nullptr;
 
     mu::framework::ioc()->unregisterExport<mu::framework::IMainWindow>();
-    mu::framework::ioc()->unregisterExport<mu::scene::palette::IPaletteAdapter>();
+    mu::framework::ioc()->unregisterExport<mu::palette::IPaletteAdapter>();
     mu::framework::ioc()->unregisterExport<mu::cloud::IMp3Exporter>();
-    mu::framework::ioc()->unregisterExport<mu::scene::inspector::IInspectorAdapter>();
+    mu::framework::ioc()->unregisterExport<mu::inspector::IInspectorAdapter>();
 }
 
 //---------------------------------------------------------
@@ -6296,10 +6308,9 @@ void MuseScore::transpose()
 }
 
 //---------------------------------------------------------
-//   cmdRealizeChordSymbols
+//   realizeChordSymbols
 ///   Realize selected chord symbols into notes on the staff.
-///   Currently just pops up a dialog to list TPCs,
-///   Intervals, and pitches.
+///   Display dialog to offer overrides to default behavior
 //---------------------------------------------------------
 
 void MuseScore::realizeChordSymbols()
@@ -8295,6 +8306,19 @@ static void initZitaResources()
     Q_INIT_RESOURCE(zita);
 }
 
+static void initResources()
+{
+#ifdef Q_OS_MAC
+    Q_INIT_RESOURCE(musescore);
+    Q_INIT_RESOURCE(qml);
+    Q_INIT_RESOURCE(shortcut_Mac);
+#else
+    Q_INIT_RESOURCE(musescore);
+    Q_INIT_RESOURCE(qml);
+    Q_INIT_RESOURCE(shortcut);
+#endif
+}
+
 namespace Ms {
 //---------------------------------------------------------
 //   runApplication
@@ -8302,6 +8326,8 @@ namespace Ms {
 
 int runApplication(int& argc, char** av)
 {
+    initResources();
+
 #ifndef NDEBUG
     qSetMessagePattern("%{file}:%{function}: %{message}");
     Ms::checkStyles();
