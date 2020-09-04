@@ -54,6 +54,7 @@ if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
             ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_MuseJazz.qrc
             ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Smufl.qrc
             ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Tabulature.qrc
+            ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Numeric.qrc
       )
 else (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
       QT5_ADD_RESOURCES(qrc_files ${PROJECT_SOURCE_DIR}/mtest/mtest.qrc
@@ -66,6 +67,7 @@ else (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
           ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_MuseJazz.qrc
           ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Smufl.qrc
           ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Tabulature.qrc
+          ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Numeric.qrc
       )
 endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.11.0")
 

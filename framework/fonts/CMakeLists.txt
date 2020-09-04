@@ -29,6 +29,7 @@ set(MODULE_QRC
     fonts_MuseJazz.qrc
     fonts_Smufl.qrc
     fonts_Tabulature.qrc
+    fonts_Numeric.qrc
     )
 
 set(MODULE_SRC

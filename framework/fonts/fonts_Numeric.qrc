@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="fonts/numeric/Numeric.ttf">../../fonts/numeric/Numeric.ttf</file>
+	    </qresource>
+</RCC>
