@@ -315,7 +315,8 @@ const CharFormat TextCursor::selectedFragmentsFormat() const
 
     int endSelectionRow = hasSelection() ? qMax(selectLine(), _row) : _text->rows() - 1;
 
-    CharFormat resultFormat = _text->textBlock(startRow).fragment(startColumn)->format;
+    const TextFragment* tf = _text->textBlock(startRow).fragment(startColumn);
+    CharFormat resultFormat = tf ? tf->format : CharFormat();
 
     for (int row = startRow; row <= endSelectionRow; ++row) {
         TextBlock* block = &_text->_layout[row];
@@ -327,7 +328,7 @@ const CharFormat TextCursor::selectedFragmentsFormat() const
         int endSelectionColumn = hasSelection() ? qMax(selectColumn(), _column) : block->columns();
 
         for (int column = startColumn; column < endSelectionColumn; column++) {
-            CharFormat format = block->fragment(column)->format;
+            CharFormat format = block->fragment(column) ? block->fragment(column)->format : CharFormat();
 
             if (resultFormat.style() != format.style()) {
                 resultFormat.setStyle(FontStyle::Undefined);
@@ -878,6 +879,7 @@ void TextFragment::draw(QPainter* p, const TextBase* t) const
         qreal dx = p->worldTransform().dx();
         qreal dy = p->worldTransform().dy();
         // diagonal elements will now be changed to 1.0
+        // ToDo for Qt 5.15: setMatrix vs. setTransform() ??
         p->setMatrix(QMatrix(1.0, 0.0, 0.0, 1.0, dx, dy));
         // correction factor for bold text drawing, due to the change of the diagonal elements
         qreal factor = 1.0 / mm;
@@ -927,6 +929,7 @@ void TextFragment::draw(QPainter* p, const TextBase* t) const
             positions2.clear();
         }
         // Restore the QPainter to its former state
+        // ToDo for Qt 5.15: setMatrix vs. setTransform() ??
         p->setMatrix(QMatrix(mm, 0.0, 0.0, mm, dx, dy));
         p->restore();
     } else {

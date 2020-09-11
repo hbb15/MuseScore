@@ -236,7 +236,10 @@ void PianoItem::paintNoteBlock(QPainter* painter, NoteEvent* evt)
         painter->setFont(f);
 
         //Note name
-        QString name = tpc2name(_note->tpc(), NoteSpellingType::STANDARD, NoteCaseType::AUTO, false);
+        QString name = qApp->translate("InspectorAmbitus", tpc2name(
+                                           _note->tpc(), NoteSpellingType::STANDARD, NoteCaseType::AUTO, false).replace("b",
+                                                                                                                        "♭").replace("#",
+                                                                                                                                     "♯").toUtf8().constData());
         painter->setPen(QPen(noteColor.lighter(130)));
         painter->drawText(textHiliteRect,
                           Qt::AlignLeft | Qt::AlignTop, name);
@@ -901,6 +904,7 @@ QVector<Note*> PianoView::getSegmentNotes(Segment* seg, int track)
     ChordRest* cr = seg->cr(track);
     if (cr && cr->isChord()) {
         Chord* chord = toChord(cr);
+        // ToDo for Qt 5.15: QVector<Note*>::fromStdVector() vs. QVector<T>(vector.begin(), vector.end()) ??
         notes.append(QVector<Note*>::fromStdVector(chord->notes()));
     }
 
