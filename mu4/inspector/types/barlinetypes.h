@@ -20,6 +20,7 @@ public:
         TYPE_BROKEN = LineType::TYPE_DASHED,
         TYPE_FINAL = 0x20,
         TYPE_END = LineType::TYPE_FINAL,
+        TYPE_BEGIN = 0x30,
         TYPE_END_START_REPEAT = 0x40,
         TYPE_LEFT_RIGHT_REPEAT = LineType::TYPE_END_START_REPEAT,
         TYPE_DOTTED = 0x80,

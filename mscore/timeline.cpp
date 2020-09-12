@@ -986,7 +986,7 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
     _barlines[BarLineType::START_REPEAT] = startRepeatPixmap;
     _barlines[BarLineType::END_REPEAT] = endRepeatPixmap;
     _barlines[BarLineType::END] = endBarlinePixmap;
-    _barlines["Start barline"] = startBarlinePixmap;
+    _barlines[BarLineType::BEGIN] = startBarlinePixmap;
     _barlines[BarLineType::DOUBLE] = doubleBarlinePixmap;
     _barlines[BarLineType::REVERSE_END] = reverseEndBarlinePixmap;
     _barlines[BarLineType::HEAVY] = heavyBarlinePixmap;
@@ -1386,7 +1386,7 @@ void Timeline::barlineMeta(Segment* seg, int* stagger, int pos)
             // actually an end repeat followed by a start repeat, so nothing needs to be done here
             break;
         case BarLineType::BEGIN:
-            repeatText = QString("Start barline");
+            repeatText = BarLine::userTypeName(barline->barLineType());
             break;
         default:
             break;
@@ -1580,6 +1580,7 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
         { BarLine::userTypeName(BarLineType::START_REPEAT), BarLineType::START_REPEAT },
         { BarLine::userTypeName(BarLineType::END_REPEAT), BarLineType::END_REPEAT },
         { BarLine::userTypeName(BarLineType::END), BarLineType::END },
+        { BarLine::userTypeName(BarLineType::BEGIN), BarLineType::BEGIN },
         { BarLine::userTypeName(BarLineType::DOUBLE), BarLineType::DOUBLE },
         { BarLine::userTypeName(BarLineType::REVERSE_END), BarLineType::REVERSE_END },
         { BarLine::userTypeName(BarLineType::HEAVY), BarLineType::HEAVY },
@@ -1608,7 +1609,7 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
     // Adjust x for end repeats
     if ((barLineType == BarLineType::END_REPEAT
          || barLineType == BarLineType::END
-         || metaText == BarLine::userTypeName(BarLineType::BEGIN)
+         || barLineType == BarLineType::BEGIN
          || barLineType == BarLineType::DOUBLE
          || barLineType == BarLineType::REVERSE_END
          || barLineType == BarLineType::HEAVY
@@ -1973,7 +1974,8 @@ void Timeline::drawSelection()
                     || barline->barLineType() == BarLineType::REVERSE_END
                     || barline->barLineType() == BarLineType::HEAVY
                     || barline->barLineType() == BarLineType::DOUBLE_HEAVY
-                    || barline->barLineType() == BarLineType::END)
+                    || barline->barLineType() == BarLineType::END
+                    || barline->barLineType() == BarLineType::BEGIN)
                 && measure != _score->lastMeasure()) {
                 if (measure->prevMeasure()) {
                     measure = measure->prevMeasure();
