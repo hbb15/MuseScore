@@ -24,9 +24,14 @@ namespace framework {
 struct Progress {
     int64_t current = 0;
     int64_t total = 0;
+    std::string status;
 
-    Progress(const int64_t current, const int64_t total)
+    Progress(int64_t current, int64_t total)
         : current(current), total(total) {}
+
+    Progress(int64_t current, int64_t total, std::string status)
+        : current(current), total(total), status(std::move(status)) {}
+
     Progress() = default;
 };
 }

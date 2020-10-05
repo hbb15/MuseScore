@@ -24,8 +24,9 @@
 using namespace mu;
 using namespace mu::framework;
 using namespace mu::userscores;
+using namespace mu::notation;
 
-static std::string module_name("userscores");
+static const std::string module_name("userscores");
 
 static const Settings::Key RECENT_LIST(module_name, "userscores/recentList");
 static const Settings::Key USER_TEMPLATES(module_name, "application/paths/myTemplates");
@@ -75,4 +76,14 @@ io::paths UserScoresConfiguration::templatesDirPaths() const
     dirs.insert(dirs.end(), temps.begin(), temps.end());
 
     return dirs;
+}
+
+QColor UserScoresConfiguration::templatePreviewBackgroundColor() const
+{
+    return notationConfiguration()->backgroundColor();
+}
+
+async::Channel<QColor> UserScoresConfiguration::templatePreviewBackgroundColorChanged() const
+{
+    return notationConfiguration()->backgroundColorChanged();
 }

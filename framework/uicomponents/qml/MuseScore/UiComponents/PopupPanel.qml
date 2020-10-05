@@ -1,4 +1,5 @@
 import QtQuick 2.9
+import QtGraphicalEffects 1.0
 
 import MuseScore.Ui 1.0
 
@@ -6,16 +7,17 @@ Rectangle {
     id: root
 
     property alias content: loader.sourceComponent
+    property alias background: effectSource.sourceItem
+    property alias canClose: closeButton.visible
 
     signal closed()
 
-    height: loader.height + 84
     color: ui.theme.popupBackgroundColor
     border.width: 1
     border.color: ui.theme.strokeColor
-    radius: 20
 
-    anchors.bottomMargin: -20
+    radius: 20
+    anchors.bottomMargin: -radius
 
     function setContentData(data) {
         if (loader.status === Loader.Ready) {
@@ -23,12 +25,15 @@ Rectangle {
         }
     }
 
-    function show(data) {
-        setContentData(data)
+    function open() {
         visible = true
     }
 
-    function hide() {
+    function close() {
+        if (!canClose) {
+            return
+        }
+
         visible = false
 
         closed()
@@ -36,20 +41,13 @@ Rectangle {
 
     Loader {
         id: loader
-
-        readonly property int sideMargin: 68
-
-        anchors.left: parent.left
-        anchors.leftMargin: sideMargin
-        anchors.right: parent.right
-        anchors.rightMargin: sideMargin
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 42
-
-        height: sourceComponent.height
+        anchors.fill: parent
+        z: 1
     }
 
     StyledIconLabel {
+        id: closeButton
+
         anchors.top: parent.top
         anchors.topMargin: 20
         anchors.right: parent.right
@@ -58,7 +56,7 @@ Rectangle {
         width: 32
         height: width
 
-        font.pixelSize: 32
+        font.pixelSize: 16
 
         iconCode: IconCode.CLOSE_X_ROUNDED
 
@@ -66,8 +64,39 @@ Rectangle {
             anchors.fill: parent
 
             onClicked: {
-                hide()
+                close()
             }
         }
+    }
+
+    ShaderEffectSource {
+        id: effectSource
+
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.leftMargin: Boolean(sourceItem) ? sourceItem.x : 0
+        anchors.right: parent.right
+        anchors.rightMargin: anchors.leftMargin
+
+        height: root.height
+        z: -1
+
+        sourceRect: Qt.rect(0, root.y, width, height)
+
+        Rectangle {
+            anchors.fill: parent
+
+            color: ui.theme.popupBackgroundColor
+            opacity: 0.75
+        }
+    }
+
+    FastBlur {
+        anchors.fill: effectSource
+        anchors.topMargin: 30
+
+        source: effectSource
+        radius: 100
+        transparentBorder: true
     }
 }

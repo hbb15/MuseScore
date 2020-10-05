@@ -31,8 +31,30 @@ QmlDialog::QmlDialog(QQuickItem* parent)
     : QQuickItem(parent)
 {
     setFlag(QQuickItem::ItemHasContents, true);
+    setErrCode(Ret::Code::Ok);
 
     m_dialog = new QDialog();
+
+    connect(m_dialog, &QDialog::finished, [this](int code) {
+        QDialog::DialogCode dialogCode = static_cast<QDialog::DialogCode>(code);
+
+        switch (dialogCode) {
+        case QDialog::Rejected: {
+            setErrCode(Ret::Code::Cancel);
+            emit closed();
+            break;
+        }
+        case QDialog::Accepted:
+            break;
+        }
+    });
+}
+
+void QmlDialog::setErrCode(Ret::Code code)
+{
+    QVariantMap ret;
+    ret["errcode"] = static_cast<int>(code);
+    setRet(ret);
 }
 
 void QmlDialog::componentComplete()
@@ -83,6 +105,12 @@ void QmlDialog::hide()
 {
     m_dialog->hide();
     emit closed();
+}
+
+void QmlDialog::reject()
+{
+    setErrCode(Ret::Code::Cancel);
+    hide();
 }
 
 QQmlComponent* QmlDialog::content() const

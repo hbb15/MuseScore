@@ -38,6 +38,7 @@
 #include "mu4/userscores/userscoresmodule.h"
 #include "mu4/extensions/extensionsmodule.h"
 #include "mu4/languages/languagesmodule.h"
+#include "mu4/plugins/pluginsmodule.h"
 #include "mu4/notation/notationmodule.h"
 #include "mu4/importexport/importexportmodule.h"
 #include "mu4/importexport/importexportmodule.h"
@@ -72,6 +73,8 @@ ModulesSetup::ModulesSetup()
         << new mu::fonts::FontsModule()
         << new mu::framework::SystemModule()
         << new mu::framework::NetworkModule()
+        << new mu::plugins::PluginsModule()
+
 #ifdef BUILD_UI_MU4
         << new mu::actions::ActionsModule()
         << new mu::appshell::AppShellModule()

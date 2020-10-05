@@ -61,6 +61,7 @@ elseif (MSCORE_INSTALL_SUFFIX)
       set(MSCORE_OUTPUT_NAME "${ExecutableName}${MSCORE_INSTALL_SUFFIX}")
 endif (MINGW OR MSVC)
 
+message("[cmake] MSCORE_OUTPUT_NAME: ${MSCORE_OUTPUT_NAME}")
 # If MSCORE_OUTPUT_NAME is set (e.g, when cmake is called by the user), the output executable will be
 # called MSCORE_OUTPUT_NAME instead of 'mscore'. This can be used to have MuseScore stable and unstable
 # both installed in the same prefix on a Linux system.
@@ -132,6 +133,7 @@ if (BUILD_UI_MU4)
         inspector
         playback
         instruments
+        plugins
         )
 
     if (BUILD_VST)
@@ -159,6 +161,7 @@ if (APPLE)
       #       XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
 endif (APPLE)
 
+include (${PROJECT_SOURCE_DIR}/build/CopyFilesMacros.cmake)
 
 if (MINGW)
    add_custom_command(
@@ -248,6 +251,11 @@ if (MINGW)
          ${QT_INSTALL_BINS}/Qt5QmlModels.dll
          DESTINATION bin)
    endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.14.0")
+   if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.15.0")
+      install( FILES
+         ${QT_INSTALL_BINS}/Qt5QmlWorkerScript.dll
+         DESTINATION bin)
+   endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.15.0")
    if (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
       install( FILES
          ${MINGW_ROOT}/opt/bin/libeay32.dll
@@ -424,6 +432,9 @@ else (MINGW)
       if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.14.0")
          list(APPEND dlls_to_copy "${QT_INSTALL_BINS}/Qt5QmlModels.dll")
       endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.14.0")
+      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.15.0")
+         list(APPEND dlls_to_copy "${QT_INSTALL_BINS}/Qt5QmlWorkerScript.dll")
+      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.15.0")
 
       set(CMAKE_FIND_LIBRARY_PREFIX "")
       set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
@@ -561,6 +572,7 @@ if (APPLE)
       ../fonts/mscoreTab.ttf
       ../fonts/mscore-BC.ttf
       ../fonts/bravura/BravuraText.otf
+      ../fonts/leland/Leland.otf
      DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}fonts
      )
      install(DIRECTORY

@@ -25,9 +25,8 @@ Rectangle {
 
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 16
 
-        spacing: 16
+        spacing: 12
 
         FamilyView {
             id: familyView
@@ -57,12 +56,7 @@ Rectangle {
             }
         }
 
-        Rectangle {
-            Layout.preferredWidth: 2
-            Layout.fillHeight: true
-
-            color: ui.theme.buttonColor
-        }
+        SeparatorLine { orientation: Qt.Vertical }
 
         InstrumentsView {
             id: instrumentsView
@@ -78,12 +72,7 @@ Rectangle {
             }
         }
 
-        Rectangle {
-            Layout.preferredWidth: 2
-            Layout.fillHeight: true
-
-            color: ui.theme.buttonColor
-        }
+        SeparatorLine { orientation: Qt.Vertical }
 
         FlatButton {
             Layout.preferredWidth: 30
@@ -98,12 +87,7 @@ Rectangle {
             }
         }
 
-        Rectangle {
-            Layout.preferredWidth: 2
-            Layout.fillHeight: true
-
-            color: ui.theme.buttonColor
-        }
+        SeparatorLine { orientation: Qt.Vertical }
 
         SelectedInstrumentsView {
             id: selectedInstrumentsView
@@ -123,18 +107,13 @@ Rectangle {
             }
         }
 
-        Rectangle {
-            Layout.preferredWidth: 2
-            Layout.fillHeight: true
-
-            color: ui.theme.buttonColor
-        }
+        SeparatorLine { orientation: Qt.Vertical }
 
         Column {
             Layout.preferredWidth: 30
             anchors.verticalCenter: parent.verticalCenter
 
-            spacing: 4
+            spacing: 12
 
             FlatButton {
                 enabled: selectedInstrumentsView.canLiftInstrument

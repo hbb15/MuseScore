@@ -7,9 +7,10 @@ Item {
     id: root
 
     property string search: ""
+    property string backgroundColor: ui.theme.backgroundPrimaryColor
 
     onSearchChanged: {
-        languagePanel.hide()
+        languagePanel.close()
     }
 
     Component.onCompleted: {
@@ -75,7 +76,7 @@ Item {
         gradient: Gradient {
             GradientStop {
                 position: 0.0
-                color: ui.theme.backgroundPrimaryColor
+                color: root.backgroundColor
             }
             GradientStop {
                 position: 1.0
@@ -105,13 +106,14 @@ Item {
             statusTitle: model.statusTitle
 
             color: (index % 2 == 0) ? ui.theme.popupBackgroundColor
-                                    : ui.theme.backgroundPrimaryColor
+                                    : root.backgroundColor
 
             headerWidth: header.itemWidth
             sideMargin: 133
 
             onClicked: {
-                languagePanel.show(model)
+                languagePanel.open()
+                languagePanel.setContentData(model)
             }
         }
     }
@@ -122,7 +124,7 @@ Item {
         anchors.bottom: view.bottom
 
         height: 8
-        z:1
+        z: 1
 
         gradient: Gradient {
             GradientStop {
@@ -131,7 +133,7 @@ Item {
             }
             GradientStop {
                 position: 1.0
-                color: ui.theme.backgroundPrimaryColor
+                color: root.backgroundColor
             }
         }
     }
@@ -143,10 +145,18 @@ Item {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
 
+        height: 206
+
         visible: false
 
         content: LanguageInfo {
             id: languageInfo
+
+            anchors.fill: parent
+            anchors.topMargin: 44
+            anchors.leftMargin: 68
+            anchors.rightMargin: 68
+            anchors.bottomMargin: 42
 
             onInstall: {
                 Qt.callLater(languageListModel.install, code)
