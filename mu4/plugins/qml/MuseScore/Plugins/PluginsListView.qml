@@ -51,7 +51,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
 
-        readonly property int sideMargin: 44
+        readonly property int sideMargin: 28
 
         anchors.leftMargin: -sideMargin
         anchors.rightMargin: -sideMargin
@@ -104,6 +104,8 @@ Item {
                 width: 296
 
                 onClicked: {
+                    forceActiveFocus()
+
                     view.positionViewAtIndex(index, GridView.Visible)
                     view.currentIndex = index
                     root.pluginClicked(model)

@@ -19,7 +19,7 @@
 #ifndef MU_INSTRUMENTS_INSTRUMENTSTYPES_H
 #define MU_INSTRUMENTS_INSTRUMENTSTYPES_H
 
-#include <QString>
+#include <QVariant>
 #include <vector>
 
 #include "libmscore/interval.h"
@@ -49,7 +49,8 @@ using MidiArticulation = Ms::MidiArticulation;
 
 using ChannelList = QList<Channel>;
 
-struct ClefPair {
+struct ClefPair
+{
     ClefType concertClef = ClefType::G;
     ClefType transposingClef = ClefType::G;
 };
@@ -58,6 +59,10 @@ struct PitchRange
 {
     int min = 0;
     int max = 0;
+
+    PitchRange() = default;
+    PitchRange(int min, int max)
+        : min(min), max(max) {}
 };
 
 struct MidiAction
@@ -85,31 +90,32 @@ struct InstrumentGenre
 };
 using InstrumentGenreHash = QHash<QString /*id*/, InstrumentGenre>;
 
-struct Transposition {
+struct Transposition
+{
     QString id;
     QString name;
 
     bool isValid() const { return !id.isEmpty(); }
 };
 
-struct InstrumentTemplate
+struct Instrument
 {
     QString id;
     StaffNameList longNames;
     StaffNameList shortNames;
-    QString trackName;
+    QString name;
     QString description;
 
+    bool isDoubling = false;
+
     bool extended = false;
-    int staves = 0;
+    int staves = 1;
 
     QString groupId;
     QStringList genreIds;
 
-    QString musicXMLId;
-
-    PitchRange aPitchRange;
-    PitchRange pPitchRange;
+    PitchRange amateurPitchRange;
+    PitchRange professionalPitchRange;
 
     ClefTypeList clefs[MAX_STAVES];
     int staffLines[MAX_STAVES];
@@ -121,10 +127,10 @@ struct InstrumentTemplate
     Interval transpose;
 
     StaffGroup staffGroup;
-    const StaffType* staffTypePreset;
+    const StaffType* staffTypePreset = nullptr;
 
     bool useDrumset = false;
-    Drumset* drumset = 0;
+    const Drumset* drumset = nullptr;
 
     StringData stringData;
 
@@ -135,12 +141,25 @@ struct InstrumentTemplate
 
     ChannelList channels;
 
+    bool visible = true;
+
+    bool isValid() const { return !id.isEmpty(); }
+    QString abbreviature() const { return !shortNames.isEmpty() ? shortNames.first().name() : QString(); }
+};
+
+using InstrumentList = QList<Instrument>;
+
+struct InstrumentTemplate
+{
+    QString id;
     Transposition transposition;
+    Instrument instrument;
 
     bool isValid() const { return !id.isEmpty(); }
 };
 
 using InstrumentTemplateHash = QHash<QString /*id*/, InstrumentTemplate>;
+using InstrumentTemplateList = QList<InstrumentTemplate>;
 
 struct InstrumentsMeta
 {
@@ -151,5 +170,7 @@ struct InstrumentsMeta
 };
 }
 }
+
+Q_DECLARE_METATYPE(mu::instruments::Instrument)
 
 #endif // MU_INSTRUMENTS_INSTRUMENTSTYPES_H

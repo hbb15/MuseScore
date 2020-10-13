@@ -1,4 +1,5 @@
 import QtQuick 2.9
+import QtQuick.Controls 2.2
 
 import MuseScore.UiComponents 1.0
 import MuseScore.Languages 1.0
@@ -9,8 +10,19 @@ Item {
     property string search: ""
     property string backgroundColor: ui.theme.backgroundPrimaryColor
 
+    QtObject {
+        id: privateProperties
+
+        property var selectedLanguage: undefined
+        property int sideMargin: 133
+
+        function resetSelectedLanguage() {
+            selectedLanguage = undefined
+        }
+    }
+
     onSearchChanged: {
-        languagePanel.close()
+        panel.close()
     }
 
     Component.onCompleted: {
@@ -19,6 +31,14 @@ Item {
 
     LanguageListModel {
         id: languageListModel
+
+        onProgress: {
+            panel.setProgress(status, indeterminate, current, total)
+        }
+        onFinish: {
+            panel.resetProgress()
+            privateProperties.selectedLanguage = item
+        }
     }
 
     FilterProxyModel {
@@ -43,9 +63,9 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: 16
         anchors.left: parent.left
-        anchors.leftMargin: 133
+        anchors.leftMargin: privateProperties.sideMargin
         anchors.right: parent.right
-        anchors.rightMargin: 133
+        anchors.rightMargin: privateProperties.sideMargin
 
         height: 48
 
@@ -91,13 +111,25 @@ Item {
         anchors.top: header.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: languagePanel.visible ? languagePanel.top : parent.bottom
+        anchors.bottom: panel.visible ? panel.top : parent.bottom
 
         model: filterModel
 
         clip: true
 
         boundsBehavior: Flickable.StopAtBounds
+
+        ScrollBar.vertical: StyledScrollBar {
+            parent: view.parent
+
+            anchors.top: parent.top
+            anchors.bottom: panel.visible ? panel.top : parent.bottom
+            anchors.right: parent.right
+            anchors.rightMargin: 16
+
+            visible: view.contentHeight > view.height
+            z: 1
+        }
 
         delegate: LanguageItem {
             width: view.width
@@ -112,8 +144,10 @@ Item {
             sideMargin: 133
 
             onClicked: {
-                languagePanel.open()
-                languagePanel.setContentData(model)
+                forceActiveFocus()
+
+                privateProperties.selectedLanguage = languageListModel.language(index)
+                panel.open()
             }
         }
     }
@@ -138,51 +172,41 @@ Item {
         }
     }
 
-    PopupPanel {
-        id: languagePanel
+    InstallationPanel {
+        id: panel
 
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        property alias selectedLanguage: privateProperties.selectedLanguage
 
         height: 206
 
-        visible: false
+        title: Boolean(selectedLanguage) ? selectedLanguage.name : ""
+        installed: Boolean(selectedLanguage) ? (selectedLanguage.status === LanguageStatus.Installed) : false
+        hasUpdate: Boolean(selectedLanguage) ? (selectedLanguage.status === LanguageStatus.NeedUpdate) : false
+        neutralButtonTitle: qsTrc("languages", "Open language preferences")
+        background: view
 
-        content: LanguageInfo {
-            id: languageInfo
+        onInstallRequested: {
+            Qt.callLater(languageListModel.install, selectedLanguage.code)
+        }
 
-            anchors.fill: parent
-            anchors.topMargin: 44
-            anchors.leftMargin: 68
-            anchors.rightMargin: 68
-            anchors.bottomMargin: 42
+        onUninstallRequested: {
+            Qt.callLater(languageListModel.uninstall, selectedLanguage.code)
+        }
 
-            onInstall: {
-                Qt.callLater(languageListModel.install, code)
-            }
+        onUpdateRequested: {
+            Qt.callLater(languageListModel.update, selectedLanguage.code)
+        }
 
-            onUpdate: {
-                Qt.callLater(languageListModel.update, code)
-            }
+        onRestartRequested: {
+            Qt.callLater(languageListModel.restart, selectedLanguage.code)
+        }
 
-            onUninstall: {
-                Qt.callLater(languageListModel.uninstall, code)
-            }
+        onNeutralButtonClicked: {
+            Qt.callLater(languageListModel.openPreferences)
+        }
 
-            onOpenPreferences: {
-                Qt.callLater(languageListModel.openPreferences)
-            }
-
-            Connections {
-                target: languageListModel
-                onProgress: {
-                    languageInfo.setProgress(status, indeterminate, current, total)
-                }
-                onFinish: {
-                    languageInfo.resetProgress()
-                }
-            }
+        onClosed: {
+            privateProperties.resetSelectedLanguage()
         }
     }
 }

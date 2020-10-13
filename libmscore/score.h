@@ -170,6 +170,7 @@ public:
     void remove(MeasureBase*, MeasureBase*);
     void change(MeasureBase* o, MeasureBase* n);
     int size() const { return _size; }
+    bool empty() const { return _size == 0; }
     void fixupSystems();
 };
 
@@ -675,6 +676,7 @@ public:
 
     int staffIdx(const Part*) const;
     Staff* staff(int n) const { return ((n >= 0) && (n < _staves.size())) ? _staves.at(n) : nullptr; }
+    Staff* staff(const QString& staffId) const;
 
     Measure* pos2measure(const QPointF&, int* staffIdx, int* pitch, Segment**, QPointF* offset) const;
     void dragPosition(const QPointF&, int* staffIdx, Segment**, qreal spacingFactor = 0.5) const;
@@ -691,7 +693,7 @@ public:
     void undoChangeChordRestLen(ChordRest* cr, const TDuration&);
     void undoTransposeHarmony(Harmony*, int, int);
     void undoExchangeVoice(Measure* measure, int val1, int val2, int staff1, int staff2);
-    void undoRemovePart(Part* part, int idx);
+    void undoRemovePart(Part* part, int idx = -1);
     void undoInsertPart(Part* part, int idx);
     void undoRemoveStaff(Staff* staff);
     void undoInsertStaff(Staff* staff, int idx, bool createRests=true);
@@ -975,7 +977,7 @@ public:
     void setInputTrack(int t) { inputState().setTrack(t); }
 
     void spatiumChanged(qreal oldValue, qreal newValue);
-    void styleChanged();
+    void styleChanged() override;
 
     void cmdPaste(const QMimeData* ms, MuseScoreView* view, Fraction scale = Fraction(1, 1));
     bool pasteStaff(XmlReader&, Segment* dst, int staffIdx, Fraction scale = Fraction(1, 1));

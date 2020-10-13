@@ -33,6 +33,7 @@
 #include "notationelements.h"
 #include "notationaccessibility.h"
 #include "notationmidiinput.h"
+#include "notationparts.h"
 
 using namespace mu::notation;
 using namespace Ms;
@@ -44,6 +45,7 @@ Notation::Notation(Score* score)
     m_interaction = new NotationInteraction(this);
     m_midiInput = new NotationMidiInput(this);
     m_accessibility = new NotationAccessibility(this, m_interaction->selectionChanged());
+    m_parts = new NotationParts(this, m_interaction->selectionChanged());
     m_undoStackController = new NotationUndoStackController(this);
     m_style = new NotationStyle(this);
     m_playback = new NotationPlayback(this);
@@ -55,8 +57,8 @@ Notation::Notation(Score* score)
     m_interaction->dropChanged().onNotify(this, [this]() { notifyAboutNotationChanged(); });
 
     m_midiInput->noteChanged().onNotify(this, [this]() { notifyAboutNotationChanged(); });
-
     m_style->styleChanged().onNotify(this, [this]() { notifyAboutNotationChanged(); });
+    m_parts->partsChanged().onNotify(this, [this]() { notifyAboutNotationChanged(); });
 
     if (score) {
         setScore(score);
@@ -207,6 +209,11 @@ mu::async::Notification Notation::notationChanged() const
 INotationAccessibility* Notation::accessibility() const
 {
     return m_accessibility;
+}
+
+INotationParts* Notation::parts() const
+{
+    return m_parts;
 }
 
 Ms::Score* Notation::score() const

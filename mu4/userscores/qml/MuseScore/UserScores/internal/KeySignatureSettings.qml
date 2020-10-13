@@ -18,7 +18,7 @@ FlatButton {
     property var popupPositionY: height
     property alias oppened: popup.visible
 
-    backgroundColor: oppened ? ui.theme.accentColor : ui.theme.buttonColor
+    accentButton: oppened
 
     Column {
         anchors.horizontalCenter: root.horizontalCenter
@@ -51,7 +51,7 @@ FlatButton {
     StyledPopup {
         id: popup
 
-        implicitHeight: column.implicitHeight + topPadding + bottomPadding + 40
+        implicitHeight: 300
         implicitWidth: 724
 
         arrowX: root.arrowX
@@ -94,8 +94,6 @@ FlatButton {
 
                 anchors.left: parent.left
                 anchors.right: parent.right
-
-                height: childrenRect.height
 
                 currentIndex: bar.currentIndex
 

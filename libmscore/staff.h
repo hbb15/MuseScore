@@ -67,6 +67,7 @@ public:
     };
 
 private:
+    QString _id;
     Part* _part       { 0 };
 
     ClefList clefs;
@@ -98,6 +99,7 @@ private:
     QMap<int,SwingParameters> _swingList;
     QMap<int,int> _capoList;
     bool _playbackVoice[VOICES] { true, true, true, true };
+    std::array<bool, VOICES> _visibilityVoices { true, true, true, true };
 
     ChangeMap _velocities;           ///< cached value
     ChangeMap _velocityMultiplications;         ///< cached value
@@ -120,10 +122,13 @@ public:
     bool isTop() const;
     QString partName() const;
     int rstaff() const;
+    QString id() const;
+    void setId(const QString& id);
+    static QString makeId();
     int idx() const;
-    void read(XmlReader&);
-    bool readProperties(XmlReader&);
-    void write(XmlWriter& xml) const;
+    void read(XmlReader&) override;
+    bool readProperties(XmlReader&) override;
+    void write(XmlWriter& xml) const override;
     Part* part() const { return _part; }
     void setPart(Part* p) { _part = p; }
 
@@ -146,6 +151,8 @@ public:
     ClefType clef(const Fraction&) const;
     Fraction nextClefTick(const Fraction&) const;
     Fraction currentClefTick(const Fraction&) const;
+
+    QString staffName() const;
 
     void setClef(Clef*);
     void removeClef(const Clef*);
@@ -193,7 +200,7 @@ public:
     void setBarLineSpan(int val) { _barLineSpan = val; }
     void setBarLineFrom(int val) { _barLineFrom = val; }
     void setBarLineTo(int val) { _barLineTo = val; }
-    qreal height() const;
+    qreal height() const override;
 
     void set_numericHeight(qreal h) { _numericHigth = h; }
     qreal get_numericHeight() { return _numericHigth; }
@@ -258,13 +265,13 @@ public:
     qreal userDist() const { return _userDist; }
     void setUserDist(qreal val) { _userDist = val; }
 
-    void spatiumChanged(qreal /*oldValue*/, qreal /*newValue*/);
+    void spatiumChanged(qreal /*oldValue*/, qreal /*newValue*/) override;
     void setLocalSpatium(double oldVal, double newVal, Fraction tick);
     bool genKeySig();
     bool showLedgerLines(const Fraction&) const;
 
-    QColor color() const { return _color; }
-    void setColor(const QColor& val) { _color = val; }
+    QColor color() const override { return _color; }
+    void setColor(const QColor& val) override { _color = val; }
     void undoSetColor(const QColor& val);
     void insertTime(const Fraction&, const Fraction& len);
 
@@ -276,6 +283,9 @@ public:
 
     bool playbackVoice(int voice) const { return _playbackVoice[voice]; }
     void setPlaybackVoice(int voice, bool val) { _playbackVoice[voice] = val; }
+
+    std::array<bool, VOICES> visibilityVoices() const { return _visibilityVoices; }
+    void setVoiceVisible(int voice, bool visible) { _visibilityVoices[voice] = visible; }
 
 #ifndef NDEBUG
     void dumpClefs(const char* title) const;

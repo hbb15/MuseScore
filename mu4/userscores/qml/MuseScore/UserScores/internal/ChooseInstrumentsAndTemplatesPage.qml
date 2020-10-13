@@ -10,11 +10,21 @@ import MuseScore.Instruments 1.0
 Item {
     id: root
 
+    property bool isChosen: {
+        if (pagesStack.currentIndex === 0) {
+            return instrumentsPage.isInstrumentsChosen
+        } else if (pagesStack.currentIndex === 1) {
+            return templatePage.isTemplateChosen
+        }
+
+        return false
+    }
+
     function result() {
         var result = {}
 
         if (pagesStack.currentIndex === 0) {
-            result["instrumentIds"] = instrumentsPage.selectedInstrumentIds()
+            result["instruments"] = instrumentsPage.selectedInstruments()
         } else if (pagesStack.currentIndex === 1) {
             result["templatePath"] = templatePage.selectedTemplatePath
         }
@@ -56,14 +66,10 @@ Item {
 
         ChooseInstrumentsPage {
             id: instrumentsPage
-
-            anchors.fill: parent
         }
 
         ChooseTemplatePage {
             id: templatePage
-
-            anchors.fill: parent
         }
     }
 }

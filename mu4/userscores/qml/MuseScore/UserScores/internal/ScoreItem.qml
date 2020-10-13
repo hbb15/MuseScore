@@ -1,4 +1,6 @@
 import QtQuick 2.7
+import QtGraphicalEffects 1.0
+
 import MuseScore.Ui 1.0
 import MuseScore.UiComponents 1.0
 import MuseScore.UserScores 1.0
@@ -18,27 +20,85 @@ Item {
 
         spacing: 16
 
-        Rectangle {
+        Item {
+            id: scoreRect
+
             height: 224
             width: 172
 
-            radius: 3
+            opacity: 0.9
+
+            property int borderWidth: 0
+            readonly property int radius: 3
 
             Loader {
                 id: loader
 
                 anchors.fill: parent
-                anchors.margins: parent.radius
 
                 property var thumbnail: undefined
 
-                sourceComponent: isAdd ? addComp : thumbnailComp
+                sourceComponent: root.isAdd ? addComp : thumbnailComp
 
                 onLoaded: {
-                    if (!isAdd) {
-                        item.setThumbnail(thumbnail)
+                    if (!root.isAdd) {
+                        item.setThumbnail(root.thumbnail)
                     }
                 }
+
+                layer.enabled: true
+                layer.effect: OpacityMask {
+                    maskSource: Rectangle {
+                        width: scoreRect.width
+                        height: scoreRect.height
+                        radius: scoreRect.radius
+                    }
+                }
+            }
+
+            Rectangle {
+                anchors.top: parent.top
+
+                height: parent.height + parent.borderWidth
+                width: parent.width
+
+                color: "transparent"
+                radius: parent.radius
+
+                border.color: ui.theme.strokeColor
+                border.width: parent.borderWidth
+            }
+
+            states: [
+                State {
+                    name: "HOVERED"
+                    when: mouseArea.containsMouse && !mouseArea.pressed
+
+                    PropertyChanges {
+                        target: scoreRect
+                        opacity: 1
+                        borderWidth: 1
+                    }
+                },
+
+                State {
+                    name: "PRESSED"
+                    when: mouseArea.pressed
+
+                    PropertyChanges {
+                        target: scoreRect
+                        opacity: 0.5
+                    }
+                }
+            ]
+
+            RectangularGlow {
+                anchors.fill: scoreRect
+                z: -1
+
+                glowRadius: 20
+                color: "#08000000"
+                cornerRadius: scoreRect.radius + glowRadius
             }
         }
 
@@ -51,6 +111,8 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 text: root.title
+
+                font.pixelSize: 14
             }
 
             StyledTextLabel {
@@ -61,7 +123,7 @@ Item {
                 font.pixelSize: 12
                 font.capitalization: Font.AllUppercase
 
-                visible: !isAdd
+                visible: !root.isAdd
             }
         }
     }
@@ -80,7 +142,7 @@ Item {
         Rectangle {
             anchors.fill: parent
 
-            color: "#FFFFFF"
+            color: "white"
 
             StyledIconLabel {
                 anchors.centerIn: parent
@@ -88,12 +150,17 @@ Item {
                 iconCode: IconCode.PLUS
 
                 font.pixelSize: 50
+                color: "black"
             }
         }
     }
 
     MouseArea {
+        id: mouseArea
+
         anchors.fill: parent
+
+        hoverEnabled: true
 
         onClicked: {
             root.clicked()

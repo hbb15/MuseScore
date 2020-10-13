@@ -11,14 +11,14 @@ FocusScope {
 
     Rectangle {
         anchors.fill: parent
-        color: ui.theme.backgroundPrimaryColor
+        color: ui.theme.backgroundSecondaryColor
     }
 
     QtObject {
         id: privateProperties
 
-        readonly property int sideMargin: 134
-        readonly property int buttonWidth: 200
+        readonly property int sideMargin: 133
+        readonly property int buttonWidth: 160
     }
 
     StyledTextLabel {
@@ -106,7 +106,8 @@ FocusScope {
                 FlatButton {
                     width: privateProperties.buttonWidth
                     text: qsTrc("cloud", "Create new account")
-                    backgroundColor: ui.theme.accentColor
+
+                    accentButton: true
 
                     onClicked: {
                         root.createAccountRequested()

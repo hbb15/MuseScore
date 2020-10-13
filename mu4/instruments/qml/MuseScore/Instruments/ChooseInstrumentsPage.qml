@@ -8,10 +8,19 @@ import MuseScore.Instruments 1.0
 Rectangle {
     id: root
 
+    property bool isInstrumentsChosen: instrumentsModel.selectedInstruments.length > 0
+
     color: ui.theme.backgroundPrimaryColor
 
-    function selectedInstrumentIds() {
-        return instrumentsModel.selectedInstrumentIds()
+    function selectedInstruments() {
+        var instruments = instrumentsModel.selectedInstruments
+        var result = []
+
+        for (var i = 0; i < instruments.length; ++i) {
+            result.push(instruments[i].config)
+        }
+
+        return result
     }
 
     InstrumentListModel {
@@ -50,7 +59,7 @@ Rectangle {
             Connections {
                 target: instrumentsModel
 
-                onSelectedFamilyChanged: {
+                function onSelectedFamilyChanged(family) {
                     familyView.setFamily(family)
                 }
             }
@@ -111,7 +120,7 @@ Rectangle {
 
         Column {
             Layout.preferredWidth: 30
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
 
             spacing: 12
 

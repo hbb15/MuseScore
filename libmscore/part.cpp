@@ -34,6 +34,9 @@ namespace Ms {
 Part::Part(Score* s)
     : ScoreElement(s)
 {
+    static std::atomic_int currentId { 0 };
+    _id = QString::number(++currentId);
+
     _color = DEFAULT_COLOR;
     _show  = true;
     _instruments.setInstrument(new Instrument, -1);     // default instrument
@@ -331,6 +334,16 @@ void Part::removeInstrument(const Fraction& tick)
         return;
     }
     _instruments.erase(i);
+}
+
+void Part::removeInstrument(const QString& instrumentId)
+{
+    for (auto it = _instruments.begin(); it != _instruments.end(); ++it) {
+        if (it->second->instrumentId() == instrumentId) {
+            _instruments.erase(it);
+            break;
+        }
+    }
 }
 
 //---------------------------------------------------------

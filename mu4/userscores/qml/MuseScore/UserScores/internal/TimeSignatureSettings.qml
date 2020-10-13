@@ -18,7 +18,7 @@ FlatButton {
     property var popupPositionY: height
     property alias oppened: popup.visible
 
-    backgroundColor: oppened ? ui.theme.accentColor : ui.theme.buttonColor
+    accentButton: oppened
 
     TimeSignatureView {
         id: timeSignatureView
@@ -28,7 +28,7 @@ FlatButton {
         Connections {
             target: model
 
-            onTimeSignatureChanged: {
+            function onTimeSignatureChanged(timeSignature) {
                 timeSignatureView.numerator = model.musicSymbolCodes(timeSignature.numerator)
                 timeSignatureView.denominator = model.musicSymbolCodes(timeSignature.denominator)
             }

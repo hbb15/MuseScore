@@ -29,6 +29,9 @@
 #include "libmscore/score.h"
 #include "libmscore/timesig.h"
 #include "libmscore/key.h"
+#include "libmscore/part.h"
+#include "libmscore/staff.h"
+#include "libmscore/stafftype.h"
 
 #include "instruments/instrumentstypes.h"
 
@@ -44,6 +47,12 @@ using StyleId = Ms::Sid;
 using Key = Ms::Key;
 using KeyMode = Ms::KeyMode;
 using TimeSigType = Ms::TimeSigType;
+using Part = Ms::Part;
+using Staff = Ms::Staff;
+using StaffType = Ms::StaffTypes;
+
+using StaffList = QList<const Staff*>;
+using PartList = QList<const Part*>;
 
 enum class DragMode {
     BothXY = 0,
@@ -107,7 +116,7 @@ struct ScoreCreateOptions {
     int measureTimesigDenominator = 0;
 
     io::path templatePath;
-    QList<instruments::InstrumentTemplate> instrumentTemplates;
+    instruments::InstrumentList instruments;
 };
 }
 }

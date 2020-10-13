@@ -1362,6 +1362,11 @@ void Instrument::addShortName(const StaffName& f)
     _shortNames.append(f);
 }
 
+int Instrument::cleffTypeCount() const
+{
+    return _clefType.size();
+}
+
 //---------------------------------------------------------
 //   clefType
 //---------------------------------------------------------

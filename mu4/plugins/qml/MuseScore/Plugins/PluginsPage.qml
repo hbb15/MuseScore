@@ -89,10 +89,11 @@ Item {
             parent: flickable.parent
 
             anchors.top: parent.top
-            anchors.bottom: parent.bottom
+            anchors.bottom: panel.visible ? panel.top : parent.bottom
             anchors.right: parent.right
-            anchors.rightMargin: 13
+            anchors.rightMargin: 16
 
+            visible: flickable.contentHeight > flickable.height
             z: 1
         }
 
@@ -101,24 +102,6 @@ Item {
             anchors.fill: parent
 
             spacing: 42
-
-            PluginsListView {
-                id: notInstalledPluginsView
-
-                width: parent.width
-                title: qsTrc("plugins", "Not installed")
-                visible: count > 0
-
-                search: root.search
-                selectedCategory: root.selectedCategory
-
-                model: pluginsModel
-
-                onPluginClicked: {
-                    privateProperties.selectedPlugin = plugin
-                    panel.open()
-                }
-            }
 
             PluginsListView {
                 id: installedPluginsView
@@ -135,6 +118,24 @@ Item {
 
                 onPluginClicked: {
                     privateProperties.selectedPlugin = plugin
+                    panel.open()
+                }
+            }
+
+            PluginsListView {
+                id: notInstalledPluginsView
+
+                width: parent.width
+                title: qsTrc("plugins", "Not installed")
+                visible: count > 0
+
+                search: root.search
+                selectedCategory: root.selectedCategory
+
+                model: pluginsModel
+
+                onPluginClicked: {
+                    privateProperties.selectedPlugin = Object.assign({}, plugin)
                     panel.open()
                 }
             }
@@ -172,7 +173,13 @@ Item {
         description: Boolean(selectedPlugin) ? selectedPlugin.description : ""
         installed: Boolean(selectedPlugin) ? selectedPlugin.installed : false
         hasUpdate: Boolean(selectedPlugin) ? selectedPlugin.hasUpdate : false
+        neutralButtonTitle: qsTrc("plugins", "View full description")
         background: flickable
+
+        additionalInfoModel: [
+            {"title": qsTrc("plugins", "Author:"), "value": qsTrc("plugins", "MuseScore")},
+            {"title": qsTrc("plugins", "Maintained by:"), "value": qsTrc("plugins", "MuseScore")}
+        ]
 
         onInstallRequested: {
             pluginsModel.install(selectedPlugin.codeKey)
@@ -190,7 +197,7 @@ Item {
             pluginsModel.restart(selectedPlugin.codeKey)
         }
 
-        onOpenFullDescriptionRequested: {
+        onNeutralButtonClicked: {
             pluginsModel.openFullDescription(selectedPlugin.codeKey)
         }
 

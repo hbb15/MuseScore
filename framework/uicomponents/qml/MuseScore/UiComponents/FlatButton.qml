@@ -7,12 +7,23 @@ FocusableItem {
     property alias icon: buttonIcon.iconCode
     property alias text: textLabel.text
     property int iconPixelSize: buttonIcon.isEmpty ? 0 : 16
-    property alias backgroundColor: backgroundRect.color
+
+    property bool accentButton: false
+
+    QtObject {
+        id: privateProperties
+
+        property color defaultColor: accentButton ? ui.theme.accentColor : ui.theme.buttonColor
+    }
+
+    property color normalStateColor: privateProperties.defaultColor
+    property color hoveredStateColor: privateProperties.defaultColor
+    property color pressedStateColor: privateProperties.defaultColor
 
     signal clicked
 
     height: contentWrapper.implicitHeight + 16
-    width: contentWrapper.width + 16
+    width: (Boolean(text) ? Math.max(contentWrapper.implicitWidth + 32, 132) : contentWrapper.implicitWidth + 16)
 
     opacity: root.enabled ? 1.0 : 0.3
 
@@ -21,7 +32,7 @@ FocusableItem {
 
         anchors.fill: parent
 
-        color: ui.theme.buttonColor
+        color: root.accentButton ? ui.theme.accentColor : ui.theme.buttonColor
         opacity: ui.theme.buttonOpacityNormal
         border.width: 0
         radius: 3
@@ -72,9 +83,8 @@ FocusableItem {
 
             PropertyChanges {
                 target: backgroundRect
+                color: pressedStateColor
                 opacity: ui.theme.buttonOpacityHit
-                border.color: ui.theme.strokeColor
-                border.width: 1
             }
         },
 
@@ -84,9 +94,8 @@ FocusableItem {
 
             PropertyChanges {
                 target: backgroundRect
+                color: hoveredStateColor
                 opacity: ui.theme.buttonOpacityHover
-                border.color: ui.theme.strokeColor
-                border.width: 1
             }
         }
     ]

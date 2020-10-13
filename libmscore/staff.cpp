@@ -49,6 +49,7 @@ namespace Ms {
 Staff::Staff(Score* score)
     : Element(score)
 {
+    setId(makeId());
     initFromStaffType(0);
 }
 
@@ -59,6 +60,15 @@ Staff::Staff(Score* score)
 Staff* Staff::clone() const
 {
     return new Staff(*this);
+}
+
+//---------------------------------------------------------
+//   id
+//---------------------------------------------------------
+
+QString Staff::id() const
+{
+    return _id;
 }
 
 //---------------------------------------------------------
@@ -157,11 +167,7 @@ void Staff::swapBracket(int oldIdx, int newIdx)
     fillBrackets(idx);
     _brackets[oldIdx]->setColumn(newIdx);
     _brackets[newIdx]->setColumn(oldIdx);
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     _brackets.swapItemsAt(oldIdx, newIdx);
-#else
-    _brackets.swap(oldIdx, newIdx);
-#endif
     cleanBrackets();
 }
 
@@ -179,11 +185,7 @@ void Staff::changeBracketColumn(int oldColumn, int newColumn)
         int newIdx = i + step;
         _brackets[oldIdx]->setColumn(newIdx);
         _brackets[newIdx]->setColumn(oldIdx);
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
         _brackets.swapItemsAt(oldIdx, newIdx);
-#else
-        _brackets.swap(oldIdx, newIdx);
-#endif
     }
     cleanBrackets();
 }
@@ -376,6 +378,11 @@ Fraction Staff::nextClefTick(const Fraction& tick) const
 Fraction Staff::currentClefTick(const Fraction& tick) const
 {
     return Fraction::fromTicks(clefs.currentClefTick(tick.ticks()));
+}
+
+QString Staff::staffName() const
+{
+    return Ms::ClefInfo::name(defaultClefType()._transposingClef);
 }
 
 #ifndef NDEBUG
@@ -867,6 +874,17 @@ qreal Staff::staffMag(const StaffType* stt) const
     return (stt->small() ? score()->styleD(Sid::smallStaffMag) : 1.0) * stt->userMag();
 }
 
+void Staff::setId(const QString& id)
+{
+    _id = id;
+}
+
+QString Staff::makeId()
+{
+    static std::atomic_int currentId { 0 };
+    return QString::number(++currentId);
+}
+
 qreal Staff::staffMag(const Fraction& tick) const
 {
     return staffMag(staffType(tick));
@@ -1210,7 +1228,7 @@ void Staff::spatiumChanged(qreal oldValue, qreal newValue)
 
 bool Staff::show() const
 {
-    return _part->show();
+    return _part->show() && !_invisible;
 }
 
 //---------------------------------------------------------

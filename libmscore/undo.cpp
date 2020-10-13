@@ -1558,6 +1558,19 @@ void SetUserBankController::flip(EditData*)
 //   ChangeStaff
 //---------------------------------------------------------
 
+ChangeStaff::ChangeStaff(Staff* _staff)
+    : staff(_staff)
+{
+    invisible = staff->invisible();
+    clefType = staff->defaultClefType();
+    userDist = staff->userDist();
+    hideMode = staff->hideWhenEmpty();
+    showIfEmpty = staff->showIfEmpty();
+    cutaway = staff->cutaway();
+    hideSystemBarLine = staff->hideSystemBarLine();
+    mergeMatchingRests = staff->mergeMatchingRests();
+}
+
 ChangeStaff::ChangeStaff(Staff* _staff,  bool _invisible, ClefTypeList _clefType,
                          qreal _userDist, Staff::HideMode _hideMode, bool _showIfEmpty, bool _cutaway,
                          bool _hideSystemBarLine, bool _mergeMatchingRests)
@@ -2067,11 +2080,7 @@ void RemoveExcerpt::redo(EditData*)
 
 void SwapExcerpt::flip(EditData*)
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     score->excerpts().swapItemsAt(pos1, pos2);
-#else
-    score->excerpts().swap(pos1, pos2);
-#endif
     score->setExcerptsChanged(true);
 }
 
