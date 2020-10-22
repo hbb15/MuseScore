@@ -54,7 +54,7 @@ QT5_ADD_RESOURCES(qrc_files ${PROJECT_SOURCE_DIR}/mtest/mtest.qrc
       ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Smufl.qrc
       ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Tabulature.qrc
       ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Petaluma.qrc
-            ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Numeric.qrc
+      ${PROJECT_SOURCE_DIR}/framework/fonts/fonts_Numeric.qrc
 )
 
 add_library (testResources STATIC
