@@ -34,12 +34,14 @@
 #include "internal/notationreadersregister.h"
 #include "internal/mscznotationreader.h"
 #include "internal/msczmetareader.h"
+#include "internal/notationactionsrepositoryfactory.h"
 
 #include "view/notationpaintview.h"
 #include "view/notationaccessibilitymodel.h"
 #include "view/zoomcontrolmodel.h"
 #include "view/notationtoolbarmodel.h"
 #include "view/notationswitchlistmodel.h"
+#include "view/partlistmodel.h"
 
 #include "ui/iinteractiveuriregister.h"
 #include "ui/uitypes.h"
@@ -69,6 +71,7 @@ void NotationModule::registerExports()
     framework::ioc()->registerExport<INotationCreator>(moduleName(), new NotationCreator());
     framework::ioc()->registerExport<INotationConfiguration>(moduleName(), s_configuration);
     framework::ioc()->registerExport<IMsczMetaReader>(moduleName(), new MsczMetaReader());
+    framework::ioc()->registerExport<INotationActionsRepositoryFactory>(moduleName(), new NotationActionsRepositoryFactory());
 
     std::shared_ptr<INotationReadersRegister> readers = std::make_shared<NotationReadersRegister>();
     readers->reg({ "mscz", "mscx" }, std::make_shared<MsczNotationReader>());
@@ -86,10 +89,14 @@ void NotationModule::resolveImports()
 
     auto ir = framework::ioc()->resolve<framework::IInteractiveUriRegister>(moduleName());
     if (ir) {
-        ir->registerUri(Uri("musescore://notation/style"), ContainerMeta(ContainerType::QWidgetDialog, EditStyle::metaTypeId()));
+        ir->registerUri(Uri("musescore://notation/style"),
+                        ContainerMeta(ContainerType::QWidgetDialog, EditStyle::metaTypeId()));
 
         ir->registerUri(Uri("musescore://notation/measureproperties"),
                         ContainerMeta(ContainerType::QWidgetDialog, qRegisterMetaType<MeasurePropertiesDialog>("MeasurePropertiesDialog")));
+
+        ir->registerUri(Uri("musescore://notation/parts"),
+                        ContainerMeta(ContainerType::QmlDialog, "MuseScore/NotationScene/PartsDialog.qml"));
     }
 }
 
@@ -105,6 +112,7 @@ void NotationModule::registerUiTypes()
     qmlRegisterType<NotationAccessibilityModel>("MuseScore.NotationScene", 1, 0, "NotationAccessibilityModel");
     qmlRegisterType<ZoomControlModel>("MuseScore.NotationScene", 1, 0, "ZoomControlModel");
     qmlRegisterType<NotationSwitchListModel>("MuseScore.NotationScene", 1, 0, "NotationSwitchListModel");
+    qmlRegisterType<PartListModel>("MuseScore.NotationScene", 1, 0, "PartListModel");
 
     qRegisterMetaType<EditStyle>("EditStyle");
 

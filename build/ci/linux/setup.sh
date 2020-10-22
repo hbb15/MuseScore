@@ -3,10 +3,10 @@
 # For maximum AppImage compatibility, build on the oldest Linux distribution
 # that still receives security updates from its manufacturer.
 
-set -e # Exit on errors
-set -x # Be verbose
-
 echo "Setup Linux docker image for build AppImage"
+trap 'echo Setup failed; exit 1' ERR
+
+df -k .
 
 # Go one-up from MuseScore root dir regardless of where script was run from:
 cd "$(dirname "$(readlink -f "${0}")")/../../../.."
@@ -203,5 +203,6 @@ apt-get clean autoclean
 apt-get autoremove --purge -y
 rm -rf /tmp/* /var/{cache,log,backups}/* /var/lib/apt/*
 
+df -k .
 echo "Setup script done"
 

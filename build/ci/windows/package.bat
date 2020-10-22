@@ -11,13 +11,15 @@ SET INSTALL_DIR=msvc.install_x64
 SET SIGN_CERTIFICATE_ENCRYPT_SECRET=""
 SET SIGN_CERTIFICATE_PASSWORD=""
 SET BUILD_WIN_PORTABLE=OFF
+SET UPGRADE_UUID="11111111-1111-1111-1111-111111111111"
 
 :GETOPTS
-IF /I "%1" == "-m" SET BUILD_MODE=%2 & SHIFT
-IF /I "%1" == "-b" SET TARGET_PROCESSOR_BITS=%2 & SHIFT
-IF /I "%1" == "--signsecret" SET SIGN_CERTIFICATE_ENCRYPT_SECRET=%2 & SHIFT
-IF /I "%1" == "--signpass" SET SIGN_CERTIFICATE_PASSWORD=%2 & SHIFT
-IF /I "%1" == "--portable" SET BUILD_WIN_PORTABLE=%2 & SHIFT
+IF /I "%1" == "-m" SET BUILD_MODE=%2& SHIFT
+IF /I "%1" == "-b" SET TARGET_PROCESSOR_BITS=%2& SHIFT
+IF /I "%1" == "--signsecret" SET SIGN_CERTIFICATE_ENCRYPT_SECRET=%2& SHIFT
+IF /I "%1" == "--signpass" SET SIGN_CERTIFICATE_PASSWORD=%2& SHIFT
+IF /I "%1" == "--portable" SET BUILD_WIN_PORTABLE=%2& SHIFT
+IF /I "%1" == "--guid" SET UPGRADE_UUID=%2& SHIFT
 SHIFT
 IF NOT "%1" == "" GOTO GETOPTS
 
@@ -44,11 +46,11 @@ IF %BUILD_WIN_PORTABLE% == ON (
 )
 
 :: Setup package type
-IF %BUILD_WIN_PORTABLE% == ON ( SET PACKAGE_TYPE="portable") ELSE (
-IF %BUILD_MODE% == devel_build  ( SET PACKAGE_TYPE="7z") ELSE (
+IF %BUILD_WIN_PORTABLE% == ON    ( SET PACKAGE_TYPE="portable") ELSE (
+IF %BUILD_MODE% == devel_build   ( SET PACKAGE_TYPE="7z") ELSE (
 IF %BUILD_MODE% == nightly_build ( SET PACKAGE_TYPE="msi") ELSE (
 IF %BUILD_MODE% == testing_build ( SET PACKAGE_TYPE="msi") ELSE (    
-IF %BUILD_MODE% == stable_build   ( SET PACKAGE_TYPE="msi") ELSE ( 
+IF %BUILD_MODE% == stable_build  ( SET PACKAGE_TYPE="msi") ELSE ( 
     ECHO "Unknown BUILD_MODE: %BUILD_MODE%"
     GOTO END_ERROR
 )))))
@@ -134,9 +136,31 @@ ECHO on
 ECHO "PACKAGE_UUID: %PACKAGE_UUID%"
 ECHO off
 sed -i 's/00000000-0000-0000-0000-000000000000/%PACKAGE_UUID%/' build/Packaging.cmake
+sed -i 's/11111111-1111-1111-1111-111111111111/%UPGRADE_UUID%/' build/Packaging.cmake
+
+SET PACKAGE_FILE_ASSOCIATION=OFF
+IF %BUILD_MODE% == stable_build ( 
+    SET PACKAGE_FILE_ASSOCIATION=ON
+)
+cd "%BUILD_DIR%" 
+cmake -DPACKAGE_FILE_ASSOCIATION=%PACKAGE_FILE_ASSOCIATION% ..
+cd ..
 
 SET PATH=%WIX_DIR%;%PATH% 
 CALL msvc_build.bat package %TARGET_PROCESSOR_BITS%
+
+ECHO "Create logs dir"
+MKDIR %ARTIFACTS_DIR%\logs
+MKDIR %ARTIFACTS_DIR%\logs\WIX
+
+SET WIX_LOG_DIR=win64
+IF %TARGET_PROCESSOR_BITS% == 32 ( SET WIX_LOG_DIR=win32 ) 
+
+SET WIX_LOGS_PATH="%BUILD_DIR%\_CPack_Packages\%WIX_LOG_DIR%\WIX"
+ECHO "Copy from %WIX_LOGS_PATH% to %ARTIFACTS_DIR%\logs\WIX"
+
+ECHO .msi > excludedmsi.txt
+XCOPY /Y /EXCLUDE:excludedmsi.txt %WIX_LOGS_PATH% %ARTIFACTS_DIR%\logs\WIX
 
 :: find the MSI file without the hardcoded version
 for /r %%i in (%BUILD_DIR%\*.msi) do (
@@ -161,16 +185,11 @@ IF %DO_SIGN% == ON (
 )
 
 bash ./build/ci/tools/make_artifact_name_env.sh %ARTIFACT_NAME%
-bash ./build/ci/tools/make_publish_url_env.sh -p windows -a %ARTIFACT_NAME%
-
-SET /p PUBLISH_URL=<%ARTIFACTS_DIR%\env\publish_url.env
-
-bash ./build/ci/tools/sparkle_appcast_gen.sh -p windows -u %PUBLISH_URL%
 
 :: DEBUG SYM
 ECHO "Debug symbols generating.."
 SET DEBUG_SYMS_FILE=musescore_win%TARGET_PROCESSOR_BITS%.sym
-C:\breakpad_tools\dump_syms.exe %BUILD_DIR%\main\RelWithDebInfo\MuseScore3.pdb > %DEBUG_SYMS_FILE%
+C:\breakpad_tools\dump_syms.exe %BUILD_DIR%\main\RelWithDebInfo\MuseScore4.pdb > %DEBUG_SYMS_FILE%
 COPY %DEBUG_SYMS_FILE% %ARTIFACTS_DIR%\%DEBUG_SYMS_FILE% /Y 
 ECHO "Finished debug symbols generating"
 

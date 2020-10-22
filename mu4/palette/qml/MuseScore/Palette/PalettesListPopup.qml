@@ -19,13 +19,18 @@
 
 import QtQuick 2.8
 import QtQuick.Controls 2.1
+
 import MuseScore.Palette 1.0
+import MuseScore.UiComponents 1.0
+import MuseScore.Ui 1.0
 
 StyledPopup {
     id: palettesListPopup
     property PaletteWorkspace paletteWorkspace: null
     property int maxHeight: 400
-    height: column.height + topPadding + bottomPadding
+
+    height: column.implicitHeight + topPadding + bottomPadding
+    width: parent.width
 
     property bool inMenuAction: false
 
@@ -33,42 +38,31 @@ StyledPopup {
 
     Column {
         id: column
+
         width: parent.width
 
-        spacing: 4
+        spacing: 12
 
-        Text {
+        StyledTextLabel {
             id: header
-            text: qsTr("More palettes")
-            font: ui.theme.font
-            color: ui.theme.fontPrimaryColor
+            text: qsTrc("palette", "More palettes")
         }
 
-        StyledButton {
+        FlatButton {
             id: createCustomPaletteButton
             width: parent.width
-    //         iconSource: "icons/add.png"
-            text: qsTr("Create custom palette")
+            text: qsTrc("palette", "Create custom palette")
             onClicked: {
                 addCustomPaletteRequested();
                 palettesListPopup.close();
             }
         }
 
-        ToolSeparator {
-            id: topSeparator
-            orientation: Qt.Horizontal
-            width: parent.width
-        }
-
-        Text {
+        StyledTextLabel {
             width: parent.width
             visible: !palettesList.count
-            text: qsTr("All palettes were added")
+            text: qsTrc("palette", "All palettes were added")
             wrapMode: Text.WordWrap
-            horizontalAlignment: Text.AlignHCenter
-            font: ui.theme.font
-            color: ui.theme.fontPrimaryColor
         }
 
         ListView {
@@ -78,12 +72,12 @@ StyledPopup {
             property var extraPalettesModel: null // keeping a separate variable for a model prevents it from being deleted by QML
             model: extraPalettesModel
 
-            readonly property int availableHeight: palettesListPopup.maxHeight - header.height - createCustomPaletteButton.height - topSeparator.height
+            readonly property int availableHeight: palettesListPopup.maxHeight - header.height - createCustomPaletteButton.height
             height: Math.min(availableHeight, contentHeight)
 
             boundsBehavior: Flickable.StopAtBounds
 
-            ScrollBar.vertical: ScrollBar {}
+            ScrollBar.vertical: StyledScrollBar {}
 
             spacing: 8
 
@@ -99,6 +93,10 @@ StyledPopup {
                 height: addButton.height
                 topPadding: 0
                 bottomPadding: 0
+                leftPadding: 0
+                rightPadding: 0
+
+                background: Item {}
 
                 property bool added: false // TODO: store in some model
                 property bool removed: false
@@ -112,25 +110,20 @@ StyledPopup {
                         visible: !(morePalettesDelegate.added || morePalettesDelegate.removed)
                         anchors.fill: parent
 
-                        Text {
+                        StyledTextLabel {
                             height: parent.height
                             anchors.left: parent.left
                             anchors.right: addButton.left
                             text: morePalettesDelegate.text
-                            font: ui.theme.font
-                            color: ui.theme.windowText
-                            verticalAlignment: Text.AlignVCenter
                             horizontalAlignment: Text.AlignHLeft
-                            elide: Text.ElideRight
                         }
 
-                        StyledButton {
+                        FlatButton {
                             id: addButton
-    //                         height: parent.height
                             anchors.right: parent.right
-                            text: qsTr("Add")
+                            icon: IconCode.PLUS
 
-                            ToolTip.text: qsTr("Add %1 palette").arg(model.display)
+                            ToolTip.text: qsTrc("palette", "Add %1 palette").arg(model.display)
                             Accessible.description: ToolTip.text
 
                             onHoveredChanged: {
@@ -148,15 +141,12 @@ StyledPopup {
                         }
                     }
 
-                    Text {
+                    StyledTextLabel {
                         visible: morePalettesDelegate.added || morePalettesDelegate.removed
                         anchors.fill: parent
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        text: morePalettesDelegate.added ? qsTr("%1 Added!").arg(model.display) : (morePalettesDelegate.removed ? qsTr("%1 removed").arg(model.display) : "")
-                        font: ui.theme.font
-                        color: ui.theme.windowText
+                        text: morePalettesDelegate.added ? qsTrc("palette", "%1 added").arg(model.display) : (morePalettesDelegate.removed ? qsTrc("palette", "%1 removed").arg(model.display) : "")
                         elide: Text.ElideMiddle
+                        font.bold: true
                     }
                 }
             }

@@ -19,8 +19,12 @@
 
 import QtQuick 2.8
 import QtQuick.Controls 2.1
+import QtQuick.Layouts 1.12
 import QtQml.Models 2.2
+
 import MuseScore.Palette 1.0
+import MuseScore.UiComponents 1.0
+import MuseScore.Ui 1.0
 
 import "utils.js" as Utils
 
@@ -46,7 +50,8 @@ StyledPopup {
     property bool drawGrid
 
     property int maxHeight: 400
-    implicitHeight: column.height + topPadding + bottomPadding
+    implicitHeight: column.implicitHeight + topPadding + bottomPadding
+    width: parent.width
 
     property bool enablePaletteAnimations: false // disabled by default to avoid unnecessary "add" animations on opening this popup at first time
 
@@ -55,13 +60,13 @@ StyledPopup {
     Column {
         id: column
         width: parent.width
-        spacing: 8
+        spacing: 12
 
-        StyledButton {
+        FlatButton {
             id: addToPaletteButton
             width: parent.width
 
-            text: qsTr("Add to %1").arg(paletteName)
+            text: qsTrc("palette", "Add to %1").arg(paletteName)
             enabled: moreElementsPopup.paletteEditingEnabled && (masterPaletteSelectionModel.hasSelection || customPaletteSelectionModel.hasSelection)
 
             onClicked: {
@@ -88,18 +93,20 @@ StyledPopup {
             }
         }
 
-        Item {
+        RowLayout {
             id: masterIndexControls
             enabled: moreElementsPopup.paletteIsCustom && poolPalette && poolPaletteRootIndex
             visible: enabled
             anchors { left: parent.left; right: parent.right }
-            implicitHeight: prevButton.implicitHeight
-            StyledButton {
+
+            FlatButton {
                 id: prevButton
                 width: height
-                anchors.left: parent.left
-                flat: true
-                text: "<" // TODO: replace?
+                icon: IconCode.ARROW_LEFT
+                normalStateColor: "transparent"
+                enabled: prevIndex && prevIndex.valid
+
+                Layout.alignment: Qt.AlignLeft
 
                 property var prevIndex: {
                     if (!masterIndexControls.enabled)
@@ -113,21 +120,22 @@ StyledPopup {
                     return idx;
                 }
 
-                enabled: prevIndex && prevIndex.valid
+                onClicked: {
+                    poolPaletteRootIndex = prevIndex
+                }
+            }
 
-                onClicked: poolPaletteRootIndex = prevIndex;
-            }
-            Text {
-                anchors.centerIn: parent
+            StyledTextLabel {
                 text: moreElementsPopup.libraryPaletteName
-                font: ui.theme.font
-                color: ui.theme.fontPrimaryColor
+
+                Layout.alignment: Qt.AlignHCenter
             }
-            StyledButton {
-                width: height
-                anchors.right: parent.right
-                flat: true
-                text: ">" // TODO: replace?
+
+            FlatButton {
+                icon: IconCode.ARROW_RIGHT
+                normalStateColor: "transparent"
+
+                Layout.alignment: Qt.AlignRight
 
                 property var nextIndex: {
                     if (!masterIndexControls.enabled)
@@ -149,15 +157,16 @@ StyledPopup {
             id: paletteContainer
             width: parent.width
             height: childrenRect.height
-            border { width: 1; color: "black" }
-            color: ui.theme.backgroundPrimaryColor //! TODO mscore.paletteBackground
+            border { width: 1; color: ui.theme.strokeColor }
+            color: ui.theme.backgroundPrimaryColor
 
             readonly property int availableHeight: moreElementsPopup.maxHeight - addToPaletteButton.height - (masterIndexControls ? masterIndexControls.height : 0) - bottomText.height - (elementEditorButton.visible ? elementEditorButton.height : 0) - 40
 
             Column {
+                padding: 1
                 width: parent.width
-                padding: 8
                 property real contentWidth: width - 2 * padding
+                spacing: 0
 
                 ItemSelectionModel {
                     id: masterPaletteSelectionModel
@@ -189,31 +198,24 @@ StyledPopup {
                     enableAnimations: moreElementsPopup.enablePaletteAnimations
                 }
 
-                ToolSeparator {
-                    id: separator
-                    visible: !customPalette.empty
-                    orientation: Qt.Horizontal
-                    width: parent.contentWidth
-                }
-
                 Item {
-                    width: separator.width
+                    width: parent.width
                     implicitHeight: deleteButton.implicitHeight
                     visible: !customPalette.empty
 
-                    Text {
+                    StyledTextLabel {
                         id: customPaletteLabel
                         height: deleteButton.height
-                        verticalAlignment: Text.AlignVCenter
-                        text: qsTr("Custom")
+                        text: qsTrc("palette", "Custom")
                     }
 
-                    StyledToolButton {
+                    FlatButton {
                         id: deleteButton
                         width: height
                         anchors.right: parent.right
-                        text: qsTr("Delete element(s)")
+                        icon: IconCode.DELETE_TANK
                         enabled: customPaletteSelectionModel.hasSelection
+                        normalStateColor: "transparent"
 
                         ToolTip.text: text
 
@@ -223,14 +225,6 @@ StyledPopup {
                             } else {
                                 ui.tooltip.hide(deleteButton)
                             }
-                        }
-
-                        padding: 4
-
-                        contentItem: StyledIcon {
-                            source: "icons/delete.png"
-                            color: "black"
-                            opacity: deleteButton.enabled ? 1.0 : 0.1
                         }
 
                         onClicked: Utils.removeSelectedItems(moreElementsPopup.customPaletteController, customPaletteSelectionModel, moreElementsPopup.customPaletteRootIndex);
@@ -260,31 +254,16 @@ StyledPopup {
             }
         }
 
-        Item {
-            // spacer item, adds extra spacing before "drag items..." text
-            width: 1
-            height: 2 - column.spacing
-        }
-
-        Text {
+        StyledTextLabel {
             id: bottomText
             width: parent.width
-            text: qsTr("Drag items to the palette or directly on your score")
-            color: ui.theme.fontPrimaryColor //TODO globalStyle.windowText
-            horizontalAlignment: Text.AlignHCenter
+            text: qsTrc("palette", "Drag items to the palette or directly on your score")
             wrapMode: Text.WordWrap
-            font.family: ui.theme.font.family
             // make this label's font slightly smaller than other popup text
             font.pointSize: ui.theme.font.pointSize * 0.8
         }
 
-        Item {
-            // spacer item, adds extra spacing after "drag items..." text
-            width: 1
-            height: 2 - column.spacing
-        }
-
-        StyledButton {
+        FlatButton {
             id: elementEditorButton
             visible: moreElementsPopup.elementEditor && moreElementsPopup.elementEditor.valid
             enabled: moreElementsPopup.paletteEditingEnabled

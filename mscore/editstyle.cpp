@@ -527,6 +527,10 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
           + tr("Copyright, on first page only")
           + QString("</i></td></tr><tr><td>$c</td><td>-</td><td><i>")
           + tr("Copyright, on all pages")
+          + QString("</i></td></tr><tr><td>$v</td><td>-</td><td><i>")
+          + tr("MuseScore version this score was last saved with")
+          + QString("</i></td></tr><tr><td>$r</td><td>-</td><td><i>")
+          + tr("MuseScore revision this score was last saved with")
           + QString("</i></td></tr><tr><td>$$</td><td>-</td><td><i>")
           + tr("The $ sign itself")
           + QString("</i></td></tr><tr><td>$:tag:</td><td>-</td><td><i>")
@@ -1203,6 +1207,7 @@ void EditStyle::setValues()
     musicalTextFont->addItem("Emmentaler Text", "MScore Text");
     musicalTextFont->addItem("Gonville Text", "Gootville Text");
     musicalTextFont->addItem("MuseJazz Text", "MuseJazz Text");
+    musicalTextFont->addItem("Petaluma Text", "Petaluma Text");
     QString tfont(lstyle.value(Sid::MusicalTextFont).toString());
     idx = musicalTextFont->findData(tfont);
     musicalTextFont->setCurrentIndex(idx);

@@ -99,7 +99,7 @@ EditStyle::EditStyle(QWidget* parent)
     ottavaLineStyle->clear();
     pedalLineStyle->clear();
     for (const char* p : styles) {
-        QString trs = qApp->translate("EditStyleBase", p);
+        QString trs = mu::qtrc("notation", p);
         voltaLineStyle->addItem(trs, dta);
         ottavaLineStyle->addItem(trs, dta);
         pedalLineStyle->addItem(trs, dta);
@@ -1265,12 +1265,12 @@ void EditStyle::valueChanged(int i)
             }
 
             // fix values, the distances are defined different in MuseScore
-            double barWidth = styleValue(StyleId::barWidth).toDouble() + styleValue(StyleId::endBarWidth).toDouble() * .5;
+            double barWidthD = styleValue(StyleId::barWidth).toDouble() + styleValue(StyleId::endBarWidth).toDouble() * .5;
 
-            double newEndBarDistance = styleValue(StyleId::endBarDistance).toDouble() + barWidth;
+            double newEndBarDistance = styleValue(StyleId::endBarDistance).toDouble() + barWidthD;
             setStyleValue(StyleId::endBarDistance, newEndBarDistance);
 
-            double newDoubleBarDistance = styleValue(StyleId::doubleBarDistance).toDouble() + barWidth;
+            double newDoubleBarDistance = styleValue(StyleId::doubleBarDistance).toDouble() + barWidthD;
             setStyleValue(StyleId::doubleBarDistance, newDoubleBarDistance);
 
             // guess the repeat dot width = spatium * .3

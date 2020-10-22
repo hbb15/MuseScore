@@ -2,7 +2,13 @@
 
 echo "Build Linux MuseScore AppImage"
 
+#set -x
+trap 'echo Build failed; exit 1' ERR
+
+df -k .
+
 TELEMETRY_TRACK_ID=""
+ARTIFACTS_DIR=build.artifacts
 BUILD_UI_MU4=OFF
 
 while [[ "$#" -gt 0 ]]; do
@@ -46,7 +52,7 @@ echo " "
 echo "=== BUILD === "
 
 make revision
-make -j2 MUSESCORE_BUILD_CONFIG=$MUSESCORE_BUILD_CONFIG BUILD_NUMBER=$BUILD_NUMBER TELEMETRY_TRACK_ID=$TELEMETRY_TRACK_ID BUILD_UI_MU4=${BUILD_UI_MU4} portable
+make -j2 MUSESCORE_BUILD_CONFIG=$MUSESCORE_BUILD_CONFIG BUILD_NUMBER=$BUILD_NUMBER TELEMETRY_TRACK_ID=$TELEMETRY_TRACK_ID BUILD_UI_MU4=${BUILD_UI_MU4} BUILD_UNIT_TESTS=ON portable
 
 
 bash ./build/ci/tools/make_release_channel_env.sh 
@@ -54,3 +60,5 @@ bash ./build/ci/tools/make_version_env.sh $BUILD_NUMBER
 bash ./build/ci/tools/make_revision_env.sh
 bash ./build/ci/tools/make_branch_env.sh
 bash ./build/ci/tools/make_datetime_env.sh
+
+df -k .

@@ -1970,7 +1970,7 @@ MuseScore::MuseScore()
     Workspace::addActionAndString(aboutMusicXMLAction, "about-musicxml");
 
 #if defined(Q_OS_MAC) || defined(Q_OS_WIN)
-#if !defined(FOR_WINSTORE)
+#if (!defined(FOR_WINSTORE)) && (!defined(WIN_PORTABLE))
     checkForUpdateAction = new QAction("", 0);
     connect(checkForUpdateAction, SIGNAL(triggered()), this, SLOT(checkForUpdatesUI()));
     checkForUpdateAction->setMenuRole(QAction::NoRole);
@@ -2746,20 +2746,20 @@ void MuseScore::askResetOldScorePositions(Score* score)
         if (resPref == "No") {
             return;
         } else if (resPref == "Yes") {
-            score->cmdResetAllPositions();
+            score->cmdResetAllPositions(false);
         } else {   // either set to "Ask" or not at all
             QMessageBox msgBox;
             QCheckBox ask;
-            ask.setText(tr("Don't ask me again."));
+            ask.setText(tr("Remember my choice and don't ask again"));
             ask.setToolTip(tr(
                                "You can change this behaviour any time in 'Preferences… > Import > Reset Element Positions'"));
             msgBox.setCheckBox(&ask);
             QString question = tr("Reset the positions of all elements?");
             msgBox.setWindowTitle(question);
             msgBox.setText(tr(
-                               "To best take advantage of automatic placement in MuseScore 4 when importing '%1' from MuseScore %2, it is recommended to reset the positions of all elements.")
-                           .arg(score->masterScore()->fileInfo()->completeBaseName(),
-                                score->mscoreVersion()) + "\n\n" + question);
+                               "To best take advantage of automatic placement in MuseScore %1 when importing '%2' from MuseScore %3, it is recommended to reset the positions of all elements.")
+                           .arg(VERSION).arg(score->masterScore()->fileInfo()->completeBaseName(),
+                                             score->mscoreVersion()) + "\n\n" + question);
             msgBox.setIcon(QMessageBox::Question);
             msgBox.setStandardButtons(
                 QMessageBox::Yes | QMessageBox::No
@@ -2767,7 +2767,7 @@ void MuseScore::askResetOldScorePositions(Score* score)
 
             int res = msgBox.exec();
             if (res == QMessageBox::Yes) {
-                score->cmdResetAllPositions();
+                score->cmdResetAllPositions(false);
             }
             if (ask.checkState() == Qt::Checked) {
                 preferences.setPreference(PREF_IMPORT_COMPATIBILITY_RESET_ELEMENT_POSITIONS,
@@ -7586,6 +7586,7 @@ bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled, int 
 
     if (!setStateOk || !synth->hasSoundFontsLoaded()) {
         synth->init();     // re-initialize master synthesizer with default settings
+        synth->setSampleRate(sampleRate);
     }
     MScore::sampleRate = sampleRate;
 
@@ -7842,8 +7843,13 @@ void MuseScore::updateUiStyleAndTheme()
     // set UI Theme
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
-    QString wd = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).arg(
-        QCoreApplication::applicationName());
+#if defined(WIN_PORTABLE)
+    QString wd = QDir::cleanPath(QString("%1/../../../Data/%2").arg(QCoreApplication::applicationDirPath())
+                                 .arg(QCoreApplication::applicationName()));
+#else
+    QString wd = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation))
+                 .arg(QCoreApplication::applicationName());
+#endif
     // set UI Color Palette
     QPalette p(QApplication::palette());
     QString jsonPaletteFilename = preferences.isThemeDark() ? "palette_dark_fusion.json" : "palette_light_fusion.json";
@@ -7957,6 +7963,10 @@ MuseScoreApplication* MuseScoreApplication::initApplication(int& argc, char** ar
         appName2 = "mscore4";
         appName  = "MuseScore4";
     }
+
+#if defined(WIN_PORTABLE)
+    qputenv("QML_DISABLE_DISK_CACHE", "true");
+#endif
 
     MuseScoreApplication* app = new MuseScoreApplication(appName2, argc, argv);
     QCoreApplication::setApplicationName(appName);
@@ -8467,9 +8477,19 @@ void MuseScore::init(QStringList& argv)
     iconPath = externalIcons ? mscoreGlobalShare + QString("icons/") : QString(":/data/icons/");
     MIconEngine::iconDirPath = iconPath;
 
+#if defined(WIN_PORTABLE)
+    if (dataPath.isEmpty()) {
+        dataPath = QDir::cleanPath(QString("%1/../../../Data/settings")
+                                   .arg(QCoreApplication::applicationDirPath())
+                                   .arg(QCoreApplication::applicationName()));
+        QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, dataPath);
+        QSettings::setPath(QSettings::IniFormat, QSettings::SystemScope, dataPath);
+    }
+#else
     if (dataPath.isEmpty()) {
         dataPath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
     }
+#endif
 
     if (useFactorySettings) {
         if (deletePreferences) {
@@ -9115,8 +9135,7 @@ void MuseScore::setDefaultPalette()
     defaultPalette->append(PaletteCreator::newFretboardDiagramPalettePanel());
     defaultPalette->append(PaletteCreator::newAccordionPalettePanel());
     defaultPalette->append(PaletteCreator::newBagpipeEmbellishmentPalettePanel());
-    defaultPalette->append(PaletteCreator::newBreaksPalettePanel());
-    defaultPalette->append(PaletteCreator::newFramePalettePanel());
+    defaultPalette->append(PaletteCreator::newLayoutPalettePanel());
     defaultPalette->append(PaletteCreator::newBeamPalettePanel());
 
     this->getPaletteWorkspace()->setUserPaletteTree(std::move(defaultPalette));

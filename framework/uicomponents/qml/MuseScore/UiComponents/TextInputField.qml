@@ -14,9 +14,19 @@ Rectangle {
 
     property alias hint: valueInput.placeholderText
     property alias hintIcon: hintIcon.iconCode
-    property bool clearTextButtonEnabled: false
+    property bool clearTextButtonVisible: false
 
     signal currentTextEdited(var newTextValue)
+    signal textCleared()
+
+    function clear() {
+        valueInput.text = ""
+        textCleared()
+    }
+
+    function forceActiveFocus() {
+        valueInput.forceActiveFocus()
+    }
 
     implicitHeight: 32
     implicitWidth: parent.width
@@ -25,7 +35,7 @@ Rectangle {
     border.color: ui.theme.strokeColor
     border.width: 1
 
-    opacity: root.enabled ? 1.0 : 0.3
+    opacity: root.enabled ? 1.0 : ui.theme.itemOpacityDisabled
 
     radius: 4
 
@@ -113,14 +123,14 @@ Rectangle {
             Layout.bottomMargin: margin
 
             icon: IconCode.CLOSE_X_ROUNDED
-            visible: root.clearTextButtonEnabled && Boolean(valueInput.text)
+            visible: root.clearTextButtonVisible
 
             normalStateColor: root.color
             hoveredStateColor: ui.theme.accentColor
             pressedStateColor: ui.theme.accentColor
 
             onClicked: {
-                valueInput.text = ""
+                root.clear()
             }
         }
 

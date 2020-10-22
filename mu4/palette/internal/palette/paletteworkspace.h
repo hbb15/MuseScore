@@ -25,6 +25,8 @@
 #include "modularity/ioc.h"
 #include "framework/ui/imainwindow.h"
 #include "framework/global/iinteractive.h"
+#include "../ipaletteconfiguration.h"
+#include "async/asyncable.h"
 
 namespace Ms {
 class AbstractPaletteController;
@@ -39,6 +41,7 @@ class PaletteElementEditor : public QObject
     Q_OBJECT
 
     INJECT(palette, mu::framework::IMainWindow, mainWindow)
+    INJECT(palette, mu::framework::IInteractive, interactive)
 
     AbstractPaletteController* _controller = nullptr;
     QPersistentModelIndex _paletteIndex;
@@ -100,7 +103,7 @@ public:
     Q_INVOKABLE virtual bool move(const QModelIndex& sourceParent, int sourceRow, const QModelIndex& destinationParent,
                                   int destinationChild) = 0;
     Q_INVOKABLE virtual bool insert(const QModelIndex& parent, int row, const QVariantMap& mimeData,Qt::DropAction action) = 0;
-    Q_INVOKABLE virtual bool insertNewItem(const QModelIndex& parent, int row) = 0;
+    Q_INVOKABLE virtual bool insertNewItem(const QModelIndex& parent, int row, const QString& name) = 0;
     Q_INVOKABLE virtual void remove(const QModelIndex&) = 0;
     Q_INVOKABLE virtual void removeSelection(const QModelIndexList&, const QModelIndex& parent) = 0;
 
@@ -123,11 +126,13 @@ public:
 //   UserPaletteController
 //---------------------------------------------------------
 
-class UserPaletteController : public AbstractPaletteController
+class UserPaletteController : public AbstractPaletteController, public mu::async::Asyncable
 {
     Q_OBJECT
 
     INJECT(palette, mu::framework::IMainWindow, mainWindow)
+    INJECT(palette, mu::framework::IInteractive, interactive)
+    INJECT(palette, mu::palette::IPaletteConfiguration, configuration)
 
     QAbstractItemModel* _model;
     PaletteTreeModel* _userPalette;
@@ -140,7 +145,7 @@ class UserPaletteController : public AbstractPaletteController
 
     bool canDropElements() const override { return _userEditable; }
 
-    void showHideOrDeleteDialog(const QString& question, std::function<void(RemoveAction)> resultHandler) const;
+    void showHideOrDeleteDialog(const std::string& question, std::function<void(RemoveAction)> resultHandler) const;
     void queryRemove(const QModelIndexList&, int customCount);
 
     enum RemoveActionConfirmationType {
@@ -169,7 +174,7 @@ public:
 
     bool move(const QModelIndex& sourceParent, int sourceRow, const QModelIndex& destinationParent,int destinationChild) override;
     bool insert(const QModelIndex& parent, int row, const QVariantMap& mimeData, Qt::DropAction action) override;
-    bool insertNewItem(const QModelIndex& parent, int row) override;
+    bool insertNewItem(const QModelIndex& parent, int row, const QString& name) override;
     void remove(const QModelIndex& index) override;
     void removeSelection(const QModelIndexList&, const QModelIndex& parent) override;
 
@@ -199,6 +204,11 @@ class PaletteWorkspace : public QObject
     PaletteTreeModel* masterPalette;
     PaletteTreeModel* defaultPalette;   // palette used by "Reset palette" action
 
+    bool m_searching = false;
+
+    QSortFilterProxyModel* m_visibilityFilterModel = nullptr;
+    QSortFilterProxyModel* m_searchFilterModel = nullptr;
+
     QAbstractItemModel* mainPalette = nullptr;              ///< visible userPalette entries
 //       PaletteTreeModel* poolPalette;               ///< masterPalette entries not yet added to mainPalette
     FilterPaletteTreeModel* customPoolPalette = nullptr;    ///< invisible userPalette entries that do not belong to masterPalette
@@ -207,8 +217,8 @@ class PaletteWorkspace : public QObject
 //       PaletteController* masterPaletteController;
     UserPaletteController* customElementsPaletteController = nullptr;
 
-    Q_PROPERTY(QAbstractItemModel * mainPaletteModel READ mainPaletteModel CONSTANT)
-    Q_PROPERTY(Ms::AbstractPaletteController* mainPaletteController READ getMainPaletteController CONSTANT)
+    Q_PROPERTY(QAbstractItemModel * mainPaletteModel READ mainPaletteModel NOTIFY mainPaletteChanged)
+    Q_PROPERTY(Ms::AbstractPaletteController* mainPaletteController READ getMainPaletteController NOTIFY mainPaletteChanged)
 
     Q_PROPERTY(Ms::FilterPaletteTreeModel* customElementsPaletteModel READ customElementsPaletteModel CONSTANT)
     Q_PROPERTY(
@@ -229,6 +239,7 @@ class PaletteWorkspace : public QObject
 
 signals:
     void userPaletteChanged();
+    void mainPaletteChanged();
 
 public:
     explicit PaletteWorkspace(PaletteTreeModel* user, PaletteTreeModel* master = nullptr, QObject* parent = nullptr);
@@ -249,6 +260,8 @@ public:
 
     Q_INVOKABLE bool savePalette(const QModelIndex&);
     Q_INVOKABLE bool loadPalette(const QModelIndex&);
+
+    Q_INVOKABLE void setSearching(bool searching);
 
     bool paletteChanged() const { return userPalette->paletteTreeChanged(); }
 

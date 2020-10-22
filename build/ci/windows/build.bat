@@ -29,10 +29,10 @@ IF NOT %TARGET_PROCESSOR_BITS% == 64 (
 
 SET /p BUILD_MODE=<%ARTIFACTS_DIR%\env\build_mode.env
 SET "MUSESCORE_BUILD_CONFIG=dev"
-IF %BUILD_MODE% == devel_build ( SET "MUSESCORE_BUILD_CONFIG=dev" ) ELSE (
+IF %BUILD_MODE% == devel_build   ( SET "MUSESCORE_BUILD_CONFIG=dev" ) ELSE (
 IF %BUILD_MODE% == nightly_build ( SET "MUSESCORE_BUILD_CONFIG=dev" ) ELSE (
 IF %BUILD_MODE% == testing_build ( SET "MUSESCORE_BUILD_CONFIG=testing" ) ELSE (
-IF %BUILD_MODE% == stable_build ( SET "MUSESCORE_BUILD_CONFIG=release" ) ELSE (
+IF %BUILD_MODE% == stable_build  ( SET "MUSESCORE_BUILD_CONFIG=release" ) ELSE (
     ECHO "error: unknown BUILD_MODE: %BUILD_MODE%"
     EXIT /b 1
 ))))
@@ -65,10 +65,11 @@ IF %TARGET_PROCESSOR_BITS% == 32 (
 
 :: Undefined CRASH_LOG_SERVER_URL if is it empty
 IF %CRASH_LOG_SERVER_URL% == "" ( SET CRASH_LOG_SERVER_URL=)
+IF %CRASH_LOG_SERVER_URL% == "''" ( SET CRASH_LOG_SERVER_URL=)
 
-CALL msvc_build.bat revision 
-CALL msvc_build.bat relwithdebinfo %TARGET_PROCESSOR_BITS% %BUILD_NUMBER%
-CALL msvc_build.bat installrelwithdebinfo %TARGET_PROCESSOR_BITS% %BUILD_NUMBER%
+CALL msvc_build.bat revision || exit \b 1
+CALL msvc_build.bat relwithdebinfo %TARGET_PROCESSOR_BITS% %BUILD_NUMBER% || exit \b 1
+CALL msvc_build.bat installrelwithdebinfo %TARGET_PROCESSOR_BITS% %BUILD_NUMBER% || exit \b 1
 
 
 bash ./build/ci/tools/make_release_channel_env.sh 

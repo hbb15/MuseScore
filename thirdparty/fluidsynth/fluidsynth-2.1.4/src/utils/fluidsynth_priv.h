@@ -35,6 +35,10 @@
 
 #include "fluidsynthconfig.h"
 
+#if HAVE_MATH_H
+#include <math.h> // M_PI, MLN2, M_LN10
+#endif
+
 #if HAVE_STDLIB_H
 #include <stdlib.h> // malloc, free
 #endif

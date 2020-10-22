@@ -21,12 +21,12 @@
 #define __PALETTE_H__
 
 #include "palette/palettetree.h"
-#include "ui_paletteProperties.h"
 #include "libmscore/sym.h"
 
 #include "modularity/ioc.h"
-#include "mu4/palette/ipaletteadapter.h"
-#include "mu4/palette/ipaletteconfiguration.h"
+#include "../ipaletteadapter.h"
+#include "../ipaletteconfiguration.h"
+#include "iinteractive.h"
 
 namespace Ms {
 class Element;
@@ -34,21 +34,6 @@ class Sym;
 class XmlWriter;
 class XmlReader;
 class Palette;
-
-//---------------------------------------------------------
-//   PaletteProperties
-//---------------------------------------------------------
-
-class PaletteProperties : public QDialog, private Ui::PaletteProperties
-{
-    Q_OBJECT
-
-    Palette * palette;
-    virtual void accept();
-    virtual void hideEvent(QHideEvent*);
-public:
-    PaletteProperties(Palette* p, QWidget* parent = 0);
-};
 
 //---------------------------------------------------------
 //    PaletteScrollArea
@@ -80,6 +65,7 @@ class Palette : public QWidget
 
     INJECT_STATIC(palette, mu::palette::IPaletteAdapter, adapter)
     INJECT_STATIC(palette, mu::palette::IPaletteConfiguration, configuration)
+    INJECT(palette, mu::framework::IInteractive, interactive)
 
     QString _name;
     QList<PaletteCell*> cells;
@@ -119,6 +105,8 @@ class Palette : public QWidget
     virtual void dragMoveEvent(QDragMoveEvent*) override;
     virtual void dropEvent(QDropEvent*) override;
     virtual void contextMenuEvent(QContextMenuEvent*) override;
+
+    void showWritingFailedError(const QString& path) const;
 
     int idx2(const QPoint&) const;
     QRect idxRect(int) const;

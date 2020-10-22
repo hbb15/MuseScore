@@ -59,7 +59,7 @@ if (MSVC)
    set (MINGW false)
 endif (MSVC)
 
-option(BUILD_UI_MU4 "Build Modern UI MuseScore 4" OFF)
+option(BUILD_UI_MU4 "Build Modern UI MuseScore 4" ON)
 
 # We need this early, before FindQt5
 option(BUILD_WEBENGINE "Built in webengine support" ON)
@@ -96,6 +96,11 @@ set(CMAKE_AUTOMOC     TRUE)
 set(USE_SSE           TRUE)
 
 # Setup version number and general build settings
+SET(MUSESCORE_BUILD_CONFIG "dev" CACHE STRING "Build config")
+# Possible MUSESCORE_BUILD_CONFIG values:
+# - dev     - for development/nightly builds
+# - testing - for testing versions (alpha, beta, RC)
+# - release - for stable release builds
 include("${CMAKE_CURRENT_LIST_DIR}/config.cmake")
 
 if (MUSESCORE_LABEL)
@@ -160,9 +165,11 @@ option(BUILD_CRASH_REPORTER "Build with crash reporter" OFF)
 set(CRASH_REPORT_URL "http://127.0.0.1:1127/post" CACHE STRING "URL where to send crash reports (valid if BUILD_CRASH_REPORTER is set to ON)")
 option(BUILD_TELEMETRY_MODULE "Build with telemetry module" ON)
 set(TELEMETRY_TRACK_ID "" CACHE STRING "Telemetry track id")
+option(BUILD_PORTABLEAPPS "Windows build for PortableApps.com" OFF)
 option(BUILD_UI_MU4_WITH_MU3 "Build Modern UI MuseScore 4 and MU3 source code" OFF)
 option(BUILD_UNIT_TESTS "Build gtest unit test" OFF)
 option(QML_LOAD_FROM_SOURCE "Load qml files from source (not resource)" OFF)
+option(PACKAGE_FILE_ASSOCIATION "File types association" OFF)
 
 SET(VST3_SDK_VERSION "3.7")
 option(BUILD_VST "Build VST MODULE" OFF)
@@ -188,6 +195,8 @@ endif(MSCORE_UNSTABLE OR TELEMETRY_TRACK_ID STREQUAL "")
 
 if (BUILD_CRASH_REPORTER)
       message("Crash reporter enabled")
+else(BUILD_CRASH_REPORTER)
+      message("Crash reporter disabled")
 endif(BUILD_CRASH_REPORTER)
 
 if (APPLE)
@@ -195,6 +204,7 @@ if (APPLE)
       set (CMAKE_CXX_COMPILER_ID "Clang")
       set(CMAKE_OSX_ARCHITECTURES x86_64)
 
+      set(MACOSX_DEPLOYMENT_TARGET 10.10)
       set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)
 
       set(HAS_AUDIOFILE TRUE)            # Requires libsndfile
@@ -222,6 +232,10 @@ else (BUILD_64 STREQUAL "ON")
       SET (DEPENDENCIES_DIR "${PROJECT_SOURCE_DIR}/dependencies/libx86")
 endif (BUILD_64 STREQUAL "ON")
 
+if (BUILD_PORTABLEAPPS STREQUAL "ON")
+      SET (WIN_PORTABLE 1)
+endif (BUILD_PORTABLEAPPS STREQUAL "ON")
+
 #
 #  Sparkle/WinSparkle routine
 #
@@ -235,14 +249,14 @@ if (BUILD_AUTOUPDATE STREQUAL "ON")
                    set(MAC_APPCAST_URL "https://sparkle.musescore.org/${MSCORE_RELEASE_CHANNEL}/3/macos/appcast.xml")
              endif(SPARKLE_FOUND)
       elseif (MSVC)
-             if (NOT MSCORE_UNSTABLE)
+             if ((NOT MSCORE_UNSTABLE) AND (NOT DEFINED WIN_PORTABLE)) # do not include WinSparkle in unstable and portable builds
                    include(FindWinSparkle)
                    add_library(winsparkledll SHARED IMPORTED)
                    set_target_properties(winsparkledll PROPERTIES IMPORTED_IMPLIB ${WINSPARKLE_LIBRARY})
                    set(WIN_SPARKLE_ENABLED 1)
                    set(WIN_SPARKLE_APPCAST_URL "https://sparkle.musescore.org/${MSCORE_RELEASE_CHANNEL}/4/win/appcast${ARCH_TYPE}.xml")
                    message("Win Sparkle Url: " ${WIN_SPARKLE_APPCAST_URL})
-             endif (NOT MSCORE_UNSTABLE)
+             endif ((NOT MSCORE_UNSTABLE) AND (NOT DEFINED WIN_PORTABLE))
       else (APPLE)
              message("Sparkle is not supported on your system.")
       endif (APPLE)
@@ -266,6 +280,7 @@ endif (NOT MSVC)
 
 if (APPLE)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fPIC -stdlib=libc++ -Wno-inconsistent-missing-override -Wno-deprecated-register")
+   set(CMAKE_CXX_STANDARD 17)
    # This is necessary for genManual to be executed during the build phase,
    # it needs to be able to get the Qt libs.
    # TODO: is it still needed? genManual is removed.
@@ -959,6 +974,16 @@ if (MSVC)
 
 endif (MSVC)
 
+define_property(TARGET PROPERTY OUTPUT_XML
+    BRIEF_DOCS "List XML files outputed by google test."
+    FULL_DOCS "List XML files outputed by google test."
+)
+
+if (BUILD_UNIT_TESTS)
+    add_subdirectory(thirdparty/googletest)
+    enable_testing()
+endif(BUILD_UNIT_TESTS)
+
 add_subdirectory(framework)
 add_subdirectory(global) #todo remove
 
@@ -972,16 +997,6 @@ else(BUILD_UI_MU4)
     add_subdirectory(mu4/cloud)
     add_subdirectory(mu4/plugins)
 endif(BUILD_UI_MU4)
-
-define_property(TARGET PROPERTY OUTPUT_XML
-    BRIEF_DOCS "List XML files outputed by google test."
-    FULL_DOCS "List XML files outputed by google test."
-)
-
-if (BUILD_UNIT_TESTS)
-    add_subdirectory(thirdparty/googletest)
-    enable_testing()
-endif(BUILD_UNIT_TESTS)
 
 ## TEMP: Display all variables!
 ### message(STATUS "===========================================================")

@@ -20,19 +20,21 @@ FocusableItem {
     property color hoveredStateColor: privateProperties.defaultColor
     property color pressedStateColor: privateProperties.defaultColor
 
+    property alias hovered: clickableArea.containsMouse
+
     signal clicked
 
     height: contentWrapper.implicitHeight + 16
     width: (Boolean(text) ? Math.max(contentWrapper.implicitWidth + 32, 132) : contentWrapper.implicitWidth + 16)
 
-    opacity: root.enabled ? 1.0 : 0.3
+    opacity: root.enabled ? 1.0 : ui.theme.itemOpacityDisabled
 
     Rectangle {
         id: backgroundRect
 
         anchors.fill: parent
 
-        color: root.accentButton ? ui.theme.accentColor : ui.theme.buttonColor
+        color: normalStateColor
         opacity: ui.theme.buttonOpacityNormal
         border.width: 0
         radius: 3

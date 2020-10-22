@@ -24,7 +24,10 @@
 #include "libmscore/xml.h"
 
 #include "modularity/ioc.h"
-#include "mu4/palette/ipaletteadapter.h"
+#include "../ipaletteadapter.h"
+#include "../ipaletteconfiguration.h"
+#include "async/asyncable.h"
+#include "iinteractive.h"
 
 namespace Ms {
 struct PaletteCell;
@@ -35,17 +38,17 @@ using PaletteCellConstPtr = std::shared_ptr<const PaletteCell>;
 //   PaletteCell
 //---------------------------------------------------------
 
-struct PaletteCell {
+struct PaletteCell
+{
     INJECT_STATIC(palette, mu::palette::IPaletteAdapter, adapter)
 
     std::unique_ptr<Element> element;
     std::unique_ptr<Element> untranslatedElement;
+    QString id;
     QString name;             // used for tool tip
     QString tag;
 
     bool drawStaff { false };
-    double x       { 0.0 };     // TODO: remove?
-    double y       { 0.0 };     // TODO: remove?
     double xoffset { 0.0 };
     double yoffset { 0.0 };          // in spatium units of "gscore"
     qreal mag      { 1.0 };
@@ -55,8 +58,8 @@ struct PaletteCell {
     bool custom    { false };
     bool active    { false };
 
-    PaletteCell() = default;
-    PaletteCell(std::unique_ptr<Element> e, const QString& _name, QString _tag = QString(), qreal _mag = 1.0);
+    explicit PaletteCell() = default;
+    PaletteCell(std::unique_ptr<Element> e, const QString& _name, qreal _mag = 1.0);
 
     static constexpr const char* mimeDataFormat = "application/musescore/palette/cell";
 
@@ -71,6 +74,7 @@ struct PaletteCell {
     QByteArray mimeData() const;
     static PaletteCellPtr readMimeData(const QByteArray& data);
     static PaletteCellPtr readElementMimeData(const QByteArray& data);
+    static QString makeId();
 };
 
 //---------------------------------------------------------
@@ -84,8 +88,15 @@ class PaletteCellIconEngine : public QIconEngine
 
     PaletteCellConstPtr cell() const { return _cell; }
 
+    INJECT_STATIC(palette, mu::palette::IPaletteConfiguration, configuration)
+
 private:
     void paintCell(QPainter& p, const QRect& r, bool selected, bool current) const;
+    void paintScoreElement(QPainter& p, Element* e, qreal spatium, bool alignToStaff) const;
+
+    static void paintPaletteElement(void* data, Element* e);
+    static qreal paintStaff(QPainter& p, const QRect& rect, qreal spatium);
+    static void paintTag(QPainter& painter, const QRect& rect, QString tag);
 
 public:
     PaletteCellIconEngine(PaletteCellConstPtr cell, qreal extraMag = 1.0)
@@ -103,6 +114,9 @@ public:
 class PalettePanel
 {
     Q_GADGET
+
+    INJECT(palette, mu::framework::IInteractive, interactive)
+
 public:
     enum class Type {
         Unknown = 0,
@@ -128,47 +142,47 @@ public:
         FretboardDiagram,
         Accordion,
         BagpipeEmbellishment,
-        Break,
-        Frame,
+        Layout,
         Beam,
         Custom
     };
-    Q_ENUM(Type);
+    Q_ENUM(Type)
 
 private:
+    QString _id;
     QString _name;
     Type _type;
 
     std::vector<PaletteCellPtr> cells;
 
     QSize _gridSize = QSize(64, 64);
-//       int hgrid;
-//       int vgrid;
 
     qreal _mag = 1.0;
     bool _drawGrid = false;
     bool _editable = true;
-//       bool _systemPalette;
-    qreal _yOffset = 0.0;                  // in spatium units of "gscore"
+    qreal _yOffset = 0.0; // in spatium units of "gscore"
 
-    bool _moreElements = false;   // not used by QML palettes, default is false for compatibility with Palette class. TODO: remove?
+    bool _moreElements = false; // not used by QML palettes, default is false for compatibility with Palette class. TODO: remove?
 
     bool _visible = true;
     bool _expanded = false;
 
     Type guessType() const;
 
-public:
-    PalettePanel(Type t = Type::Custom)
-        : _type(t) {}
+    void showWritingPaletteError(const QString& path) const;
 
-    PaletteCell* insert(int idx, Element* e, const QString& name, QString tag = QString(), qreal mag = 1.0);
-    PaletteCell* append(Element* e, const QString& name, QString tag = QString(), qreal mag = 1.0);
+public:
+    PalettePanel(Type t = Type::Custom);
+
+    PaletteCell* insert(int idx, Element* e, const QString& name, qreal mag = 1.0);
+    PaletteCell* append(Element* e, const QString& name, qreal mag = 1.0);
+
+    QString id() const;
 
     const QString& name() const { return _name; }
     void setName(const QString& str) { _name = str; }
 
-    QString translatedName() const { return qApp->translate("Palette", name().toUtf8()); }
+    QString translatedName() const;
 
     QSize gridSize() const { return _gridSize; }
     void setGrid(QSize s) { _gridSize = s; }

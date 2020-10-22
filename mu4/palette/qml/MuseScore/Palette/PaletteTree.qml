@@ -20,18 +20,21 @@
 import QtQuick 2.8
 import QtQuick.Controls 2.1
 import QtQml.Models 2.2
+
 import MuseScore.Palette 1.0
+import MuseScore.Ui 1.0
+import MuseScore.UiComponents 1.0
 
 import "utils.js" as Utils
 
 ListView {
     id: paletteTree
-    Accessible.name: qsTr("Palettes Tree, contains %n palette(s)", "", count)
+    Accessible.name: qsTrc("palette", "Palettes Tree, contains %n palette(s)").arg(count)
 
     activeFocusOnTab: true // allow focus even when empty
 
     property PaletteWorkspace paletteWorkspace
-    property var paletteModel: paletteWorkspace ? paletteWorkspace.mainPaletteModel : null
+    property var paletteModel: Boolean(paletteWorkspace) ? paletteWorkspace.mainPaletteModel : null
     property PaletteController paletteController: paletteWorkspace ? paletteWorkspace.mainPaletteController : null
 
     // Scroll palettes list when dragging a palette close to the list's border
@@ -43,21 +46,32 @@ ListView {
     property Item currentTreeItem: currentItem // most recently focused item at any level of the tree
 
     property string filter: ""
+    property bool searchOpenned: false
+
+    onSearchOpennedChanged: {
+        if (paletteWorkspace) {
+            paletteWorkspace.setSearching(searchOpenned)
+        }
+    }
+
     onFilterChanged: {
-        if (filter.length) {
-            paletteSelectionModel.clear();
-            expandedPopupIndex = null;
-            }
-        if (paletteModel)
-            paletteModel.setFilterFixedString(filter);
+        if (Boolean(filter)) {
+            paletteSelectionModel.clear()
+            expandedPopupIndex = null
+        }
+
+        if (paletteModel) {
+            paletteModel.setFilterFixedString(filter)
+        }
     }
 
     property bool enableAnimations: true
     property int expandDuration: enableAnimations ? 150 : 0 // duration of expand / collapse animations
 
-    function insertCustomPalette(idx) {
-        if (paletteTree.paletteController.insertNewItem(paletteTreeDelegateModel.rootIndex, idx))
-            positionViewAtIndex(idx, ListView.Contain);
+    function insertCustomPalette(idx, paletteName) {
+        if (paletteTree.paletteController.insertNewItem(paletteTreeDelegateModel.rootIndex, idx, paletteName)) {
+            positionViewAtIndex(idx, ListView.Contain)
+        }
     }
 
     ItemSelectionModel {
@@ -91,12 +105,13 @@ ListView {
     property var expandedPopupIndex: null // TODO: or use selection model? That would allow to preserve popups on removing palettes
 
     onExpandedPopupIndexChanged: {
-        if (footerItem)
-            footerItem.height = 0;
+        if (footerItem) {
+            footerItem.height = 0
+        }
     }
 
     onCurrentIndexChanged: {
-        if (paletteSelectionModel.hasSelection && paletteSelectionModel.currentIndex.row != currentIndex)
+        if (paletteSelectionModel.hasSelection && paletteSelectionModel.currentIndex.row !== currentIndex)
             paletteSelectionModel.clearSelection();
     }
 
@@ -169,14 +184,7 @@ ListView {
         NumberAnimation { property: "y"; duration: 150 }
     }
 
-    ScrollBar.vertical: ScrollBar {
-        id: scrollbar
-
-        readonly property color baseColor: (ui.theme.backgroundPrimaryColor.hslLightness > 0.5) ? "#28282a" : "#d7d7d5"
-        readonly property color pressedColor: "#bdbebf"
-
-        Component.onCompleted: contentItem.color = Qt.binding(function() { return scrollbar.pressed ? baseColor : "#bdbebf"; })
-    }
+    ScrollBar.vertical: StyledScrollBar {}
 
     boundsBehavior: Flickable.StopAtBounds
     maximumFlickVelocity: 1500
@@ -331,13 +339,6 @@ ListView {
         return expand; // bool, did we expand?
     }
 
-    function getTintedColor(baseColor, tintColor, opacity) {
-        var tintColorWithOpacity = Qt.rgba(tintColor.r, tintColor.g, tintColor.b, opacity);
-        return Qt.tint(baseColor, tintColorWithOpacity);
-    }
-    readonly property color selectionColor: getTintedColor(ui.theme.backgroundPrimaryColor, ui.theme.backgroundPrimaryColor, 0.85)
-    readonly property color highlightColor: getTintedColor(ui.theme.backgroundPrimaryColor, ui.theme.backgroundPrimaryColor, 0.6)
-
     model: DelegateModel {
         id: paletteTreeDelegateModel
         model: paletteTree.paletteModel
@@ -348,10 +349,6 @@ ListView {
             bottomPadding: expanded ? 4 : 0
             property int rowIndex: index
             property var modelIndex: paletteTree.model.modelIndex(index, 0)
-
-            Component.onDestruction: {
-                Utils.setInvisibleRecursive(this);
-            }
 
             onActiveFocusChanged: {
                 if (activeFocus)
@@ -402,14 +399,41 @@ ListView {
             }
 
             background: Rectangle {
+                id: background
+
                 visible: !control.Drag.active
                 z: -1
-                color: control.selected ? paletteTree.selectionColor : (control.highlighted ? paletteTree.highlightColor : (control.down ? ui.theme.button : "transparent"))
+                color: ui.theme.backgroundPrimaryColor
+                opacity: 1
+
+                states: [
+                    State {
+                        name: "HOVERED"
+                        when: control.hovered && !control.selected
+
+                        PropertyChanges {
+                            target: background
+                            color: ui.theme.buttonColor
+                            opacity: 0.5
+                        }
+                    },
+
+                    State {
+                        name: "SELECTED"
+                        when: control.selected
+
+                        PropertyChanges {
+                            target: background
+                            color: ui.theme.accentColor
+                            opacity: 0.5
+                        }
+                    }
+                ]
             }
 
             highlighted: (activeFocus && !selected) || DelegateModel.isUnresolved
 
-            property bool popupExpanded: paletteTree.expandedPopupIndex == modelIndex
+            property bool popupExpanded: paletteTree.expandedPopupIndex === modelIndex
             function togglePopup() {
                 const expand = !popupExpanded;
                 paletteTree.expandedPopupIndex = expand ? modelIndex : null;
@@ -499,8 +523,8 @@ ListView {
                 event.accepted = true;
             }
 
-            text: filter.length ? qsTr("%1, contains %n matching element(s)", "palette", mainPalette.count).arg(model.accessibleText)
-                                : model.expanded ? qsTr("%1 expanded", "tree item not collapsed").arg(model.accessibleText)
+            text: filter.length ? qsTrc("palette", "%1, contains %n matching element(s)", "palette", mainPalette.count).arg(model.accessibleText)
+                                : model.expanded ? qsTrc("palette", "%1 expanded", "tree item not collapsed").arg(model.accessibleText)
                                                  : model.accessibleText
             Accessible.role: Accessible.TreeItem
 
@@ -596,14 +620,14 @@ ListView {
                 TreePaletteHeader {
                     id: paletteHeader
                     width: parent.width
-                    opacity: enabled ? 1 : 0.3
+                    opacity: enabled ? 1 : ui.theme.itemOpacityDisabled
                     expanded: control.expanded
                     hovered: control.hovered
                     text: model.display
                     hidePaletteElementVisible: {
                         return !control.selected && control.expanded
                             && paletteSelectionModel.hasSelection && paletteSelectionModel.columnIntersectsSelection(0, control.modelIndex)
-                            && paletteTree.paletteModel.parent(paletteSelectionModel.currentIndex) == control.modelIndex; // HACK to work around a (possible?) bug in columnIntersectsSelection
+                            && paletteTree.paletteModel.parent(paletteSelectionModel.currentIndex) === control.modelIndex; // HACK to work around a (possible?) bug in columnIntersectsSelection
                     }
                     custom: model.custom
 
@@ -652,7 +676,7 @@ ListView {
                     implicitHeight: mainPalette.implicitHeight + 2 * padding
                     implicitWidth: parent.width
                     height: implicitHeight
-                    border { width: 1; color: enabled ? "black" : "#33000000" }
+                    border { width: 1; color: ui.theme.strokeColor }
 
                     Palette {
                         id: mainPalette
@@ -684,7 +708,7 @@ ListView {
                     maxHeight: Math.min(0.75 * paletteTree.height, 500)
 
                     y: mainPaletteContainer.y + mainPaletteContainer.height + Utils.style.popupMargin
-                    width: parent.width
+                    arrowX: parent.width - cellSize.width / 2
 
                     modal: false
                     focus: true
@@ -697,10 +721,6 @@ ListView {
                     paletteName: model.display
                     paletteIsCustom: model.custom
                     paletteEditingEnabled: model.editable
-
-                    Component.onDestruction: {
-                        Utils.setInvisibleRecursive(this);
-                    }
 
                     onVisibleChanged: {
                         // build pool model on first popup appearance

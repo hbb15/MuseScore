@@ -354,6 +354,9 @@ bool Vibrato::setProperty(Pid propertyId, const QVariant& val)
     case Pid::PLAY:
         setPlayArticulation(val.toBool());
         break;
+    case Pid::COLOR:
+        setColor(val.value<QColor>());
+        [[fallthrough]];
     default:
         if (!SLine::setProperty(propertyId, val)) {
             return false;

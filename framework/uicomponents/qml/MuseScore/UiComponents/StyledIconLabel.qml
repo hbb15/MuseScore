@@ -17,7 +17,9 @@ Text {
         family: "MusescoreIcon"
         pixelSize: 16
     }
-    color: ui.theme ? ui.theme.fontPrimaryColor : "#CECECE"
+
+    color: ui.theme.fontPrimaryColor
+    opacity: enabled ? 1 : ui.theme.itemOpacityDisabled
 
     text: iconCharCode(iconCode)
 

@@ -212,56 +212,34 @@ if (MINGW)
    if (BUILD_64)
       install( FILES
          ${MINGW_ROOT}/bin/libgcc_s_seh-1.dll
+         ${DEPENDENCIES_DIR}/libcrypto-1_1-x64.dll
+         ${DEPENDENCIES_DIR}/libssl-1_1-x64.dll
          DESTINATION bin)
-      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.12.4")
-         install( FILES
-            ${DEPENDENCIES_DIR}/libcrypto-1_1-x64.dll
-            ${DEPENDENCIES_DIR}/libssl-1_1-x64.dll
-            DESTINATION bin)
-      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.12.4")
    else (BUILD_64)
       install( FILES
          ${MINGW_ROOT}/bin/libgcc_s_dw2-1.dll
+         ${DEPENDENCIES_DIR}/libcrypto-1_1.dll
+         ${DEPENDENCIES_DIR}/libssl-1_1.dll
          DESTINATION bin)
-      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.12.4")
-         install( FILES
-            ${DEPENDENCIES_DIR}/libcrypto-1_1.dll
-            ${DEPENDENCIES_DIR}/libssl-1_1.dll
-            DESTINATION bin)
-      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.12.4")
    endif (BUILD_64)
 
    install( FILES
       ${MINGW_ROOT}/bin/libstdc++-6.dll
       ${MINGW_ROOT}/bin/libwinpthread-1.dll
-      ${DEPENDENCIES_DIR}/libogg.dll
-      ${DEPENDENCIES_DIR}/libsndfile-1.dll
-      ${DEPENDENCIES_DIR}/libvorbis.dll
-      ${DEPENDENCIES_DIR}/libvorbisfile.dll
-	  ${DEPENDENCIES_DIR}/portaudio.dll
+      ${OGG_LIBRARY}
+      ${SNDFILE_LIBRARY}
+      ${VORBIS_LIBRARY}
+      ${VORBISFILE_LIBRARY}
+      ${PORTAUDIO_LIBRARY}
       ${QT_INSTALL_BINS}/libEGL.dll
       ${QT_INSTALL_BINS}/libGLESv2.dll
       ${QT_INSTALL_BINS}/opengl32sw.dll
       ${QT_INSTALL_BINS}/d3dcompiler_47.dll
       ${QtInstallLibraries}
       ${PROJECT_SOURCE_DIR}/build/qt.conf
+      ${QT_INSTALL_BINS}/Qt5QmlModels.dll
+      ${QT_INSTALL_BINS}/Qt5QmlWorkerScript.dll
       DESTINATION bin)
-   if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.14.0")
-      install( FILES
-         ${QT_INSTALL_BINS}/Qt5QmlModels.dll
-         DESTINATION bin)
-   endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.14.0")
-   if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.15.0")
-      install( FILES
-         ${QT_INSTALL_BINS}/Qt5QmlWorkerScript.dll
-         DESTINATION bin)
-   endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.15.0")
-   if (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
-      install( FILES
-         ${MINGW_ROOT}/opt/bin/libeay32.dll
-         ${MINGW_ROOT}/opt/bin/ssleay32.dll
-         DESTINATION bin)
-   endif (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
 
    install (FILES
       ${DEPENDENCIES_DIR}/lame_enc.dll
@@ -425,16 +403,12 @@ else (MINGW)
                   "${QT_INSTALL_BINS}/Qt5QuickWidgets.dll" "${QT_INSTALL_BINS}/Qt5Positioning.dll"
                   "${QT_INSTALL_BINS}/libEGL.dll" "${QT_INSTALL_BINS}/libGLESv2.dll" "${QT_INSTALL_BINS}/opengl32sw.dll"
                   "${QT_INSTALL_BINS}/d3dcompiler_47.dll"
+                  "${QT_INSTALL_BINS}/Qt5QmlModels.dll"
+                  "${QT_INSTALL_BINS}/Qt5QmlWorkerScript.dll"
                   )
       if (USE_WEBENGINE)
          list(APPEND dlls_to_copy "${QT_INSTALL_BINS}/Qt5WebEngineWidgets.dll" "${QT_INSTALL_BINS}/Qt5WebEngineCore.dll")
       endif(USE_WEBENGINE)
-      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.14.0")
-         list(APPEND dlls_to_copy "${QT_INSTALL_BINS}/Qt5QmlModels.dll")
-      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.14.0")
-      if (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.15.0")
-         list(APPEND dlls_to_copy "${QT_INSTALL_BINS}/Qt5QmlWorkerScript.dll")
-      endif (Qt5Widgets_VERSION VERSION_GREATER_EQUAL "5.15.0")
 
       set(CMAKE_FIND_LIBRARY_PREFIX "")
       set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
@@ -446,20 +420,15 @@ else (MINGW)
 
       find_library( dll_lame        NAMES "lame_enc"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_ogg         NAMES "libogg"         PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
-      find_library( dll_sndfile     NAMES "libsndfile-1"   PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+      find_library( dll_sndfile     NAMES "sndfile" "libsndfile-1"   PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_vorbis      NAMES "libvorbis"      PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_vorbisfile  NAMES "libvorbisfile"  PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
       find_library( dll_portaudio   NAMES "portaudio"      PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
-      if (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
-         find_library( dll_ssl1        NAMES "libeay32"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
-         find_library( dll_ssl2        NAMES "ssleay32"       PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
-      else (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
-         find_library( dll_ssl1        NAMES "libcrypto-1_1-x64" "libcrypto-1_1"  PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
-         find_library( dll_ssl2        NAMES "libssl-1_1-x64" "libssl-1_1"        PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
-      endif (Qt5Widgets_VERSION VERSION_LESS "5.12.4")
+      find_library( dll_ssl1        NAMES "libcrypto-1_1-x64" "libcrypto-1_1"  PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
+      find_library( dll_ssl2        NAMES "libssl-1_1-x64" "libssl-1_1"        PATHS ${DEPENDENCIES_DIR} NO_DEFAULT_PATH)
 
       list(APPEND dlls_to_copy ${dll_lame} ${dll_ogg} ${dll_sndfile} ${dll_vorbis} ${dll_vorbisfile} ${dll_portaudio} ${dll_ssl1} ${dll_ssl2} "$<TARGET_FILE_DIR:mscore>/${MSCORE_OUTPUT_NAME}.exe")
-      set( output_dir_for_dlls "${PROJECT_BINARY_DIR}/../msvc.install${ARCH_TYPE}/bin")
+      set( output_dir_for_dlls "${CMAKE_INSTALL_PREFIX}/bin")
 
       COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${dlls_to_copy}" ${output_dir_for_dlls}  mscore)
 
@@ -500,6 +469,8 @@ else (MINGW)
             ${QT_INSTALL_BINS}/Qt5Positioning.dll
             ${QT_INSTALL_BINS}/Qt5WebChannel.dll
             ${QT_INSTALL_BINS}/Qt5QuickTemplates2.dll
+            ${QT_INSTALL_BINS}/Qt5QmlModels.dll
+            ${QT_INSTALL_BINS}/Qt5QmlWorkerScript.dll
             ${PROJECT_SOURCE_DIR}/build/qt.conf
             DESTINATION bin)
 
@@ -553,6 +524,27 @@ else (MINGW)
          REGEX ".*QtWebkit.*" EXCLUDE
          )
 
+      if (WIN_PORTABLE)
+        # deploy the files and directory structure needed for the PortableApps.com format
+        install(DIRECTORY ../build/PortableApps/App DESTINATION ${CMAKE_INSTALL_PREFIX}/../..)
+        install(DIRECTORY ../build/PortableApps/Other DESTINATION ${CMAKE_INSTALL_PREFIX}/../..)
+        install(FILES ../build/PortableApps/help.html DESTINATION ${CMAKE_INSTALL_PREFIX}/../..)
+        set(MSCORE_ICON_BASE ../assets/musescore-icon-round)
+        configure_file(../build/PortableApps/appinfo.ini.in     ${CMAKE_INSTALL_PREFIX}/../../App/AppInfo/appinfo.ini   @ONLY)
+        install(FILES ../mscore/data/mscore.ico RENAME appicon.ico DESTINATION ${CMAKE_INSTALL_PREFIX}/../AppInfo)
+        install(FILES ${MSCORE_ICON_BASE}-16.png RENAME appicon_16.png DESTINATION ${CMAKE_INSTALL_PREFIX}/../AppInfo)
+        install(FILES ${MSCORE_ICON_BASE}-32.png RENAME appicon_32.png DESTINATION ${CMAKE_INSTALL_PREFIX}/../AppInfo)
+        install(FILES ${MSCORE_ICON_BASE}-128.png RENAME appicon_128.png DESTINATION ${CMAKE_INSTALL_PREFIX}/../AppInfo)
+        install( FILES   ../assets/mscz-icon.ico RENAME mscz.ico DESTINATION ${CMAKE_INSTALL_PREFIX}/../AppInfo/FileTypeIcons) # icon for .MSCZ files
+        install( FILES   ../assets/mscz-icon-48.png RENAME mscz_48.png DESTINATION ${CMAKE_INSTALL_PREFIX}/../AppInfo/FileTypeIcons) # PNG icon for .MSCZ files
+        install( FILES   ../assets/mscx-icon.ico RENAME mscx.ico DESTINATION ${CMAKE_INSTALL_PREFIX}/../AppInfo/FileTypeIcons) # icon for .MSCX files
+        install( FILES   ../assets/mscx-icon-48.png RENAME mscx_48.png DESTINATION  ${CMAKE_INSTALL_PREFIX}/../AppInfo/FileTypeIcons) # PNG icon for .MSCX files
+        # use a custom icon for MusicXML files (there isn't a standard icon for MusicXML files)
+        # install( FILES   ../assets/mxl-icon.svg RENAME mxl.svg DESTINATION  ${CMAKE_INSTALL_PREFIX}/../AppInfo/FileTypeIcons) # SVG icon for .MXL (compressed MusicXML) files
+        # install( FILES   ../assets/mxl-icon-48.png RENAME mxl_48.png DESTINATION  ${CMAKE_INSTALL_PREFIX}/../AppInfo/FileTypeIcons) # PNG icon for .MXL (compressed MusicXML) files
+        # install( FILES   ../assets/xml-icon.svg RENAME xml.svg DESTINATION  ${CMAKE_INSTALL_PREFIX}/../AppInfo/FileTypeIcons) # SVG icon for .XML (MusicXML) files
+        # install( FILES   ../assets/xml-icon-48.png RENAME xml_48.png DESTINATION  ${CMAKE_INSTALL_PREFIX}/../AppInfo/FileTypeIcons) # PNG icon for .XML (MusicXML) files
+      endif (WIN_PORTABLE)
 
    endif ( NOT MSVC )
 endif (MINGW)
@@ -573,6 +565,8 @@ if (APPLE)
       ../fonts/mscore-BC.ttf
       ../fonts/bravura/BravuraText.otf
       ../fonts/leland/Leland.otf
+      ../fonts/petaluma/PetalumaText.otf
+      ../fonts/petaluma/PetalumaScript.otf
      DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}fonts
      )
      install(DIRECTORY

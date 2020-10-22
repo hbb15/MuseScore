@@ -33,15 +33,13 @@
 #include "thirdparty/qzip/qzipwriter_p.h"
 
 #include "modularity/ioc.h"
-#include "ui/imainwindow.h"
+
+#include "translation.h"
+
+using namespace mu::palette;
+using namespace mu::framework;
 
 namespace Ms {
-static QMainWindow* qMainWindow()
-{
-    using namespace mu::framework;
-    return ioc()->resolve<IMainWindow>("palette")->qMainWindow();
-}
-
 //---------------------------------------------------------
 //   needsStaff
 //    should a staff been drawn if e is used as icon in
@@ -110,11 +108,18 @@ static std::unique_ptr<T> readMimeData(const QByteArray& data, const QString& ta
 //---------------------------------------------------------
 //   PaletteCell::PaletteCell
 //---------------------------------------------------------
-
-PaletteCell::PaletteCell(std::unique_ptr<Element> e, const QString& _name, QString _tag, qreal _mag)
-    : element(std::move(e)), name(_name), tag(_tag), mag(_mag)
+PaletteCell::PaletteCell(std::unique_ptr<Element> e, const QString& _name, qreal _mag)
+    : element(std::move(e)), name(_name), mag(_mag)
 {
+    id = makeId();
+
     drawStaff = needsStaff(element.get());
+}
+
+QString PaletteCell::makeId()
+{
+    static int id = 0;
+    return QString::number(++id);
 }
 
 //---------------------------------------------------------
@@ -157,7 +162,7 @@ const char* PaletteCell::translationContext() const
     default:
         break;
     }
-    return "Palette";
+    return "palette";
 }
 
 //---------------------------------------------------------
@@ -166,7 +171,7 @@ const char* PaletteCell::translationContext() const
 
 QString PaletteCell::translatedName() const
 {
-    const QString trName(qApp->translate(translationContext(), name.toUtf8()));
+    const QString trName = mu::qtrc(translationContext(), name.toUtf8());
 
     if (element && element->isTextBase() && name.contains("%1")) {
         return trName.arg(toTextBase(element.get())->plainText());
@@ -186,7 +191,7 @@ void PaletteCell::retranslate()
         TextBase* target = toTextBase(element.get());
         TextBase* orig = toTextBase(untranslatedElement.get());
         const QString& text = orig->xmlText();
-        target->setXmlText(qApp->translate("Palette", text.toUtf8().constData()));
+        target->setXmlText(mu::qtrc("palette", text.toUtf8().constData()));
     }
 }
 
@@ -373,6 +378,23 @@ std::unique_ptr<PalettePanel> PalettePanel::readMimeData(const QByteArray& data)
     return Ms::readMimeData<PalettePanel>(data, "Palette");
 }
 
+PalettePanel::PalettePanel(Type t)
+    : _type(t)
+{
+    static int id = 0;
+    _id = QString::number(++id);
+}
+
+QString PalettePanel::id() const
+{
+    return _id;
+}
+
+QString PalettePanel::translatedName() const
+{
+    return mu::qtrc("palette", _name.toUtf8());
+}
+
 //---------------------------------------------------------
 //   PalettePanel::read
 //---------------------------------------------------------
@@ -411,6 +433,7 @@ bool PalettePanel::read(XmlReader& e)
             _editable = e.readBool();
         } else if (tag == "Cell") {
             PaletteCellPtr cell(new PaletteCell);
+            cell->id = PaletteCell::makeId();
             if (!cell->read(e)) {
                 continue;
             }
@@ -486,10 +509,11 @@ void PalettePanel::write(XmlWriter& xml) const
 //   writePaletteFailed
 //---------------------------------------------------------
 
-static void writePaletteFailed(const QString& path)
+void PalettePanel::showWritingPaletteError(const QString& path) const
 {
-    QString s = qApp->translate("Palette", "Writing Palette File\n%1\nfailed: ").arg(path);   // reason?
-    QMessageBox::critical(qMainWindow(), qApp->translate("Palette", "Writing Palette File"), s);
+    std::string title = mu::trc("palette", "Writing Palette File");
+    std::string message = mu::qtrc("palette", "Writing Palette File\n%1\nfailed: ").arg(path).toStdString();
+    interactive()->message(IInteractive::Type::Critical, title, message);
 }
 
 //---------------------------------------------------------
@@ -523,7 +547,7 @@ bool PalettePanel::writeToFile(const QString& p) const
         | QFile::ReadOther | QFile::WriteOther | QFile::ExeOther);
 
     if (f.status() != MQZipWriter::NoError) {
-        writePaletteFailed(path);
+        showWritingPaletteError(path);
         return false;
     }
     QBuffer cbuf;
@@ -563,7 +587,7 @@ bool PalettePanel::writeToFile(const QString& p) const
     }
     f.close();
     if (f.status() != MQZipWriter::NoError) {
-        writePaletteFailed(path);
+        showWritingPaletteError(path);
         return false;
     }
     return true;
@@ -659,12 +683,12 @@ bool PalettePanel::readFromFile(const QString& p)
 //   PalettePanel::insert
 //---------------------------------------------------------
 
-PaletteCell* PalettePanel::insert(int idx, Element* e, const QString& name, QString tag, qreal mag)
+PaletteCell* PalettePanel::insert(int idx, Element* e, const QString& name, qreal mag)
 {
     if (e) {
         e->layout();     // layout may be important for comparing cells, e.g. filtering "More" popup content
     }
-    PaletteCell* cell = new PaletteCell(std::unique_ptr<Element>(e), name, tag, mag);
+    PaletteCell* cell = new PaletteCell(std::unique_ptr<Element>(e), name, mag);
     cells.emplace(cells.begin() + idx, cell);
     return cell;
 }
@@ -673,12 +697,12 @@ PaletteCell* PalettePanel::insert(int idx, Element* e, const QString& name, QStr
 //   PalettePanel::append
 //---------------------------------------------------------
 
-PaletteCell* PalettePanel::append(Element* e, const QString& name, QString tag, qreal mag)
+PaletteCell* PalettePanel::append(Element* e, const QString& name, qreal mag)
 {
     if (e) {
         e->layout();     // layout may be important for comparing cells, e.g. filtering "More" popup content
     }
-    PaletteCell* cell = new PaletteCell(std::unique_ptr<Element>(e), name, tag, mag);
+    PaletteCell* cell = new PaletteCell(std::unique_ptr<Element>(e), name, mag);
     cells.emplace_back(cell);
     return cell;
 }
@@ -860,7 +884,7 @@ PalettePanel::Type PalettePanel::guessType() const
         return Type::BagpipeEmbellishment;
     case ElementType::LAYOUT_BREAK:
     case ElementType::SPACER:
-        return Type::Break;
+        return Type::Layout;
     case ElementType::SYMBOL:
         return Type::Accordion;
     case ElementType::ICON: {
@@ -873,7 +897,7 @@ PalettePanel::Type PalettePanel::guessType() const
             return Type::GraceNote;
         }
         if (action.contains("frame") || action.contains("box") || action.contains("measure")) {
-            return Type::Frame;
+            return Type::Layout;
         }
         return Type::Custom;
     }
@@ -1014,12 +1038,24 @@ static void paintIconElement(QPainter& painter, const QRect& rect, Element* e)
 /// paint an element and its child elements.
 //---------------------------------------------------------
 
-static void paintPaletteElement(void* data, Element* e)
+void PaletteCellIconEngine::paintPaletteElement(void* data, Element* e)
 {
     QPainter* p = static_cast<QPainter*>(data);
     p->save();
     p->translate(e->pos());   // necessary for drawing child elements
+
+    QColor color = configuration()->elementsColor();
+
+    QColor colorBackup = e->color();
+    e->undoSetColor(color);
+
+    QColor frameColorBackup = e->getProperty(Pid::FRAME_FG_COLOR).value<QColor>();
+    e->undoChangeProperty(Pid::FRAME_FG_COLOR, color);
+
     e->draw(p);
+
+    e->undoSetColor(colorBackup);
+    e->undoChangeProperty(Pid::FRAME_FG_COLOR, frameColorBackup);
     p->restore();
 }
 
@@ -1032,7 +1068,7 @@ static void paintPaletteElement(void* data, Element* e)
 /// appear at the correct height on the staff.
 //---------------------------------------------------------
 
-static void paintScoreElement(QPainter& p, Element* e, qreal spatium, bool alignToStaff)
+void PaletteCellIconEngine::paintScoreElement(QPainter& p, Element* e, qreal spatium, bool alignToStaff) const
 {
     Q_ASSERT(e && !e->isIcon());
     p.save();   // so we can restore painter after we are done using it
@@ -1061,10 +1097,10 @@ static void paintScoreElement(QPainter& p, Element* e, qreal spatium, bool align
 /// distance from the top of the QRect to the uppermost staff line.
 //---------------------------------------------------------
 
-static qreal paintStaff(QPainter& p, const QRect& rect, qreal spatium)
+qreal PaletteCellIconEngine::paintStaff(QPainter& p, const QRect& rect, qreal spatium)
 {
     p.save();   // so we can restore painter after we are done using it
-    QPen pen(Qt::black);
+    QPen pen(configuration()->elementsColor());
     pen.setWidthF(MScore::defaultStyle().value(Sid::staffLineWidth).toDouble() * spatium);
     p.setPen(pen);
 
@@ -1105,14 +1141,14 @@ static void paintBackground(QPainter& p, const QRect& r, bool selected, bool cur
 //   paintTag
 //---------------------------------------------------------
 
-static void paintTag(QPainter& painter, const QRect& rect, QString tag)
+void PaletteCellIconEngine::paintTag(QPainter& painter, const QRect& rect, QString tag)
 {
     if (tag.isEmpty()) {
         return;
     }
 
     painter.save();   // so we can restore it after we are done using it
-    painter.setPen(Qt::darkGray);
+    painter.setPen(configuration()->elementsColor());
     QFont f(painter.font());
     f.setPointSize(12);
     painter.setFont(f);
@@ -1124,27 +1160,6 @@ static void paintTag(QPainter& painter, const QRect& rect, QString tag)
     }
 
     painter.restore();   // return to saved initial state (undo pen and font changes, etc.)
-}
-
-//---------------------------------------------------------
-//   elementColor
-//---------------------------------------------------------
-
-static QColor elementColor(Element* el, bool selected)
-{
-    Q_ASSERT(el);
-
-    if (selected) {
-        return QApplication::palette(qMainWindow()).color(QPalette::Normal, QPalette::HighlightedText);
-    }
-
-    if (el->isChord()) {
-        return el->curColor();     // Show voice colors for notes.
-        // This is used in the "drumtools" palette that appears
-        // when entering notes on an unpitched percussion staff.
-    }
-
-    return QApplication::palette(qMainWindow()).color(QPalette::Normal, QPalette::Text);
 }
 
 //---------------------------------------------------------
@@ -1186,9 +1201,7 @@ void PaletteCellIconEngine::paintCell(QPainter& p, const QRect& r, bool selected
 
     p.translate(origin);
     p.translate(_cell->xoffset * spatium, _cell->yoffset * spatium);   // additional offset for element only
-
-    QColor color(elementColor(el, selected));
-    p.setPen(QPen(color));
+    p.setPen(QPen(configuration()->elementsColor()));
 
     paintScoreElement(p, el, spatium, drawStaff);
 }

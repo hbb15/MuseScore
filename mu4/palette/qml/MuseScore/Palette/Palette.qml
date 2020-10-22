@@ -18,10 +18,12 @@
 //=============================================================================
 
 import QtQuick 2.8
-import QtQuick.Controls 2.1
+import QtQuick.Controls 2.15
 import QtQml.Models 2.2
+
 import MuseScore.Palette 1.0
 import MuseScore.UiComponents 1.0
+import MuseScore.Ui 1.0
 
 import "utils.js" as Utils
 
@@ -101,35 +103,38 @@ GridView {
         anchors.fill: parent
     }
 
-    StyledButton {
-        id: moreButton
-        visible: showMoreButton
-        activeFocusOnTab: this === paletteTree.currentTreeItem
+    Rectangle {
+        id: background
+        anchors.fill: parent
+        z: -1
+        color: ui.theme.textFieldColor
+    }
 
-        highlighted: visualFocus || hovered
-
-        background: Rectangle {
-            color: ui.theme.backgroundPrimaryColor //! TODO mscore.paletteBackground
-            Rectangle {
-                anchors.fill: parent
-                color: ui.theme.backgroundPrimaryColor //! TODO globalStyle.voice1Color
-                opacity: moreButton.down ? 0.4 : (moreButton.highlighted ? 0.2 : 0.0)
-            }
-            border.color: moreButton.activeFocus ? "lightblue" : "transparent" // show current item
-            border.width: 2
+    StyledTextLabel {
+        anchors {
+            top: parent.top
+            bottom: parent.bottom
+            left: parent.left; leftMargin: 8
+            right: moreButtonRect.left
         }
 
-        onActiveFocusChanged: {
-            if (activeFocus) {
-                paletteTree.currentTreeItem = this;
+        visible: parent.empty
+        opacity: 0.5
 
-                if (ui.keyboardModifiers() === Qt.NoModifier)
-                    paletteView.selectionModel.clearSelection();
-            }
-        }
+        text: paletteController && paletteController.canDropElements
+              ? qsTrc("palette", "Drag and drop any element here")
+              : qsTrc("palette", "No elements")
+
+        wrapMode: Text.WordWrap
+        horizontalAlignment: Text.AlignLeft
+    }
+
+    Rectangle {
+        id: moreButtonRect
 
         anchors.bottom: parent.bottom
         anchors.right: parent.right
+        implicitWidth: 64
         width: {
             if (paletteView.empty)
                 return implicitWidth;
@@ -141,47 +146,70 @@ GridView {
 
             return implicitWidth + addition;
         }
+
         height: cellHeight - (paletteView.oneRow ? 0 : 1)
+        visible: showMoreButton
+        color: background.color
 
-        text: qsTr("More")
-        textColor: down ? ui.theme.fontPrimaryColor /*TODO globalStyle.buttonText*/ : "black"// palette background has white or light color
-        visualFocusTextColor: "darkblue"
+        z: grid.z + 1
 
-        onClicked: paletteView.moreButtonClicked()
+        FlatButton {
+            id: moreButton
 
-        Keys.onShortcutOverride: {
-            // Intercept all keys that we want to use with Keys.onPressed
-            // in case they are assigned as shortcuts in Preferences.
-            event.accepted = true; // intercept everything
-            switch (event.key) {
-            case Qt.Key_Up:
-            case Qt.Key_Down:
-                return;
+            anchors.fill: parent
+            activeFocusOnTab: this === paletteTree.currentTreeItem
+
+            onActiveFocusChanged: {
+                if (activeFocus) {
+                    paletteTree.currentTreeItem = this;
+
+                    if (ui.keyboardModifiers() === Qt.NoModifier)
+                        paletteView.selectionModel.clearSelection();
+                }
             }
-            event.accepted = false; // allow key to function as shortcut (don't intercept)
-        }
 
-        Keys.onPressed: {
-            // NOTE: All keys must be intercepted with Keys.onShortcutOverride.
-            switch (event.key) {
-            case Qt.Key_Up:
-                focusPreviousItem();
-                break;
-            case Qt.Key_Down:
-                paletteTree.focusNextItem(false);
-                break;
-            default:
-                return; // don't accept event
+            text: qsTrc("palette", "More")
+
+            normalStateColor: "transparent"
+            hoveredStateColor: ui.theme.accentColor
+            pressedStateColor: ui.theme.accentColor
+
+            onClicked: paletteView.moreButtonClicked()
+
+            Keys.onShortcutOverride: {
+                // Intercept all keys that we want to use with Keys.onPressed
+                // in case they are assigned as shortcuts in Preferences.
+                event.accepted = true; // intercept everything
+                switch (event.key) {
+                case Qt.Key_Up:
+                case Qt.Key_Down:
+                    return;
+                }
+                event.accepted = false; // allow key to function as shortcut (don't intercept)
             }
-            event.accepted = true;
-        }
 
-        function focusPreviousItem() {
-            if (paletteView.count == 0) {
-                paletteTree.currentItem.forceActiveFocus();
-            } else {
-                paletteView.currentIndex = paletteView.count - 1
-                paletteView.currentItem.forceActiveFocus();
+            Keys.onPressed: {
+                // NOTE: All keys must be intercepted with Keys.onShortcutOverride.
+                switch (event.key) {
+                case Qt.Key_Up:
+                    focusPreviousItem();
+                    break;
+                case Qt.Key_Down:
+                    paletteTree.focusNextItem(false);
+                    break;
+                default:
+                    return; // don't accept event
+                }
+                event.accepted = true;
+            }
+
+            function focusPreviousItem() {
+                if (paletteView.count == 0) {
+                    paletteTree.currentItem.forceActiveFocus();
+                } else {
+                    paletteView.currentIndex = paletteView.count - 1
+                    paletteView.currentItem.forceActiveFocus();
+                }
             }
         }
     }
@@ -196,8 +224,9 @@ GridView {
         interval: 400
     }
 
-    PaletteBackground {
-        z: -1
+    PaletteGrid {
+        id: grid
+        z: 1
         anchors.fill: parent
         drawGrid: parent.drawGrid && !parent.empty
         offsetX: parent.contentX
@@ -207,23 +236,21 @@ GridView {
 
         DropArea {
             id: paletteDropArea
-            anchors { fill: parent/*; margins: 10*/ }
-
-            //             keys: [ "application/musescore/symbol", "application/musescore/palette/cell" ]
+            anchors.fill: parent
 
             property var action
             property var proposedAction: Qt.IgnoreAction
             property bool internal: false
 
             function onDrag(drag) {
-                if (drag.proposedAction != proposedAction) {
+                if (drag.proposedAction !== proposedAction) {
                     onEntered(drag);
                     return;
                 }
 
                 if (drag.source.dragged) {
                     drag.source.internalDrag = internal;
-                    drag.source.dragCopy = action == Qt.CopyAction;
+                    drag.source.dragCopy = action === Qt.CopyAction;
                     paletteView.state = "drag";
                     drag.source.paletteDrag = true;
                 } else if (typeof drag.source.paletteDrag !== "undefined") // if this is a palette and not, e.g., scoreview
@@ -232,12 +259,12 @@ GridView {
                 drag.accept(action); // confirm we accept the action we determined inside onEntered
 
                 var idx = paletteView.indexAt(drag.x, drag.y);
-                if (idx == -1)
+                if (idx === -1)
                     idx = paletteView.paletteModel.rowCount(paletteView.paletteRootIndex) - (internal ? 1 : 0);
 
-                if (placeholder.active && placeholder.index == idx)
+                if (placeholder.active && placeholder.index === idx)
                     return;
-                placeholder.makePlaceholder(idx, { decoration: "#eeeeee", toolTip: "placeholder", accessibleText: "", cellActive: false, mimeData: {} });
+                placeholder.makePlaceholder(idx, { decoration: ui.theme.textFieldColor, toolTip: "placeholder", accessibleText: "", cellActive: false, mimeData: {} });
             }
 
             onEntered: {
@@ -245,11 +272,11 @@ GridView {
 
                 // first check if controller allows dropping this item here
                 const mimeData = Utils.dropEventMimeData(drag);
-                internal = (drag.source.parentModelIndex == paletteView.paletteRootIndex);
+                internal = (drag.source.parentModelIndex === paletteView.paletteRootIndex);
                 action = paletteView.paletteController.dropAction(mimeData, drag.proposedAction, paletteView.paletteRootIndex, internal);
                 proposedAction = drag.proposedAction;
 
-                if (action != Qt.MoveAction)
+                if (action !== Qt.MoveAction)
                     internal = false;
 
                 const accept = (action & drag.supportedActions) && (internal || !externalDropBlocked);
@@ -271,7 +298,7 @@ GridView {
                     placeholder.removePlaceholder();
                     paletteView.state = "default";
                 }
-                if (drag.source && drag.source.parentModelIndex == paletteView.paletteRootIndex)
+                if (drag.source && drag.source.parentModelIndex === paletteView.paletteRootIndex)
                     drag.source.internalDrag = false;
             }
 
@@ -305,24 +332,6 @@ GridView {
                 drop.accept(action);
             }
         }
-    }
-
-    Text {
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            left: parent.left; leftMargin: 8
-            right: moreButton.left
-        }
-        visible: parent.empty
-        font: ui.theme.font
-        text: paletteController && paletteController.canDropElements
-              ? qsTr("Drag and drop any element here\n(Use %1+Shift to add custom element from the score)").arg(Qt.platform.os === "osx" ? "Cmd" : "Ctrl")
-              : qsTr("No elements")
-        verticalAlignment: Text.AlignVCenter
-        color: "grey"
-        wrapMode: Text.WordWrap
-        elide: Text.ElideRight
     }
 
     add: Transition {
@@ -509,6 +518,25 @@ GridView {
         event.accepted = true;
     }
 
+    Rectangle {
+        id: draggedIcon
+
+        width: paletteView.cellWidth
+        height: paletteView.cellHeight
+
+        color: ui.theme.textFieldColor
+        visible: false
+        opacity: 0.2
+
+        property alias source: view.icon
+
+        IconView {
+            id: view
+
+            anchors.fill: parent
+        }
+    }
+
     model: DelegateModel {
         id: paletteCellDelegateModel
         //         model: paletteView.visible ? paletteView.paletteModel : null // TODO: use this optimization? TODO: apply it manually where appropriate (Custom palette breaks)
@@ -528,7 +556,7 @@ GridView {
                 }
             }
 
-            opacity: enabled ? 1.0 : 0.3
+            opacity: enabled ? 1.0 : ui.theme.itemOpacityDisabled
 
             readonly property bool dragged: Drag.active && !dragDropReorderTimer.running
             property bool paletteDrag: false
@@ -545,55 +573,37 @@ GridView {
             activeFocusOnTab: this === paletteTree.currentTreeItem
 
             contentItem: IconView {
-                id: icon
-                visible: !parent.paletteDrag || parent.dragCopy
                 anchors.fill: parent
                 icon: model.decoration
-                selected: false // TODO: remove properties?
-                active: false // TODO: remove properties?
+                visible: !parent.paletteDrag || parent.dragCopy
             }
 
             background: Rectangle {
-                color: "transparent"
-                border.color: paletteCell.activeFocus ? "lightblue" : "transparent" // show current item
-                border.width: 2
-                width: ((paletteCell.rowIndex + 1) % paletteView.ncolumns) ? paletteView.cellWidth : paletteView.lastColumnCellWidth
-
-                Rectangle {
-                    id: cellBackground
-                    anchors.fill: parent
-                    color: ui.theme.backgroundPrimaryColor //! TODO globalStyle.voice1Color
-                    opacity: 0.0
-                }
-            }
-
-            onStateChanged: {
-                //console.debug("STATE CHANGED " + state)
+                id: cellBackground
+                color: ui.theme.textFieldColor
             }
 
             states: [
-                // Note: if "when" is true for multiple states then
-                // the first state listed here takes precendence.
-
-                State {
-                    name: "PRESSED"
-                    when: leftClickArea.pressed
-
-                    PropertyChanges { target: cellBackground; opacity: 0.75 }
-                },
-
                 State {
                     name: "SELECTED"
                     when: selected
 
-                    PropertyChanges { target: cellBackground; opacity: 0.5 }
+                    PropertyChanges {
+                        target: cellBackground
+                        opacity: ui.theme.buttonOpacityNormal
+                        color: ui.theme.accentColor
+                    }
                 },
 
                 State {
                     name: "HOVERED"
-                    when: highlighted
+                    when: highlighted && !selected
 
-                    PropertyChanges { target: cellBackground; opacity: 0.2 }
+                    PropertyChanges {
+                        target: cellBackground
+                        opacity: ui.theme.buttonOpacityHover
+                        color: ui.theme.accentColor
+                    }
                 }
             ]
 
@@ -731,7 +741,7 @@ GridView {
 
                 if (dropData) {
                     var data = dropData;
-                    if (data.action == Qt.MoveAction && data.srcParentModelIndex == data.paletteView.paletteRootIndex)
+                    if (data.action === Qt.MoveAction && data.srcParentModelIndex === data.paletteView.paletteRootIndex)
                         data.paletteView.moveCell(data.srcRowIndex, data.destIndex);
                     else
                         data.paletteView.insertCell(data.destIndex, data.mimeData, data.action);
@@ -742,24 +752,18 @@ GridView {
             //                             Drag.hotSpot: Qt.point(64, 0) // TODO
 
             function beginDrag() {
-                icon.grabToImage(function(result) {
+                draggedIcon.source = model.decoration
+
+                draggedIcon.grabToImage(function(result) {
                     Drag.imageSource = result.url
                     dragDropReorderTimer.restart();
                 })
             }
 
-            function showCellMenu(useCursorPos) {
-                if (useCursorPos === undefined)
-                    useCursorPos = false;
-                contextMenu.modelIndex = modelIndex;
-                contextMenu.canEdit = paletteView.paletteController.canEdit(paletteView.paletteRootIndex);
-                if (useCursorPos)
-                    contextMenu.popup();
-                else {
-                    contextMenu.x = x + width;
-                    contextMenu.y = y;
-                    contextMenu.open();
-                }
+            function showCellMenu() {
+                contextMenu.modelIndex = modelIndex
+                contextMenu.canEdit = paletteView.paletteController.canEdit(paletteView.paletteRootIndex)
+                contextMenu.popup()
             }
 
             Connections {
@@ -771,20 +775,29 @@ GridView {
         } // end ItemDelegate
     } // end DelegateModel
 
-    Menu {
+    ContextMenu {
         id: contextMenu
+
         property var modelIndex: null
         property bool canEdit: true
 
-        MenuItem {
+        StyledMenuItem {
+            hintIcon: IconCode.DELETE_TANK
+            text: qsTrc("palette", "Delete")
             enabled: contextMenu.canEdit
-            text: qsTr("Delete")
-            onTriggered: paletteView.paletteController.remove(contextMenu.modelIndex)
+
+            onTriggered: {
+                paletteView.paletteController.remove(contextMenu.modelIndex)
+            }
         }
-        MenuItem {
+
+        StyledMenuItem {
+            text: qsTrc("palette", "Properties…")
             enabled: contextMenu.canEdit
-            text: qsTr("Properties…")
-            onTriggered: paletteView.paletteController.editCellProperties(contextMenu.modelIndex)
+
+            onTriggered: {
+                Qt.callLater(paletteView.paletteController.editCellProperties, contextMenu.modelIndex)
+            }
         }
     }
 }

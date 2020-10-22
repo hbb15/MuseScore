@@ -37,6 +37,7 @@ public:
     void load();
 
     const std::list<Shortcut>& shortcuts() const override;
+    Shortcut shortcut(const std::string& actionName) const override;
     std::list<Shortcut> shortcutsForSequence(const std::string& sequence) const override;
 
 private:

@@ -23,26 +23,34 @@
 
 #include "modularity/ioc.h"
 #include "ui/iuiconfiguration.h"
+#include "ui/itheme.h"
 #include "notation/inotationconfiguration.h"
 
-namespace mu {
-namespace palette {
+namespace mu::palette {
 class PaletteConfiguration : public IPaletteConfiguration
 {
     INJECT(palette, framework::IUiConfiguration, uiConfiguration)
+    INJECT(palette, framework::ITheme, theme)
     INJECT(palette, notation::INotationConfiguration, notationConfiguration)
 
 public:
-    PaletteConfiguration() = default;
-
     void init();
 
     double guiScale() const override;
     bool isSinglePalette() const override;
-
     QColor foregroundColor() const override;
+    QColor elementsColor() const override;
+
+    ValCh<PaletteConfig> paletteConfig(const QString& paletteId) const override;
+    void setPaletteConfig(const QString& paletteId, const PaletteConfig& config) override;
+
+    ValCh<PaletteCellConfig> paletteCellConfig(const QString& cellId) const override;
+    void setPaletteCellConfig(const QString& cellId, const PaletteCellConfig& config) override;
+
+private:
+    mutable QHash<QString, ValCh<PaletteConfig> > m_paletteConfigs;
+    mutable QHash<QString, ValCh<PaletteCellConfig> > m_paletteCellsConfigs;
 };
-}
 }
 
 #endif // MU_PALETTE_PALETTECONFIGURATION_H

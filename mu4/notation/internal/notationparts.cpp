@@ -1249,13 +1249,11 @@ MidiActionList NotationParts::convertedMidiActions(const QList<Ms::NamedEventLis
         action.description = coreAction.descr;
 
         for (const Ms::MidiCoreEvent& midiCoreEvent: coreAction.events) {
-            midi::Event midiEvent;
-            midiEvent.setChannel(midiCoreEvent.channel());
-            midiEvent.setType(static_cast<midi::EventType>(midiCoreEvent.type()));
-
-            //!FIXME
-            //midiEvent.a = midiCoreEvent.dataA();
-            //midiEvent.b = midiCoreEvent.dataB();
+            midi::Event midiEvent(midiCoreEvent.channel(),
+                                  static_cast<midi::EventType>(midiCoreEvent.type()),
+                                  midiCoreEvent.dataA(),
+                                  midiCoreEvent.dataB()
+                                  );
 
             action.events.push_back(midiEvent);
         }
@@ -1272,14 +1270,16 @@ void NotationParts::sortParts(const IDList& instrumentIds)
                                 return part->instrument()->instrumentId();
                             };
 
-    for (size_t i = 0; i < instrumentIds.size(); i++) {
-        Part* currentPart = score()->parts().at(i);
+    for (int i = 0; i < instrumentIds.size(); ++i) {
+        const Part* currentPart = score()->parts().at(i);
+
         if (mainInstrumentId(currentPart) == instrumentIds.at(i)) {
             continue;
         }
 
-        for (int j = i; j < score()->parts().size(); j++) {
-            Part* part = score()->parts().at(j);
+        for (int j = i; j < score()->parts().size(); ++j) {
+            const Part* part = score()->parts().at(j);
+
             if (mainInstrumentId(part) == instrumentIds.at(i)) {
                 doMovePart(part->id(), currentPart->id());
                 break;

@@ -33,6 +33,7 @@ public:
     virtual ~IShortcutsRegister() = default;
 
     virtual const std::list<Shortcut>& shortcuts() const = 0;
+    virtual Shortcut shortcut(const std::string& actionName) const = 0;
     virtual std::list<Shortcut> shortcutsForSequence(const std::string& sequence) const = 0;
 };
 }

@@ -21,19 +21,22 @@
 
 #include <QFileDialog>
 #include <QStandardItemModel>
+#include <QJsonDocument>
 
 #include "libmscore/keysig.h"
 #include "libmscore/timesig.h"
 
-#include "createpalettedialog.h"
 #include "keyedit.h"
 #include "palette/palette.h" // applyPaletteElement
-#include "palettedialog.h"
-#include "palettecelldialog.h"
 #include "timedialog.h"
 
 #include "io/path.h"
 #include "mu4/commonscene/commonscenetypes.h"
+
+#include "translation.h"
+
+using namespace mu::palette;
+using namespace mu::framework;
 
 namespace Ms {
 //---------------------------------------------------------
@@ -62,9 +65,9 @@ QString PaletteElementEditor::actionName() const
     using Type = PalettePanel::Type;
     switch (_type) {
     case Type::KeySig:
-        return tr("Create Key Signature");
+        return mu::qtrc("palette", "Create Key Signature");
     case Type::TimeSig:
-        return tr("Create Time Signature");
+        return mu::qtrc("palette", "Create Time Signature");
     default:
         break;
     }
@@ -79,7 +82,7 @@ void PaletteElementEditor::onElementAdded(const Element* el)
 {
     if (!_paletteIndex.isValid()
         || !_paletteIndex.data(PaletteTreeModel::VisibleRole).toBool()) {
-        QMessageBox::information(mainWindow()->qMainWindow(), "", tr("The palette was hidden or changed"));
+        interactive()->message(IInteractive::Type::Info, "", mu::trc("palette", "The palette was hidden or changed"));
         return;
     }
     QVariantMap mimeData;
@@ -292,7 +295,7 @@ bool UserPaletteController::insert(const QModelIndex& parent, int row, const QVa
 //   UserPaletteController::insertNewItem
 //---------------------------------------------------------
 
-bool UserPaletteController::insertNewItem(const QModelIndex& parent, int row)
+bool UserPaletteController::insertNewItem(const QModelIndex& parent, int row, const QString& name)
 {
     if (!canEdit(parent)) {
         return false;
@@ -301,16 +304,10 @@ bool UserPaletteController::insertNewItem(const QModelIndex& parent, int row)
     const bool newItemIsPalette = !parent.isValid();
 
     if (newItemIsPalette) {
-        CreatePaletteDialog dlg(mainWindow()->qMainWindow());
-        const int result = dlg.exec();
-        if (result == QDialog::Rejected || dlg.paletteName().isEmpty()) {
-            return false;
-        }
-
         if (!model()->insertRow(row, parent)) {
             return false;
         }
-        model()->setData(model()->index(row, 0, parent), dlg.paletteName(), Qt::DisplayRole);
+        model()->setData(model()->index(row, 0, parent), name, Qt::DisplayRole);
         return true;
     }
 
@@ -340,35 +337,28 @@ bool UserPaletteController::move(const QModelIndex& sourceParent, int sourceRow,
 //   UserPaletteController::showHideOrDeleteDialog
 //---------------------------------------------------------
 
-void UserPaletteController::showHideOrDeleteDialog(const QString& question,
+void UserPaletteController::showHideOrDeleteDialog(const std::string& question,
                                                    std::function<void(AbstractPaletteController::RemoveAction)> resultHandler)
 const
 {
-    QMessageBox* msg = new QMessageBox(mainWindow()->qMainWindow());
-    msg->setIcon(QMessageBox::Question);
-    msg->setText(question);
-    msg->setTextFormat(Qt::PlainText);
-    QPushButton* deleteButton = msg->addButton(tr("Delete permanently"), QMessageBox::DestructiveRole);
-    QPushButton* hideButton = msg->addButton(tr("Hide"), QMessageBox::AcceptRole);
-    msg->addButton(QMessageBox::Cancel);
-    msg->setDefaultButton(hideButton);
+    int hideButton = int(IInteractive::Button::CustomButton) + 1;
+    int deleteButton = hideButton + 1;
 
-    connect(msg, &QDialog::finished, this, [=]() {
-            RemoveAction action = RemoveAction::NoAction;
-
-            const QAbstractButton* btn = msg->clickedButton();
-            if (btn == deleteButton) {
-                action = RemoveAction::DeletePermanently;
-            } else if (btn == hideButton) {
-                action = RemoveAction::Hide;
-            }
-
-            resultHandler(action);
+    int button = interactive()->question(std::string(), question, {
+            IInteractive::ButtonData(hideButton, mu::trc("palette", "Hide")),
+            IInteractive::ButtonData(deleteButton, mu::trc("palette", "Delete permanently")),
+            interactive()->buttonData(IInteractive::Button::Cancel)
         });
 
-    msg->setWindowModality(Qt::ApplicationModal);
-    msg->setAttribute(Qt::WA_DeleteOnClose);
-    msg->open();
+    RemoveAction action = RemoveAction::NoAction;
+
+    if (button == deleteButton) {
+        action = RemoveAction::DeletePermanently;
+    } else if (button == hideButton) {
+        action = RemoveAction::Hide;
+    }
+
+    resultHandler(action);
 }
 
 //---------------------------------------------------------
@@ -396,44 +386,35 @@ void UserPaletteController::queryRemove(const QModelIndexList& removeIndices, in
 
     if (isCell) {
         if (visible) {
-            showHideOrDeleteDialog(
-                customCount
-                == 1 ? tr("Do you want to hide this custom palette cell or permanently delete it?") : tr(
-                    "Do you want to hide these custom palette cells or permanently delete them?"),
-                [=](RemoveAction action) { remove(removeIndices, action); }
-                );
+            std::string question = customCount == 1
+                                   ? mu::trc("palette", "Do you want to hide this custom palette cell or permanently delete it?")
+                                   : mu::trc("palette", "Do you want to hide these custom palette cells or permanently delete them?");
+
+            showHideOrDeleteDialog(question,  [=](RemoveAction action) { remove(removeIndices, action); });
             return;
         } else {
-            QMessageBox* msg = new QMessageBox(
-                QMessageBox::Question,
-                "",
-                customCount
-                == 1 ? tr("Do you want to permanently delete this custom palette cell?") : tr(
-                    "Do you want to permanently delete these custom palette cells?"),
-                QMessageBox::Yes | QMessageBox::No,
-                mainWindow()->qMainWindow()
-                );
+            std::string question = customCount == 1
+                                   ? mu::trc("palette", "Do you want to permanently delete this custom palette cell?")
+                                   : mu::trc("palette", "Do you want to permanently delete these custom palette cells?");
 
-            connect(msg, &QDialog::finished, this, [=]() {
-                    const auto result = msg->standardButton(msg->clickedButton());
-                    if (result == QMessageBox::Yes) {
-                        remove(removeIndices, RemoveAction::DeletePermanently);
-                    }
+            IInteractive::Button button = interactive()->question(std::string(), question, {
+                    IInteractive::Button::Yes,
+                    IInteractive::Button::No
                 });
 
-            msg->setWindowModality(Qt::ApplicationModal);
-            msg->setAttribute(Qt::WA_DeleteOnClose);
-            msg->open();
+            if (button == IInteractive::Button::Yes) {
+                remove(removeIndices, RemoveAction::DeletePermanently);
+            }
+
             return;
         }
     } else {
         if (visible) {
-            showHideOrDeleteDialog(
-                customCount
-                == 1 ? tr("Do you want to hide this custom palette or permanently delete it?") : tr(
-                    "Do you want to hide these custom palettes or permanently delete them?"),
-                [=](RemoveAction action) { remove(removeIndices, action); }
-                );
+            std::string question = customCount == 1
+                                   ? mu::trc("palette", "Do you want to hide this custom palette or permanently delete it?")
+                                   : mu::trc("palette", "Do you want to hide these custom palettes or permanently delete them?");
+
+            showHideOrDeleteDialog(question,  [=](RemoveAction action) { remove(removeIndices, action); });
             return;
         } else {
             action = RemoveAction::Hide;
@@ -542,33 +523,36 @@ void UserPaletteController::editPaletteProperties(const QModelIndex& index)
         return;
     }
 
-    const QModelIndex srcIndex = convertProxyIndex(index, _userPalette);
-    PalettePanel* p = _userPalette->findPalettePanel(srcIndex);
-    if (!p) {
+    QModelIndex srcIndex = convertProxyIndex(index, _userPalette);
+    PalettePanel* panel = _userPalette->findPalettePanel(srcIndex);
+    if (!panel) {
         return;
     }
 
-    PaletteTreeModel* m = _userPalette;
-    PalettePropertiesDialog* d = new PalettePropertiesDialog(p, mainWindow()->qMainWindow());
-
-    const bool treeChangedWasBlocked = m->blockTreeChanged(true);
-    const bool paletteChangedState = m->paletteTreeChanged();
-
-    connect(d, &QDialog::accepted, m, [m, treeChangedWasBlocked]() {
-            m->blockTreeChanged(treeChangedWasBlocked);
-        });
-    connect(d, &QDialog::rejected, m, [m, srcIndex, paletteChangedState, treeChangedWasBlocked]() {
-            m->itemDataChanged(srcIndex);
-            paletteChangedState ? m->setTreeChanged() : m->setTreeUnchanged();
-            m->blockTreeChanged(treeChangedWasBlocked);
-        });
-    connect(d, &PalettePropertiesDialog::changed, m, [m, srcIndex]() {
-            m->itemDataChanged(srcIndex);
+    configuration()->paletteConfig(panel->id()).ch.onReceive(this,
+                                                             [this, srcIndex, panel](const IPaletteConfiguration::PaletteConfig& config) {
+            panel->setName(config.name);
+            panel->setGrid(config.size);
+            panel->setMag(config.scale);
+            panel->setYOffset(config.elementOffset);
+            panel->setDrawGrid(config.showGrid);
+            _userPalette->itemDataChanged(srcIndex);
         });
 
-    d->setModal(true);
-    d->setAttribute(Qt::WA_DeleteOnClose);
-    d->open();
+    QVariantMap properties;
+    properties["paletteId"] = panel->id();
+    properties["name"] = panel->translatedName();
+    properties["cellWidth"] = panel->gridSize().width();
+    properties["cellHeight"] = panel->gridSize().height();
+    properties["scale"] = panel->mag();
+    properties["elementOffset"] = panel->yOffset();
+    properties["showGrid"] = panel->drawGrid();
+
+    QJsonDocument document = QJsonDocument::fromVariant(properties);
+    QString uri = QString("musescore://palette/properties?sync=true&properties=%1")
+                  .arg(QString(document.toJson()));
+
+    interactive()->open(uri.toStdString());
 }
 
 //---------------------------------------------------------
@@ -581,33 +565,36 @@ void UserPaletteController::editCellProperties(const QModelIndex& index)
         return;
     }
 
-    const QModelIndex srcIndex = convertProxyIndex(index, _userPalette);
+    QModelIndex srcIndex = convertProxyIndex(index, _userPalette);
     PaletteCellPtr cell = _userPalette->findCell(srcIndex);
     if (!cell) {
         return;
     }
 
-    PaletteCellPropertiesDialog* d = new PaletteCellPropertiesDialog(cell.get(), mainWindow()->qMainWindow());
-    PaletteTreeModel* m = _userPalette;
-
-    const bool treeChangedWasBlocked = m->blockTreeChanged(true);
-    const bool paletteChangedState = m->paletteTreeChanged();
-
-    connect(d, &QDialog::accepted, m, [m, treeChangedWasBlocked]() {
-            m->blockTreeChanged(treeChangedWasBlocked);
-        });
-    connect(d, &QDialog::rejected, m, [m, srcIndex, paletteChangedState, treeChangedWasBlocked]() {
-            m->itemDataChanged(srcIndex);
-            paletteChangedState ? m->setTreeChanged() : m->setTreeUnchanged();
-            m->blockTreeChanged(treeChangedWasBlocked);
-        });
-    connect(d, &PaletteCellPropertiesDialog::changed, m, [m, srcIndex]() {
-            m->itemDataChanged(srcIndex);
+    configuration()->paletteCellConfig(cell->id).ch.onReceive(this,
+                                                              [this, srcIndex, cell](
+                                                                  const IPaletteConfiguration::PaletteCellConfig& config) {
+            cell->name = config.name;
+            cell->mag = config.scale;
+            cell->drawStaff = config.drawStaff;
+            cell->xoffset = config.xOffset;
+            cell->yoffset = config.yOffset;
+            _userPalette->itemDataChanged(srcIndex);
         });
 
-    d->setModal(true);
-    d->setAttribute(Qt::WA_DeleteOnClose);
-    d->open();
+    QVariantMap properties;
+    properties["cellId"] = cell->id;
+    properties["name"] = cell->translatedName();
+    properties["xOffset"] = cell->xoffset;
+    properties["yOffset"] = cell->yoffset;
+    properties["scale"] = cell->mag;
+    properties["drawStaff"] = cell->drawStaff;
+
+    QJsonDocument document = QJsonDocument::fromVariant(properties);
+    QString uri = QString("musescore://palette/cellproperties?sync=true&properties=%1")
+                  .arg(QString(document.toJson()));
+
+    interactive()->open(uri.toStdString());
 }
 
 //---------------------------------------------------------
@@ -646,30 +633,40 @@ PaletteWorkspace::PaletteWorkspace(PaletteTreeModel* user, PaletteTreeModel* mas
     if (userPalette) {
         connect(userPalette, &PaletteTreeModel::treeChanged, this, &PaletteWorkspace::userPaletteChanged);
     }
+
+    m_searchFilterModel = new PaletteCellFilterProxyModel(this);
+    m_searchFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    m_searchFilterModel->setSourceModel(userPalette);
+
+    m_visibilityFilterModel = new QSortFilterProxyModel(this);
+    m_visibilityFilterModel->setFilterRole(PaletteTreeModel::VisibleRole);
+    m_visibilityFilterModel->setFilterFixedString("true");
+    m_visibilityFilterModel->setSourceModel(userPalette);
 }
 
 //---------------------------------------------------------
 //   PaletteWorkspace::masterPaletteModel
 //---------------------------------------------------------
+void PaletteWorkspace::setSearching(bool searching)
+{
+    if (m_searching == searching) {
+        return;
+    }
+
+    m_searching = searching;
+
+    mainPalette = nullptr;
+    emit mainPaletteChanged();
+}
 
 QAbstractItemModel* PaletteWorkspace::mainPaletteModel()
 {
-    if (!mainPalette) {
-//             PaletteCellFilter* filter = new VisibilityCellFilter(/* acceptedValue */ true);
-//             mainPalette = new FilterPaletteTreeModel(filter, userPalette, this);
-        QSortFilterProxyModel* visFilterModel = new QSortFilterProxyModel(this);
-        visFilterModel->setFilterRole(PaletteTreeModel::VisibleRole);
-        visFilterModel->setFilterFixedString("true");
-        visFilterModel->setSourceModel(userPalette);
-
-        // Wrap it into another proxy model to enable filtering by palette cell name
-        QSortFilterProxyModel* textFilterModel = new PaletteCellFilterProxyModel(this);
-        textFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-        textFilterModel->setSourceModel(visFilterModel);
-        visFilterModel->setParent(textFilterModel);
-
-        mainPalette = textFilterModel;
+    if (m_searching) {
+        mainPalette = m_searchFilterModel;
+    } else {
+        mainPalette = m_visibilityFilterModel;
     }
+
     return mainPalette;
 }
 
@@ -872,16 +869,15 @@ bool PaletteWorkspace::removeCustomPalette(const QPersistentModelIndex& index)
             return false;
         }
 
-        const auto answer = QMessageBox::question(
-            nullptr,
-            "",
-            tr("Do you want to permanently delete this custom palette?"),
-            QMessageBox::Yes | QMessageBox::No
-            );
+        IInteractive::Button button
+            = interactive()->question("", mu::trc("palette", "Do you want to permanently delete this custom palette?"), {
+                IInteractive::Button::Yes, IInteractive::Button::No
+            });
 
-        if (answer == QMessageBox::Yes) {
+        if (button == IInteractive::Button::Yes) {
             return userPalette->removeRow(index.row(), index.parent());
         }
+
         return false;
     }
 
@@ -898,17 +894,12 @@ bool PaletteWorkspace::resetPalette(const QModelIndex& index)
         return false;
     }
 
-    const auto answer
-        =(MScore::noGui && MScore::testMode)
-          ? QMessageBox::Yes
-          : QMessageBox::question(
-              nullptr,
-              "",
-              tr("Do you want to restore this palette to its default state? All changes to this palette will be lost."),
-              QMessageBox::Yes | QMessageBox::No
-              );
-
-    if (answer != QMessageBox::Yes) {
+    IInteractive::Button button
+        = interactive()->question("", mu::trc("palette",
+                                              "Do you want to restore this palette to its default state? All changes to this palette will be lost."), {
+            IInteractive::Button::Yes, IInteractive::Button::No
+        });
+    if (button != IInteractive::Button::Yes) {
         return false;
     }
 
@@ -959,14 +950,19 @@ QString PaletteWorkspace::getPaletteFilename(bool open, const QString& name)
 {
     QString title;
     QString filter;
-    QString wd      = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).arg(
-        QCoreApplication::applicationName());
+#if defined(WIN_PORTABLE)
+    QString wd = QDir::cleanPath(QString("%1/../../../Data/settings").arg(QCoreApplication::applicationDirPath())
+                                 .arg(QCoreApplication::applicationName()));
+#else
+    QString wd = QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::HomeLocation))
+                 .arg(QCoreApplication::applicationName());
+#endif
     if (open) {
-        title  = tr("Load Palette");
-        filter = tr("MuseScore Palette") + " (*.mpal)";
+        title  = mu::qtrc("palette", "Load Palette");
+        filter = mu::qtrc("palette", "MuseScore Palette") + " (*.mpal)";
     } else {
-        title  = tr("Save Palette");
-        filter = tr("MuseScore Palette") + " (*.mpal)";
+        title  = mu::qtrc("palette", "Save Palette");
+        filter = mu::qtrc("palette", "MuseScore Palette") + " (*.mpal)";
     }
 
     QFileInfo myPalettes(wd);

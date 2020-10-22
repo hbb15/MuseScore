@@ -26,7 +26,7 @@ import MuseScore.Palette 1.0
 // TODO: make some properties 'property alias`?
 // and `readonly property`?
 
-Item {
+Rectangle {
     id: palettesWidget
 
     readonly property PaletteWorkspace paletteWorkspace: paletteRootModel.paletteWorkspace
@@ -41,6 +41,8 @@ Item {
     function applyCurrentPaletteElement() {
         paletteTree.applyCurrentElement();
     }
+
+    color: ui.theme.backgroundPrimaryColor
 
     FocusableItem {
         id: focusBreaker
@@ -67,21 +69,25 @@ Item {
 
         anchors {
             top: parent.top
-            topMargin: 12
             left: parent.left
             leftMargin: 12
             right: parent.right
             rightMargin: 12
         }
 
-        onAddCustomPaletteRequested: paletteTree.insertCustomPalette(0);
+        onAddCustomPaletteRequested: paletteTree.insertCustomPalette(0, paletteName);
     }
 
-    ToolSeparator {
-        id: separator
-        orientation: Qt.Horizontal
+    StyledTextLabel {
+        id: searchHint
+
         anchors.top: palettesWidgetHeader.bottom
-        width: parent.width
+        anchors.topMargin: 26
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        text: qsTrc("palette", "Start typing to search all palettes")
+
+        visible: palettesWidgetHeader.searchOpenned && !Boolean(palettesWidgetHeader.searchText)
     }
 
     PaletteTree {
@@ -89,15 +95,19 @@ Item {
         clip: true
         paletteWorkspace: palettesWidget.paletteWorkspace
 
-        filter: palettesWidgetHeader.cellFilter
+        filter: palettesWidgetHeader.searchText
         enableAnimations: !palettesWidgetHeader.searching
+        searchOpenned: palettesWidgetHeader.searchOpenned
 
         anchors {
-            top: separator.bottom
+            top: palettesWidgetHeader.bottom
+            topMargin: 3
             bottom: parent.bottom
             left: parent.left
             right: parent.right
         }
+
+        visible: !searchHint.visible
     }
 
     Rectangle {
