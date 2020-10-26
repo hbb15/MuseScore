@@ -42,7 +42,7 @@ class Spanner;
 class StaffType;
 class NoteEditData;
 enum class SymId;
-enum class AccidentalType : char;
+enum class AccidentalType : unsigned char;
 
 static const int MAX_DOTS = 4;
 

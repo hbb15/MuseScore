@@ -1848,6 +1848,7 @@ bool Note::acceptDrop(EditData& data) const
            || (type == ElementType::ICON && toIcon(e)->iconType() == IconType::BEAM64)
            || (type == ElementType::ICON && toIcon(e)->iconType() == IconType::AUTOBEAM)
            || (type == ElementType::ICON && toIcon(e)->iconType() == IconType::PARENTHESES)
+           || (type == ElementType::ICON && toIcon(e)->iconType() == IconType::BRACES)
            || (type == ElementType::SYMBOL)
            || (type == ElementType::CLEF)
            || (type == ElementType::KEYSIG)

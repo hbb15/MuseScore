@@ -570,6 +570,43 @@ static Align alignForCreditWords(const CreditWords* const w, const int pageWidth
 }
 
 //---------------------------------------------------------
+//   tidForCreditWords
+//---------------------------------------------------------
+
+static Tid tidForCreditWords(const CreditWords* const word, std::vector<const CreditWords*>& words, const int pageWidth)
+{
+    const auto pw1 = pageWidth / 3;
+    const auto pw2 = pageWidth * 2 / 3;
+    const auto defx = word->defaultX;
+    // composer is in the right column
+    if (pw2 < defx) {
+        // found composer
+        return Tid::COMPOSER;
+    }
+    // poet is in the left column
+    else if (defx < pw1) {
+        // found poet/lyricist
+        return Tid::POET;
+    }
+    // title is in the middle column
+    else {
+        // if another word in the middle column has a larger font size, this word is not the title
+        for (const auto w : words) {
+            if (w == word) {
+                continue;                       // it's me
+            }
+            if (w->defaultX < pw1 || pw2 < w->defaultX) {
+                continue;                       // it's not in the middle column
+            }
+            if (word->fontSize < w->fontSize) {
+                return Tid::SUBTITLE;           // word does not have the largest font size, assume subtitle
+            }
+        }
+        return Tid::TITLE;                      // no better title candidate found
+    }
+}
+
+//---------------------------------------------------------
 //   createAndAddVBoxForCreditWords
 //---------------------------------------------------------
 
@@ -599,26 +636,47 @@ static VBox* addCreditWords(Score* const score, const CreditWordsList& crWords,
 {
     VBox* vbox = nullptr;
 
-    std::vector<const CreditWords*> topwords;
+    std::vector<const CreditWords*> headerWords;
+    std::vector<const CreditWords*> footerWords;
     for (const auto w : crWords) {
         if (w->page == pageNr) {
-            if ((w->defaultY > (pageSize.height() / 2)) == top) {
-                topwords.push_back(w);
+            if (w->defaultY > (pageSize.height() / 2)) {
+                headerWords.push_back(w);
+            } else {
+                footerWords.push_back(w);
             }
         }
     }
 
+    std::vector<const CreditWords*> words;
+    if (pageNr == 1) {
+        // if there are more credit words in the footer than in header,
+        // swap heaer and footer, assuming this will result in a vertical
+        // frame with the title on top of the page.
+        // Sibelius (direct export) typically exports no header
+        // and puts the title etc. in the footer
+        const bool doSwap = footerWords.size() > headerWords.size();
+        if (top) {
+            words = doSwap ? footerWords : headerWords;
+        } else {
+            words = doSwap ? headerWords : footerWords;
+        }
+    } else {
+        words = top ? headerWords : footerWords;
+    }
+
     int miny = 0;
     int maxy = 0;
-    findYMinYMaxInWords(topwords, miny, maxy);
+    findYMinYMaxInWords(words, miny, maxy);
 
-    for (const auto w : topwords) {
+    for (const auto w : words) {
         const auto align = alignForCreditWords(w, pageSize.width());
+        const auto tid = (pageNr == 1 && top) ? tidForCreditWords(w, words, pageSize.width()) : Tid::DEFAULT;
         double yoffs = (maxy - w->defaultY) * score->spatium() / 10;
         if (!vbox) {
             vbox = createAndAddVBoxForCreditWords(score, miny, maxy);
         }
-        addText2(vbox, score, w->words, Tid::DEFAULT, align, yoffs);
+        addText2(vbox, score, w->words, tid, align, yoffs);
     }
 
     return vbox;
@@ -753,6 +811,19 @@ static void determineMeasureStart(const QVector<Fraction>& ml, QVector<Fraction>
 }
 
 //---------------------------------------------------------
+//   dumpPageSize
+//---------------------------------------------------------
+
+static void dumpPageSize(const QSize& pageSize)
+{
+#if 0
+    qDebug("page size width=%d height=%d", pageSize.width(), pageSize.height());
+#else
+    Q_UNUSED(pageSize);
+#endif
+}
+
+//---------------------------------------------------------
 //   dumpCredits
 //---------------------------------------------------------
 
@@ -821,7 +892,8 @@ Score::FileError MusicXMLParserPass1::parse(QIODevice* device)
     determineMeasureStart(_measureLength, _measureStart);
     // Fixup timesig at tick = 0 if necessary
     fixupSigmap(_logger, _score, _measureLength);
-    // Debug: dump the credits read
+    // Debug: dump gae size and credits read
+    dumpPageSize(_pageSize);
     dumpCredits(_credits);
     // Create the measures
     createMeasuresAndVboxes(_score, _measureLength, _measureStart, _systemStartMeasureNrs, _pageStartMeasureNrs,
@@ -1207,6 +1279,7 @@ void MusicXMLParserPass1::credit(CreditWordsList& credits)
     bool creditWordsRead = false;
     double defaultx = 0;
     double defaulty = 0;
+    double fontSize = 0;
     QString justify;
     QString halign;
     QString valign;
@@ -1217,6 +1290,7 @@ void MusicXMLParserPass1::credit(CreditWordsList& credits)
             if (!creditWordsRead) {
                 defaultx = _e.attributes().value("default-x").toString().toDouble();
                 defaulty = _e.attributes().value("default-y").toString().toDouble();
+                fontSize = _e.attributes().value("font-size").toString().toDouble();
                 justify  = _e.attributes().value("justify").toString();
                 halign   = _e.attributes().value("halign").toString();
                 valign   = _e.attributes().value("valign").toString();
@@ -1230,7 +1304,7 @@ void MusicXMLParserPass1::credit(CreditWordsList& credits)
         }
     }
     if (crwords != "") {
-        CreditWords* cw = new CreditWords(page, defaultx, defaulty, justify, halign, valign, crwords);
+        CreditWords* cw = new CreditWords(page, defaultx, defaulty, fontSize, justify, halign, valign, crwords);
         credits.append(cw);
     }
 
