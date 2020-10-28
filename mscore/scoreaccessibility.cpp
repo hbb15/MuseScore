@@ -15,9 +15,9 @@
 #include "selectionwindow.h"
 #include "playpanel.h"
 #include "synthcontrol.h"
-#include "mixer.h"
+#include "mixer/mixer.h"
 #include "drumroll.h"
-#include "pianoroll.h"
+#include "pianoroll/pianoroll.h"
 
 namespace Ms{
 
@@ -91,8 +91,16 @@ QString AccessibleScoreView::text(QAccessible::Text t) const
                   //return "";
                   return s->score()->title();
             case QAccessible::Value:
-            case QAccessible::Description:
-                  return s->score()->accessibleInfo();
+            case QAccessible::Description: {
+                  QString msg = s->score()->accessibleMessage();
+                  QString info = s->score()->accessibleInfo();
+                  if (msg.isEmpty())
+                        return info;
+                  s->score()->setAccessibleMessage(""); // clear the message
+                  if (info.isEmpty())
+                        return msg;
+                  return tr("%1, %2").arg(msg).arg(info);
+                  }
             default:
                   return QString();
            }
@@ -275,7 +283,7 @@ void ScoreAccessibility::currentInfoChanged()
             QString optimizedStaff = "";
             if (e->staffIdx() + 1) {
                   _oldStaff = e->staffIdx();
-                  staff = tr("Staff %1").arg(QString::number(e->staffIdx() + 1));
+                  staff = tr("Staff: %1").arg(QString::number(e->staffIdx() + 1));
                   QString staffName = e->staff()->part()->longName(e->tick());
                   if (staffName.isEmpty())
                         staffName = e->staff()->partName();
@@ -291,12 +299,20 @@ void ScoreAccessibility::currentInfoChanged()
                   }
 
             statusBarLabel->setText(rez);
+
+            if (scoreView->mscoreState() & STATE_ALLTEXTUAL_EDIT) {
+                  // Don't say element name during text editing.
+                  score->setAccessibleInfo("");
+                  return;
+                  }
+
             QString screenReaderRez;
-            if (rez != oldStatus || oldScreenReaderInfo.isEmpty()) {
+            QString newScreenReaderInfo = e->screenReaderInfo();
+            if (rez != oldStatus || newScreenReaderInfo != oldScreenReaderInfo || oldScreenReaderInfo.isEmpty()) {
                   // status has changed since last call, or there is no existing screenreader info
                   //
                   // build new screenreader info
-                  screenReaderRez = QString("%1%2 %3 %4").arg(e->screenReaderInfo()).arg(optimizedBarsAndBeats).arg(optimizedStaff).arg(e->accessibleExtraInfo());
+                  screenReaderRez = QString("%1%2 %3 %4").arg(newScreenReaderInfo).arg(optimizedBarsAndBeats).arg(optimizedStaff).arg(e->accessibleExtraInfo());
                   makeReadable(screenReaderRez);
                   }
             else {
@@ -343,7 +359,8 @@ ScoreAccessibility* ScoreAccessibility::instance()
 void ScoreAccessibility::updateAccessibilityInfo()
       {
       ScoreView* w = static_cast<MuseScore*>(mainWindow)->currentScoreView();
-      if (!w) return;
+      if (!w)
+            return;
 
       currentInfoChanged();
 
@@ -370,6 +387,26 @@ void ScoreAccessibility::updateAccessibilityInfo()
             w->setFocus();
             }
 #endif
+
+      // Try to send message to the screen reader. Note that NVDA will
+      // ignore the message if it is the same as the previous message.
+      updateAccessibility();
+
+#if defined(Q_OS_WIN)
+      // HACK: send the message again after a short delay to force NVDA
+      // to read it even if it is the same as before. This is useful when
+      // cursoring through a word with repeated characters, such as "food".
+      // Without this hack NVDA would say "f", "o", *silence*, "d".
+      QTimer::singleShot(0, this, &ScoreAccessibility::updateAccessibility);
+#endif
+      }
+
+void ScoreAccessibility::updateAccessibility()
+      {
+      ScoreView* w = static_cast<MuseScore*>(mainWindow)->currentScoreView();
+      if (!w)
+            return;
+
       QObject* obj = static_cast<QObject*>(w);
       QAccessibleValueChangeEvent vcev(obj, w->score()->accessibleInfo());
       QAccessible::updateAccessibility(&vcev);
@@ -411,17 +448,17 @@ std::pair<int, float> ScoreAccessibility::barbeat(Element *e)
             beat = -1;
             ticks = 0;
             }
-      return pair<int,float>(bar + 1, beat + 1 + ticks / static_cast<float>(ticksB));
+      return std::pair<int,float>(bar + 1, beat + 1 + ticks / static_cast<float>(ticksB));
       }
 
 void ScoreAccessibility::makeReadable(QString& s)
       {
       static std::vector<std::pair<QString, QString>> unicodeReplacements {
-            { "♭", tr(" flat") },
-            { "♮", tr(" natural") },
-            { "♯", tr(" sharp") },
-            { "𝄫", tr(" double flat") },
-            { "𝄪", tr(" double sharp") },
+            { "♭", " " + tr("flat") },
+            { "♮", " " + tr("natural") },
+            { "♯", " " + tr("sharp") },
+            { "𝄫", " " + tr("double flat") },
+            { "𝄪", " " + tr("double sharp") },
       };
 
       if (!QAccessible::isActive())

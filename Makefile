@@ -17,14 +17,13 @@
 #  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #=============================================================================
 
-REVISION  := `cat mscore/revision.h`
 CPUS      := $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 1)
 
 PREFIX    = "/usr/local"
-VERSION   = "3.5b-${REVISION}"
-#VERSION = 3.5.0
-BUILD_NUMBER=""
+VERSION   := $(shell cmake -P config.cmake | sed -n -e "s/^.*VERSION  *//p")
 
+MUSESCORE_BUILD_CONFIG="dev"
+BUILD_NUMBER=""
 TELEMETRY_TRACK_ID=""
 
 # Override SUFFIX and LABEL when multiple versions are installed to avoid conflicts.
@@ -34,7 +33,9 @@ LABEL=""# E.g.: LABEL="Development Build" --> "MuseScore 2" becomes "MuseScore 2
 BUILD_LAME="ON" # Non-free, required for MP3 support. Override with "OFF" to disable.
 BUILD_PULSEAUDIO="ON" # Override with "OFF" to disable.
 BUILD_JACK="ON"       # Override with "OFF" to disable.
+BUILD_ALSA="ON"       # Override with "OFF" to disable.
 BUILD_PORTAUDIO="ON"  # Override with "OFF" to disable.
+BUILD_PORTMIDI="ON"   # Override with "OFF" to disable.
 BUILD_WEBENGINE="ON"  # Override with "OFF" to disable.
 USE_SYSTEM_FREETYPE="OFF" # Override with "ON" to enable. Requires freetype >= 2.5.2.
 COVERAGE="OFF"        # Override with "ON" to enable.
@@ -46,7 +47,7 @@ NO_RPATH="FALSE"# Package maintainers may want to override this (e.g. Debian)
 #
 # change path to include your Qt5 installation
 #
-BINPATH      = ${PATH}
+BINPATH      = "${PATH}"
 
 release:
 	if test ! -d build.release; then mkdir build.release; fi; \
@@ -57,11 +58,14 @@ release:
   	  -DCMAKE_INSTALL_PREFIX="${PREFIX}"       \
   	  -DMSCORE_INSTALL_SUFFIX="${SUFFIX}"      \
   	  -DMUSESCORE_LABEL="${LABEL}"             \
+	  -DMUSESCORE_BUILD_CONFIG="${MUSESCORE_BUILD_CONFIG}" \
   	  -DCMAKE_BUILD_NUMBER="${BUILD_NUMBER}"   \
   	  -DTELEMETRY_TRACK_ID="${TELEMETRY_TRACK_ID}" \
   	  -DBUILD_LAME="${BUILD_LAME}"             \
   	  -DBUILD_PULSEAUDIO="${BUILD_PULSEAUDIO}" \
+  	  -DBUILD_PORTMIDI="${BUILD_PORTMIDI}"  \
   	  -DBUILD_JACK="${BUILD_JACK}"             \
+  	  -DBUILD_ALSA="${BUILD_ALSA}"              \
    	  -DBUILD_PORTAUDIO="${BUILD_PORTAUDIO}"   \
    	  -DBUILD_WEBENGINE="${BUILD_WEBENGINE}"   \
    	  -DUSE_SYSTEM_FREETYPE="${USE_SYSTEM_FREETYPE}" \
@@ -89,7 +93,9 @@ debug:
   	  -DCMAKE_BUILD_NUMBER="${BUILD_NUMBER}"              \
   	  -DBUILD_LAME="${BUILD_LAME}"                        \
   	  -DBUILD_PULSEAUDIO="${BUILD_PULSEAUDIO}"            \
+  	  -DBUILD_PORTMIDI="${BUILD_PORTMIDI}"             \
   	  -DBUILD_JACK="${BUILD_JACK}"                        \
+  	  -DBUILD_ALSA="${BUILD_ALSA}"                         \
    	  -DBUILD_PORTAUDIO="${BUILD_PORTAUDIO}"              \
    	  -DBUILD_WEBENGINE="${BUILD_WEBENGINE}"              \
    	  -DUSE_SYSTEM_FREETYPE="${USE_SYSTEM_FREETYPE}"      \

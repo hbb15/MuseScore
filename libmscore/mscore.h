@@ -79,6 +79,9 @@ inline int trackZeroVoice(int track) { return track & ~3;    }
 
 static const int MAX_TAGS = 32;
 
+static const int MAX_HEADERS = 3;
+static const int MAX_FOOTERS = 3;
+
 static constexpr qreal INCH      = 25.4;
 static constexpr qreal PPI       = 72.0;           // printer points per inch
 static constexpr qreal DPI_F     = 5;
@@ -129,7 +132,7 @@ enum class TransposeDirection : char {
 //---------------------------------------------------------
 
 enum class TransposeMode : char {
-      BY_KEY, BY_INTERVAL, DIATONICALLY
+      TO_KEY, BY_INTERVAL, DIATONICALLY
       };
 
 //---------------------------------------------------------
@@ -145,11 +148,15 @@ enum class SelectType : char {
 //---------------------------------------------------------
 
 enum class AccidentalVal : signed char {
+      SHARP3  = 3,
       SHARP2  = 2,
       SHARP   = 1,
       NATURAL = 0,
       FLAT    = -1,
-      FLAT2   = -2
+      FLAT2   = -2,
+      FLAT3   = -3,
+      MIN     = FLAT3,
+      MAX     = SHARP3
       };
 
 //---------------------------------------------------------
@@ -179,33 +186,30 @@ enum class StaffGroup : char {
       };
 const int STAFF_GROUP_MAX = int(StaffGroup::NUMERIC) + 1;      // out of enum to avoid compiler complains about not handled switch cases
 
-enum class NoteHeadScheme : char {
-      HEAD_NORMAL = 0,
-      HEAD_PITCHNAME,
-      HEAD_PITCHNAME_GERMAN,
-      HEAD_SOLFEGE,
-      HEAD_SOLFEGE_FIXED,
-      HEAD_SHAPE_NOTE_4,
-      HEAD_SHAPE_NOTE_7_AIKIN,
-      HEAD_SHAPE_NOTE_7_FUNK,
-      HEAD_SHAPE_NOTE_7_WALKER,
-      HEAD_SCHEMES
-      };
-
 //---------------------------------------------------------
 //   BarLineType
 //---------------------------------------------------------
 
 enum class BarLineType {
       NORMAL           = 1,
+      SINGLE           = BarLineType::NORMAL,
       DOUBLE           = 2,
       START_REPEAT     = 4,
+      LEFT_REPEAT      = BarLineType::START_REPEAT,
       END_REPEAT       = 8,
+      RIGHT_REPEAT     = BarLineType::END_REPEAT,
       BROKEN           = 0x10,
+      DASHED           = BarLineType::BROKEN,
       END              = 0x20,
       BEGIN            = 0x30,
+      FINAL            = BarLineType::END,
       END_START_REPEAT = 0x40,
-      DOTTED           = 0x80
+      LEFT_RIGHT_REPEAT= BarLineType::END_START_REPEAT,
+      DOTTED           = 0x80,
+      REVERSE_END      = 0x100,
+      REVERSE_FINALE   = BarLineType::REVERSE_END,
+      HEAVY            = 0x200,
+      DOUBLE_HEAVY     = 0x400,
       };
 
 constexpr BarLineType operator| (BarLineType t1, BarLineType t2) {
@@ -224,7 +228,7 @@ enum class IconType : signed char {
       SBEAM, MBEAM, NBEAM, BEAM32, BEAM64, AUTOBEAM,
       FBEAM1, FBEAM2,
       VFRAME, HFRAME, TFRAME, FFRAME, MEASURE,
-      BRACKETS, PARENTHESES
+      BRACKETS, PARENTHESES, BRACES,
       };
 
 //---------------------------------------------------------
@@ -237,7 +241,7 @@ enum MsError {
       NO_CHORD_REST_SELECTED,
       NO_LYRICS_SELECTED,
       NO_NOTE_REST_SELECTED,
-      NO_NOTE_SLUR_SELECTED,
+      NO_FLIPPABLE_SELECTED,
       NO_STAFF_SELECTED,
       NO_NOTE_FIGUREDBASS_SELECTED,
       CANNOT_INSERT_TUPLET,
@@ -332,9 +336,13 @@ class MScore {
       static QColor frameMarginColor;
       static QColor bgColor;
       static bool warnPitchRange;
+      static int pedalEventsMinTicks;
 
+      static bool harmonyPlayDisableCompatibility;
+      static bool harmonyPlayDisableNew;
       static bool playRepeats;
       static bool panPlayback;
+      static int playbackSpeedIncrement;
       static qreal nudgeStep;
       static qreal nudgeStep10;
       static qreal nudgeStep50;

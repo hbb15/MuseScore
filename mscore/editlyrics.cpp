@@ -51,6 +51,8 @@ bool ScoreView::editKeyLyrics()
                         bool kl = editData.key == Qt::Key_Left;
                         lyricsTab(kl, kl, true);      // go to previous/next lyrics
                         }
+                  if (editData.modifiers & Qt::ShiftModifier)
+                        _score->update(); // draw updated selection
                   break;
 
             case Qt::Key_Up:
@@ -75,7 +77,7 @@ bool ScoreView::editKeyLyrics()
             case Qt::Key_Underscore:
                   if (editData.control(textEditing)) {
                         // change into normal underscore
-                        editData.modifiers = 0; // &= ~CONTROL_MODIFIER;
+                        editData.modifiers = {}; // &= ~CONTROL_MODIFIER;
                         return false;
                         }
                   else
@@ -437,6 +439,7 @@ void ScoreView::lyricsUnderscore()
 
       // if a place for a new lyrics has been found, create a lyrics there
 
+      _score->startCmd();
       ChordRest* cr    = toChordRest(nextSegment->element(track));
       Lyrics* toLyrics = cr->lyrics(verse, placement);
       bool newLyrics   = (toLyrics == 0);

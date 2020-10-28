@@ -56,9 +56,9 @@ class Workspace : public QObject {
 
       QTimer _saveTimer;
 
-      bool saveComponents;
-      bool saveToolbars;
-      bool saveMenuBar;
+      bool saveComponents { false };
+      bool saveToolbars   { false };
+      bool saveMenuBar    { false };
 
       void readGlobalToolBar();
       void readGlobalMenuBar();
@@ -76,6 +76,7 @@ class Workspace : public QObject {
       Workspace(const QString& n, const QString& p, bool d, bool r)
          : _name(n), _path(p), _dirty(d), _readOnly(r) {}
 
+      QString id() const;
       QString path() const           { return _path;  }
       void setPath(const QString& s) { _path = s;     }
       QString name() const           { return _name;  }

@@ -34,6 +34,7 @@ ExampleView::ExampleView(QWidget* parent)
       setFocusPolicy(Qt::StrongFocus);
       resetMatrix();
       _fgPixmap = nullptr;
+      _fgColor  = Qt::white;
       if (preferences.getBool(PREF_UI_CANVAS_FG_USECOLOR))
             _fgColor = preferences.getColor(PREF_UI_CANVAS_FG_COLOR);
       else {
@@ -197,7 +198,7 @@ void ExampleView::paintEvent(QPaintEvent* ev)
             QRegion r1(r);
             Page* page = _score->pages().front();
             QList<Element*> ell = page->items(fr);
-            qStableSort(ell.begin(), ell.end(), elementLessThan);
+            std::stable_sort(ell.begin(), ell.end(), elementLessThan);
             drawElements(p, ell);
             }
       QFrame::paintEvent(ev);

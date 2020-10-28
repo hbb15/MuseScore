@@ -37,10 +37,11 @@ namespace Ms {
 
 ContinuousPanel::ContinuousPanel(ScoreView* sv)
       {
-      _sv                     = sv;
-      _active                 = true;
-      _visible                = false;
-      _width                  = 0.0;
+      _sv         = sv;
+      _score      = nullptr;
+      _active     = true;
+      _visible    = false;
+      _width      = 0.0;
       }
 
 //---------------------------------------------------------
@@ -97,7 +98,7 @@ void ContinuousPanel::paint(const QRect&, QPainter& painter)
       //
       // Check elements at current panel position
       //
-      _offsetPanel = -(_sv->xoffset()) / _sv->mag();
+      _offsetPanel = -(_sv->xoffset()) / _sv->physicalZoomLevel();
       _rect        = QRect(_offsetPanel + _width, _y, 1, _height);
       Page* page   = _score->pages().front();
       QList<Element*> el = page->items(_rect);
@@ -105,7 +106,7 @@ void ContinuousPanel::paint(const QRect&, QPainter& painter)
             _visible = false;
             return;
             }
-      qStableSort(el.begin(), el.end(), elementLessThan);
+      std::stable_sort(el.begin(), el.end(), elementLessThan);
 
       const Measure*_currentMeasure = 0;
       for (const Element* e : el) {
@@ -131,7 +132,7 @@ void ContinuousPanel::paint(const QRect&, QPainter& painter)
       qreal _measureWidth      = _currentMeasure->width();
       int tick                 = _currentMeasure->tick().ticks();
       Fraction _currentTimeSig = _currentMeasure->timesig();
-      //qDebug() << "_sv->xoffset()=" <<_sv->xoffset() << " _sv->mag()="<< _sv->mag() <<" s->x=" << s->x() << " width=" << _width << " currentMeasure=" << _currentMeasure->x() << " _xPosMeasure=" << _xPosMeasure;
+      //qDebug() << "_sv->xoffset()=" <<_sv->xoffset() << " _sv->physicalZoomLevel()="<< _sv->physicalZoomLevel() <<" s->x=" << s->x() << " width=" << _width << " currentMeasure=" << _currentMeasure->x() << " _xPosMeasure=" << _xPosMeasure;
 
       //---------------------------------------------------------
       //   findElementWidths

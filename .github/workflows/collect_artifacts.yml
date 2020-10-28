@@ -3,7 +3,10 @@ name: CI_artifacts
 on:
   pull_request:
     branches:
-    - master
+    - master_off
+    - 3.x_off
+env:
+  DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
 
 jobs:
   collect_artifacts_Linux:
@@ -20,7 +23,7 @@ jobs:
     - name: Build the AppImage
       if: contains( env.commitmsg, 'collect_artifacts')
       run: |
-        sudo docker run -i -v "${PWD}:/MuseScore" "musescore/musescore-x86_64:latest" ./Recipe
+        sudo docker run -i -v "${PWD}:/MuseScore" "musescore/musescore-x86_64:latest" /MuseScore/build/Linux+BSD/portable/Recipe
     - name: Upload Linux AppImage artifact
       if: contains( env.commitmsg, 'collect_artifacts')
       uses: actions/upload-artifact@v1

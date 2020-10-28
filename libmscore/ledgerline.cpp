@@ -28,7 +28,9 @@ LedgerLine::LedgerLine(Score* s)
    : Element(s)
       {
       setSelectable(false);
-      _next = 0;
+      _width      = 0.;
+      _len        = 0.;
+      _next       = 0;
       }
 
 //---------------------------------------------------------
@@ -71,9 +73,9 @@ void LedgerLine::layout()
             setColor(staff()->color());
       qreal w2 = _width * .5;
       if (vertical)
-            bbox().setRect(-w2, -w2, _width, _len + _width);
+            bbox().setRect(-w2, 0, w2, _len);
       else
-            bbox().setRect(-w2, -w2, _len + _width, _width);
+            bbox().setRect(0, -w2, _len, w2);
       }
 
 //---------------------------------------------------------
@@ -89,7 +91,7 @@ void LedgerLine::draw(QPainter* painter) const
             }
       if (chord()->crossMeasure() == CrossMeasure::SECOND)
             return;
-      painter->setPen(QPen(curColor(), _width));
+      painter->setPen(QPen(curColor(), _width, Qt::SolidLine, Qt::FlatCap));
       if (vertical)
             painter->drawLine(QLineF(0.0, 0.0, 0.0, _len));
       else

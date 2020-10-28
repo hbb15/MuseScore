@@ -30,6 +30,7 @@
 #include "inspector/alignSelect.h"
 #include "inspector/offsetSelect.h"
 #include "inspector/fontStyleSelect.h"
+#include "preferences.h"
 
 namespace Ms {
 
@@ -164,8 +165,10 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::createMultiMeasureRests, false, multiMeasureRests,       0 },
       { Sid::minEmptyMeasures,        false, minEmptyMeasures,        0 },
       { Sid::minMMRestWidth,          false, minMeasureWidth,         resetMinMMRestWidth },
+      { Sid::mmRestNumberPos,         false, mmRestNumberPos,         resetMMRestNumberPos },
       { Sid::hideEmptyStaves,         false, hideEmptyStaves,         0 },
-      { Sid::dontHideStavesInFirstSystem, false, dontHideStavesInFirstSystem,             0 },
+      { Sid::dontHideStavesInFirstSystem, false, dontHideStavesInFirstSystem, 0 },
+      { Sid::alwaysShowBracketsWhenEmptyStavesAreHidden, false, alwaysShowBrackets, 0 },
       { Sid::hideInstrumentNameIfOneInstrument, false, hideInstrumentNameIfOneInstrument, 0 },
       { Sid::accidentalNoteDistance,  false, accidentalNoteDistance,  0 },
       { Sid::accidentalDistance,      false, accidentalDistance,      0 },
@@ -254,6 +257,12 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::harmonyFretDist,         false, harmonyFretDist,         0 },
       { Sid::minHarmonyDistance,      false, minHarmonyDistance,      0 },
       { Sid::maxHarmonyBarDistance,   false, maxHarmonyBarDistance,   0 },
+      { Sid::maxChordShiftAbove,      false, maxChordShiftAbove,      resetMaxChordShiftAbove   },
+      { Sid::maxChordShiftBelow,      false, maxChordShiftBelow,      resetMaxChordShiftBelow   },
+      { Sid::harmonyPlay,             false, harmonyPlay,             0 },
+      { Sid::harmonyVoiceLiteral,     false, voicingSelectWidget->interpretBox, 0 },
+      { Sid::harmonyVoicing,          false, voicingSelectWidget->voicingBox, 0 },
+      { Sid::harmonyDuration,         false, voicingSelectWidget->durationBox, 0 },
 
       { Sid::tupletVHeadDistance,     false, tupletVHeadDistance,     resetTupletVHeadDistance      },
       { Sid::tupletVStemDistance,     false, tupletVStemDistance,     resetTupletVStemDistance      },
@@ -279,7 +288,11 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::showMeasureNumberOne,     false, showFirstMeasureNumber,       0 },
       { Sid::measureNumberInterval,    false, intervalMeasureNumber,        0 },
       { Sid::measureNumberSystem,      false, showEverySystemMeasureNumber, 0 },
-      { Sid::measureNumberAllStaffs,   false, showAllStaffsMeasureNumber,   0 },
+      { Sid::measureNumberAllStaves,   false, showAllStavesMeasureNumber,   0 },
+      { Sid::measureNumberVPlacement,  false, measureNumberVPlacement,      resetMeasureNumberVPlacement },
+      { Sid::measureNumberHPlacement,  false, measureNumberHPlacement,      resetMeasureNumberHPlacement },
+      { Sid::measureNumberPosAbove,    false, measureNumberPosAbove,        resetMeasureNumberPosAbove },
+      { Sid::measureNumberPosBelow,    false, measureNumberPosBelow,        resetMeasureNumberPosBelow },
 
       { Sid::beamDistance,             true,  beamDistance,                 0 },
       { Sid::beamNoSlope,              false, beamNoSlope,                  0 },
@@ -327,6 +340,8 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::fretDotSize,              false, fretDotSize,                  0 },
       { Sid::fretStringSpacing,        false, fretStringSpacing,            0 },
       { Sid::fretFretSpacing,          false, fretFretSpacing,              0 },
+      { Sid::maxFretShiftAbove,        false, maxFretShiftAbove,            resetMaxFretShiftAbove   },
+      { Sid::maxFretShiftBelow,        false, maxFretShiftBelow,            resetMaxFretShiftBelow   },
       { Sid::scaleBarlines,            false, scaleBarlines,                resetScaleBarlines},
       { Sid::crossMeasureValues,       false, crossMeasureValues,           0 },
 
@@ -420,12 +435,18 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       for (QComboBox* cb : std::vector<QComboBox*> {
             lyricsPlacement, textLinePlacement, hairpinPlacement, pedalLinePlacement,
             trillLinePlacement, vibratoLinePlacement, dynamicsPlacement,
-            tempoTextPlacement, staffTextPlacement, rehearsalMarkPlacement
+            tempoTextPlacement, staffTextPlacement, rehearsalMarkPlacement,
+            measureNumberVPlacement
             }) {
             cb->clear();
             cb->addItem(tr("Above"), int(Placement::ABOVE));
             cb->addItem(tr("Below"), int(Placement::BELOW));
             }
+
+      measureNumberHPlacement->clear();
+      measureNumberHPlacement->addItem(tr("Left"),   int(HPlacement::LEFT));
+      measureNumberHPlacement->addItem(tr("Center"), int(HPlacement::CENTER));
+      measureNumberHPlacement->addItem(tr("Right"),  int(HPlacement::RIGHT));
 
       autoplaceVerticalAlignRange->clear();
       autoplaceVerticalAlignRange->addItem(tr("Segment"), int(VerticalAlignRange::SEGMENT));
@@ -470,6 +491,27 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       comboFBFont->setCurrentIndex(0);
       connect(comboFBFont, SIGNAL(currentIndexChanged(int)), SLOT(on_comboFBFont_currentIndexChanged(int)));
 
+      // chord symbol init
+      harmonyPlay->setChecked(true);
+
+      voicingSelectWidget->interpretBox->clear();
+      voicingSelectWidget->interpretBox->addItem(tr("Jazz"), int(0)); // two-item combobox for boolean style variant
+      voicingSelectWidget->interpretBox->addItem(tr("Literal"), int(1)); // true = literal
+
+      voicingSelectWidget->voicingBox->clear();
+      voicingSelectWidget->voicingBox->addItem(tr("Automatic"), int(Voicing::AUTO));
+      voicingSelectWidget->voicingBox->addItem(tr("Root Only"), int(Voicing::ROOT_ONLY));
+      voicingSelectWidget->voicingBox->addItem(tr("Close"), int(Voicing::CLOSE));
+      voicingSelectWidget->voicingBox->addItem(tr("Drop 2"), int(Voicing::DROP_2));
+      voicingSelectWidget->voicingBox->addItem(tr("Six Note"), int(Voicing::SIX_NOTE));
+      voicingSelectWidget->voicingBox->addItem(tr("Four Note"), int(Voicing::FOUR_NOTE));
+      voicingSelectWidget->voicingBox->addItem(tr("Three Note"), int(Voicing::THREE_NOTE));
+
+      voicingSelectWidget->durationBox->clear();
+      voicingSelectWidget->durationBox->addItem(tr("Until Next Chord Symbol"), int(HDuration::UNTIL_NEXT_CHORD_SYMBOL));
+      voicingSelectWidget->durationBox->addItem(tr("Until End of Measure"), int(HDuration::STOP_AT_MEASURE_END));
+      voicingSelectWidget->durationBox->addItem(tr("Chord/Rest Duration"), int(HDuration::SEGMENT_DURATION));
+
       // keep in sync with implementation in Page::replaceTextMacros (page.cpp)
       // jumping thru hoops here to make the job of translators easier, yet have a nice display
       QString toolTipHeaderFooter
@@ -504,6 +546,10 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
             + tr("Copyright, on first page only")
             + QString("</i></td></tr><tr><td>$c</td><td>-</td><td><i>")
             + tr("Copyright, on all pages")
+            + QString("</i></td></tr><tr><td>$v</td><td>-</td><td><i>")
+            + tr("MuseScore version this score was last saved with")
+            + QString("</i></td></tr><tr><td>$r</td><td>-</td><td><i>")
+            + tr("MuseScore revision this score was last saved with")
             + QString("</i></td></tr><tr><td>$$</td><td>-</td><td><i>")
             + tr("The $ sign itself")
             + QString("</i></td></tr><tr><td>$:tag:</td><td>-</td><td><i>")
@@ -528,7 +574,9 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
             }
       toolTipHeaderFooter += QString("</table></body></html>");
       showHeader->setToolTip(toolTipHeaderFooter);
+      showHeader->setToolTipDuration(5000); // leaving the default value of -1 calculates the duration automatically and it takes too long
       showFooter->setToolTip(toolTipHeaderFooter);
+      showFooter->setToolTipDuration(5000);
 
       connect(buttonBox,           SIGNAL(clicked(QAbstractButton*)), SLOT(buttonClicked(QAbstractButton*)));
       connect(headerOddEven,       SIGNAL(toggled(bool)),             SLOT(toggleHeaderOddEven(bool)));
@@ -543,12 +591,11 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
 
       chordDescriptionFileButton->setIcon(*icons[int(Icons::fileOpen_ICON)]);
 
-      connect(SwingOff,            SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
+      connect(swingOff,            SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
       connect(swingEighth,         SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
       connect(swingSixteenth,      SIGNAL(toggled(bool)),             SLOT(setSwingParams(bool)));
 
       connect(concertPitch,        SIGNAL(toggled(bool)),             SLOT(concertPitchToggled(bool)));
-      connect(hideEmptyStaves,     SIGNAL(clicked(bool)), dontHideStavesInFirstSystem, SLOT(setEnabled(bool)));
       connect(lyricsDashMinLength, SIGNAL(valueChanged(double)),      SLOT(lyricsDashMinLengthValueChanged(double)));
       connect(lyricsDashMaxLength, SIGNAL(valueChanged(double)),      SLOT(lyricsDashMaxLengthValueChanged(double)));
       connect(minSystemDistance,   SIGNAL(valueChanged(double)),      SLOT(systemMinDistanceValueChanged(double)));
@@ -606,6 +653,11 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
 
             mapper2->setMapping(sw.widget, int(sw.idx));
             }
+
+      int topBottomMargin = automaticCapitalization->rect().height() - preferences.getInt(PREF_UI_THEME_FONTSIZE);
+      topBottomMargin /= 2;
+      topBottomMargin = topBottomMargin > 4 ? topBottomMargin - 4 : 0;
+      automaticCapitalization->layout()->setContentsMargins(9, topBottomMargin, 9, topBottomMargin);
 
       connect(mapper,  SIGNAL(mapped(int)), SLOT(resetStyleValue(int)));
       connect(mapper2, SIGNAL(mapped(int)), SLOT(valueChanged(int)));
@@ -722,11 +774,34 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       QRect scr = QGuiApplication::primaryScreen()->availableGeometry();
       QRect dlg = this->frameGeometry();
       isTooBig  = dlg.width() > scr.width() || dlg.height() > scr.height();
-      if (isTooBig)
+      if (isTooBig) {
             this->setMinimumSize(scr.width() / 2, scr.height() / 2);
+      }
       hasShown = false;
+
+      adjustPagesStackSize(0);
+
       MuseScore::restoreGeometry(this);
       }
+
+void EditStyle::adjustPagesStackSize(int currentPageIndex)
+{
+    QSize preferredSize = pageStack->widget(currentPageIndex)->sizeHint();
+    pageStack->setMinimumSize(preferredSize);
+
+    connect(pageStack, &QStackedWidget::currentChanged, [this](int currentIndex) {
+        QWidget* currentPage = pageStack->widget(currentIndex);
+        if (!currentPage) {
+            return;
+        }
+
+        pageStack->setMinimumSize(currentPage->sizeHint());
+
+        if (scrollArea) {
+            scrollArea->ensureVisible(0, 0);
+        }
+    });
+}
 
 //---------------------------------------------------------
 //   PAGES
@@ -737,7 +812,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
 const std::map<ElementType, EditStylePage> EditStyle::PAGES = {
       { ElementType::SCORE,               &EditStyle::PageScore    },
       { ElementType::PAGE,                &EditStyle::PagePage     },
-      { ElementType::MEASURE_NUMBER,      &EditStyle::PageSizes    },
+      { ElementType::MEASURE_NUMBER,      &EditStyle::PageMeasureNumbers },
       { ElementType::BRACKET,             &EditStyle::PageSystem   },
       { ElementType::BRACKET_ITEM,        &EditStyle::PageSystem   },
       { ElementType::CLEF,                &EditStyle::PageClefs    },
@@ -803,6 +878,16 @@ void EditStyle::gotoElement(Element* e)
       }
 
 //---------------------------------------------------------
+//   gotoElement
+///   used to go to the correct page when double-clicking on a header/footer
+//---------------------------------------------------------
+
+void EditStyle::gotoHeaderFooterPage()
+      {
+      setPage(pageStack->indexOf(PageHeaderFooter));
+      }
+
+//---------------------------------------------------------
 //   elementHasPage
 ///   check if an element has a style page related to it
 //---------------------------------------------------------
@@ -823,8 +908,9 @@ void EditStyle::showEvent(QShowEvent* ev)
       if (!hasShown && isTooBig) {
             // Add scroll bars to pageStack - this cannot be in the constructor
             // or the Header, Footer text input boxes size themselves too large.
-            QScrollArea* scrollArea = new QScrollArea(splitter);
+            scrollArea = new QScrollArea(splitter);
             scrollArea->setWidget(pageStack);
+            scrollArea->setWidgetResizable(true);
             hasShown = true; // so that it only happens once
             }
       setValues();
@@ -877,7 +963,7 @@ void EditStyle::on_comboFBFont_currentIndexChanged(int index)
 
       if (FiguredBass::fontData(index, 0, 0, &size, &lineHeight)) {
             doubleSpinFBSize->setValue(size);
-            spinFBLineHeight->setValue((int)(lineHeight * 100.0));
+            spinFBLineHeight->setValue(static_cast<int>(lineHeight * 100.0));
             }
       }
 
@@ -938,9 +1024,16 @@ QVariant EditStyle::getValue(Sid idx)
             return v;
             }
       else if (!strcmp("bool", type)) {
-            QVariant v = sw.widget->property("checked");
-            if (!v.isValid())
-                  unhandledType(&sw);
+            QVariant v;
+            if (sw.idx == Sid::harmonyVoiceLiteral) { // special case for bool represented by a two-item combobox
+                  QComboBox* cb = qobject_cast<QComboBox*>(sw.widget);
+                  v = cb->currentIndex();
+                  }
+            else {
+                  v = sw.widget->property("checked");
+                  if (!v.isValid())
+                        unhandledType(&sw);
+                  }
             return v;
             }
       else if (!strcmp("int", type)) {
@@ -1027,10 +1120,15 @@ void EditStyle::setValues()
                         unhandledType(&sw);
                   }
             else if (!strcmp("bool", type)) {
-                  if (!sw.widget->setProperty("checked", val))
-                        unhandledType(&sw);
-                  if (sw.idx == Sid::measureNumberSystem && !val.toBool())
-                        showIntervalMeasureNumber->setChecked(true);
+                  if (sw.idx == Sid::harmonyVoiceLiteral) { // special case for bool represented by a two-item combobox
+                        voicingSelectWidget->interpretBox->setCurrentIndex(val.toBool());
+                        }
+                  else {
+                        if (!sw.widget->setProperty("checked", val))
+                              unhandledType(&sw);
+                        if (sw.idx == Sid::measureNumberSystem && !val.toBool())
+                              showIntervalMeasureNumber->setChecked(true);
+                        }
                   }
             else if (!strcmp("int", type)) {
                   if (qobject_cast<QComboBox*>(sw.widget)) {
@@ -1100,6 +1198,8 @@ void EditStyle::setValues()
                   sw.widget->blockSignals(false);
             }
 
+      textStyleChanged(textStyles->currentRow());
+
       //TODO: convert the rest:
 
       QString unit(lstyle.value(Sid::swingUnit).toString());
@@ -1113,7 +1213,7 @@ void EditStyle::setValues()
             swingBox->setEnabled(true);
             }
       else if (unit == TDuration(TDuration::DurationType::V_ZERO).name()) {
-            SwingOff->setChecked(true);
+            swingOff->setChecked(true);
             swingBox->setEnabled(false);
             }
       QString s(lstyle.value(Sid::chordDescriptionFile).toString());
@@ -1132,8 +1232,6 @@ void EditStyle::setValues()
             chordDescriptionGroup->setEnabled(true);
             }
       //formattingGroup->setEnabled(lstyle.chordList()->autoAdjust());
-
-      dontHideStavesInFirstSystem->setEnabled(hideEmptyStaves->isChecked());
 
       // figured bass
       for (int i = 0; i < comboFBFont->count(); i++)
@@ -1162,6 +1260,7 @@ void EditStyle::setValues()
       musicalTextFont->addItem("Emmentaler Text", "MScore Text");
       musicalTextFont->addItem("Gonville Text", "Gootville Text");
       musicalTextFont->addItem("MuseJazz Text", "MuseJazz Text");
+      musicalTextFont->addItem("Petaluma Text", "Petaluma Text");
       QString tfont(lstyle.value(Sid::MusicalTextFont).toString());
       idx = musicalTextFont->findData(tfont);
       musicalTextFont->setCurrentIndex(idx);
@@ -1193,7 +1292,7 @@ void EditStyle::setSwingParams(bool checked)
       if (!checked)
             return;
       QVariant val;
-      if (SwingOff->isChecked()) {
+      if (swingOff->isChecked()) {
             val = TDuration(TDuration::DurationType::V_ZERO).name();
             swingBox->setEnabled(false);
             }

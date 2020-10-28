@@ -124,7 +124,7 @@ void StaffListItem::initStaffTypeCombo(bool forceRecreate)
 void StaffListItem::setPartIdx(int val)
       {
       _partIdx = val;
-      setText(0, InstrumentsWidget::tr("Staff %1").arg(_partIdx + 1));
+      setText(0, InstrumentsWidget::tr("Staff: %1").arg(_partIdx + 1));
       }
 
 //---------------------------------------------------------
@@ -321,6 +321,15 @@ PartListItem::PartListItem(const InstrumentTemplate* i, QTreeWidget* lv)
       op   = ListItemOp::ADD;
       setText(0, it->trackName);
       }
+PartListItem::PartListItem(const InstrumentTemplate* i, QTreeWidget* lv, QTreeWidgetItem* prv)
+   : QTreeWidgetItem(lv, prv, PART_LIST_ITEM)
+      {
+      part = 0;
+      it   = i;
+      op   = ListItemOp::ADD;
+      setText(0, it->trackName);
+      }
+
 
 //---------------------------------------------------------
 //   InstrumentTemplateListItem
@@ -388,7 +397,7 @@ InstrumentsWidget::InstrumentsWidget(QWidget* parent)
       downButton->setEnabled(false);
       addStaffButton->setEnabled(false);
       addLinkedStaffButton->setEnabled(false);
-      
+
       upButton->setIcon(*icons[int(Icons::arrowUp_ICON)]);
       downButton->setIcon(*icons[int(Icons::arrowDown_ICON)]);
 
@@ -481,10 +490,29 @@ void InstrumentsWidget::genPartList(Score* cs)
                   sli->setStaffType(s->staffType(Fraction(0,1)));    // TODO
                   }
             pli->updateClefs();
-            partiturList->setItemExpanded(pli, true);
+            pli->setExpanded(true);
             }
       partiturList->resizeColumnToContents(2);  // adjust width of "Clef " and "Staff type" columns
       partiturList->resizeColumnToContents(4);
+      }
+
+//---------------------------------------------------------
+//   updatePartIdx
+//---------------------------------------------------------
+
+void InstrumentsWidget::updatePartIdx()
+      {
+      for (int i = 0; i < partiturList->topLevelItemCount(); ++i) {
+            PartListItem* tli = static_cast<PartListItem*>(partiturList->topLevelItem(i));
+            int partIdx = -1;
+            for (int j = 0; j < tli->childCount(); ++j) {
+                  StaffListItem* sli = static_cast<StaffListItem*>(tli->child(j));
+                  if (!sli->isHidden()) {
+                        partIdx++;
+                        sli->setPartIdx(partIdx);
+                        }
+                  }
+            }
       }
 
 //---------------------------------------------------------
@@ -565,12 +593,17 @@ void InstrumentsWidget::on_instrumentList_itemActivated(QTreeWidgetItem* item, i
 
 void InstrumentsWidget::on_addButton_clicked()
       {
+      QTreeWidgetItem* prvItem = nullptr;
+      QList<QTreeWidgetItem*> wi = partiturList->selectedItems();
+      if (!wi.isEmpty())
+            prvItem = wi.front()->parent() ? wi.front()->parent() : wi.front();
+
       for (QTreeWidgetItem* i : instrumentList->selectedItems()) {
             InstrumentTemplateListItem* item = static_cast<InstrumentTemplateListItem*>(i);
             const InstrumentTemplate* it     = item->instrumentTemplate();
             if (it == 0)
                   continue;
-            PartListItem* pli = new PartListItem(it, partiturList);
+            PartListItem* pli = prvItem ? new PartListItem(it, partiturList, prvItem) : new PartListItem(it, partiturList);
             pli->setFirstColumnSpanned(true);
             pli->op = ListItemOp::ADD;
 
@@ -584,7 +617,7 @@ void InstrumentsWidget::on_addButton_clicked()
                   sli->setStaffType(it->staffTypePreset);
                   }
             pli->updateClefs();
-            partiturList->setItemExpanded(pli, true);
+            pli->setExpanded(true);
             partiturList->clearSelection();     // should not be necessary
             partiturList->setCurrentItem(pli);
             }
@@ -641,6 +674,7 @@ void InstrumentsWidget::on_removeButton_clicked()
                   }
             static_cast<PartListItem*>(parent)->updateClefs();
             partiturList->setCurrentItem(parent);
+            updatePartIdx();
             }
       else {
             if (partiturList->topLevelItemCount() == 1) {
@@ -692,7 +726,7 @@ void InstrumentsWidget::on_upButton_clicked()
       QTreeWidgetItem* item = wi.front();
 
       if (item->type() == PART_LIST_ITEM) {
-            bool isExpanded = partiturList->isItemExpanded(item);
+            bool isExpanded = item->isExpanded();
             int idx = partiturList->indexOfTopLevelItem(item);
             // if part item not first, move one slot up
             if (idx) {
@@ -724,7 +758,7 @@ void InstrumentsWidget::on_upButton_clicked()
                         staffItem->initStaffTypeCombo(true);
                         staffItem->setStaffType(staffIdx[itemIdx]);
                         }
-                  partiturList->setItemExpanded(item1, isExpanded);
+                  item1->setExpanded(isExpanded);
                   partiturList->setCurrentItem(item1);
                   }
             }
@@ -766,6 +800,7 @@ void InstrumentsWidget::on_upButton_clicked()
                         }
                   }
             }
+      updatePartIdx();
       }
 
 //---------------------------------------------------------
@@ -780,7 +815,7 @@ void InstrumentsWidget::on_downButton_clicked()
             return;
       QTreeWidgetItem* item = wi.front();
       if (item->type() == PART_LIST_ITEM) {
-            bool isExpanded = partiturList->isItemExpanded(item);
+            bool isExpanded = item->isExpanded();
             int idx = partiturList->indexOfTopLevelItem(item);
             int n = partiturList->topLevelItemCount();
             // if part not last, move one slot down
@@ -814,7 +849,7 @@ void InstrumentsWidget::on_downButton_clicked()
                         staffItem->initStaffTypeCombo(true);
                         staffItem->setStaffType(staffIdx[itemIdx]);
                         }
-                  partiturList->setItemExpanded(item1, isExpanded);
+                  item1->setExpanded(isExpanded);
                   partiturList->setCurrentItem(item1);
                   }
             }
@@ -857,6 +892,7 @@ void InstrumentsWidget::on_downButton_clicked()
                         }
                   }
             }
+      updatePartIdx();
       }
 
 //---------------------------------------------------------
@@ -896,6 +932,7 @@ StaffListItem* InstrumentsWidget::on_addStaffButton_clicked()
       partiturList->clearSelection();           // should not be necessary
       partiturList->setCurrentItem(nsli);
       pli->updateClefs();
+      updatePartIdx();
       return nsli;
       }
 
@@ -1032,6 +1069,7 @@ void InstrumentsWidget::createInstruments(Score* cs)
                   m->cmdAddStaves(sidx, eidx, true);
             staffIdx += rstaff;
             }
+            numberInstrumentNames(cs);
 #if 0 // TODO
       //
       // check for bar lines
@@ -1053,6 +1091,44 @@ void InstrumentsWidget::createInstruments(Score* cs)
             }
 #endif
       cs->setLayoutAll();
+      }
+
+//---------------------------------------------------------
+//   numberInstrumentNames
+//---------------------------------------------------------
+
+void InstrumentsWidget::numberInstrumentNames(Score* cs)
+      {
+      std::vector<QString> names;
+      std::vector<QString> firsts;
+
+      for (auto i = cs->parts().begin(); i != cs->parts().end(); ++i) {
+            auto p = *i;
+
+            QString name = p->partName();
+
+            names.push_back(name);
+            int n = 1;
+
+            for (auto j = i + 1; j != cs->parts().end(); ++j) {
+                  auto part = *j;
+                  // number 2nd and subsequent instances of instrument
+                  if (std::find(names.begin(), names.end(), part->partName()) != names.end())  {
+                        firsts.push_back(name);
+                        n++;
+                        part->setPartName((part->partName() + QStringLiteral(" %1").arg(n)));
+                        part->setLongName((part->longName() + QStringLiteral(" %1").arg(n)));
+                        part->setShortName((part->shortName() + QStringLiteral(" %1").arg(n)));
+                        }
+                  }
+
+            // now finish by adding first instances
+            if (std::find(firsts.begin(), firsts.end(), p->partName()) != firsts.end()) {
+                  p->setPartName(p->partName() + " 1");
+                  p->setLongName(p->longName() + " 1");
+                  p->setShortName(p->shortName() + " 1");
+                  }
+            }
       }
 
 //---------------------------------------------------------

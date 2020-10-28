@@ -13,6 +13,7 @@ win64build
 win64install
 build.xcode
 applebuild
+build.artifacts
 /*.config
 /*.creator
 /*.files
@@ -32,6 +33,7 @@ CMakeLists.txt.user.*
 *.qmlc
 *.jsc
 vtest/html
+vtest/compare
 thirdparty/mupdf-qt
 vtest/LOG
 vtest/META-INF
@@ -39,6 +41,7 @@ vtest/Thumbnails
 vtest/Pictures
 .vs
 dependencies
+MuseScorePortable
 
 # Downloaded files during build process
 MuseScore_General.sf3

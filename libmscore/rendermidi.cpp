@@ -47,12 +47,15 @@
 #include "bend.h"
 #include "tremolo.h"
 #include "noteevent.h"
-#include "synthesizer/event.h"
 #include "segment.h"
 #include "undo.h"
 #include "utils.h"
 #include "sym.h"
 #include "synthesizerstate.h"
+#include "global/log.h"
+
+#include "audio/midi/event.h"
+#include "mscore/preferences.h"
 
 namespace Ms {
 
@@ -163,9 +166,10 @@ void Score::updateChannel()
       for (Segment* s = fm->first(SegmentType::ChordRest); s; s = s->next1(SegmentType::ChordRest)) {
             for (const Element* e : s->annotations()) {
                   if (e->isInstrumentChange()) {
-                        Staff* staff = Score::staff(e->staffIdx());
-                        for (int voice = 0; voice < VOICES; ++voice)
-                              staff->insertIntoChannelList(voice, s->tick(), 0);
+                        for (Staff* staff : *e->part()->staves()) {
+                              for (int voice = 0; voice < VOICES; ++voice)
+                                    staff->insertIntoChannelList(voice, s->tick(), 0);
+                              }
                         continue;
                         }
                   if (!e->isStaffTextBase())
@@ -211,8 +215,6 @@ void Score::updateChannel()
                         for (Note* note : c->notes()) {
                               if (note->hidden())
                                     continue;
-                              if (note->tieBack())
-                                    continue;
                               note->setSubchannel(channel);
                               }
                         }
@@ -221,9 +223,19 @@ void Score::updateChannel()
       }
 
 //---------------------------------------------------------
+//   Converts midi time (noteoff - noteon) to milliseconds
+//---------------------------------------------------------
+int toMilliseconds(float tempo, float midiTime) {
+      float ticksPerSecond = (float)MScore::division * tempo;
+      int time = (int)((midiTime / ticksPerSecond) * 1000.0f);
+      if (time > 0x7fff) //maximum possible value
+            time = 0x7fff;
+      return time;
+      }
+
+//---------------------------------------------------------
 //   playNote
 //---------------------------------------------------------
-
 static void playNote(EventMap* events, const Note* note, int channel, int pitch,
    int velo, int onTime, int offTime, int staffIdx)
       {
@@ -236,6 +248,45 @@ static void playNote(EventMap* events, const Note* note, int channel, int pitch,
       ev.setNote(note);
       if (offTime < onTime)
             offTime = onTime;
+      // adds portamento for continuous glissando
+      for (Spanner* spanner : note->spannerFor()) {
+            if (spanner->type() == ElementType::GLISSANDO) {
+                  Glissando *glissando = toGlissando(spanner);
+                  GlissandoStyle glissandoStyle = glissando->glissandoStyle();
+                  if (glissandoStyle == GlissandoStyle::PORTAMENTO) {
+                        //Changes the notes pitch to the next note's pitch, note-on is the eventual pitch
+                        Note* nextNote = toNote(spanner->endElement());
+                        ev.setPitch(nextNote->pitch());
+
+                        int time = toMilliseconds(note->score()->tempo(note->tick()), offTime - onTime);
+                        int lsb = (time & 0x00FF);
+                        time = (time >> 8);
+                        int msb = (time & 0x00FF);
+
+                        NPlayEvent portamentoOn(ME_CONTROLLER, channel, CTRL_PORTAMENTO, MIDI_ON_SIGNAL);
+                        portamentoOn.setOriginatingStaff(staffIdx);
+                        NPlayEvent portamentoControl(ME_CONTROLLER, channel, CTRL_PORTAMENTO_CONTROL, pitch);
+                        portamentoControl.setOriginatingStaff(staffIdx);
+                        NPlayEvent portamentoTimeMSB(ME_CONTROLLER, channel, CTRL_PORTAMENTO_TIME_MSB, msb);
+                        portamentoTimeMSB.setOriginatingStaff(staffIdx);
+                        NPlayEvent portamentoTimeLSB(ME_CONTROLLER, channel, CTRL_PORTAMENTO_TIME_LSB, lsb);
+                        portamentoTimeLSB.setOriginatingStaff(staffIdx);
+                        
+                        ev.setPortamento(true);
+                        if (onTime == 0)
+                              onTime++;
+                        events->insert(std::pair<int, NPlayEvent>(onTime-1, portamentoOn));
+                        events->insert(std::pair<int, NPlayEvent>(onTime-1, portamentoControl));
+                        events->insert(std::pair<int, NPlayEvent>(onTime-1, portamentoTimeMSB));
+                        events->insert(std::pair<int, NPlayEvent>(onTime-1, portamentoTimeLSB));
+
+                        NPlayEvent portamentoOff(ME_CONTROLLER, channel, CTRL_PORTAMENTO, 0);
+                        portamentoOff.setOriginatingStaff(staffIdx);
+                        events->insert(std::pair<int, NPlayEvent>(offTime, portamentoOff));
+                  }
+            }
+      }
+
       events->insert(std::pair<int, NPlayEvent>(onTime, ev));
       ev.setVelo(0);
       events->insert(std::pair<int, NPlayEvent>(offTime, ev));
@@ -314,6 +365,7 @@ static void collectNote(EventMap* events, int channel, const Note* note, qreal v
             // Get the velocity used for this note from the staff
             // This allows correct playback of tremolos even without SND enabled.
             int velo;
+            Fraction nonUnwoundTick = Fraction::fromTicks(on - tickOffset);
             if (config.useSND) {
                   switch (config.method) {
                         case DynamicsRenderMethod::FIXED_MAX:
@@ -321,12 +373,12 @@ static void collectNote(EventMap* events, int channel, const Note* note, qreal v
                               break;
                         case DynamicsRenderMethod::SEG_START:
                         default:
-                              velo = staff->velocities().val(Fraction::fromTicks(on));
+                              velo = staff->velocities().val(nonUnwoundTick);
                               break;
                         }
                   }
             else {
-                  velo = staff->velocities().val(Fraction::fromTicks(on));
+                  velo = staff->velocities().val(nonUnwoundTick);
                   }
 
             velo *= velocityMultiplier;
@@ -337,9 +389,13 @@ static void collectNote(EventMap* events, int channel, const Note* note, qreal v
       // Find any changes, and apply events
       if (config.useSND) {
             ChangeMap& veloEvents = staff->velocities();
+            ChangeMap& multEvents = staff->velocityMultiplications();
             Fraction stick = chord->tick();
             Fraction etick = stick + chord->ticks();
             auto changes = veloEvents.changesInRange(stick, etick);
+            auto multChanges = multEvents.changesInRange(stick, etick);
+
+            std::map<int, int> velocityMap;
             for (auto& change : changes) {
                   int lastVal = -1;
                   int endPoint = change.second.ticks();
@@ -349,12 +405,45 @@ static void collectNote(EventMap* events, int channel, const Note* note, qreal v
                               continue;
                         lastVal = velo;
 
-                        // NOTE:JT if we ever want to use poly aftertouch instead of CC, this is where we want to
-                        // be using it. Instead of ME_CONTROLLER, use ME_POLYAFTER (but duplicate for each note in chord)
-                        NPlayEvent event = NPlayEvent(ME_CONTROLLER, channel, config.controller, qBound(1, int(velo * velocityMultiplier), 127));
-                        event.setOriginatingStaff(staffIdx);
-                        events->insert(std::make_pair(t + tickOffset, event));
+                        velocityMap[t] = velo;
                         }
+                  }
+
+
+            qreal CONVERSION_FACTOR = MidiRenderer::ARTICULATION_CONV_FACTOR;
+            for (auto& change : multChanges) {
+                  // Ignore fix events: they are available as cached ramp starts
+                  // and considering them ends up with multiplying twice effectively
+                  if (change.first == change.second)
+                        continue;
+
+                  int lastVal = MidiRenderer::ARTICULATION_CONV_FACTOR;
+                  int endPoint = change.second.ticks();
+                  int lastVelocity = velocityMap.upper_bound(change.first.ticks())->second;
+                  for (int t = change.first.ticks(); t <= endPoint; t++) {
+                        int mult = multEvents.val(Fraction::fromTicks(t));
+                        if (mult == lastVal || mult == CONVERSION_FACTOR)
+                              continue;
+                        lastVal = mult;
+
+                        qreal realMult = mult / CONVERSION_FACTOR;
+                        if (velocityMap.find(t) != velocityMap.end()) {
+                              lastVelocity = velocityMap[t];
+                              velocityMap[t] *= realMult;
+                              }
+                        else {
+                              velocityMap[t] = lastVelocity * realMult;
+                              }
+                        }
+                  }
+
+
+            for (auto point = velocityMap.cbegin(); point != velocityMap.cend(); ++point) {
+                  // NOTE:JT if we ever want to use poly aftertouch instead of CC, this is where we want to
+                  // be using it. Instead of ME_CONTROLLER, use ME_POLYAFTER (but duplicate for each note in chord)
+                  NPlayEvent event = NPlayEvent(ME_CONTROLLER, channel, config.controller, qBound(0, point->second, 127));
+                  event.setOriginatingStaff(staffIdx);
+                  events->insert(std::make_pair(point->first + tickOffset, event));
                   }
             }
 
@@ -447,7 +536,7 @@ static void aeolusSetStop(int tick, int channel, int i, int k, bool val, EventMa
 //   collectProgramChanges
 //---------------------------------------------------------
 
-static void collectProgramChanges(EventMap* events, Measure* m, Staff* staff, int tickOffset)
+static void collectProgramChanges(EventMap* events, Measure const * m, Staff* staff, int tickOffset)
       {
       int firstStaffIdx = staff->idx();
       int nextStaffIdx  = firstStaffIdx + 1;
@@ -524,13 +613,56 @@ static int getControllerFromCC(int cc)
       }
 
 //---------------------------------------------------------
+//    renderHarmony
+///    renders chord symbols
+//---------------------------------------------------------
+static void renderHarmony(EventMap* events, Measure const * m, Harmony* h, int tickOffset)
+      {
+      if (!h->isRealizable())
+            return;
+      Staff* staff = m->score()->staff(h->track() / VOICES);
+      const Channel* channel = staff->part()->harmonyChannel();
+      IF_ASSERT_FAILED(channel)
+            return;
+
+      events->registerChannel(channel->channel());
+      if (!staff->primaryStaff())
+            return;
+
+      int staffIdx = staff->idx();
+      int velocity = staff->velocities().val(h->tick());
+
+      RealizedHarmony r = h->getRealizedHarmony();
+      QList<int> pitches = r.pitches();
+
+      NPlayEvent ev(ME_NOTEON, channel->channel(), 0, velocity);
+      ev.setHarmony(h);
+      Fraction duration = r.getActualDuration();
+
+      int onTime = h->tick().ticks() + tickOffset;
+      int offTime = onTime + duration.ticks();
+
+      ev.setOriginatingStaff(staffIdx);
+      ev.setTuning(0.0);
+
+      //add play events
+      for (int p : pitches) {
+            ev.setPitch(p);
+            ev.setVelo(velocity);
+            events->insert(std::pair<int, NPlayEvent>(onTime, ev));
+            ev.setVelo(0);
+            events->insert(std::pair<int, NPlayEvent>(offTime, ev));
+            }
+      }
+
+//---------------------------------------------------------
 //   collectMeasureEventsSimple
 //    the original, velocity-only method of collecting events.
 //---------------------------------------------------------
 
-static void collectMeasureEventsSimple(EventMap* events, Measure* m, Staff* staff, int tickOffset)
+void MidiRenderer::collectMeasureEventsSimple(EventMap* events, Measure const * m, const StaffContext& sctx, int tickOffset)
       {
-      int firstStaffIdx = staff->idx();
+      int firstStaffIdx = sctx.staff->idx();
       int nextStaffIdx  = firstStaffIdx + 1;
 
       SegmentType st = SegmentType::ChordRest;
@@ -539,6 +671,23 @@ static void collectMeasureEventsSimple(EventMap* events, Measure* m, Staff* staf
 
       for (Segment* seg = m->first(st); seg; seg = seg->next(st)) {
             int tick = seg->tick().ticks();
+
+            //render harmony
+            if (sctx.renderHarmony) {
+                  for (Element* e : seg->annotations()) {
+                        if (!e || (e->track() < strack) || (e->track() >= etrack))
+                              continue;
+                        Harmony* h = nullptr;
+                        if (e->isHarmony())
+                              h = toHarmony(e);
+                        else if (e->isFretDiagram())
+                              h = toFretDiagram(e)->harmony();
+                        if (!h || !h->play())
+                              continue;
+                        renderHarmony(events, m, h, tickOffset);
+                        }
+                  }
+
             for (int track = strack; track < etrack; ++track) {
                   // skip linked staves, except primary
                   if (!m->score()->staff(track / VOICES)->primaryStaff()) {
@@ -590,16 +739,16 @@ static void collectMeasureEventsSimple(EventMap* events, Measure* m, Staff* staf
 //          SEG_START - note-on velocity is the same as the start velocity of the seg
 //---------------------------------------------------------
 
-static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* staff, int tickOffset, DynamicsRenderMethod method, int cc)
+void MidiRenderer::collectMeasureEventsDefault(EventMap* events, Measure const * m, const StaffContext& sctx, int tickOffset)
       {
-      int controller = getControllerFromCC(cc);
+      int controller = getControllerFromCC(sctx.cc);
 
       if (controller == -1) {
-            qWarning("controller for CC %d not valid", cc);
+            qWarning("controller for CC %d not valid", sctx.cc);
             return;
             }
 
-      int firstStaffIdx = staff->idx();
+      int firstStaffIdx = sctx.staff->idx();
       int nextStaffIdx  = firstStaffIdx + 1;
 
       SegmentType st = SegmentType::ChordRest;
@@ -607,6 +756,23 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
       int etrack = nextStaffIdx * VOICES;
       for (Segment* seg = m->first(st); seg; seg = seg->next(st)) {
             Fraction tick = seg->tick();
+
+            //render harmony
+            if (sctx.renderHarmony) {
+                  for (Element* e : seg->annotations()) {
+                        if (!e || (e->track() < strack) || (e->track() >= etrack))
+                              continue;
+                        Harmony* h = nullptr;
+                        if (e->isHarmony())
+                              h = toHarmony(e);
+                        else if (e->isFretDiagram())
+                              h = toFretDiagram(e)->harmony();
+                        if (!h || !h->play())
+                              continue;
+                        renderHarmony(events, m, h, tickOffset);
+                        }
+                  }
+
             for (int track = strack; track < etrack; ++track) {
                   // Skip linked staves, except primary
                   Staff* st1 = m->score()->staff(track / VOICES);
@@ -639,7 +805,7 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
                         }
 
                   bool useSND = instr->singleNoteDynamics();
-                  SndConfig config = SndConfig(useSND, controller, method);
+                  SndConfig config = SndConfig(useSND, controller, sctx.method);
 
                   //
                   // Add normal note events
@@ -666,22 +832,22 @@ static void collectMeasureEventsDefault(EventMap* events, Measure* m, Staff* sta
 //    redirects to the correct function based on the passed method
 //---------------------------------------------------------
 
-static void collectMeasureEvents(EventMap* events, Measure* m, Staff* staff, int tickOffset, DynamicsRenderMethod method, int cc)
+void MidiRenderer::collectMeasureEvents(EventMap* events, Measure const * m, const StaffContext& sctx, int tickOffset)
       {
-      switch (method) {
+      switch (sctx.method) {
             case DynamicsRenderMethod::SIMPLE:
-                  collectMeasureEventsSimple(events, m, staff, tickOffset);
+                  collectMeasureEventsSimple(events, m, sctx, tickOffset);
                   break;
             case DynamicsRenderMethod::SEG_START:
             case DynamicsRenderMethod::FIXED_MAX:
-                  collectMeasureEventsDefault(events, m, staff, tickOffset, method, cc);
+                  collectMeasureEventsDefault(events, m, sctx, tickOffset);
                   break;
             default:
-                  qWarning("Unrecognized dynamics method: %d", int(method));
+                  qWarning("Unrecognized dynamics method: %d", int(sctx.method));
                   break;
             }
 
-      collectProgramChanges(events, m, staff, tickOffset);
+      collectProgramChanges(events, m, sctx.staff, tickOffset);
       }
 
 //---------------------------------------------------------
@@ -735,12 +901,13 @@ void Score::updateVelo()
             return;
 
       for (Staff* st : _staves) {
-            ChangeMap& velo = st->velocities();
-            velo.clear();
+            st->velocities().clear();
+            st->velocityMultiplications().clear();
             }
       for (int staffIdx = 0; staffIdx < nstaves(); ++staffIdx) {
             Staff* st      = staff(staffIdx);
             ChangeMap& velo = st->velocities();
+            ChangeMap& mult = st->velocityMultiplications();
             Part* prt      = st->part();
             int partStaves = prt->nstaves();
             int partStaff  = Score::staffIdx(prt);
@@ -806,6 +973,34 @@ void Score::updateVelo()
                                     break;
                               }
                         }
+                  if (s->isChordRestType()) {
+                        for (int i = staffIdx * VOICES; i < (staffIdx + 1) * VOICES; ++i) {
+                              Element* el = s->element(i);
+                              if (!el || !el->isChord())
+                                    continue;
+
+                              Chord* chord = toChord(el);
+                              Instrument* instr = chord->part()->instrument();
+
+                              qreal veloMultiplier = 1;
+                              for (Articulation* a : chord->articulations()) {
+                                    if (a->playArticulation()) {
+                                          veloMultiplier *= instr->getVelocityMultiplier(a->articulationName());
+                                          }
+                                    }
+
+                              if (veloMultiplier == 1.0)
+                                    continue;
+
+                              // TODO this should be a (configurable?) constant somewhere
+                              static Fraction ARTICULATION_CHANGE_TIME_MAX = Fraction(1, 16);
+                              Fraction ARTICULATION_CHANGE_TIME = qMin(s->ticks(), ARTICULATION_CHANGE_TIME_MAX);
+                              int start = veloMultiplier * MidiRenderer::ARTICULATION_CONV_FACTOR;
+                              int change = (veloMultiplier - 1) * MidiRenderer::ARTICULATION_CONV_FACTOR;
+                              mult.addFixed(chord->tick(), start);
+                              mult.addRamp(chord->tick(), chord->tick() + ARTICULATION_CHANGE_TIME, change, ChangeMethod::NORMAL, ChangeDirection::DECREASING);
+                              }
+                        }
                   }
             for (const auto& sp : _spanner.map()) {
                   Spanner* s = sp.second;
@@ -818,6 +1013,7 @@ void Score::updateVelo()
 
       for (Staff* st : _staves) {
             st->velocities().cleanup();
+            st->velocityMultiplications().cleanup();
             }
 
       for (auto it = spanner().cbegin(); it != spanner().cend(); ++it) {
@@ -833,22 +1029,22 @@ void Score::updateVelo()
 //   renderStaffSegment
 //---------------------------------------------------------
 
-void MidiRenderer::renderStaffChunk(const Chunk& chunk, EventMap* events, Staff* staff, DynamicsRenderMethod method, int cc)
+void MidiRenderer::renderStaffChunk(const Chunk& chunk, EventMap* events, const StaffContext& sctx)
       {
-      Measure* start = chunk.startMeasure();
-      Measure* end = chunk.endMeasure();
+      Measure const * const start = chunk.startMeasure();
+      Measure const * const end = chunk.endMeasure();
       const int tickOffset = chunk.tickOffset();
 
-      Measure* lastMeasure = start->prevMeasure();
+      Measure const * lastMeasure = start->prevMeasure();
 
-      for (Measure* m = start; m != end; m = m->nextMeasure()) {
-            if (lastMeasure && m->isRepeatMeasure(staff)) {
+      for (Measure const * m = start; m != end; m = m->nextMeasure()) {
+            if (lastMeasure && m->isRepeatMeasure(sctx.staff)) {
                   int offset = (m->tick() - lastMeasure->tick()).ticks();
-                  collectMeasureEvents(events, lastMeasure, staff, tickOffset + offset, method, cc);
+                  collectMeasureEvents(events, lastMeasure, sctx, tickOffset + offset);
                   }
             else {
                   lastMeasure = m;
-                  collectMeasureEvents(events, lastMeasure, staff, tickOffset, method, cc);
+                  collectMeasureEvents(events, lastMeasure, sctx, tickOffset);
                   }
             }
       }
@@ -886,13 +1082,13 @@ void MidiRenderer::renderSpanners(const Chunk& chunk, EventMap* events)
                         // Handle "overlapping" pedal segments (usual case for connected pedal line)
                         if (lastEvent.second.first == false && lastEvent.first >= (st + tickOffset + 2)) {
                               channelPedalEvents.at(channel).pop_back();
-                              channelPedalEvents.at(channel).push_back(std::pair<int, std::pair<bool, int>>(st + tickOffset + 1, std::pair<bool, int>(false, staff)));
+                              channelPedalEvents.at(channel).push_back(std::pair<int, std::pair<bool, int>>(st + tickOffset + (2 - MScore::pedalEventsMinTicks), std::pair<bool, int>(false, staff)));
                               }
                         int a = st + tickOffset + 2;
                         channelPedalEvents.at(channel).push_back(std::pair<int, std::pair<bool, int>>(a, std::pair<bool, int>(true, staff)));
                         }
                   if (s->tick2().ticks() >= tick1 && s->tick2().ticks() <= tick2) {
-                        int t = s->tick2().ticks() + tickOffset + 1;
+                        int t = s->tick2().ticks() + tickOffset + (2 - MScore::pedalEventsMinTicks);
                         const RepeatSegment& lastRepeat = *score->repeatList().back();
                         if (t > lastRepeat.utick + lastRepeat.len())
                               t = lastRepeat.utick + lastRepeat.len();
@@ -1227,8 +1423,8 @@ int convertLine(int lineL2, Note *noteL, Note *noteR)
 // recent one, but avoid looking forward in time after the current note.
 // E.g., Also if there is an accidental     // on a note one (or more) octaves above or below we
 // observe its accidental as well.
-// E.g., Still another case is that if two staffs are involved (such as a glissando between two
-// notes on different staffs) then we have to search both staffs for the most recent accidental.
+// E.g., Still another case is that if two staves are involved (such as a glissando between two
+// notes on different staves) then we have to search both staves for the most recent accidental.
 //
 // noteL is the note to measure the deltastep from, i.e., ornaments are w.r.t. this note
 // noteR is the note to search backward from to find accidentals.
@@ -1329,8 +1525,8 @@ int totalTiedNoteTicks(Note* note)
 //---------------------------------------------------------
 
 bool renderNoteArticulation(NoteEventList* events, Note* note, bool chromatic, int requestedTicksPerNote,
-   const vector<int>& prefix, const vector<int>& body,
-   bool repeatp, bool sustainp, const vector<int>& suffix,
+   const std::vector<int>& prefix, const std::vector<int>& body,
+   bool repeatp, bool sustainp, const std::vector<int>& suffix,
    int fastestFreq=64, int slowestFreq=8 // 64 Hz and 8 Hz
    )
       {
@@ -1372,7 +1568,7 @@ bool renderNoteArticulation(NoteEventList* events, Note* note, bool chromatic, i
                   ticksPerNote = minTicksPerNote;
             }
 
-      ticksPerNote = max(requestedTicksPerNote, minTicksPerNote);
+      ticksPerNote = std::max(requestedTicksPerNote, minTicksPerNote);
 
       if (slowestFreq <= 0) // no slowest freq given such as something silly like glissando with 4 notes over 8 counts.
             ;
@@ -1407,7 +1603,7 @@ bool renderNoteArticulation(NoteEventList* events, Note* note, bool chromatic, i
       // If so, increment the duration by the appropriate note duration, and increment the index, j, to the next note index
       // of a different pitch.
       // The total duration of the tied note is returned, and the index is modified.
-      auto tieForward = [millespernote] (int & j, const vector<int> & vec) {
+      auto tieForward = [millespernote] (int & j, const std::vector<int> & vec) {
             int size = int(vec.size());
             int duration = millespernote;
             while ( j < size-1 && vec[j] == vec[j+1] ) {
@@ -1513,32 +1709,33 @@ bool renderNoteArticulation(NoteEventList* events, Note* note, bool chromatic, i
 
 struct OrnamentExcursion {
       SymId atype;
-      set<MScore::OrnamentStyle> ostyles;
+      std::set<MScore::OrnamentStyle> ostyles;
       int duration;
-      vector<int> prefix;
-      vector<int> body;
+      std::vector<int> prefix;
+      std::vector<int> body;
       bool repeatp;
       bool sustainp;
-      vector<int> suffix;
+      std::vector<int> suffix;
       };
 
-set<MScore::OrnamentStyle> baroque  = {MScore::OrnamentStyle::BAROQUE};
-set<MScore::OrnamentStyle> defstyle = {MScore::OrnamentStyle::DEFAULT};
-set<MScore::OrnamentStyle> any; // empty set has the special meaning of any-style, rather than no-styles.
+std::set<MScore::OrnamentStyle> baroque  = {MScore::OrnamentStyle::BAROQUE};
+std::set<MScore::OrnamentStyle> defstyle = {MScore::OrnamentStyle::DEFAULT};
+std::set<MScore::OrnamentStyle> any; // empty set has the special meaning of any-style, rather than no-styles.
 int _16th = MScore::division / 4;
 int _32nd = _16th / 2;
 
-vector<OrnamentExcursion> excursions = {
+std::vector<OrnamentExcursion> excursions = {
       //  articulation type            set of  duration       body         repeatp      suffix
       //                               styles          prefix                    sustainp
       { SymId::ornamentTurn,                any, _32nd, {},    {1,0,-1,0},   false, true, {}}
       ,{SymId::ornamentTurnInverted,        any, _32nd, {},    {-1,0,1,0},   false, true, {}}
+      ,{SymId::ornamentTurnSlash,           any, _32nd, {},    {-1,0,1,0},   false, true, {}}
       ,{SymId::ornamentTrill,           baroque, _32nd, {1,0}, {1,0},        true,  true, {}}
       ,{SymId::ornamentTrill,          defstyle, _32nd, {0,1}, {0,1},        true,  true, {}}
       ,{SymId::brassMuteClosed,         baroque, _32nd, {0,-1},{0, -1},      true,  true, {}}
-      ,{SymId::ornamentMordentInverted,     any, _32nd, {},    {0,-1,0},     false, true, {}}
-      ,{SymId::ornamentMordent,        defstyle, _32nd, {},    {0,1,0},      false, true, {}} // inverted mordent
-      ,{SymId::ornamentMordent,         baroque, _32nd, {1,0,1},{0},         false, true, {}} // short trill
+      ,{SymId::ornamentMordent,             any, _32nd, {},    {0,-1,0},     false, true, {}}
+      ,{SymId::ornamentShortTrill,     defstyle, _32nd, {},    {0,1,0},      false, true, {}} // inverted mordent
+      ,{SymId::ornamentShortTrill,      baroque, _32nd, {1,0,1},{0},         false, true, {}} // short trill
       ,{SymId::ornamentTremblement,         any, _32nd, {1,0}, {1,0},        false, true, {}}
       ,{SymId::ornamentPrallMordent,        any, _32nd, {},    {1,0,-1,0},   false, true, {}}
       ,{SymId::ornamentLinePrall,           any, _32nd, {2,2,2},{1,0},       true,  true, {}}
@@ -1568,7 +1765,7 @@ bool renderNoteArticulation(NoteEventList* events, Note * note, bool chromatic, 
       if (!note->staff()->isPitchedStaff(note->tick())) // not enough info in tab staff
             return false;
 
-      vector<int> emptypattern = {};
+      std::vector<int> emptypattern = {};
       for (auto& oe : excursions) {
             if (oe.atype == articulationType && ( 0 == oe.ostyles.size()
                   || oe.ostyles.end() != oe.ostyles.find(ornamentStyle))) {
@@ -1585,7 +1782,7 @@ bool renderNoteArticulation(NoteEventList* events, Note * note, bool chromatic, 
 
 bool renderNoteArticulation(NoteEventList* events, Note * note, bool chromatic, Trill::Type trillType, MScore::OrnamentStyle ornamentStyle)
       {
-      map<Trill::Type,SymId> articulationMap = {
+      std::map<Trill::Type,SymId> articulationMap = {
             {Trill::Type::TRILL_LINE,      SymId::ornamentTrill      }
            ,{Trill::Type::UPPRALL_LINE,    SymId::ornamentUpPrall    }
            ,{Trill::Type::DOWNPRALL_LINE,  SymId::ornamentPrecompMordentUpperPrefix  }
@@ -1620,22 +1817,25 @@ bool noteHasGlissando(Note *note)
 
 void renderGlissando(NoteEventList* events, Note *notestart)
       {
-      vector<int> empty = {};
+      std::vector<int> empty = {};
       int Cnote = 60; // pitch of middle C
       int pitchstart = notestart->ppitch();
       int linestart = notestart->line();
 
-      set<int> blacknotes = {  1,  3,    6, 8, 10};
-      set<int> whitenotes = {0,  2, 4, 5, 7,  9, 11};
+      std::set<int> blacknotes = {  1,  3,    6, 8, 10};
+      std::set<int> whitenotes = {0,  2, 4, 5, 7,  9, 11};
 
       for (Spanner* spanner : notestart->spannerFor()) {
             if (spanner->type() == ElementType::GLISSANDO) {
                   Glissando *glissando = toGlissando(spanner);
                   GlissandoStyle glissandoStyle = glissando->glissandoStyle();
                   Element* ee = spanner->endElement();
+                  // handle this elsewhere in a different way
+                  if (glissandoStyle == GlissandoStyle::PORTAMENTO)
+                        continue;
                   // only consider glissando connected to NOTE.
                   if (glissando->playGlissando() && ElementType::NOTE == ee->type()) {
-                        vector<int> body;
+                        std::vector<int> body;
                         Note *noteend  = toNote(ee);
                         int pitchend   = noteend->ppitch();
                         bool direction = pitchend >  pitchstart;
@@ -1803,7 +2003,7 @@ static QList<NoteEventList> renderChord(Chord* chord, int gateTime, int ontime, 
             renderChordArticulation(chord, ell, gateTime);
 
       // Check each note and apply gateTime
-      for (int i = 0; i < int(notes); ++i) {
+      for (unsigned i = 0; i < notes; ++i) {
             NoteEventList* el = &ell[i];
             if (!shouldRenderNote(chord->notes()[i])) {
                   el->clear();
@@ -1875,7 +2075,7 @@ void Score::createGraceNotesPlayEvents(const Fraction& tick, Chord* chord, int& 
             //  - the grace note duration as notated does not matter
             //
             Chord* graceChord = gnb[0];
-            if (graceChord->noteType() ==  NoteType::ACCIACCATURA) {
+            if (graceChord->noteType() ==  NoteType::ACCIACCATURA || nb > 1) { // treat multiple subsequent grace notes as acciaccaturas
                   int graceTimeMS = 65 * nb;     // value determined empirically (TODO: make instrument-specific, like articulations)
                   // 1000 occurs below as a unit for ontime
                   ontime = qMin(500, static_cast<int>((graceTimeMS / chordTimeMS) * 1000));
@@ -1896,7 +2096,7 @@ void Score::createGraceNotesPlayEvents(const Fraction& tick, Chord* chord, int& 
             QList<NoteEventList> el;
             Chord* gc = gnb.at(i);
             size_t nn = gc->notes().size();
-            for (size_t ii = 0; ii < nn; ++ii) {
+            for (unsigned ii = 0; ii < nn; ++ii) {
                   NoteEventList nel;
                   nel.append(NoteEvent(0, on, graceDuration));
                   el.append(nel);
@@ -1978,7 +2178,7 @@ void Score::createPlayEvents(Chord* chord)
       // don't change event list if type is PlayEventType::User
       }
 
-void Score::createPlayEvents(Measure* start, Measure* end)
+void Score::createPlayEvents(Measure const * start, Measure const * const end)
       {
       if (!start)
             start = firstMeasure();
@@ -1986,7 +2186,7 @@ void Score::createPlayEvents(Measure* start, Measure* end)
       int etrack = nstaves() * VOICES;
       for (int track = 0; track < etrack; ++track) {
             bool rangeEnded = false;
-            for (Measure* m = start; m; m = m->nextMeasure()) {
+            for (Measure const * m = start; m; m = m->nextMeasure()) {
                   constexpr SegmentType st = SegmentType::ChordRest;
 
                   if (m == end)
@@ -2030,10 +2230,10 @@ void Score::createPlayEvents(Measure* start, Measure* end)
 void MidiRenderer::renderMetronome(const Chunk& chunk, EventMap* events)
       {
       const int tickOffset = chunk.tickOffset();
-      Measure* start = chunk.startMeasure();
-      Measure* end = chunk.endMeasure();
+      Measure const * const start = chunk.startMeasure();
+      Measure const * const end = chunk.endMeasure();
 
-      for (Measure* m = start; m != end; m = m->nextMeasure())
+      for (Measure const * m = start; m != end; m = m->nextMeasure())
             renderMetronome(events, m, Fraction::fromTicks(tickOffset));
       }
 
@@ -2042,7 +2242,7 @@ void MidiRenderer::renderMetronome(const Chunk& chunk, EventMap* events)
 ///   add metronome tick events
 //---------------------------------------------------------
 
-void MidiRenderer::renderMetronome(EventMap* events, Measure* m, const Fraction& tickOffset)
+void MidiRenderer::renderMetronome(EventMap* events, Measure const * m, const Fraction& tickOffset)
       {
       int msrTick         = m->tick().ticks();
       qreal tempo         = score->tempomap()->tempo(msrTick);
@@ -2078,18 +2278,21 @@ void Score::renderMidi(EventMap* events, const SynthesizerState& synthState)
 void Score::renderMidi(EventMap* events, bool metronome, bool expandRepeats, const SynthesizerState& synthState)
       {
       masterScore()->setExpandRepeats(expandRepeats);
-      MidiRenderer(this).renderScore(events, synthState, metronome);
+      MidiRenderer::Context ctx(synthState);
+      ctx.metronome = metronome;
+      ctx.renderHarmony = true;
+      MidiRenderer(this).renderScore(events, ctx);
       }
 
-void MidiRenderer::renderScore(EventMap* events, const SynthesizerState& synthState, bool metronome)
+void MidiRenderer::renderScore(EventMap* events, const Context& ctx)
       {
       updateState();
       for (const Chunk& chunk : chunks) {
-            renderChunk(chunk, events, synthState, metronome);
+            renderChunk(chunk, events, ctx);
             }
       }
 
-void MidiRenderer::renderChunk(const Chunk& chunk, EventMap* events, const SynthesizerState& synthState, bool metronome)
+void MidiRenderer::renderChunk(const Chunk& chunk, EventMap* events, const Context& ctx)
       {
       // TODO: avoid doing it multiple times for the same measures
       score->createPlayEvents(chunk.startMeasure(), chunk.endMeasure());
@@ -2104,8 +2307,8 @@ void MidiRenderer::renderChunk(const Chunk& chunk, EventMap* events, const Synth
       // check if the score synth settings are actually set
       // if not, use the global synth state
       if (method == -1) {
-            method = synthState.method();
-            cc = synthState.ccToUse();
+            method = ctx.synthState.method();
+            cc = ctx.synthState.ccToUse();
 
             if (method == -1) {
                   // fall back to defaults - this may be needed to pass tests,
@@ -2133,14 +2336,20 @@ void MidiRenderer::renderChunk(const Chunk& chunk, EventMap* events, const Synth
             }
 
       // create note & other events
-      for (Staff* st : score->staves())
-            renderStaffChunk(chunk, events, st, renderMethod, cc);
+      for (Staff* st : score->staves()) {
+            StaffContext sctx;
+            sctx.staff = st;
+            sctx.method = renderMethod;
+            sctx.cc = cc;
+            sctx.renderHarmony = ctx.renderHarmony;
+            renderStaffChunk(chunk, events, sctx);
+            }
       events->fixupMIDI();
 
       // create sustain pedal events
       renderSpanners(chunk, events);
 
-      if (metronome)
+      if (ctx.metronome)
             renderMetronome(chunk, events);
 
       // NOTE:JT this is a temporary fix for duplicate events until polyphonic aftertouch support
@@ -2239,11 +2448,11 @@ void MidiRenderer::updateChunksPartition()
                   continue;
                   }
 
-            Measure* end = rs->lastMeasure()->nextMeasure();
+            Measure const * const end = rs->lastMeasure()->nextMeasure();
             int count = 0;
             bool needBreak = false;
-            Measure* chunkStart = nullptr;
-            for (Measure* m = rs->firstMeasure(); m != end; m = m->nextMeasure()) {
+            Measure const * chunkStart = nullptr;
+            for (Measure const * m = rs->firstMeasure(); m != end; m = m->nextMeasure()) {
                   if (!chunkStart)
                         chunkStart = m;
                   if ((++count) >= minChunkSize)

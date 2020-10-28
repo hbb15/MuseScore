@@ -247,8 +247,8 @@ PianoKeyItem::PianoKeyItem(HPiano* _piano, int p)
       _highlighted = false;
       type = -1;
 
-      QString pitchNames[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
-      QString text = pitchNames[_pitch % 12] + QString::number((_pitch / 12) - 1);
+      const char* pitchNames[] = {"C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"}; // keep in sync with `valu` in limbscore/utils.cpp
+      QString text = qApp->translate("utils", pitchNames[_pitch % 12]) + QString::number((_pitch / 12) - 1);
       setToolTip(text);
       }
 
@@ -471,7 +471,7 @@ void PianoTools::changeEvent(QEvent *event)
 void HPiano::wheelEvent(QWheelEvent* event)
       {
       static int deltaSum = 0;
-      deltaSum += event->delta();
+      deltaSum += event->angleDelta().y();
       int step = deltaSum / 120;
       deltaSum %= 120;
       qreal mag = scaleVal;

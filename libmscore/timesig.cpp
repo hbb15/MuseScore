@@ -216,6 +216,18 @@ void TimeSig::read(XmlReader& e)
             _sig.set(z1+z2+z3+z4, n);
             }
       _stretch.reduce();
+
+      // HACK: handle time signatures from scores before 3.5 differently on some special occasions.
+      // See https://musescore.org/node/308139.
+      QString version = masterScore()->mscoreVersion();
+      if (!version.isEmpty() && (version >= "3.0") && (version < "3.5")) {
+            if ((_timeSigType == TimeSigType::NORMAL) && !_numeratorString.isEmpty() && _denominatorString.isEmpty()) {
+                  if (_numeratorString == QString::number(_sig.numerator()))
+                        _numeratorString.clear();
+                  else
+                        setDenominatorString(QString::number(_sig.denominator()));
+                  }
+            }
       }
 
 //---------------------------------------------------------
@@ -257,7 +269,7 @@ void TimeSig::layout()
 
       if (_staff) {
             // if staff is without time sig, format as if no text at all
-            if (!_staff->staffType(tick())->genTimesig() ) {
+            if (!_staff->staffTypeForElement(this)->genTimesig()) {
                   // reset position and box sizes to 0
                   // qDebug("staff: no time sig");
                   pointLargeLeftParen.rx() = 0.0;
@@ -363,8 +375,14 @@ void TimeSig::layout()
             ds.clear();
             }
       else {
-            ns = toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
-            ds = toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
+            if (_numeratorString.isEmpty()) {
+                  ns = toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
+                  ds = toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
+                  }
+            else {
+                  ns = toTimeSigString(_numeratorString);
+                  ds = toTimeSigString(_denominatorString);
+                  }
 
             ScoreFont* font = score()->scoreFont();
             QSizeF mag(magS() * _scale);

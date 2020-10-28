@@ -23,7 +23,7 @@
 #include "libmscore/chord.h"
 #include "libmscore/note.h"
 #include "libmscore/keysig.h"
-#include "mscore/exportmidi.h"
+#include "audio/exports/exportmidi.h"
 #include <QIODevice>
 
 #include "libmscore/mcursor.h"
@@ -143,6 +143,9 @@ void TestMidi::events_data()
       QTest::newRow("testGuitarTrem") <<  "testGuitarTrem";
       QTest::newRow("testPlayArticulation") << "testPlayArticulation";
       QTest::newRow("testTremoloDynamics") << "testTremoloDynamics";
+      QTest::newRow("testRepeatsDynamics") << "testRepeatsDynamics";
+      QTest::newRow("testArticulationDynamics") << "testArticulationDynamics";
+      QTest::newRow("testChannelsDynamics") << "testChannelsDynamics";
       }
 
 //---------------------------------------------------------
@@ -511,7 +514,7 @@ void TestMidi::midiTimeStretchFermataTempoEditContinuousView()
       }
 
 //---------------------------------------------------------
-//   midiTimeStretchFermata
+//   midiSingleNoteDynamics
 //---------------------------------------------------------
 
 void TestMidi::midiSingleNoteDynamics()

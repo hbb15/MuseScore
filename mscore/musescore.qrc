@@ -3,8 +3,9 @@
         <file>data/icons/edit.svg</file>
         <file alias="fonts/mscore/metadata.json">../fonts/mscore/metadata.json</file>
         <file alias="fonts/gootville/metadata.json">../fonts/gootville/metadata.json</file>
-        <file alias="fonts/bravura/metadata.json">../fonts/bravura/metadata.json</file>
+        <file alias="fonts/bravura/metadata.json">../fonts/bravura/bravura_metadata.json</file>
         <file alias="fonts/musejazz/metadata.json">../fonts/musejazz/metadata.json</file>
+        <file alias="fonts/petaluma/metadata.json">../fonts/petaluma/petaluma_metadata.json</file>
         <file alias="fonts/smufl/classes.json">../fonts/smufl/classes.json</file>
         <file alias="fonts/smufl/ranges.json">../fonts/smufl/ranges.json</file>
         <file alias="fonts/smufl/glyphnames.json">../fonts/smufl/glyphnames.json</file>
@@ -15,8 +16,8 @@
         <file alias="themes/style_dark_fusion.css">../share/themes/style_dark_fusion.css</file>
         <file alias="themes/palette_light_fusion.json">../share/themes/palette_light_fusion.json</file>
         <file alias="themes/palette_dark_fusion.json">../share/themes/palette_dark_fusion.json</file>
-        <file>data/splash.png</file>
-        <file>data/splash@2x.png</file>
+        <file>data/maintenance.svg</file>
+        <file>data/musescore-logotype.svg</file>
         <file alias="data/My_First_Score.mscx">../share/templates/My_First_Score.mscx</file>
         <file alias="data/Create_New_Score.mscz">../share/templates/Create_New_Score.mscz</file>
         <file alias="data/Empty_Score.mscx">../share/templates/01-General/00-Blank.mscx</file>
@@ -109,6 +110,9 @@
         <file>data/icons/note-32.svg</file>
         <file>data/icons/note-64.svg</file>
         <file>data/icons/note-128.svg</file>
+        <file>data/icons/note-256.svg</file>
+        <file>data/icons/note-512.svg</file>
+        <file>data/icons/note-1024.svg</file>
         <file>data/icons/note-breve.svg</file>
         <file>data/icons/note-dot.svg</file>
         <file>data/icons/note-dot3.svg</file>
@@ -121,6 +125,17 @@
         <file>data/icons/note-natural.svg</file>
         <file>data/icons/note-sharp.svg</file>
         <file>data/icons/note-tie.svg</file>
+        <file>data/icons/preEdit-changeLength.svg</file>
+        <file>data/icons/preEdit-cutNote.svg</file>
+        <file>data/icons/preEdit-eraseNote.svg</file>
+        <file>data/icons/preEdit-insertNote.svg</file>
+        <file>data/icons/preEdit-appendChord.svg</file>
+        <file>data/icons/preEdit-select.svg</file>
+        <file>data/icons/preEdit-tie.svg</file>
+        <file>data/icons/voice-1.svg</file>
+        <file>data/icons/voice-2.svg</file>
+        <file>data/icons/voice-3.svg</file>
+        <file>data/icons/voice-4.svg</file>
         <file>data/icons/rest.svg</file>
         <file>data/icons/stem-flip.svg</file>
         <file>data/icons/insert-symbol.svg</file>
@@ -185,5 +200,7 @@
         <file>data/icons/triangleUp.svg</file>
         <file>data/icons/arrowsMoveToTop.svg</file>
         <file>data/win_opengl_buglist.json</file>
+        <file>data/icons/bin.svg</file>
+        <file>data/icons/braces.svg</file>
     </qresource>
 </RCC>

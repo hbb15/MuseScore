@@ -66,10 +66,12 @@ void Score::splitMeasure(Segment* segment)
                   start = nullptr;
             if (s->tick2() >= stick && s->tick2() < etick)
                   end = nullptr;
-            if (start != s->startElement() || end != s->endElement())
+            if (start != s->startElement() || end != s->endElement()) {
+                  sl.push_back(std::make_tuple(s, s->tick(), s->ticks()));
                   undo(new ChangeStartEndSpanner(s, start, end));
+                  }
             if (s->tick() < stick && s->tick2() > stick)
-                  sl.push_back(make_tuple(s, s->tick(), s->ticks()));
+                  sl.push_back(std::make_tuple(s, s->tick(), s->ticks()));
             }
 
       // Make sure ties are the beginning the split measure are restored.
@@ -102,8 +104,27 @@ void Score::splitMeasure(Segment* segment)
       Fraction ticks2 = measure->ticks() - ticks1;
       m1->setTimesig(measure->timesig());
       m2->setTimesig(measure->timesig());
-      m1->adjustToLen(ticks1.reduced(), false);
-      m2->adjustToLen(ticks2.reduced(), false);
+      ticks1.reduce();
+      ticks2.reduce();
+      // Now make sure this reduction doesn't go 'beyond' the original measure's
+      // actual denominator for both resultant measures.
+      if (ticks1.denominator() < measure->ticks().denominator()) {
+            if (measure->ticks().denominator() % m1->timesig().denominator() == 0) {
+                  int mult = measure->ticks().denominator() / ticks1.denominator();
+                  // *= operator audomatically reduces via GCD, so rather do literal multiplication:
+                  ticks1.setDenominator(ticks1.denominator() * mult);
+                  ticks1.setNumerator(ticks1.numerator() * mult);
+                  }
+            }
+      if (ticks2.denominator() < measure->ticks().denominator()) {
+            if (measure->ticks().denominator() % m2->timesig().denominator() == 0) {
+                  int mult = measure->ticks().denominator() / ticks2.denominator();
+                  ticks2.setDenominator(ticks2.denominator() * mult);
+                  ticks2.setNumerator(ticks2.numerator() * mult);
+                  }
+            }
+      m1->adjustToLen(ticks1, false);
+      m2->adjustToLen(ticks2, false);
       range.write(this, m1->tick());
 
       // Restore ties the the beginning of the split measure.
