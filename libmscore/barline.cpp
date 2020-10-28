@@ -204,7 +204,7 @@ const std::vector<BarLineTableItem> BarLine::barLineTable {
       { BarLineType::END_REPEAT,       Sym::symUserNames[int(SymId::repeatRight)],          "end-repeat" },
       { BarLineType::BROKEN,           Sym::symUserNames[int(SymId::barlineDashed)],        "dashed" },
       { BarLineType::END,              Sym::symUserNames[int(SymId::barlineFinal)],         "end" },
-      { BarLineType::BEGIN,            QT_TRANSLATE_NOOP("Palette", "Start barline"),    "begin" },
+      { BarLineType::BEGIN,            Sym::symUserNames[int(SymId::barlineStart)],    "begin" },
       { BarLineType::END_START_REPEAT, Sym::symUserNames[int(SymId::repeatRightLeft)],      "end-start-repeat" },
       { BarLineType::DOTTED,           Sym::symUserNames[int(SymId::barlineDotted)],        "dotted" },
       { BarLineType::REVERSE_END,      Sym::symUserNames[int(SymId::barlineReverseFinal)],  "reverse-end" },

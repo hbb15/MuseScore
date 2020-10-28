@@ -3485,7 +3485,7 @@ const std::array<const char*, int(SymId::lastSym)+1> Sym::symUserNames = { {
       QT_TRANSLATE_NOOP("symUserNames", "Dotted barline"),
       QT_TRANSLATE_NOOP("symUserNames", "Double barline"),
       QT_TRANSLATE_NOOP("symUserNames", "Final barline"),
-      "Start barline",
+      QT_TRANSLATE_NOOP("symUserNames", "Start barline"),
       QT_TRANSLATE_NOOP("symUserNames", "Heavy barline"),
       QT_TRANSLATE_NOOP("symUserNames", "Heavy double barline"),
       QT_TRANSLATE_NOOP("symUserNames", "Reverse final barline"),

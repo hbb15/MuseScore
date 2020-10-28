@@ -917,7 +917,6 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
                   "##.#...",
                   "##.#..."
                   };
-      QPixmap* start_barline_pixmap = new QPixmap(start_barline);
 
       static const char* heavyBarline[] = {
                   "6 14 2 1",
@@ -962,6 +961,7 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
       QPixmap* startRepeatPixmap = new QPixmap(startRepeat);
       QPixmap* endRepeatPixmap = new QPixmap(endRepeat);
       QPixmap* endBarlinePixmap = new QPixmap(endBarline);
+      QPixmap* start_barline_pixmap = new QPixmap(start_barline);
       QPixmap* doubleBarlinePixmap = new QPixmap(doubleBarline);
       QPixmap* reverseEndBarlinePixmap = new QPixmap(reverseEndBarline);
       QPixmap* heavyBarlinePixmap = new QPixmap(heavyBarline);
@@ -970,7 +970,7 @@ Timeline::Timeline(TDockWidget* dockWidget, QWidget* parent)
       _barlines[BarLineType::START_REPEAT] = startRepeatPixmap;
       _barlines[BarLineType::END_REPEAT] = endRepeatPixmap;
       _barlines[BarLineType::END] = endBarlinePixmap;
-      barlines["Start barline"] = start_barline_pixmap;
+      _barlines[BarLineType::BEGIN] = start_barline_pixmap;
       _barlines[BarLineType::DOUBLE] = doubleBarlinePixmap;
       _barlines[BarLineType::REVERSE_END] = reverseEndBarlinePixmap;
       _barlines[BarLineType::HEAVY] = heavyBarlinePixmap;
@@ -1390,6 +1390,7 @@ void Timeline::barlineMeta(Segment* seg, int* stagger, int pos)
                   case BarLineType::START_REPEAT:
                   case BarLineType::END_REPEAT:
                   case BarLineType::END:
+                  case BarLineType::BEGIN:
                   case BarLineType::DOUBLE:
                   case BarLineType::REVERSE_END:
                   case BarLineType::HEAVY:
@@ -1398,9 +1399,6 @@ void Timeline::barlineMeta(Segment* seg, int* stagger, int pos)
                         break;
                   case BarLineType::END_START_REPEAT:
                         // actually an end repeat followed by a start repeat, so nothing needs to be done here
-                  case BarLineType::BEGIN:
-                        repeat_text = QString("Start barline");
-                        break;
                   default:
                         break;
                   }
@@ -1608,10 +1606,10 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
       if (textWidth + x > getWidth())
             textWidth = getWidth() - x;
 
-      if ((meta_text == QString("End repeat") || meta_text == QString("Final barline") || meta_text == QString("Start barline") || meta_text == QString("Double barline") || std::get<2>(repeat_info)) && !collapsed_meta) {
       // Adjust x for end repeats
       if ((barLineType == BarLineType::END_REPEAT ||
            barLineType == BarLineType::END ||
+           barLineType == BarLineType::BEGIN ||
            barLineType == BarLineType::DOUBLE ||
            barLineType == BarLineType::REVERSE_END ||
            barLineType == BarLineType::HEAVY ||
