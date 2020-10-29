@@ -1616,6 +1616,8 @@ bool Timeline::addMetaValue(int x, int pos, QString metaText, int row, ElementTy
            barLineType == BarLineType::DOUBLE_HEAVY ||
            std::get<2>(_repeatInfo))
           && !_collapsedMeta) {
+            if (std::get<0>(_repeatInfo) > 0)
+                  x = pos + _gridWidth - std::get<1>(_repeatInfo) + std::get<0>(_repeatInfo) * _spacing;
             else {
                   x = pos + _gridWidth - textWidth;
                   std::get<1>(_repeatInfo) = textWidth;
