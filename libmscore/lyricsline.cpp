@@ -353,7 +353,7 @@ void LyricsLineSegment::layout()
       // A) if line precedes a syllable, advance line end to right before the next syllable text
       // if not a melisma and there is a next syllable;
       if (!isEndMelisma && lyricsLine()->nextLyrics() && isSingleEndType()) {
-            lyr         = nextLyr = lyricsLine()->nextLyrics();
+            lyr         = lyricsLine()->lyrics();
             sys         = lyr->segment()->system();
             endOfSystem = (sys != system());
             if(!sys)
@@ -361,13 +361,18 @@ void LyricsLineSegment::layout()
             // if next lyrics is on a different system, this line segment is at the end of its system:
             // do not adjust for next lyrics position
             if (sys && !endOfSystem) {
-                  qreal lyrX        = lyr->bbox().x();
-                  qreal lyrXp       = lyr->pagePos().x();
-                  qreal sysXp       = sys->pagePos().x();
-                  toX               = lyrXp - sysXp + lyrX;       // syst.rel. X pos.
-                  qreal offsetX     = toX - pos().x() - pos2().x() - score()->styleP(Sid::lyricsDashPad);
-                  //                    delta from current end pos.| ending padding
-                  rxpos2()          += offsetX;
+                qreal lyrX = lyr->bbox().x();
+                qreal lyrXp = lyr->pagePos().x();
+                qreal lyrW = lyr->bbox().width();
+                qreal sysXp = sys->pagePos().x();
+                fromX = lyrXp - sysXp + lyrX + lyrW;
+                //               syst.rel. X pos. | lyr.advance
+                qreal offsetX = fromX - pos().x();
+                offsetX += score()->styleP(isEndMelisma ? Sid::lyricsMelismaPad : Sid::lyricsDashPad);
+
+                //               delta from curr.pos. | add initial padding
+                rxpos() += offsetX;
+                rxpos2() -= offsetX;
                   }
             }
       // B) if line follows a syllable, advance line start to after the syllable text
@@ -394,11 +399,13 @@ void LyricsLineSegment::layout()
             ryoffset() = lyr->offset().y();
             }
       else {
-            // use Y position of *next* syllable if there is one on same system
+            // use Y position of *next* syllable if there is one on same system     ???
             Lyrics* nextLyr1 = searchNextLyrics(lyr->segment(), lyr->staffIdx(), lyr->no(), lyr->placement());
             if (nextLyr1 && nextLyr1->segment()->system() == system()) {
-                  rypos() = nextLyr1->ipos().y();
-                  ryoffset() = nextLyr1->offset().y();
+                  rypos() = lyr->ipos().y();
+                  ryoffset() = lyr->offset().y();
+                  //rypos() = nextLyr1->ipos().y();
+                  //ryoffset() = nextLyr1->offset().y();
                   }
             else {
                   rypos() = lyr->ipos().y();

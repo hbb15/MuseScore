@@ -3285,7 +3285,7 @@ void Score::LyricsLayout3(System* system, LayoutContext& lc)
 	  Fraction stick = useRange ? lc.startTick : system->measures().front()->tick();
 	  Fraction etick = useRange ? lc.endTick : system->measures().back()->endTick();
 	  for (Spanner* sp : _unmanagedSpanner) {
-		  if (sp->tick() >= etick || sp->tick2() <= stick)
+		  if (sp->tick() > etick || sp->tick2() <= stick)
 			  continue;
 		  sp->layoutSystem(system);
 	  }
