@@ -105,6 +105,7 @@ class Lyrics final : public TextBase {
       bool setProperty(Pid propertyId, const QVariant&) override;
       QVariant propertyDefault(Pid id) const override;
 	  int getStaffShift() { return _staffShift; }
+      void setStaffShift(int n) { _staffShift = n; }
       };
 
 //---------------------------------------------------------
