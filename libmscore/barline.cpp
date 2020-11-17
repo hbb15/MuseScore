@@ -458,7 +458,7 @@ void BarLine::getY() const
             int staffbefor=staffIdx1;
             for (int i2 = staffIdx1 - 1; i2 >= 0; --i2)  {
                   Staff* s = score()->staff(i2);
-                  if (s && !s->invisible() && s->part()->show() && measure->visible(i2)) {
+                  if (s && !s->invisible(tick) && s->part()->show() && measure->visible(i2)) {
                         BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
                         if(nbl && nbl->spanStaff()){
                               spanStavesbefor = true;
@@ -469,7 +469,7 @@ void BarLine::getY() const
                   }
             for (int i2 = staffIdx1 + 1; i2 < nstaves; ++i2)  {
                   Staff* s = score()->staff(i2);
-                  if (s && !s->invisible() && s->part()->show() && measure->visible(i2)) {
+                  if (s && !s->invisible(tick) && s->part()->show() && measure->visible(i2)) {
                         BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
                         if(nbl && nbl->spanStaff()){
                               //spanStaves = true;

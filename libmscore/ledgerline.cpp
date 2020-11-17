@@ -63,7 +63,7 @@ qreal LedgerLine::measureXPos() const
 void LedgerLine::layout()
       {
       if (staff() && staff()->isNumericStaff(chord()->tick())) {
-            setColor(staff()->color());
+            setColor(staff()->staffType(tick())->color());
             qreal w2 = _width * .5;
             bbox().setRect(-w2, -w2, _len + _width, _width);
             return;
