@@ -81,8 +81,8 @@ struct SndConfig {
       int controller = -1;
       DynamicsRenderMethod method = DynamicsRenderMethod::SEG_START;
 
-      SndConfig() {};
-      SndConfig(bool use, int c, DynamicsRenderMethod me) : useSND(use), controller(c), method(me) {};
+      SndConfig() {}
+      SndConfig(bool use, int c, DynamicsRenderMethod me) : useSND(use), controller(c), method(me) {}
       };
 
 bool graceNotesMerged(Chord *chord);
@@ -93,7 +93,7 @@ bool graceNotesMerged(Chord *chord);
 
 void Score::updateSwing()
       {
-      for (Staff* s : _staves) {
+      for (Staff* s : qAsConst(_staves)) {
             s->clearSwingList();
             }
       Measure* fm = firstMeasure();
@@ -113,7 +113,7 @@ void Score::updateSwing()
                   sp.swingRatio = st->swingParameters()->swingRatio;
                   sp.swingUnit = st->swingParameters()->swingUnit;
                   if (st->systemFlag()) {
-                        for (Staff* sta : _staves) {
+                        for (Staff* sta : qAsConst(_staves)) {
                               sta->insertIntoSwingList(s->tick(),sp);
                               }
                         }
@@ -129,7 +129,7 @@ void Score::updateSwing()
 
 void Score::updateCapo()
       {
-      for (Staff* s : _staves) {
+      for (Staff* s : qAsConst(_staves)) {
             s->clearCapoList();
             }
       Measure* fm = firstMeasure();
@@ -637,7 +637,7 @@ static void renderHarmony(EventMap* events, Measure const * m, Harmony* h, int t
 
       NPlayEvent ev(ME_NOTEON, channel->channel(), 0, velocity);
       ev.setHarmony(h);
-      Fraction duration = r.getActualDuration();
+      Fraction duration = r.getActualDuration(h->tick().ticks() + tickOffset);
 
       int onTime = h->tick().ticks() + tickOffset;
       int offTime = onTime + duration.ticks();
@@ -646,7 +646,7 @@ static void renderHarmony(EventMap* events, Measure const * m, Harmony* h, int t
       ev.setTuning(0.0);
 
       //add play events
-      for (int p : pitches) {
+      for (int p : qAsConst(pitches)) {
             ev.setPitch(p);
             ev.setVelo(velocity);
             events->insert(std::pair<int, NPlayEvent>(onTime, ev));
@@ -880,7 +880,7 @@ void Score::updateHairpin(Hairpin* h)
                         }
                   break;
             case Dynamic::Range::SYSTEM:
-                  for (Staff* s : _staves) {
+                  for (Staff* s : qAsConst(_staves)) {
                         s->velocities().addRamp(tick, tick2, veloChange, method, direction);
                         }
                   break;
@@ -900,7 +900,7 @@ void Score::updateVelo()
       if (!firstMeasure())
             return;
 
-      for (Staff* st : _staves) {
+      for (Staff* st : qAsConst(_staves)) {
             st->velocities().clear();
             st->velocityMultiplications().clear();
             }
@@ -1011,7 +1011,7 @@ void Score::updateVelo()
                   }
             }
 
-      for (Staff* st : _staves) {
+      for (Staff* st : qAsConst(_staves)) {
             st->velocities().cleanup();
             st->velocityMultiplications().cleanup();
             }
@@ -1257,6 +1257,8 @@ void renderTremolo(Chord* chord, QList<NoteEventList>& ell)
       // render tremolo with multiple events
       if (chord->tremoloChordType() == TremoloChordType::TremoloFirstNote) {
             int t = MScore::division / (1 << (tremolo->lines() + chord->durationType().hooks()));
+            if (t == 0) // avoid crash on very short tremolo
+                  t = 1;
             SegmentType st = SegmentType::ChordRest;
             Segment* seg2 = seg->next(st);
             int track = chord->track();
@@ -1278,7 +1280,7 @@ void renderTremolo(Chord* chord, QList<NoteEventList>& ell)
             if (c2->type() == ElementType::CHORD) {
                   int notes2 = int(c2->notes().size());
                   int tnotes = qMax(notes, notes2);
-                  int tticks = chord->actualTicks().ticks() * 2; // use twice the size
+                  int tticks = chord->ticks().ticks() * 2; // use twice the size
                   int n = tticks / t;
                   n /= 2;
                   int l = 2000 * t / tticks;
@@ -1959,7 +1961,7 @@ void renderChordArticulation(Chord* chord, QList<NoteEventList> & ell, int & gat
 
 static bool shouldRenderNote(Note* n)
       {
-      while (n->tieBack()) {
+      while (n->tieBack() && n != n->tieBack()->startNote()) {
             n = n->tieBack()->startNote();
             if (findFirstTrill(n->chord()))
                   // The previous tied note probably has events for this note too.

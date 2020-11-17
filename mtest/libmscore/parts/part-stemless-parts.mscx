@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="3.01">
+<museScore version="3.02">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -32,7 +32,7 @@
           </StaffType>
         </Staff>
       <trackName>Flute</trackName>
-      <Instrument>
+      <Instrument id="flute">
         <longName>Flute</longName>
         <shortName>Fl.</shortName>
         <trackName>Flute</trackName>
@@ -95,7 +95,7 @@
           </StaffType>
         </Staff>
       <trackName>Oboe</trackName>
-      <Instrument>
+      <Instrument id="oboe">
         <longName>Oboe</longName>
         <shortName>Ob.</shortName>
         <trackName>Oboe</trackName>
@@ -154,6 +154,7 @@
     <Staff id="1">
       <VBox>
         <height>10</height>
+        <boxAutoSize>1</boxAutoSize>
         <linkedMain/>
         <Text>
           <linkedMain/>
@@ -501,7 +502,7 @@
             </StaffType>
           </Staff>
         <trackName>Flute</trackName>
-        <Instrument>
+        <Instrument id="flute">
           <longName>Flute</longName>
           <shortName>Fl.</shortName>
           <trackName>Flute</trackName>
@@ -560,6 +561,7 @@
       <Staff id="1">
         <VBox>
           <height>10</height>
+          <boxAutoSize>1</boxAutoSize>
           <linked>
             </linked>
           <Text>
@@ -789,7 +791,7 @@
             </StaffType>
           </Staff>
         <trackName>Oboe</trackName>
-        <Instrument>
+        <Instrument id="oboe">
           <longName>Oboe</longName>
           <shortName>Ob.</shortName>
           <trackName>Oboe</trackName>
@@ -848,6 +850,7 @@
       <Staff id="1">
         <VBox>
           <height>10</height>
+          <boxAutoSize>1</boxAutoSize>
           <linked>
             <location>
               <staves>-1</staves>

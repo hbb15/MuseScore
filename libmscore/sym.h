@@ -43,10 +43,14 @@ namespace Ms {
 
 BEGIN_QT_REGISTERED_ENUM(SymId)
 enum class SymId {
-
-      // SMuFL standard symbol ID's
       ///.\{
       noSym,
+
+      // DO NOT edit the SMuFL standard symbol IDs (see below) manually!
+      // They are generated from fonttools/smufl2sym.{bat,sh} and then
+      // copied into this file!
+
+      // SMuFL standard symbol IDs {{{
       fourStringTabClef,
       sixStringTabClef,
       accSagittal11LargeDiesisDown,
@@ -2841,6 +2845,7 @@ enum class SymId {
       windTrillKey,
       windVeryTightEmbouchure,
       windWeakAirPressure,
+      // SMuFL standard symbol IDs }}}
 
 //    EXTENSIONS
 //    SMuFL stylistic alternates which we need to access directly
@@ -2856,7 +2861,7 @@ enum class SymId {
       braceLarge,
       braceLarger,
 
-//    MuseScore local symbols, precomposed symbols to mimic some emmentaler glyphs
+//    MuseScore-local symbols, precomposed symbols to mimic some Emmentaler glyphs
 
       ornamentPrallMordent,
       ornamentUpPrall,
@@ -3062,7 +3067,7 @@ class ScoreFont {
       bool isValid(SymId id) const                    { return sym(id).isValid(); }
       bool useFallbackFont(SymId id) const;
 
-      const Sym& sym(SymId id) const { return _symbols[int(id)]; }
+      Sym sym(SymId id) const;
 
       friend void initScoreFonts();
       };
@@ -3073,4 +3078,3 @@ extern void initScoreFonts();
 
 Q_DECLARE_METATYPE(Ms::SymId);
 #endif
-

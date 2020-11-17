@@ -69,6 +69,7 @@ private slots:
       void breaksManual() { mxmlIoTestRefBreaks("testBreaksManual"); }
       void breaksPage() { mxmlMscxExportTestRefBreaks("testBreaksPage"); }
       void breaksSystem() { mxmlMscxExportTestRefBreaks("testBreaksSystem"); }
+      void changeTranspose() { mxmlIoTest("testChangeTranspose"); }
       void chordDiagrams1() { mxmlIoTest("testChordDiagrams1"); }
       void chordNoVoice() { mxmlIoTestRef("testChordNoVoice"); }
       void clefs1() { mxmlIoTest("testClefs1"); }
@@ -195,6 +196,7 @@ private slots:
       void tuplets6() { mxmlIoTestRef("testTuplets6"); }
       void tuplets7() { mxmlIoTest("testTuplets7"); }
       void tuplets8() { mxmlMscxExportTestRef("testTuplets8"); }
+      void twoNoteTremoloTuplet() { mxmlIoTest("testTwoNoteTremoloTuplet"); }
       void uninitializedDivisions() { mxmlIoTestRef("testUninitializedDivisions"); }
       void unusualDurations() { mxmlIoTestRef("testUnusualDurations"); }
       void virtualInstruments() { mxmlIoTestRef("testVirtualInstruments"); }

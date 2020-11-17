@@ -93,6 +93,20 @@ include (CreatePrecompiledHeader)
 set(CMAKE_AUTOMOC     TRUE)
 set(USE_SSE           TRUE)
 
+set(MUSESCORE_REVISION "" CACHE STRING "Build revision")
+
+# Set revision for local builds
+# Before need run 'make revision' or 'msvc_build.bat revision'
+if (MUSESCORE_REVISION STREQUAL "")
+    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/local_build_revision.env")
+        file(READ "${CMAKE_CURRENT_LIST_DIR}/local_build_revision.env" MUSESCORE_REVISION)
+        STRING(REGEX REPLACE "\n" "" MUSESCORE_REVISION "${MUSESCORE_REVISION}")
+    endif()
+endif(MUSESCORE_REVISION STREQUAL "")
+message(STATUS "MUSESCORE_REVISION: ${MUSESCORE_REVISION}")
+
+add_definitions(-DMUSESCORE_REVISION="${MUSESCORE_REVISION}")
+
 # Setup version number and general build settings
 SET(MUSESCORE_BUILD_CONFIG "dev" CACHE STRING "Build config")
 # Possible MUSESCORE_BUILD_CONFIG values:
@@ -131,6 +145,7 @@ endif (NOT APPLE AND NOT MINGW AND NOT MSVC)
 
 option(AEOLUS        "Enable pipe organ synthesizer"      OFF)
 option(ZERBERUS      "Enable experimental SFZ sampler"    ON)
+option(USE_ZITA_REVERB "Enable Zita Reverb audio effect"    ON)
 option(OSC           "Enable OSC remote control protocol" ON)
 option(AVSOMR        "Enable AVSOMR import"               OFF) # AVSOMR - optical music recognition by audirevis
 option(OMR           "Enable PDF import"                  OFF) # OMR - optical music recognition
@@ -285,9 +300,9 @@ else (APPLE)
          set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /arch:SSE")
          set(CMAKE_C_FLAGS    "${CMAKE_C_FLAGS} /arch:SSE")
       endif (USE_SSE)
-      set(CMAKE_CXX_FLAGS_DEBUG          "/MT /permissive- /std:c++14 /W4 /Zi /Ob0 /Od /RTC1")
+      set(CMAKE_CXX_FLAGS_DEBUG          "/MT /permissive- /std:c++14 /W4 /Zi /Ob0 /Od /RTC1 /wd4996")
       set(CMAKE_CXX_FLAGS_RELEASE        "/MT /permissive- /std:c++14 /W4 /O2 /Ob2 /DNDEBUG /DQT_NO_DEBUG /DQT_NO_DEBUG_OUTPUT")
-      set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /permissive- /std:c++14 /W4 /Zi /O2 /Ob1 /DNDEBUG /DQT_NO_DEBUG /DQT_NO_DEBUG_OUTPUT")
+      set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /permissive- /std:c++14 /W4 /Zi /O2 /Ob1 /DNDEBUG /DQT_NO_DEBUG /DQT_NO_DEBUG_OUTPUT /wd4996")
       set(CMAKE_C_FLAGS_DEBUG            "/MT /W4 /Zi /Ob0 /Od /RTC1")
       set(CMAKE_C_FLAGS_RELEASE          "/MT /W4 /O2 /Ob2 /DNDEBUG")
       set(CMAKE_C_FLAGS_RELWITHDEBINFO   "/MT /W4 /Zi /O2 /Ob1 /DNDEBUG")
@@ -305,6 +320,7 @@ else (APPLE)
          set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Woverloaded-virtual")
          set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT")
       endif (MINGW)
+      set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -Wno-deprecated-declarations -Wno-cast-function-type") # don't want to see those in 3.x when using Qt 5.15
    endif (MSVC)
 endif(APPLE)
 
@@ -376,6 +392,10 @@ endif(DOWNLOAD_SOUNDFONT)
 if (BUILD_FOR_WINSTORE)
   set(FOR_WINSTORE 1)
 endif(BUILD_FOR_WINSTORE)
+
+if (USE_ZITA_REVERB)
+    add_definitions(-DZITA_REVERB)
+endif(USE_ZITA_REVERB)
 
 ##
 ## freetype2 >= 2.5.2

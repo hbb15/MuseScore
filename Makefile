@@ -23,6 +23,7 @@ PREFIX    = "/usr/local"
 VERSION   := $(shell cmake -P config.cmake | sed -n -e "s/^.*VERSION  *//p")
 
 MUSESCORE_BUILD_CONFIG="dev"
+MUSESCORE_REVISION=""
 BUILD_NUMBER=""
 TELEMETRY_TRACK_ID=""
 
@@ -40,6 +41,7 @@ BUILD_WEBENGINE="ON"  # Override with "OFF" to disable.
 USE_SYSTEM_FREETYPE="OFF" # Override with "ON" to enable. Requires freetype >= 2.5.2.
 COVERAGE="OFF"        # Override with "ON" to enable.
 DOWNLOAD_SOUNDFONT="ON"   # Override with "OFF" to disable latest soundfont download.
+USE_ZITA_REVERB="ON"
 
 UPDATE_CACHE="TRUE"# Override if building a DEB or RPM, or when installing to a non-standard location.
 NO_RPATH="FALSE"# Package maintainers may want to override this (e.g. Debian)
@@ -59,6 +61,7 @@ release:
   	  -DMSCORE_INSTALL_SUFFIX="${SUFFIX}"      \
   	  -DMUSESCORE_LABEL="${LABEL}"             \
 	  -DMUSESCORE_BUILD_CONFIG="${MUSESCORE_BUILD_CONFIG}" \
+	  -DMUSESCORE_REVISION="${MUSESCORE_REVISION}" \
   	  -DCMAKE_BUILD_NUMBER="${BUILD_NUMBER}"   \
   	  -DTELEMETRY_TRACK_ID="${TELEMETRY_TRACK_ID}" \
   	  -DBUILD_LAME="${BUILD_LAME}"             \
@@ -70,6 +73,7 @@ release:
    	  -DBUILD_WEBENGINE="${BUILD_WEBENGINE}"   \
    	  -DUSE_SYSTEM_FREETYPE="${USE_SYSTEM_FREETYPE}" \
    	  -DDOWNLOAD_SOUNDFONT="${DOWNLOAD_SOUNDFONT}"   \
+	  -DUSE_ZITA_REVERB="${USE_ZITA_REVERB}"   \
   	  -DCMAKE_SKIP_RPATH="${NO_RPATH}"     ..; \
       make lrelease;                             \
       make -j ${CPUS};                           \
@@ -99,8 +103,9 @@ debug:
    	  -DBUILD_PORTAUDIO="${BUILD_PORTAUDIO}"              \
    	  -DBUILD_WEBENGINE="${BUILD_WEBENGINE}"              \
    	  -DUSE_SYSTEM_FREETYPE="${USE_SYSTEM_FREETYPE}"      \
-      -DCOVERAGE="${COVERAGE}"                 \
-   	  -DDOWNLOAD_SOUNDFONT="${DOWNLOAD_SOUNDFONT}"        \
+          -DCOVERAGE="${COVERAGE}"                 \
+   	  -DDOWNLOAD_SOUNDFONT="${DOWNLOAD_SOUNDFONT}"      \
+	  -DUSE_ZITA_REVERB="${USE_ZITA_REVERB}"   \
   	  -DCMAKE_SKIP_RPATH="${NO_RPATH}"     ..;            \
       make lrelease;                                        \
       make -j ${CPUS};                                      \
@@ -138,7 +143,7 @@ clean:
 	-rm -rf win32build win32install
 
 revision:
-	@git rev-parse --short=7 HEAD > mscore/revision.h
+	@git rev-parse --short=7 HEAD | tr -d '\n' > local_build_revision.env
 
 version:
 	@echo ${VERSION}
@@ -177,11 +182,7 @@ portable: install
 
 installdebug: debug
 	cd build.debug \
-	&& make install \
-	&& if [ ${UPDATE_CACHE} = "TRUE" ]; then \
-	     update-mime-database "${PREFIX}/share/mime"; \
-	     gtk-update-icon-cache -f -t "${PREFIX}/share/icons/hicolor"; \
-	fi
+	&& make install 
 
 uninstall:
 	cd build.release \

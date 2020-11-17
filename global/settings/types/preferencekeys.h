@@ -32,6 +32,8 @@
 // file path of instrument templates
 #define PREF_APP_PATHS_INSTRUMENTLIST1                      "application/paths/instrumentList1"
 #define PREF_APP_PATHS_INSTRUMENTLIST2                      "application/paths/instrumentList2"
+#define PREF_APP_PATHS_SCOREORDERLIST1                      "application/paths/scoreOrderList1"
+#define PREF_APP_PATHS_SCOREORDERLIST2                      "application/paths/scoreOrderList2"
 #define PREF_APP_PATHS_MYIMAGES                             "application/paths/myImages"
 #define PREF_APP_PATHS_MYPLUGINS                            "application/paths/myPlugins"
 #define PREF_APP_PATHS_MYSCORES                             "application/paths/myScores"
@@ -71,6 +73,7 @@
 #define PREF_IMPORT_OVERTURE_CHARSET                        "import/overture/charset"
 #define PREF_IMPORT_STYLE_STYLEFILE                         "import/style/styleFile"
 #define PREF_IMPORT_COMPATIBILITY_RESET_ELEMENT_POSITIONS   "import/compatibility/resetElementPositions"
+#define PREF_IMPORT_SCORE_MIGRATION_ENABLED                 "import/compatibility/score_migration_enabled"
 #define PREF_APP_PALETTESCALE                               "application/paletteScale"
 #define PREF_IO_ALSA_DEVICE                                 "io/alsa/device"
 #define PREF_IO_ALSA_FRAGMENTS                              "io/alsa/fragments"

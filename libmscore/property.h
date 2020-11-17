@@ -114,8 +114,8 @@ enum class Pid {
       GROW_LEFT,
       GROW_RIGHT,
       BOX_HEIGHT,
-
       BOX_WIDTH,
+      BOX_AUTOSIZE,
       TOP_GAP,
       BOTTOM_GAP,
       LEFT_MARGIN,
@@ -265,6 +265,8 @@ enum class Pid {
       STAFF_SHOW_BARLINES,
       STAFF_SHOW_LEDGERLINES,
       STAFF_STEMLESS,
+      STAFF_INVISIBLE,
+      STAFF_COLOR,
 
       HEAD_SCHEME,
       STAFF_GEN_CLEF,
@@ -279,18 +281,20 @@ enum class Pid {
 
       BRACKET_COLUMN,
       INAME_LAYOUT_POSITION,
+//200
       SUB_STYLE,
 
       FONT_FACE,
       FONT_SIZE,
       FONT_STYLE,
+      TEXT_LINE_SPACING,
 
       FRAME_TYPE,
       FRAME_WIDTH,
       FRAME_PADDING,
       FRAME_ROUND,
       FRAME_FG_COLOR,
-//200
+
       FRAME_BG_COLOR,
       SIZE_SPATIUM_DEPENDENT,
       ALIGN,

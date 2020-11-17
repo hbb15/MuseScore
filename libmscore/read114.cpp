@@ -1218,7 +1218,7 @@ static void readVolta114(XmlReader& e, Volta* volta)
                   QString s = e.readElementText();
                   QStringList sl = s.split(",", QString::SkipEmptyParts);
                   volta->endings().clear();
-                  for (const QString& l : sl) {
+                  for (const QString& l : qAsConst(sl)) {
                         int i = l.simplified().toInt();
                         volta->endings().append(i);
                         }
@@ -2388,7 +2388,7 @@ static void readStaff(Staff* staff, XmlReader& e)
             else if (tag == "small")
                   staff->staffType(Fraction(0,1))->setSmall(e.readInt());
             else if (tag == "invisible")
-                  staff->setInvisible(e.readInt());
+                  staff->setInvisible(Fraction(0,1),e.readInt());
             else if (tag == "slashStyle")
                   e.skipCurrentElement();
             else if (tag == "cleflist") {
@@ -3040,6 +3040,8 @@ Score::FileError MasterScore::read114(XmlReader& e)
             return FileError::FILE_BAD_FORMAT;
             }
 
+      setEnableVerticalSpread(false);
+
       for (Staff* s : staves()) {
             int idx   = s->idx();
             int track = idx * VOICES;
@@ -3235,7 +3237,7 @@ Score::FileError MasterScore::read114(XmlReader& e)
       // add invisible tempo text if necessary
       // some 1.3 scores have tempolist but no tempo text
       fixTicks();
-      for (auto i : tm) {
+      for (const auto &i : tm) {
             Fraction tick = Fraction::fromTicks(i.first);
             qreal tempo   = i.second.tempo;
             if (tempomap()->tempo(tick.ticks()) != tempo) {
@@ -3265,6 +3267,7 @@ Score::FileError MasterScore::read114(XmlReader& e)
             if (!excerpt->parts().isEmpty()) {
                   _excerpts.push_back(excerpt);
                   Score* nscore = new Score(this);
+                  nscore->setEnableVerticalSpread(false);
                   excerpt->setPartScore(nscore);
                   nscore->style().set(Sid::createMultiMeasureRests, true);
                   Excerpt::createExcerpt(excerpt);

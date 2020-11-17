@@ -208,7 +208,7 @@ Measure::Measure(Score* s)
             ms->setLines(new StaffLines(score()));
             ms->lines()->setTrack(staffIdx * VOICES);
             ms->lines()->setParent(this);
-            ms->lines()->setVisible(!staff->invisible());
+            ms->lines()->setVisible(!staff->invisible(tick()));
             _mstaves.push_back(ms);
             }
       setIrregular(false);
@@ -266,7 +266,7 @@ void Measure::createStaves(int staffIdx)
             s->setLines(new StaffLines(score()));
             s->lines()->setParent(this);
             s->lines()->setTrack(n * VOICES);
-            s->lines()->setVisible(!staff->invisible());
+            s->lines()->setVisible(!staff->invisible(tick()));
             _mstaves.push_back(s);
             }
       }
@@ -1146,7 +1146,7 @@ void Measure::cmdAddStaves(int sStaff, int eStaff, bool createRest)
             ms->setLines(new StaffLines(score()));
             ms->lines()->setTrack(i * VOICES);
             ms->lines()->setParent(this);
-            ms->lines()->setVisible(!staff->invisible());
+            ms->lines()->setVisible(!staff->invisible(tick()));
             score()->undo(new InsertMStaff(this, ms, i));
             }
 
@@ -1262,7 +1262,7 @@ void Measure::insertStaff(Staff* staff, int staffIdx)
       ms->setLines(new StaffLines(score()));
       ms->lines()->setParent(this);
       ms->lines()->setTrack(staffIdx * VOICES);
-      ms->lines()->setVisible(!staff->invisible());
+      ms->lines()->setVisible(!staff->invisible(tick()));
       insertMStaff(ms, staffIdx);
       }
 
@@ -1726,7 +1726,7 @@ void Measure::adjustToLen(Fraction nf, bool appendRestsIfNecessary)
       Measure* m    = s->tick2measure(tick());
       QList<int> sl = s->uniqueStaves();
 
-      for (int staffIdx : sl) {
+      for (int staffIdx : qAsConst(sl)) {
             int rests  = 0;
             int chords = 0;
             Rest* rest = 0;
@@ -1924,7 +1924,7 @@ void Measure::read(XmlReader& e, int staffIdx)
             s->setLines(new StaffLines(score()));
             s->lines()->setParent(this);
             s->lines()->setTrack(n * VOICES);
-            s->lines()->setVisible(!staff->invisible());
+            s->lines()->setVisible(!staff->invisible(tick()));
             _mstaves.push_back(s);
             }
 
@@ -3302,7 +3302,7 @@ Element* Measure::prevElementStaff(int staff)
 
 QString Measure::accessibleInfo() const
       {
-      return QString("%1: %2").arg(Element::accessibleInfo()).arg(QString::number(no() + 1));
+      return QString("%1: %2").arg(Element::accessibleInfo(), QString::number(no() + 1));
       }
 
 //-----------------------------------------------------------------------------
@@ -4291,12 +4291,14 @@ void Measure::computeMinWidth(Segment* s, qreal x, bool isSystemHeader)
       while (s) {
 
             s->rxpos() = x;
-            if (!s->enabled() || !s->visible()) {
+            if (!s->enabled() || !s->visible() || s->allElementsInvisible()) {
                   s->setWidth(0);
                   s = s->next();
                   continue;
                   }
             Segment* ns = s->nextActive();
+            while (ns && ns->allElementsInvisible())
+                  ns = ns->nextActive();
             // end barline might be disabled
             // but still consider it for spacing of previous segment
             if (!ns)
@@ -4335,7 +4337,6 @@ void Measure::computeMinWidth(Segment* s, qreal x, bool isSystemHeader)
 
                         if (ps == fs)
                               ww = std::max(ww, ns->minLeft(ls) - s->x());
-
                         if (ww > w) {
                               // overlap !
                               // distribute extra space between segments ps - ss;

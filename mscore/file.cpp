@@ -689,7 +689,7 @@ MasterScore* MuseScore::getNewFile()
                               Segment* s = m->getSegment(SegmentType::TimeSig, Fraction(0,1));
                               s->add(ts);
                               Part* part = staff->part();
-                              if (!part->instrument()->useDrumset()) {
+                              if (!part->instrument()->useDrumset()) {  //tick?
                                     //
                                     // transpose key
                                     //
@@ -3084,7 +3084,7 @@ bool MuseScore::saveSvg(Score* score, QIODevice* device, int pageNumber, bool dr
       // 1st pass: StaffLines
       for  (System* s : page->systems()) {
             for (int i = 0, n = s->staves()->size(); i < n; i++) {
-                  if (score->staff(i)->invisible() || !score->staff(i)->show())
+                  if (score->staff(i)->invisible(Fraction(0,1)) || !score->staff(i)->show()) 
                         continue;  // ignore invisible staves
                   if (s->staves()->isEmpty() || !s->staff(i)->show())
                         continue;
@@ -3168,7 +3168,7 @@ bool MuseScore::saveSvg(Score* score, QIODevice* device, int pageNumber, bool dr
             printer.setElement(e);
 
             // Paint it
-            if (e->type() == ElementType::NOTE) {
+            if (e->type() == ElementType::NOTE && !notesColors.isEmpty()) {
                 QColor color = e->color();
                 int currentNoteIndex = (++lastNoteIndex);
 

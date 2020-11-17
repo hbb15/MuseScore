@@ -203,7 +203,7 @@ void Box::writeProperties(XmlWriter& xml) const
       {
       for (Pid id : {
          Pid::BOX_HEIGHT, Pid::BOX_WIDTH, Pid::TOP_GAP, Pid::BOTTOM_GAP,
-         Pid::LEFT_MARGIN, Pid::RIGHT_MARGIN, Pid::TOP_MARGIN, Pid::BOTTOM_MARGIN }) {
+         Pid::LEFT_MARGIN, Pid::RIGHT_MARGIN, Pid::TOP_MARGIN, Pid::BOTTOM_MARGIN, Pid::BOX_AUTOSIZE }) {
             writeProperty(xml, id);
             }
       Element::writeProperties(xml);
@@ -257,6 +257,8 @@ bool Box::readProperties(XmlReader& e)
             _topMargin = e.readDouble();
       else if (tag == "bottomMargin")
             _bottomMargin = e.readDouble();
+      else if (tag == "boxAutoSize")
+            _isAutoSizeEnabled = e.readBool();
       else if (tag == "Text") {
             Text* t;
             if (isTBox()) {
@@ -321,6 +323,16 @@ void Box::add(Element* e)
       MeasureBase::add(e);
       }
 
+QRectF Box::contentRect() const
+      {
+      QRectF result;
+
+      for (const Element* element : el())
+            result = result.united(element->bbox());
+
+      return result;
+      }
+
 //---------------------------------------------------------
 //   getProperty
 //---------------------------------------------------------
@@ -344,6 +356,8 @@ QVariant Box::getProperty(Pid propertyId) const
                   return _topMargin;
             case Pid::BOTTOM_MARGIN:
                   return _bottomMargin;
+            case Pid::BOX_AUTOSIZE:
+                  return _isAutoSizeEnabled;
             default:
                   return MeasureBase::getProperty(propertyId);
             }
@@ -381,6 +395,9 @@ bool Box::setProperty(Pid propertyId, const QVariant& v)
             case Pid::BOTTOM_MARGIN:
                   _bottomMargin = v.toDouble();
                   break;
+            case Pid::BOX_AUTOSIZE:
+                  _isAutoSizeEnabled = v.toBool();
+                  break;
             default:
                   return MeasureBase::setProperty(propertyId, v);
             }
@@ -409,6 +426,8 @@ QVariant Box::propertyDefault(Pid id) const
             case Pid::TOP_MARGIN:
             case Pid::BOTTOM_MARGIN:
                   return 0.0;
+            case Pid::BOX_AUTOSIZE:
+                  return false;
             default:
                   return MeasureBase::propertyDefault(id);
             }
@@ -722,6 +741,27 @@ VBox::VBox(Score* score)
       initElementStyle(&boxStyle);
       setBoxHeight(Spatium(10.0));
       setLineBreak(true);
+      setAutoSizeEnabled(score->mscVersion() >= 302); // enable auto-size feature only for newest scores by default
+      }
+
+qreal VBox::minHeight() const
+      {
+      return point(Spatium(10));
+      }
+
+qreal VBox::maxHeight() const
+      {
+      return point(Spatium(30));
+      }
+
+QVariant VBox::getProperty(Pid propertyId) const
+      {
+      switch (propertyId) {
+            case Pid::BOX_AUTOSIZE:
+                  return isAutoSizeEnabled();
+            default:
+                  return Box::getProperty(propertyId);
+      }
       }
 
 //---------------------------------------------------------
@@ -731,11 +771,27 @@ VBox::VBox(Score* score)
 void VBox::layout()
       {
       setPos(QPointF());
+
       if (system())
             bbox().setRect(0.0, 0.0, system()->width(), point(boxHeight()));
       else
             bbox().setRect(0.0, 0.0, 50, 50);
-      Box::layout();
+
+      for (Element* e : el()) {
+            if (!e->isLayoutBreak())
+                  e->layout();
+            }
+
+      if (getProperty(Pid::BOX_AUTOSIZE).toBool()) {
+            qreal contentHeight = contentRect().height();
+
+            if (contentHeight < minHeight())
+                  contentHeight = minHeight();
+
+            setHeight(contentHeight);
+            }
+
+      MeasureBase::layout();
       }
 
 //---------------------------------------------------------

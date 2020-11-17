@@ -89,6 +89,7 @@ class UndoStack;
 class Volta;
 class XmlWriter;
 class Channel;
+class ScoreOrder;
 struct Interval;
 struct TEvent;
 struct LayoutContext;
@@ -472,6 +473,7 @@ class Score : public QObject, public ScoreElement {
                                                 ///< saves will not overwrite the backup file.
       bool _defaultsRead        { false };      ///< defaults were read at MusicXML import, allow export of defaults in convertermode
       bool _isPalette           { false };
+      ScoreOrder* _scoreOrder   { nullptr };    ///< used for score ordering
 
       int _mscVersion { MSCVERSION };   ///< version of current loading *.msc file
 
@@ -607,6 +609,7 @@ class Score : public QObject, public ScoreElement {
       void addMeasure(MeasureBase*, MeasureBase*);
       void readStaff(XmlReader&);
       bool read(XmlReader&);
+      void linkMeasures(Score* score);
 
       Excerpt* excerpt()            { return _excerpt; }
       void setExcerpt(Excerpt* e)   { _excerpt = e;     }
@@ -615,6 +618,8 @@ class Score : public QObject, public ScoreElement {
       void layoutSystemElements(System* system, LayoutContext& lc);
       void getNextMeasure(LayoutContext&);      // get next measure for layout
 
+      void resetAllPositions();
+
       void cmdRemovePart(Part*);
       void cmdAddTie(bool addToChord = false);
       void cmdToggleTie();
@@ -622,7 +627,7 @@ class Score : public QObject, public ScoreElement {
       void cmdAddOttava(OttavaType);
       void cmdAddStretch(qreal);
       void cmdResetNoteAndRestGroupings();
-      void cmdResetAllPositions();
+      void cmdResetAllPositions(bool undoable = true);
       void cmdDoubleDuration()      { cmdIncDecDuration(-1, false); }
       void cmdHalfDuration()        { cmdIncDecDuration( 1, false); }
       void cmdIncDurationDotted()   { cmdIncDecDuration(-1, true); }
@@ -960,6 +965,13 @@ class Score : public QObject, public ScoreElement {
 
       bool isPalette() const { return _isPalette; }
       void setPaletteMode(bool palette) { _isPalette = palette; }
+
+      bool enableVerticalSpread() const;
+      void setEnableVerticalSpread(bool val);
+      qreal minSystemDistance() const;
+      qreal maxSystemDistance() const;
+      ScoreOrder* scoreOrder() const        { return _scoreOrder;  }
+      void setScoreOrder(ScoreOrder* order) { _scoreOrder = order; }
 
       void lassoSelect(const QRectF&);
       void lassoSelectEnd();
@@ -1360,7 +1372,7 @@ class MasterScore : public Score {
       FileError loadMsc(QString name, QIODevice*, bool ignoreVersionError);
       FileError read114(XmlReader&);
       FileError read206(XmlReader&);
-      FileError read301(XmlReader&);
+      FileError read302(XmlReader&);
       QByteArray readToBuffer();
       QByteArray readCompressedToBuffer();
 

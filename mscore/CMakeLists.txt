@@ -39,8 +39,6 @@ if (NOT MSVC)
 endif (NOT MSVC)
 include (${PROJECT_SOURCE_DIR}/build/CopyFilesMacros.cmake)
 
-SET_SOURCE_FILES_PROPERTIES(revision.h PROPERTIES GENERATED TRUE)
-
 include_directories(
       ${CMAKE_CURRENT_BINARY_DIR}
       ${PROJECT_SOURCE_DIR}
@@ -104,6 +102,8 @@ if (APPLE)
 else (APPLE)
       QT5_ADD_RESOURCES (qrc_files musescore.qrc
             qml.qrc # TODO: replace with qtquick_compiler_add_resources on Qt >= 5.11
+            musescorefonts-Leland.qrc
+            musescorefonts-Edwin.qrc
             musescorefonts-MScore.qrc
             musescorefonts-Gootville.qrc
             musescorefonts-Bravura.qrc
@@ -177,14 +177,17 @@ add_library(mscoreapp STATIC
       pathlistdialog.h piano.h  pianotools.h
       openfilelocation.h
       playpanel.h preferences.h preferenceslistwidget.h prefsdialog.h
-      radiobuttongroupbox.h recordbutton.h resourceManager.h revision.h ruler.h scoreaccessibility.h
+      radiobuttongroupbox.h recordbutton.h resourceManager.h ruler.h scoreaccessibility.h
       scoreBrowser.h scoreInfo.h scorePreview.h scoretab.h scoreview.h searchComboBox.h
       selectdialog.h selectionwindow.h selectnotedialog.h selinstrument.h
       seq.h shortcut.h shortcutcapturedialog.h simplebutton.h splitstaff.h stafftextproperties.h
       startcenter.h startupWizard.h stringutils.h svggenerator.h symboldialog.h synthcontrol.h
       templateBrowser.h textcursor.h textpalette.h texttools.h timedialog.h timeline.h timesigproperties.h
       toolbarEditor.h toolbuttonmenu.h transposedialog.h tremolobarcanvas.h realizeharmonydialog.h
-      tupletdialog.h updatechecker.h waveview.h webpage.h workspace.h
+      tupletdialog.h updatechecker.h waveview.h webpage.h workspace.h migration/scoremigrationdialog.h
+      migration/scoremigrationdialogmodel.h migration/scoremigrator_3_6.h migration/handlers/instrumentorderinghandler.h
+      migration/handlers/staffverticaljustificationhandler.h migration/handlers/resetallelementspositionshandler.h
+      migration/handlers/firstsystemindentationhandler.h
 
       recordbutton.h greendotbutton prefsdialog.h prefsdialog.cpp
       stringutils.h stringutils.cpp
@@ -254,7 +257,10 @@ add_library(mscoreapp STATIC
       tourhandler.cpp
       script/script.cpp script/scriptentry.cpp script/testscript.cpp script/recorderwidget.cpp
       qml/msqmlengine.cpp qml/nativemenu.cpp qml/nativetooltip.cpp
-      qmldockwidget.cpp
+      qmldockwidget.cpp migration/scoremigrationdialog.cpp migration/scoremigrationdialogmodel.cpp
+      migration/scoremigrator_3_6.cpp migration/handlers/instrumentorderinghandler.cpp
+      migration/handlers/staffverticaljustificationhandler.cpp migration/handlers/resetallelementspositionshandler.cpp
+      migration/handlers/firstsystemindentationhandler.cpp
 
       ${CLOUD_SRC}
       ${IMPORTMIDIUI_SRC}

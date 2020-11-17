@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="3.01">
+<museScore version="3.02">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -30,7 +30,7 @@
           </StaffType>
         </Staff>
       <trackName>Bells</trackName>
-      <Instrument>
+      <Instrument id="guitar-steel-treble-clef">
         <longName>Guitar</longName>
         <shortName>Guit.</shortName>
         <trackName>Acoustic Guitar (Treble Clef)</trackName>
@@ -103,6 +103,7 @@
     <Staff id="1">
       <VBox>
         <height>10</height>
+        <boxAutoSize>1</boxAutoSize>
         <linkedMain/>
         </VBox>
       <Measure>
@@ -285,7 +286,7 @@
             </StaffType>
           </Staff>
         <trackName></trackName>
-        <Instrument>
+        <Instrument id="guitar-steel-treble-clef">
           <longName>Guitar</longName>
           <shortName>Guit.</shortName>
           <trackName>Acoustic Guitar (Treble Clef)</trackName>
@@ -356,6 +357,7 @@
       <Staff id="1">
         <VBox>
           <height>10</height>
+          <boxAutoSize>1</boxAutoSize>
           <linked>
             </linked>
           <Text>

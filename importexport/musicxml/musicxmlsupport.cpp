@@ -137,16 +137,15 @@ bool VoiceOverlapDetector::stavesOverlap(const QString& voice) const
             return false;
       }
 
-QString MusicXMLDrumInstrument::toString() const
+QString MusicXMLInstrument::toString() const
       {
-      return QString("chan %1 prog %2 vol %3 pan %4 pitch %5 name '%6' sound '%7' head %8 line %9 stemDir %10")
+      return QString("chan %1 prog %2 vol %3 pan %4 unpitched %5 name '%6' sound '%7' head %8 line %9 stemDir %10")
              .arg(midiChannel)
              .arg(midiProgram)
              .arg(midiVolume)
              .arg(midiPan)
-             .arg(pitch)
-             .arg(name)
-             .arg(sound)
+             .arg(unpitched)
+             .arg(name, sound)
              .arg(int(notehead))
              .arg(line)
              .arg(int(stemDirection));
@@ -229,7 +228,7 @@ void domError(const QDomElement& e)
       int col = e.columnNumber();
       if (col != -1)
             m += QString("col:%1 ").arg(col);
-      m += QString("%1: Unknown Node <%2>, type %3").arg(s).arg(e.tagName()).arg(e.nodeType());
+      m += QString("%1: Unknown Node <%2>, type %3").arg(s, e.tagName()).arg(e.nodeType());
       if (e.isText())
             m += QString("  text node <%1>").arg(e.toText().data());
       qDebug("%s", qPrintable(m));

@@ -133,7 +133,7 @@ UndoCommand::~UndoCommand()
 
 void UndoCommand::cleanup(bool undo)
       {
-      for (auto c : childList)
+      for (auto c : qAsConst(childList))
             c->cleanup(undo);
       }
 
@@ -218,7 +218,7 @@ bool UndoCommand::hasUnfilteredChildren(const std::vector<UndoCommand::Filter>& 
 void UndoCommand::filterChildren(UndoCommand::Filter f, Element* target)
       {
       QList<UndoCommand*> acceptedList;
-      for (UndoCommand* cmd : childList) {
+      for (UndoCommand* cmd : qAsConst(childList)) {
             if (cmd->isFiltered(f, target))
                   delete cmd;
             else
@@ -261,7 +261,7 @@ UndoStack::UndoStack()
 UndoStack::~UndoStack()
       {
       int idx = 0;
-      for (auto c : list)
+      for (auto c : qAsConst(list))
             c->cleanup(idx++ < curIdx);
       qDeleteAll(list);
       }
@@ -1541,9 +1541,9 @@ ChangeStaff::ChangeStaff(Staff* _staff,  bool _invisible, ClefTypeList _clefType
 
 void ChangeStaff::flip(EditData*)
       {
-      bool invisibleChanged = staff->invisible() != invisible;
+      bool invisibleChanged = staff->invisible(Fraction(0,1)) != invisible;
       ClefTypeList oldClefType = staff->defaultClefType();
-      bool oldInvisible   = staff->invisible();
+      bool oldInvisible   = staff->invisible(Fraction(0,1));
       qreal oldUserDist   = staff->userDist();
       Staff::HideMode oldHideMode    = staff->hideWhenEmpty();
       bool oldShowIfEmpty = staff->showIfEmpty();
@@ -1551,7 +1551,7 @@ void ChangeStaff::flip(EditData*)
       bool oldHideSystemBarLine  = staff->hideSystemBarLine();
       bool oldMergeMatchingRests = staff->mergeMatchingRests();
 
-      staff->setInvisible(invisible);
+      staff->setInvisible(Fraction(0,1),invisible);
       staff->setDefaultClefType(clefType);
       staff->setUserDist(userDist);
       staff->setHideWhenEmpty(hideMode);
@@ -1573,7 +1573,7 @@ void ChangeStaff::flip(EditData*)
       if (invisibleChanged) {
             int staffIdx = staff->idx();
             for (Measure* m = score->firstMeasure(); m; m = m->nextMeasure())
-                  m->staffLines(staffIdx)->setVisible(!staff->invisible());
+                  m->staffLines(staffIdx)->setVisible(!staff->invisible(Fraction(0,1)));
             }
       staff->triggerLayout();
       staff->masterScore()->rebuildMidiMapping();
@@ -1612,7 +1612,7 @@ ChangePart::ChangePart(Part* _part, Instrument* i, const QString& s)
 
 void ChangePart::flip(EditData*)
       {
-      Instrument* oi = part->instrument();
+      Instrument* oi = part->instrument();  //tick?
       QString s      = part->partName();
       part->setInstrument(instrument);
       part->setPartName(partName);
@@ -2636,6 +2636,17 @@ void MoveTremolo::undo(EditData*)
       oldC2->setTremolo(trem);
       trem->setChords(oldC1, oldC2);
       trem->setParent(oldC1);
+      }
+
+//---------------------------------------------------------
+//   ChangeScoreOrder
+//---------------------------------------------------------
+
+void ChangeScoreOrder::flip(EditData*)
+      {
+      ScoreOrder* s = score->scoreOrder();
+      score->setScoreOrder(order);
+      order = s;
       }
 
 }

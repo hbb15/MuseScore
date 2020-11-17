@@ -357,8 +357,8 @@ class ExportMusicXml {
       void findAndExportClef(const Measure* const m, const int staves, const int strack, const int etrack);
       void exportDefaultClef(const Part* const part, const Measure* const m);
       void writeElement(Element* el, const Measure* m, int sstaff, bool useDrumset);
-      void writeMeasureTracks(const Measure* const m, const int partIndex, const int strack, const int staves, const bool useDrumset, FigBassMap& fbMap);
-      void writeMeasure(const Measure* const m, const int idx, const int staffCount, MeasureNumberStateHandler& mnsh, FigBassMap& fbMap, const MeasurePrintContext& mpc);
+      void writeMeasureTracks(const Measure* const m, const int partIndex, const int strack, const int staves, const bool useDrumset, FigBassMap& fbMap, QSet<const Spanner*>& spannersStopped);
+      void writeMeasure(const Measure* const m, const int idx, const int staffCount, MeasureNumberStateHandler& mnsh, FigBassMap& fbMap, const MeasurePrintContext& mpc, QSet<const Spanner*>& spannersStopped);
       void writeParts();
 
 public:
@@ -1587,7 +1587,7 @@ static void ending(XmlWriter& xml, Volta* v, bool left)
                         return;
                   }
             }
-      QString voltaXml = QString("ending number=\"%1\" type=\"%2\"").arg(number).arg(type);
+      QString voltaXml = QString("ending number=\"%1\" type=\"%2\"").arg(number, type);
       voltaXml += positioningAttributes(v, left);
       xml.tagE(voltaXml);
       }
@@ -2253,10 +2253,13 @@ static void tupletStop(const Tuplet* const t, const int number, Notations& notat
 //   tupletStartStop
 //---------------------------------------------------------
 
-static void tupletStartStop(const ChordRest* const cr, Notations& notations, XmlWriter& xml)
+static void tupletStartStop(ChordRest* cr, Notations& notations, XmlWriter& xml)
       {
       const auto nesting = tupletNesting(cr);
-      const bool doActualAndNormal = (nesting > 1);
+      bool doActualAndNormal = (nesting > 1);
+      if (cr->isChord() && isTwoNoteTremolo(toChord(cr))) {
+            doActualAndNormal = true;
+            }
       for (int level = nesting - 1; level >= 0; --level) {
             const auto startTuplet = startTupletAtLevel(cr, level + 1);
             if (startTuplet)
@@ -3296,8 +3299,6 @@ void ExportMusicXml::chord(Chord* chord, int staff, const std::vector<Lyrics*>* 
 #endif
 
       for (Note* note : nl) {
-            QString val;
-
             _attr.doAttr(_xml, false);
             QString noteTag = QString("note");
 
@@ -3772,7 +3773,7 @@ static bool findMetronome(const QList<TextFragment>& list,
             if (words.length() > pos2 + len2) {
                   QString s1 = words.mid(0, pos1);     // string to the left of metronome
                   QString s2 = words.mid(pos1, len1);  // first note
-                  QString s3 = words.mid(pos2, len2);  // equals sign
+                  //QString s3 = words.mid(pos2, len2);  // equals sign
                   QString s4 = words.mid(pos2 + len2); // string to the right of equals sign
                   /*
                   qDebug("found note and equals: '%s'%s'%s'%s'",
@@ -4276,7 +4277,7 @@ void ExportMusicXml::ottava(Ottava const* const ot, int staff, const Fraction& t
                         qDebug("ottava subtype %d not understood", int(st));
                   }
             if (sz && tp)
-                  octaveShiftXml = QString("octave-shift type=\"%1\" size=\"%2\" number=\"%3\"").arg(tp).arg(sz).arg(n + 1);
+                  octaveShiftXml = QString("octave-shift type=\"%1\" size=\"%2\" number=\"%3\"").arg(tp, sz).arg(n + 1);
             }
       else {
             if (st == OttavaType::OTTAVA_8VA || st == OttavaType::OTTAVA_8VB)
@@ -4497,7 +4498,7 @@ void ExportMusicXml::dynamic(Dynamic const* const dyn, int staff)
             // or other characters and write the runs.
             QString text;
             bool inDynamicsSym = false;
-            for (const auto ch : dynText) {
+            for (const auto ch : qAsConst(dynText)) {
                   const auto it = map.find(ch.unicode());
                   if (it != map.end()) {
                         // found a SMUFL single letter dynamics glyph
@@ -4735,7 +4736,8 @@ static void directionMarker(XmlWriter& xml, const Marker* const m)
             words = "Fine";
             sound = "fine=\"yes\"";
             }
-      else if (mtp == Marker::Type::TOCODA) {
+      else if (mtp == Marker::Type::TOCODA ||
+               mtp == Marker::Type::TOCODASYM) {
             if (m->xmlText() == "")
                   words = "To Coda";
             else
@@ -4810,8 +4812,9 @@ static void repeatAtMeasureStart(XmlWriter& xml, Attributes& attr, const Measure
                               attr.doAttr(xml, false);
                               directionMarker(xml, mk);
                               }
-                        else if (   mtp == Marker::Type::FINE
-                                    || mtp == Marker::Type::TOCODA
+                        else if (   mtp == Marker::Type::FINE ||
+                                    mtp == Marker::Type::TOCODA ||
+                                    mtp == Marker::Type::TOCODASYM
                                     ) {
                               // ignore
                               }
@@ -4846,7 +4849,9 @@ static void repeatAtMeasureStop(XmlWriter& xml, const Measure* const m, int stra
                         // filter out the markers at measure stop
                         const Marker* const mk = toMarker(e);
                         Marker::Type mtp = mk->markerType();
-                        if (mtp == Marker::Type::FINE || mtp == Marker::Type::TOCODA) {
+                        if (mtp == Marker::Type::FINE ||
+                            mtp == Marker::Type::TOCODA ||
+                            mtp == Marker::Type::TOCODASYM) {
                               directionMarker(xml, mk);
                               }
                         else if (mtp == Marker::Type::SEGNO || mtp == Marker::Type::CODA) {
@@ -5300,7 +5305,7 @@ static void identification(XmlWriter& xml, Score const* const score)
       QStringList creators;
       // the creator types commonly found in MusicXML
       creators << "arranger" << "composer" << "lyricist" << "poet" << "translator";
-      for (QString type : creators) {
+      for (const QString &type : qAsConst(creators)) {
             QString creator = score->metaTag(type);
             if (!creator.isEmpty())
                   xml.tag(QString("creator type=\"%1\"").arg(type), creator);
@@ -6215,7 +6220,8 @@ void ExportMusicXml::writeMeasureTracks(const Measure* const m,
                                         const int partIndex,
                                         const int strack, const int staves, // TODO remove ??
                                         const bool useDrumset,
-                                        FigBassMap& fbMap)
+                                        FigBassMap& fbMap,
+                                        QSet<const Spanner*>& spannersStopped)
       {
       bool tboxesAboveWritten = false;
       const auto tboxesAbove = findTextFramesToWriteAsWordsAbove(m);
@@ -6224,9 +6230,6 @@ void ExportMusicXml::writeMeasureTracks(const Measure* const m,
       const auto tboxesBelow = findTextFramesToWriteAsWordsBelow(m);
 
       const int etrack = strack + VOICES * staves;
-      // set of spanners already stopped in this measure
-      // required to prevent multiple spanner stops for the same spanner
-      QSet<const Spanner*> spannersStopped;
 
       for (int st = strack; st < etrack; ++st) {
             // sstaff - xml staff number, counting from 1 for this
@@ -6323,7 +6326,8 @@ void ExportMusicXml::writeMeasure(const Measure* const m,
                                   const int staffCount,
                                   MeasureNumberStateHandler& mnsh,
                                   FigBassMap& fbMap,
-                                  const MeasurePrintContext& mpc)
+                                  const MeasurePrintContext& mpc,
+                                  QSet<const Spanner*>& spannersStopped)
       {
       const auto part = _score->parts().at(partIndex);
       const int staves = part->nstaves();
@@ -6388,7 +6392,7 @@ void ExportMusicXml::writeMeasure(const Measure* const m,
             repeatAtMeasureStart(_xml, _attr, m, strack, etrack, strack);
 
       // write data in the tracks
-      writeMeasureTracks(m, partIndex, strack, staves, part->instrument()->useDrumset(), fbMap);
+      writeMeasureTracks(m, partIndex, strack, staves, part->instrument()->useDrumset(), fbMap, spannersStopped);
 
       // write the annotations that could not be attached to notes
       annotationsWithoutNote(this, strack, staves, m);
@@ -6443,6 +6447,10 @@ void ExportMusicXml::writeParts()
             MeasureNumberStateHandler mnsh;
             FigBassMap fbMap;                 // pending figured bass extends
 
+            // set of spanners already stopped in this part
+            // required to prevent multiple spanner stops for the same spanner
+            QSet<const Spanner*> spannersStopped;
+
             const auto& pages = _score->pages();
             MeasurePrintContext mpc;
 
@@ -6467,7 +6475,7 @@ void ExportMusicXml::writeParts()
                                     const auto m2 = m->mmRestLast();
                                     for (;; ) {
                                           if (m1->isMeasure()) {
-                                                writeMeasure(m1, partIndex, staffCount, mnsh, fbMap, mpc);
+                                                writeMeasure(m1, partIndex, staffCount, mnsh, fbMap, mpc, spannersStopped);
                                                 mpc.measureWritten(m1);
                                                 }
                                           if (m1 == m2)
@@ -6476,7 +6484,7 @@ void ExportMusicXml::writeParts()
                                           }
                                     }
                               else {
-                                    writeMeasure(m, partIndex, staffCount, mnsh, fbMap, mpc);
+                                    writeMeasure(m, partIndex, staffCount, mnsh, fbMap, mpc, spannersStopped);
                                     mpc.measureWritten(m);
                                     }
 
@@ -6700,14 +6708,14 @@ void ExportMusicXml::harmony(Harmony const* const h, FretDiagram const* const fd
                   _xml.tag(s, h->xmlKind());
                   QStringList l = h->xmlDegrees();
                   if (!l.isEmpty()) {
-                        for (QString tag : l) {
+                        for (QString tag : qAsConst(l)) {
                               QString degreeText;
                               if (h->xmlKind().startsWith("suspended")
                                   && tag.startsWith("add") && tag[3].isDigit()
                                   && !kindText.isEmpty() && kindText[0].isDigit()) {
                                     // hack to correct text for suspended chords whose kind text has degree information baked in
                                     // (required by some other applications)
-                                    int tagDegree = tag.mid(3).toInt();
+                                    int tagDegree = tag.midRef(3).toInt();
                                     QString kindTextExtension;
                                     for (int i = 0; i < kindText.length() && kindText[i].isDigit(); ++i)
                                           kindTextExtension[i] = kindText[i];

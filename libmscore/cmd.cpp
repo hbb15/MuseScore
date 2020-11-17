@@ -308,7 +308,7 @@ void Score::update(bool resetCmdState)
             CmdState& cs = ms->cmdState();
             if (updateAll || cs.updateAll()) {
                   for (Score* s : scoreList()) {
-                        for (MuseScoreView* v : s->viewer) {
+                        for (MuseScoreView* v : qAsConst(s->viewer)) {
                               v->updateAll();
                               }
                         }
@@ -317,7 +317,7 @@ void Score::update(bool resetCmdState)
                   // updateRange updates only current score
                   qreal d = spatium() * .5;
                   _updateState.refresh.adjust(-d, -d, 2 * d, 2 * d);
-                  for (MuseScoreView* v : viewer)
+                  for (MuseScoreView* v : qAsConst(viewer))
                         v->dataChanged(_updateState.refresh);
                   _updateState.refresh = QRectF();
                   }
@@ -343,7 +343,7 @@ void Score::update(bool resetCmdState)
 
 void Score::deletePostponed()
       {
-      for (ScoreElement* e : _updateState._deleteList) {
+      for (ScoreElement* e : qAsConst(_updateState._deleteList)) {
             if (e->isSystem()) {
                   System* s = toSystem(e);
                   for (SpannerSegment* ss : s->spannerSegments()) {
@@ -1317,7 +1317,7 @@ void Score::changeCRlen(ChordRest* cr, const Fraction& dstF, bool fillWithRest)
       Chord* oc      = 0;
 
       bool first = true;
-      for (Fraction f2 : flist) {
+      for (Fraction f2 : qAsConst(flist)) {
             f  -= f2;
             makeGap(cr1->segment(), cr1->track(), f2, tuplet, first);
 
@@ -1477,7 +1477,7 @@ void Score::upDown(bool up, UpDownMode mode)
       {
       QList<Note*> el = selection().uniqueNotes();
 
-      for (Note* oNote : el) {
+      for (Note* oNote : qAsConst(el)) {
             Fraction tick     = oNote->chord()->tick();
             Staff* staff = oNote->staff();
             Part* part   = staff->part();
@@ -1491,10 +1491,15 @@ void Score::upDown(bool up, UpDownMode mode)
             int string   = oNote->string();
             int fret     = oNote->fret();
 
-            switch (staff->staffType(oNote->chord()->tick())->group()) {
+            StaffGroup staffGroup = staff->staffType(oNote->chord()->tick())->group();
+            // if not tab, check for instrument instead of staffType (for pitched to unpitched instrument changes) 
+            if ( staffGroup != StaffGroup::TAB)
+                  staffGroup = staff->part()->instrument(oNote->tick())->useDrumset() ? StaffGroup::PERCUSSION : StaffGroup::STANDARD;
+
+            switch (staffGroup) {
                   case StaffGroup::PERCUSSION:
                         {
-                        const Drumset* ds = part->instrument()->drumset();
+                        const Drumset* ds = part->instrument(tick)->drumset();
                         if (ds) {
                               newPitch = up ? ds->nextPitch(pitch) : ds->prevPitch(pitch);
                               newTpc1 = pitch2tpc(newPitch, Key::C, Prefer::NEAREST);
@@ -1504,7 +1509,7 @@ void Score::upDown(bool up, UpDownMode mode)
                         break;
                   case StaffGroup::TAB:
                         {
-                        const StringData* stringData = part->instrument()->stringData();
+                        const StringData* stringData = part->instrument(tick)->stringData();
                         switch (mode) {
                               case UpDownMode::OCTAVE:          // move same note to next string, if possible
                                     {
@@ -1617,7 +1622,7 @@ void Score::upDown(bool up, UpDownMode mode)
                   // because they're now harder to be re-entered due to the revised note-input workflow
                   if (mode != UpDownMode::OCTAVE) {
                         auto l = oNote->linkList();
-                        for (ScoreElement* e : l) {
+                        for (ScoreElement* e : qAsConst(l)) {
                               Note* ln = toNote(e);
                               if (ln->accidental())
                                     undo(new RemoveElement(ln->accidental()));
@@ -1639,7 +1644,7 @@ void Score::upDown(bool up, UpDownMode mode)
                         refret = true;
                         }
                   if (refret) {
-                        const StringData* stringData = part->instrument()->stringData();
+                        const StringData* stringData = part->instrument(tick)->stringData();
                         stringData->fretChords(oNote->chord());
                         }
                   }
@@ -1766,7 +1771,7 @@ static void changeAccidental2(Note* n, int pitch, int tpc)
                   // as pitch has changed, calculate new
                   // string & fret
                   //
-                  const StringData* stringData = n->part()->instrument()->stringData();
+                  const StringData* stringData = n->part()->instrument(n->tick())->stringData();
                   if (stringData)
                         stringData->convertPitch(pitch, st, chord->tick(), &string, &fret);
                   }
@@ -2120,11 +2125,18 @@ static void resetElementPosition(void*, Element* e)
 //   cmdResetAllPositions
 //---------------------------------------------------------
 
-void Score::cmdResetAllPositions()
+void Score::cmdResetAllPositions(bool undoable)
       {
-      startCmd();
+      if (undoable)
+            startCmd();
+      resetAllPositions();
+      if (undoable)
+            endCmd();
+      }
+
+void Score::resetAllPositions()
+      {
       scanElements(nullptr, resetElementPosition);
-      endCmd();
       }
 
 //---------------------------------------------------------
@@ -2165,7 +2177,7 @@ bool Score::processMidiInput()
                               ev.pitch += p->instrument(selection().tickStart())->transpose().chromatic;
                               }
                         MScore::seq->startNote(
-                                          p->instrument()->channel(0)->channel(),
+                                          p->instrument(selection().tickStart())->channel(0)->channel(),   // tick that way?
                                           ev.pitch,
                                           ev.velocity,
                                           0.0);
@@ -2219,7 +2231,7 @@ bool Score::processMidiInput()
             //after relayout
             Element* e = inputState().cr();
             if (e) {
-                  for(MuseScoreView* v : viewer)
+                  for(MuseScoreView* v : qAsConst(viewer))
                         v->adjustCanvasPosition(e, false);
                   }
             return true;
@@ -2455,7 +2467,7 @@ Element* Score::move(const QString& cmd)
                         select(el, SelectType::SINGLE, 0);
                   else
                         setPlayNote(false);
-                  for (MuseScoreView* view : viewer)
+                  for (MuseScoreView* view : qAsConst(viewer))
                         view->moveCursor();
                   }
             else {
@@ -3186,8 +3198,8 @@ void Score::cmdRealizeChordSymbols(bool literal, Voicing voicing, HDuration dura
                   continue;
             RealizedHarmony r = h->getRealizedHarmony();
             Segment* seg = h->parent()->isSegment() ? toSegment(h->parent()) : toSegment(h->parent()->parent());
-            Fraction duration = r.getActualDuration(durationType);
             Fraction tick = seg->tick();
+            Fraction duration = r.getActualDuration(tick.ticks(), durationType);
             bool concertPitch = styleB(Sid::concertPitch);
 
             Chord* chord = new Chord(this); //chord template

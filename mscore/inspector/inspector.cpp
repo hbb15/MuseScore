@@ -510,6 +510,8 @@ InspectorStaffTypeChange::InspectorStaffTypeChange(QWidget* parent)
             { Pid::STAFF_GEN_CLEF,         0, sl.genClefs,        sl.resetGenClefs        },
             { Pid::STAFF_GEN_TIMESIG,      0, sl.genTimesig,      sl.resetGenTimesig      },
             { Pid::STAFF_GEN_KEYSIG,       0, sl.genKeysig,       sl.resetGenKeysig       },
+            { Pid::STAFF_INVISIBLE,        0, sl.invisible,       sl.resetInvisible       },
+            { Pid::STAFF_COLOR,            0, sl.color,           sl.resetColor           },
             };
       pList = { { sl.title, sl.panel } };
 
@@ -569,7 +571,8 @@ InspectorVBox::InspectorVBox(QWidget* parent)
             { Pid::RIGHT_MARGIN,  0, vb.rightMargin,  vb.resetRightMargin  },
             { Pid::TOP_MARGIN,    0, vb.topMargin,    vb.resetTopMargin    },
             { Pid::BOTTOM_MARGIN, 0, vb.bottomMargin, vb.resetBottomMargin },
-            { Pid::BOX_HEIGHT,    0, vb.height,       0                    }
+            { Pid::BOX_HEIGHT,    0, vb.height,       0                    },
+            { Pid::BOX_AUTOSIZE,  0, vb.enableAutoSize, vb.resetAutoSize   }
             };
       pList = { { vb.title, vb.panel } };
       mapSignals();

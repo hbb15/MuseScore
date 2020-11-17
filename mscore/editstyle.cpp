@@ -47,7 +47,8 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       buttonApplyToAllParts = buttonBox->addButton(tr("Apply to all Parts"), QDialogButtonBox::ApplyRole);
       //buttonApplyToAllParts->setEnabled(!cs->isMaster()); // set in showEvent() now
       buttonTogglePagelist->setIcon(QIcon(*icons[int(Icons::goNext_ICON)]));
-      setModal(true);
+      // Allow user to scroll/zoom score while selecting style options:
+      setModal(false);
 
       // create button groups for every set of radio button widgets
       // use this group widgets in list styleWidgets
@@ -107,12 +108,20 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::ottavaLineStyle,         false, ottavaLineStyle,         resetOttavaLineStyle },
       { Sid::pedalLineStyle,          false, pedalLineStyle,          resetPedalLineStyle  },
 
-      { Sid::staffUpperBorder,        false, staffUpperBorder,        resetStaffUpperBorder  },
-      { Sid::staffLowerBorder,        false, staffLowerBorder,        resetStaffLowerBorder  },
-      { Sid::staffDistance,           false, staffDistance,           resetStaffDistance     },
-      { Sid::akkoladeDistance,        false, akkoladeDistance,        resetAkkoladeDistance  },
-      { Sid::minSystemDistance,       false, minSystemDistance,       resetMinSystemDistance },
-      { Sid::maxSystemDistance,       false, maxSystemDistance,       resetMaxSystemDistance },
+      { Sid::staffUpperBorder,        false, staffUpperBorder,        resetStaffUpperBorder    },
+      { Sid::staffLowerBorder,        false, staffLowerBorder,        resetStaffLowerBorder    },
+      { Sid::staffDistance,           false, staffDistance,           resetStaffDistance       },
+      { Sid::akkoladeDistance,        false, akkoladeDistance,        resetAkkoladeDistance    },
+      { Sid::enableVerticalSpread,    false, enableVerticalSpread,    0                        },
+      { Sid::minSystemDistance,       false, minSystemDistance,       resetMinSystemDistance   },
+      { Sid::maxSystemDistance,       false, maxSystemDistance,       resetMaxSystemDistance   },
+      { Sid::spreadSystem,            false, spreadSystem,            resetSpreadSystem        },
+      { Sid::spreadSquareBracket,     false, spreadSquareBracket,     resetSpreadSquareBracket },
+      { Sid::spreadCurlyBracket,      false, spreadCurlyBracket,      resetSpreadCurlyBracket  },
+      { Sid::maxSystemSpread,         false, maxSystemSpread,         resetMaxSystemSpread     },
+      { Sid::minStaffSpread,          false, minStaffSpread,          resetMinStaffSpread      },
+      { Sid::maxStaffSpread,          false, maxStaffSpread,          resetMaxStaffSpread      },
+      { Sid::maxAkkoladeDistance,     false, maxAkkoladeDistance,     resetMaxAkkoladeDistance },
 
       { Sid::lyricsPlacement,         false, lyricsPlacement,         resetLyricsPlacement         },
       { Sid::lyricsPosAbove,          false, lyricsPosAbove,          resetLyricsPosAbove          },
@@ -168,6 +177,8 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::mmRestNumberPos,         false, mmRestNumberPos,         resetMMRestNumberPos },
       { Sid::hideEmptyStaves,         false, hideEmptyStaves,         0 },
       { Sid::dontHideStavesInFirstSystem, false, dontHideStavesInFirstSystem, 0 },
+      { Sid::enableIndentationOnFirstSystem, false, enableIndentationOnFirstSystem, 0 },
+      { Sid::firstSystemIndentationValue, false, indentationValue, resetFirstSystemIndentation },
       { Sid::alwaysShowBracketsWhenEmptyStavesAreHidden, false, alwaysShowBrackets, 0 },
       { Sid::hideInstrumentNameIfOneInstrument, false, hideInstrumentNameIfOneInstrument, 0 },
       { Sid::accidentalNoteDistance,  false, accidentalNoteDistance,  0 },
@@ -579,6 +590,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       showFooter->setToolTipDuration(5000);
 
       connect(buttonBox,           SIGNAL(clicked(QAbstractButton*)), SLOT(buttonClicked(QAbstractButton*)));
+      connect(enableVerticalSpread,SIGNAL(toggled(bool)),             SLOT(toggleVerticalJustificationStaves(bool)));
       connect(headerOddEven,       SIGNAL(toggled(bool)),             SLOT(toggleHeaderOddEven(bool)));
       connect(footerOddEven,       SIGNAL(toggled(bool)),             SLOT(toggleFooterOddEven(bool)));
       connect(chordDescriptionFileButton, SIGNAL(clicked()),          SLOT(selectChordDescriptionFile()));
@@ -695,6 +707,15 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       connect(textStyleFontSize, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
          [=](){ textStyleValueChanged(Pid::FONT_SIZE, QVariant(textStyleFontSize->value())); }
          );
+
+      // line spacing
+      resetTextStyleLineSpacing->setIcon(*icons[int(Icons::reset_ICON)]);
+      connect(resetTextStyleLineSpacing, &QToolButton::clicked,
+          [=]() { resetTextStyle(Pid::TEXT_LINE_SPACING); }
+      );
+      connect(textStyleLineSpacing, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+          [=]() { textStyleValueChanged(Pid::TEXT_LINE_SPACING, QVariant(textStyleLineSpacing->value())); }
+      );
 
       // font style
       resetTextStyleFontStyle->setIcon(*icons[int(Icons::reset_ICON)]);
@@ -1256,6 +1277,7 @@ void EditStyle::setValues()
       musicalTextFont->clear();
       // CAUTION: the second element, the itemdata, is a font family name!
       // It's also stored in score file as the musicalTextFont
+      musicalTextFont->addItem("Leland Text", "Leland Text");
       musicalTextFont->addItem("Bravura Text", "Bravura Text");
       musicalTextFont->addItem("Emmentaler Text", "MScore Text");
       musicalTextFont->addItem("Gonville Text", "Gootville Text");
@@ -1268,6 +1290,7 @@ void EditStyle::setValues()
 
       toggleHeaderOddEven(lstyle.value(Sid::headerOddEven).toBool());
       toggleFooterOddEven(lstyle.value(Sid::footerOddEven).toBool());
+      toggleVerticalJustificationStaves(lstyle.value(Sid::enableVerticalSpread).toBool());
       }
 
 //---------------------------------------------------------
@@ -1356,6 +1379,38 @@ void EditStyle::setChordStyle(bool checked)
             cs->update();
             }
       //formattingGroup->setEnabled(cs->style().chordList()->autoAdjust());
+      }
+
+//---------------------------------------------------------
+//   enableStyleWidget
+//---------------------------------------------------------
+
+void EditStyle::enableStyleWidget(const Sid idx, bool enable)
+      {
+      const StyleWidget& sw { styleWidget(idx) };
+      static_cast<QWidget*>(sw.widget)->setEnabled(enable);
+      if (sw.reset)
+            sw.reset->setEnabled(enable && !cs->style().isDefault(idx));
+      }
+
+//---------------------------------------------------------
+//   toggleVerticalJustificationStaves
+//---------------------------------------------------------
+
+void EditStyle::toggleVerticalJustificationStaves(bool checked)
+      {
+      enableStyleWidget(Sid::staffDistance, !checked);
+      enableStyleWidget(Sid::akkoladeDistance, !checked);
+      enableStyleWidget(Sid::minSystemDistance, !checked);
+      enableStyleWidget(Sid::maxSystemDistance, !checked);
+
+      enableStyleWidget(Sid::spreadSystem, checked);
+      enableStyleWidget(Sid::spreadSquareBracket, checked);
+      enableStyleWidget(Sid::spreadCurlyBracket, checked);
+      enableStyleWidget(Sid::maxSystemSpread, checked);
+      enableStyleWidget(Sid::minStaffSpread, checked);
+      enableStyleWidget(Sid::maxStaffSpread, checked);
+      enableStyleWidget(Sid::maxAkkoladeDistance, checked);
       }
 
 //---------------------------------------------------------
@@ -1558,6 +1613,11 @@ void EditStyle::textStyleChanged(int row)
                         textStyleFontSize->setValue(cs->styleD(a.sid));
                         resetTextStyleFontSize->setEnabled(cs->styleV(a.sid) != MScore::defaultStyle().value(a.sid));
                         break;
+
+                  case Pid::TEXT_LINE_SPACING:
+                      textStyleLineSpacing->setValue(cs->styleD(a.sid));
+                      resetTextStyleLineSpacing->setEnabled(cs->styleV(a.sid) != MScore::defaultStyle().value(a.sid));
+                      break;
 
                   case Pid::FONT_STYLE:
                         textStyleFontStyle->setFontStyle(FontStyle(cs->styleV(a.sid).toInt()));

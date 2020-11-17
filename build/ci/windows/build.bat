@@ -7,6 +7,7 @@ SET TELEMETRY_TRACK_ID=""
 SET CRASH_LOG_SERVER_URL=""
 SET TARGET_PROCESSOR_BITS=64
 SET BUILD_WIN_PORTABLE=OFF
+SET BUILD_UI_MU4=OFF		# not used, only for easier synchronization and compatibility
 
 :GETOPTS
 IF /I "%1" == "-n" SET BUILD_NUMBER=%2& SHIFT
@@ -14,6 +15,7 @@ IF /I "%1" == "-b" SET TARGET_PROCESSOR_BITS=%2& SHIFT
 IF /I "%1" == "--telemetry" SET TELEMETRY_TRACK_ID=%2& SHIFT
 IF /I "%1" == "--crashurl" SET CRASH_LOG_SERVER_URL=%2& SHIFT
 IF /I "%1" == "--portable" SET BUILD_WIN_PORTABLE=%2& SHIFT
+IF /I "%1" == "--build_mu4" SET BUILD_UI_MU4=%2& SHIFT
 SHIFT
 IF NOT "%1" == "" GOTO GETOPTS
 
@@ -41,6 +43,7 @@ ECHO "TARGET_PROCESSOR_BITS: %TARGET_PROCESSOR_BITS%"
 ECHO "TELEMETRY_TRACK_ID: %TELEMETRY_TRACK_ID%"
 ECHO "CRASH_LOG_SERVER_URL: %CRASH_LOG_SERVER_URL%"
 ECHO "BUILD_WIN_PORTABLE: %BUILD_WIN_PORTABLE%"
+ECHO "BUILD_UI_MU4: %BUILD_UI_MU4%"
 
 XCOPY "C:\musescore_dependencies" %CD% /E /I /Y
 ECHO "Finished copy dependencies"
@@ -62,13 +65,14 @@ IF %TARGET_PROCESSOR_BITS% == 32 (
 IF %CRASH_LOG_SERVER_URL% == "" ( SET CRASH_LOG_SERVER_URL=)
 IF %CRASH_LOG_SERVER_URL% == "''" ( SET CRASH_LOG_SERVER_URL=)
 
-CALL msvc_build.bat revision || exit \b 1
+bash ./build/ci/tools/make_revision_env.sh 
+SET /p MUSESCORE_REVISION=<%ARTIFACTS_DIR%\env\release_channel.env
+
 CALL msvc_build.bat relwithdebinfo %TARGET_PROCESSOR_BITS% %BUILD_NUMBER% || exit \b 1
 CALL msvc_build.bat installrelwithdebinfo %TARGET_PROCESSOR_BITS% %BUILD_NUMBER% || exit \b 1
 
 
 bash ./build/ci/tools/make_release_channel_env.sh -c %MUSESCORE_BUILD_CONFIG%
 bash ./build/ci/tools/make_version_env.sh %BUILD_NUMBER%
-bash ./build/ci/tools/make_revision_env.sh
 bash ./build/ci/tools/make_branch_env.sh
 bash ./build/ci/tools/make_datetime_env.sh

@@ -213,7 +213,7 @@ static int MusicXMLStepAltOct2Pitch(int step, int alter, int octave)
  Note that n's staff and track have not been set yet
  */
 
-static void xmlSetPitch(Note* n, int step, int alter, int octave, const int octaveShift, const Instrument* instr)
+static void xmlSetPitch(Note* n, int step, int alter, int octave, const int octaveShift, const Instrument* const instr)
       {
       //qDebug("xmlSetPitch(n=%p, step=%d, alter=%d, octave=%d, octaveShift=%d)",
       //       n, step, alter, octave, octaveShift);
@@ -221,7 +221,7 @@ static void xmlSetPitch(Note* n, int step, int alter, int octave, const int octa
       //const Staff* staff = n->score()->staff(track / VOICES);
       //const Instrument* instr = staff->part()->instr();
 
-      const Interval intval = instr->transpose();     // TODO: tick
+      const Interval intval = instr->transpose();
 
       //qDebug("  staff=%p instr=%p dia=%d chro=%d",
       //       staff, instr, static_cast<int>(intval.diatonic), static_cast<int>(intval.chromatic));
@@ -339,27 +339,27 @@ static void fillGapsInFirstVoices(Measure* measure, Part* part)
 //---------------------------------------------------------
 
 /**
- Determine if \a mxmlDrumset contains a valid drumset.
- This is the case if any instrument has a midi-unpitched element,
- (which stored in the MusicXMLDrumInstrument pitch field).
+ Determine if \a instruments contains a valid drumset.
+ This is the case if any instrument has a midi-unpitched element.
  */
 
-static bool hasDrumset(const MusicXMLDrumset& mxmlDrumset)
+static bool hasDrumset(const MusicXMLInstruments& instruments)
       {
       bool res = false;
-      MusicXMLDrumsetIterator ii(mxmlDrumset);
+      MusicXMLInstrumentsIterator ii(instruments);
       while (ii.hasNext()) {
             ii.next();
-            // debug: dump the drumset
-            //qDebug("hasDrumset: instrument: %s %s", qPrintable(ii.key()), qPrintable(ii.value().toString()));
-            int pitch = ii.value().pitch;
-            if (0 <= pitch && pitch <= 127) {
+            // debug: dump the instruments
+            //qDebug("instrument: %s %s", qPrintable(ii.key()), qPrintable(ii.value().toString()));
+            // find valid unpitched values
+            int unpitched = ii.value().unpitched;
+            if (0 <= unpitched && unpitched <= 127) {
                   res = true;
                   }
             }
 
       /*
-      for (const auto& instr : mxmlDrumset) {
+      for (const auto& instr : instruments) {
             // MusicXML elements instrument-name, midi-program, instrument-sound, virtual-library, virtual-name
             // in a shell script use "mscore ... 2>&1 | grep GREP_ME | cut -d' ' -f3-" to extract
             qDebug("GREP_ME '%s',%d,'%s','%s','%s'",
@@ -383,26 +383,44 @@ static bool hasDrumset(const MusicXMLDrumset& mxmlDrumset)
  Initialize drumset \a drumset.
  */
 
-// determine if the part contains a drumset
-// this is the case if any instrument has a midi-unpitched element,
-// (which stored in the MusicXMLDrumInstrument pitch field)
-// if the part contains a drumset, Drumset drumset is initialized
+// first determine if the part contains a drumset
+// (this is assummed if any instrument has a valid midi-unpitched element,
+// which stored in the MusicXMLInstrument pitch field)
+// then if the part contains a drumset, Drumset drumset is initialized
 
-static void initDrumset(Drumset* drumset, const MusicXMLDrumset& mxmlDrumset)
+static void initDrumset(Drumset* drumset, const MusicXMLInstruments& instruments)
       {
       drumset->clear();
-      MusicXMLDrumsetIterator ii(mxmlDrumset);
+      MusicXMLInstrumentsIterator ii(instruments);
       while (ii.hasNext()) {
             ii.next();
             // debug: also dump the drumset for this part
             //qDebug("initDrumset: instrument: %s %s", qPrintable(ii.key()), qPrintable(ii.value().toString()));
-            int pitch = ii.value().pitch;
-            if (0 <= pitch && pitch <= 127) {
-                  drumset->drum(ii.value().pitch)
+            int unpitched = ii.value().unpitched;
+            if (0 <= unpitched && unpitched <= 127) {
+                  drumset->drum(ii.value().unpitched)
                         = DrumInstrument(ii.value().name.toLatin1().constData(),
                                          ii.value().notehead, ii.value().line, ii.value().stemDirection);
                   }
             }
+      }
+
+//---------------------------------------------------------
+//   setStaffTypePercussion
+//---------------------------------------------------------
+
+/**
+ Set staff type to percussion
+ */
+
+static void setStaffTypePercussion(Part* part, Drumset* drumset)
+      {
+      for (int j = 0; j < part->nstaves(); ++j)
+            if (part->staff(j)->lines(Fraction(0,1)) == 5 && !part->staff(j)->isDrumStaff(Fraction(0,1)))
+                  part->staff(j)->setStaffType(Fraction(0,1), *StaffType::preset(StaffTypes::PERC_DEFAULT));
+      // set drumset for instrument
+      part->instrument()->setDrumset(drumset);
+      part->instrument()->channel(0)->setBank(128);
       }
 
 //---------------------------------------------------------
@@ -413,7 +431,7 @@ static void initDrumset(Drumset* drumset, const MusicXMLDrumset& mxmlDrumset)
  Create an Instrument based on the information in \a mxmlInstr.
  */
 
-static Instrument createInstrument(const MusicXMLDrumInstrument& mxmlInstr)
+static Instrument createInstrument(const MusicXMLInstrument& mxmlInstr, const Interval interval)
       {
       Instrument instr;
 
@@ -446,116 +464,140 @@ static Instrument createInstrument(const MusicXMLDrumInstrument& mxmlInstr)
       instr.channel(0)->setPan(mxmlInstr.midiPan);
       instr.channel(0)->setVolume(mxmlInstr.midiVolume);
       instr.setTrackName(mxmlInstr.name);
+      instr.setTranspose(interval);
 
       return instr;
       }
 
 //---------------------------------------------------------
-//   setFirstInstrument
+//   updatePartWithInstrument
 //---------------------------------------------------------
 
-/**
- Set first instrument for Part \a part
- */
-
-static void setFirstInstrument(MxmlLogger* logger, const QXmlStreamReader* const xmlreader,
-                               Part* part, const QString& partId,
-                               const QString& instrId, const MusicXMLDrumset& mxmlDrumset)
+static void updatePartWithInstrument(Part* const part, const MusicXMLInstrument& mxmlInstr, const Interval interval)
       {
-      if (mxmlDrumset.size() > 0) {
-            //qDebug("setFirstInstrument: initial instrument '%s'", qPrintable(instrId));
-            MusicXMLDrumInstrument mxmlInstr;
-            if (instrId == "")
-                  mxmlInstr = mxmlDrumset.first();
-            else if (mxmlDrumset.contains(instrId))
-                  mxmlInstr = mxmlDrumset.value(instrId);
-            else {
-                  logger->logError(QString("initial instrument '%1' not found in part '%2'")
-                                   .arg(instrId).arg(partId), xmlreader);
-                  mxmlInstr = mxmlDrumset.first();
-                  }
-
-            Instrument instr = createInstrument(mxmlInstr);
-            part->setInstrument(instr);
-            if (mxmlInstr.midiChannel >= 0) part->setMidiChannel(mxmlInstr.midiChannel, mxmlInstr.midiPort);
-            // note: setMidiProgram() does more than simply setting the MIDI program
-            if (mxmlInstr.midiProgram >= 0) part->setMidiProgram(mxmlInstr.midiProgram);
-            }
-      else
-            logger->logError(QString("no instrument found for part '%1'")
-                             .arg(partId), xmlreader);
+      const Instrument instr = createInstrument(mxmlInstr, interval);
+      part->setInstrument(instr);
+      if (mxmlInstr.midiChannel >= 0) part->setMidiChannel(mxmlInstr.midiChannel, mxmlInstr.midiPort);
+      // note: setMidiProgram() does more than simply setting the MIDI program
+      if (mxmlInstr.midiProgram >= 0) part->setMidiProgram(mxmlInstr.midiProgram);
       }
 
 //---------------------------------------------------------
-//   setStaffTypePercussion
+//   createInstrumentChange
 //---------------------------------------------------------
 
 /**
- Set staff type to percussion
+ Create an InstrumentChange based on the information in \a mxmlInstr.
  */
 
-static void setStaffTypePercussion(Part* part, Drumset* drumset)
+static InstrumentChange* createInstrumentChange(Score* score, const MusicXMLInstrument& mxmlInstr, const Interval interval, const int track)
       {
-      for (int j = 0; j < part->nstaves(); ++j)
-            if (part->staff(j)->lines(Fraction(0,1)) == 5 && !part->staff(j)->isDrumStaff(Fraction(0,1)))
-                  part->staff(j)->setStaffType(Fraction(0,1), *StaffType::preset(StaffTypes::PERC_DEFAULT));
-      // set drumset for instrument
-      part->instrument()->setDrumset(drumset);
-      part->instrument()->channel(0)->setBank(128);
+      const Instrument instr = createInstrument(mxmlInstr, interval);
+      InstrumentChange* instrChange = new InstrumentChange(instr, score);
+      instrChange->setTrack(track);
+
+      // for text use instrument name (if known) else use "Instrument change"
+      const QString text = mxmlInstr.name;
+      instrChange->setXmlText(text.isEmpty() ? "Instrument change" : text);
+      instrChange->setVisible(false);
+
+      return instrChange;
+      }
+
+//---------------------------------------------------------
+//   updatePartWithInstrumentChange
+//---------------------------------------------------------
+
+static void updatePartWithInstrumentChange(Part* const part, const MusicXMLInstrument& mxmlInstr, const Interval interval, Segment* const segment, const int track, const Fraction tick)
+      {
+      const auto ic = createInstrumentChange(part->score(), mxmlInstr, interval, track);
+      segment->add(ic);             // note: includes part::setInstrument(instr);
+
+      // setMidiChannel() depends on setInstrument() already been done
+      if (mxmlInstr.midiChannel >= 0) part->setMidiChannel(mxmlInstr.midiChannel, mxmlInstr.midiPort, tick);
       }
 
 //---------------------------------------------------------
 //   setPartInstruments
 //---------------------------------------------------------
 
+/**
+ Set instruments for Part \a part
+ Note:
+ - MusicXmlInstrList: which instrument plays when
+ - MusicXMLInstruments: instrument details from score-part and part
+ */
+
 static void setPartInstruments(MxmlLogger* logger, const QXmlStreamReader* const xmlreader,
                                Part* part, const QString& partId,
-                               Score* score, const MusicXmlInstrList& il, const MusicXMLDrumset& mxmlDrumset)
+                               Score* score,
+                               const MusicXmlInstrList& instrList,
+                               const MusicXmlIntervalList& intervList,
+                               const MusicXMLInstruments& instruments)
       {
+      if (instruments.empty()) {
+            // no instrument details found, create a default instrument
+            //qDebug("no instrument details");
+            updatePartWithInstrument(part, {}, intervList.interval({ 0, 1 }));
+            return;
+            }
+
+      if (hasDrumset(instruments)) {
+            // do not create multiple instruments for a drum part
+            //qDebug("hasDrumset");
+            MusicXMLInstrument mxmlInstr = instruments.first();
+            updatePartWithInstrument(part, mxmlInstr, {});
+            return;
+            }
+
+      if (instrList.empty()) {
+            // instrument details found, but no instrument ids found
+            // -> only a single instrument is playing in the part
+            //qDebug("single instrument");
+            MusicXMLInstrument mxmlInstr = instruments.first();
+            updatePartWithInstrument(part, mxmlInstr, intervList.interval({ 0, 1 }));
+            return;
+            }
+
+      // either a single instrument is playing, or forwards / rests resulted in gaps in the instrument map
+      // (and thus multiple entries)
+      //qDebug("possibly multiple instruments");
       QString prevInstrId;
-      for (auto it = il.cbegin(); it != il.cend(); ++it) {
-            Fraction f = (*it).first;
-            if (f == Fraction(0, 1))
-                  prevInstrId = (*it).second;  // instrument id at t = 0
-            else if (f > Fraction(0, 1)) {
+      for (auto it = instrList.cbegin(); it != instrList.cend(); ++it) {
+            Fraction tick = (*it).first;
+            if (it == instrList.cbegin()) {
+                  prevInstrId = (*it).second;        // first instrument id
+                  MusicXMLInstrument mxmlInstr = instruments.value(prevInstrId);
+                  updatePartWithInstrument(part, mxmlInstr, intervList.interval(tick));
+                  }
+            else {
                   auto instrId = (*it).second;
                   bool mustInsert = instrId != prevInstrId;
                   /*
-                  qDebug("f %s previd %s id %s mustInsert %d",
-                         qPrintable(f.print()),
-                         qPrintable(prevInstrId),
-                         qPrintable(instrId),
-                         mustInsert);
+                   qDebug("tick %s previd %s id %s mustInsert %d",
+                   qPrintable(tick.print()),
+                   qPrintable(prevInstrId),
+                   qPrintable(instrId),
+                   mustInsert);
                    */
                   if (mustInsert) {
                         const int staff = score->staffIdx(part);
                         const int track = staff * VOICES;
-                        const Fraction tick = f;
                         //qDebug("instrument change: tick %s (%d) track %d instr '%s'",
-                        //       qPrintable(f.print()), f.ticks(), track, qPrintable(instrId));
-                        auto segment = score->tick2segment(tick, true, SegmentType::ChordRest, true);
+                        //       qPrintable(tick.print()), tick.ticks(), track, qPrintable(instrId));
+
+                        Measure* const m = score->tick2measure(tick);
+                        Segment* const segment = m->getSegment(SegmentType::ChordRest, tick);
+
                         if (!segment)
                               logger->logError(QString("segment for instrument change at tick %1 not found")
                                                .arg(tick.ticks()), xmlreader);
-                        else if (!mxmlDrumset.contains(instrId))
+                        else if (!instruments.contains(instrId))
                               logger->logError(QString("changed instrument '%1' at tick %2 not found in part '%3'")
                                                .arg(instrId).arg(tick.ticks()).arg(partId), xmlreader);
                         else {
-                              MusicXMLDrumInstrument mxmlInstr = mxmlDrumset.value(instrId);
-                              Instrument instr = createInstrument(mxmlInstr);
-                              //qDebug("instr %p", &instr);
-
-                              InstrumentChange* ic = new InstrumentChange(instr, score);
-                              ic->setTrack(track);
-
-                              // for text use instrument name (if known) else use "Instrument change"
-                              const QString text = mxmlInstr.name;
-                              ic->setXmlText(text.isEmpty() ? "Instrument change" : text);
-                              ic->setVisible(false);
-                              segment->add(ic); // note: includes part::setInstrument(instr);
-
-                              // setMidiChannel() depends on setInstrument() already been done
-                              if (mxmlInstr.midiChannel >= 0) part->setMidiChannel(mxmlInstr.midiChannel, mxmlInstr.midiPort, tick);
+                              MusicXMLInstrument mxmlInstr = instruments.value(instrId);
+                              updatePartWithInstrumentChange(part, mxmlInstr, intervList.interval(tick), segment, track, tick);
                               }
                         }
                   prevInstrId = instrId;
@@ -621,7 +663,7 @@ static QString text2syms(const QString& t)
                   }
             else {
                   // not found, move one char from res to in
-                  res += in.left(1);
+                  res += in.leftRef(1);
                   in.remove(0, 1);
                   }
             }
@@ -822,9 +864,9 @@ static Fraction calculateTupletDuration(const Tuplet* const t)
       foreach (DurationElement* de, t->elements()) {
             if (de->type() == ElementType::CHORD || de->type() == ElementType::REST) {
                   const auto cr = static_cast<ChordRest*>(de);
-                  const auto durationType = cr->actualDurationType();
-                  if (durationType.isValid() && !durationType.isMeasure()) {
-                        res += durationType.fraction();
+                  const auto fraction = cr->ticks(); // TODO : take care of nested tuplets
+                  if (fraction.isValid()) {
+                        res += fraction;
                         }
                   }
             }
@@ -872,7 +914,7 @@ static void handleTupletStart(const ChordRest* const cr, Tuplet*& tuplet,
       tuplet = new Tuplet(cr->score());
       tuplet->setTrack(cr->track());
       tuplet->setRatio(Fraction(actualNotes, normalNotes));
-      // tuplet->setTick(cr->tick());
+      tuplet->setTick(cr->tick());
       tuplet->setBracketType(tupletDesc.bracket);
       tuplet->setNumberType(tupletDesc.shownumber);
       // TODO type, placement, bracket
@@ -1588,12 +1630,11 @@ void MusicXMLParserPass2::part()
 
       initPartState(id);
 
-      const MusicXMLDrumset& mxmlDrumset = _pass1.getDrumset(id);
-      _hasDrumset = hasDrumset(mxmlDrumset);
+      const auto& instruments = _pass1.getInstruments(id);
+      _hasDrumset = hasDrumset(instruments);
 
       // set the parts first instrument
-      QString instrId = _pass1.getInstrList(id).instrument(Fraction(0, 1));
-      setFirstInstrument(_logger, &_e, _pass1.getPart(id), id, instrId, mxmlDrumset);
+      setPartInstruments(_logger, &_e, _pass1.getPart(id), id, _score, _pass1.getInstrList(id), _pass1.getIntervals(id), instruments);
 
       // set the part name
       auto mxmlPart = _pass1.getMusicXmlPart(id);
@@ -1603,8 +1644,10 @@ void MusicXMLParserPass2::part()
       if (mxmlPart.getPrintAbbr())
             _pass1.getPart(id)->setPlainShortName(mxmlPart.getAbbr());
       // try to prevent an empty track name
-      if (_pass1.getPart(id)->partName() == "")
-            _pass1.getPart(id)->setPartName(mxmlDrumset[instrId].name);
+      if (_pass1.getPart(id)->partName() == "") {
+            QString instrId = _pass1.getInstrList(id).instrument(Fraction(0, 1));
+            _pass1.getPart(id)->setPartName(instruments[instrId].name);
+            }
 
 #ifdef DEBUG_VOICE_MAPPER
       VoiceList voicelist = _pass1.getVoiceList(id);
@@ -1666,38 +1709,14 @@ void MusicXMLParserPass2::part()
             }
       _spanners.clear();
 
-      // determine if the part contains a drumset
-      // this is the case if any instrument has a midi-unpitched element,
-      // (which stored in the MusicXMLDrumInstrument pitch field)
-      // if the part contains a drumset, Drumset drumset is initialized
-
-      Drumset* drumset = new Drumset;
-      const MusicXMLDrumset& mxmlDrumsetAfterPass2 = _pass1.getDrumset(id);
-      initDrumset(drumset, mxmlDrumsetAfterPass2);
-
-      // debug: dump the instrument map
-      /*
-            {
-            qDebug("instrlist");
-            auto il = _pass1.getInstrList(id);
-            for (auto it = il.cbegin(); it != il.cend(); ++it) {
-                  Fraction f = (*it).first;
-                  qDebug("pass2: instrument map: tick %s (%d) instr '%s'", qPrintable(f.print()), f.ticks(), qPrintable((*it).second));
-                  }
-            }
-      */
-
       if (_hasDrumset) {
+            Drumset* drumset = new Drumset;
+            const auto& instrumentsAfterPass2 = _pass1.getInstruments(id);
+            initDrumset(drumset, instrumentsAfterPass2);
             // set staff type to percussion if incorrectly imported as pitched staff
             // Note: part has been read, staff type already set based on clef type and staff-details
             // but may be incorrect for a percussion staff that does not use a percussion clef
             setStaffTypePercussion(_pass1.getPart(id), drumset);
-            }
-      else {
-            // drumset is not needed
-            delete drumset;
-            // set the instruments for this part
-            setPartInstruments(_logger, &_e, _pass1.getPart(id), id, _score, _pass1.getInstrList(id), mxmlDrumset);
             }
       }
 
@@ -1917,7 +1936,7 @@ void MusicXMLParserPass2::measure(const QString& partId,
                                   const Fraction time)
       {
       Q_ASSERT(_e.isStartElement() && _e.name() == "measure");
-      QString number = _e.attributes().value("number").toString();
+      //QString number = _e.attributes().value("number").toString();
       //qDebug("measure %s start", qPrintable(number));
 
       Measure* measure = findMeasure(_score, time);
@@ -2018,7 +2037,7 @@ void MusicXMLParserPass2::measure(const QString& partId,
                         Fraction tick = time + mTime;
 
                         TempoText* t = new TempoText(_score);
-                        t->setXmlText(QString("%1 = %2").arg(TempoText::duration2tempoTextString(TDuration(TDuration::DurationType::V_QUARTER))).arg(tempo));
+                        t->setXmlText(QString("%1 = %2").arg(TempoText::duration2tempoTextString(TDuration(TDuration::DurationType::V_QUARTER)), tempo));
                         t->setTempo(tpo);
                         t->setFollowText(true);
 
@@ -2113,7 +2132,7 @@ void MusicXMLParserPass2::attributes(const QString& partId, Measure* measure, co
             else if (_e.name() == "time")
                   time(partId, measure, tick);
             else if (_e.name() == "transpose")
-                  transpose(partId);
+                  _e.skipCurrentElement();  // skip but don't log
             else
                   skipLogCurrElem();
             }
@@ -2989,11 +3008,9 @@ QString MusicXmlExtendedSpannerDesc::toString() const
       QString string;
       QTextStream(&string) << _sp;
       return QString("sp %1 tp %2 tick2 %3 track2 %4 %5 %6")
-             .arg(string)
-             .arg(_tick2.print())
+             .arg(string, _tick2.print())
              .arg(_track2)
-             .arg(_isStarted ? "started" : "")
-             .arg(_isStopped ? "stopped" : "")
+             .arg(_isStarted ? "started" : "", _isStopped ? "stopped" : "")
       ;
       }
 
@@ -3152,7 +3169,7 @@ static bool determineBarLineType(const QString& barStyle, const QString& repeat,
                   return false;
                   }
             }
-      else if (barStyle == "tick" || "short") {
+      else if ((barStyle == "tick") || (barStyle == "short")) {
             // handled later (as normal barline with different parameters)
             }
       else {
@@ -3793,45 +3810,6 @@ void MusicXMLParserPass2::time(const QString& partId, Measure* measure, const Fr
       }
 
 //---------------------------------------------------------
-//   transpose
-//---------------------------------------------------------
-
-/**
- Parse the /score-partwise/part/measure/attributes/transpose node.
- */
-
-void MusicXMLParserPass2::transpose(const QString& partId)
-      {
-      Q_ASSERT(_e.isStartElement() && _e.name() == "transpose");
-
-      Interval interval;
-      bool diatonic = false;
-      bool chromatic = false;
-      while (_e.readNextStartElement()) {
-            int i = _e.readElementText().toInt();
-            if (_e.name() == "diatonic") {
-                  interval.diatonic = i;
-                  diatonic = true;
-                  }
-            else if (_e.name() == "chromatic") {
-                  interval.chromatic = i;
-                  chromatic = true;
-                  }
-            else if (_e.name() == "octave-change") {
-                  interval.diatonic += i * 7;
-                  interval.chromatic += i * 12;
-                  }
-            else
-                  skipLogCurrElem();
-            }
-
-      if (chromatic && !diatonic)
-            interval.diatonic += chromatic2diatonic(interval.chromatic);
-
-      _pass1.getPart(partId)->instrument()->setTranspose(interval);
-      }
-
-//---------------------------------------------------------
 //   divisions
 //---------------------------------------------------------
 
@@ -4085,7 +4063,8 @@ static void addFiguredBassElemens(FiguredBassList& fbl, const Fraction noteStart
 static void addTremolo(ChordRest* cr,
                        const int tremoloNr, const QString& tremoloType,
                        Chord*& tremStart,
-                       MxmlLogger* logger, const QXmlStreamReader* const xmlreader)
+                       MxmlLogger* logger, const QXmlStreamReader* const xmlreader,
+                       Fraction& timeMod)
       {
       if (!cr->isChord())
             return;
@@ -4105,6 +4084,10 @@ static void addTremolo(ChordRest* cr,
                   else if (tremoloType == "start") {
                         if (tremStart) logger->logError("MusicXML::import: double tremolo start", xmlreader);
                         tremStart = static_cast<Chord*>(cr);
+                        // timeMod takes into account also the factor 2 of a two-note tremolo
+                        if (timeMod.isValid() && ((timeMod.denominator() % 2) == 0)) {
+                              timeMod.setDenominator(timeMod.denominator() / 2);
+                              }
                         }
                   else if (tremoloType == "stop") {
                         if (tremStart) {
@@ -4124,6 +4107,10 @@ static void addTremolo(ChordRest* cr,
                               tremolo->chord2()->setTicks(tremDur);
                               // add tremolo to first chord (only)
                               tremStart->add(tremolo);
+                              // timeMod takes into account also the factor 2 of a two-note tremolo
+                              if (timeMod.isValid() && ((timeMod.denominator() % 2) == 0)) {
+                                    timeMod.setDenominator(timeMod.denominator() / 2);
+                                    }
                               }
                         else logger->logError("MusicXML::import: double tremolo stop w/o start", xmlreader);
                         tremStart = nullptr;
@@ -4138,26 +4125,28 @@ static void addTremolo(ChordRest* cr,
 //   setPitch
 //---------------------------------------------------------
 
-static void setPitch(Note* note, MusicXMLParserPass1& pass1, const QString& partId, const QString& instrumentId, const mxmlNotePitch& mnp, const int octaveShift)
+// TODO: refactor: optimize parameters
+
+static void setPitch(Note* note, MusicXMLParserPass1& pass1, const QString& partId, const QString& instrumentId, const mxmlNotePitch& mnp, const int octaveShift, const Instrument* const instrument)
       {
-      const auto& mxmlDrumset = pass1.getDrumset(partId);
+      const auto& instruments = pass1.getInstruments(partId);
       if (mnp.unpitched()) {
-            if (hasDrumset(mxmlDrumset)
-                && mxmlDrumset.contains(instrumentId)) {
+            if (hasDrumset(instruments)
+                && instruments.contains(instrumentId)) {
                   // step and oct are display-step and ...-oct
                   // get pitch from instrument definition in drumset instead
-                  int pitch = mxmlDrumset[instrumentId].pitch;
-                  note->setPitch(limit(pitch, 0, 127));
+                  int unpitched = instruments[instrumentId].unpitched;
+                  note->setPitch(limit(unpitched, 0, 127));
                   // TODO - does this need to be key-aware?
-                  note->setTpc(pitch2tpc(pitch, Key::C, Prefer::NEAREST));       // TODO: necessary ?
+                  note->setTpc(pitch2tpc(unpitched, Key::C, Prefer::NEAREST));       // TODO: necessary ?
                   }
             else {
                   //qDebug("disp step %d oct %d", displayStep, displayOctave);
-                  xmlSetPitch(note, mnp.displayStep(), 0, mnp.displayOctave(), 0, pass1.getPart(partId)->instrument());
+                  xmlSetPitch(note, mnp.displayStep(), 0, mnp.displayOctave(), 0, instrument);
                   }
             }
       else {
-            xmlSetPitch(note, mnp.step(), mnp.alter(), mnp.octave(), octaveShift, pass1.getPart(partId)->instrument());
+            xmlSetPitch(note, mnp.step(), mnp.alter(), mnp.octave(), octaveShift, instrument);
             }
       }
 
@@ -4368,7 +4357,7 @@ Note* MusicXMLParserPass2::note(const QString& partId,
       // - sTime for non-chord / first chord note
       // - prevTime for others
       auto noteStartTime = chord ? prevSTime : sTime;
-      const auto timeMod = mnd.timeMod();
+      auto timeMod = mnd.timeMod();
 
       // determine tuplet state, used twice (before and after note allocation)
       MxmlTupletFlags tupletAction;
@@ -4443,7 +4432,9 @@ Note* MusicXMLParserPass2::note(const QString& partId,
             note = new Note(_score);
             const int ottavaStaff = (msTrack - _pass1.trackForPart(partId)) / VOICES;
             const int octaveShift = _pass1.octaveShift(partId, ottavaStaff, noteStartTime);
-            setPitch(note, _pass1, partId, instrumentId, mnp, octaveShift);
+            const auto part = _pass1.getPart(partId);
+            const auto instrument = part->instrument(noteStartTime);
+            setPitch(note, _pass1, partId, instrumentId, mnp, octaveShift, instrument);
             c->add(note);
             //c->setStemDirection(stemDir); // already done in handleBeamAndStemDir()
             //c->setNoStem(noStem);
@@ -4540,6 +4531,11 @@ Note* MusicXMLParserPass2::note(const QString& partId,
             gac = gcl.size();
             }
 
+      // handle tremolo before handling tuplet (two note tremolos modify timeMod)
+      if (cr) {
+            addTremolo(cr, notations.tremoloNr(), notations.tremoloType(), _tremStart, _logger, &_e, timeMod);
+            }
+
       // handle tuplet state for the current chord or rest
       if (cr) {
             if (!chord && !grace) {
@@ -4590,9 +4586,6 @@ Note* MusicXMLParserPass2::note(const QString& partId,
 
       // add figured bass element
       addFiguredBassElemens(fbl, noteStartTime, msTrack, dura, measure);
-      if (cr) {
-            addTremolo(cr, notations.tremoloNr(), notations.tremoloType(), _tremStart, _logger, &_e);
-            }
 
       // don't count chord or grace note duration
       // note that this does not check the MusicXML requirement that notes in a chord
@@ -4921,8 +4914,8 @@ void MusicXMLParserPass2::harmony(const QString& partId, Measure* measure, const
       double dy = -0.1 * _e.attributes().value("default-y").toDouble();
 #endif
       bool printObject = _e.attributes().value("print-object") != "no";
-      QString printFrame = _e.attributes().value("print-frame").toString();
-      QString printStyle = _e.attributes().value("print-style").toString();
+      //QString printFrame = _e.attributes().value("print-frame").toString();
+      //QString printStyle = _e.attributes().value("print-style").toString();
 
       QString kind, kindText, functionText, symbols, parens;
       QList<HDegree> degreeList;
@@ -5972,7 +5965,7 @@ Notation Notation::notationWithAttributes(const QString& name, const QXmlStreamA
                                           const QString& parent, const SymId& symId)
       {
       Notation notation { name, parent, symId };
-      for (const auto attr : attributes) {
+      for (const auto &attr : attributes) {
             notation.addAttribute(attr.name(), attr.value());
             }
       return notation;
@@ -6125,7 +6118,7 @@ void MusicXMLParserNotations::addNotation(const Notation& notation, ChordRest* c
                   if (notation.name() == "strong-accent") {
                         if (notationType != "" && notationType != "up" && notationType != "down") {
                               notationType = (const char*) 0;
-                              _logger->logError(QString("unknown %1 type %2").arg(notation.name()).arg(notationType), &_e);
+                              _logger->logError(QString("unknown %1 type %2").arg(notation.name(), notationType), &_e);
                               }
                         }
                   else if (notation.name() == "harmonic" || notation.name() == "delayed-turn"
@@ -6135,7 +6128,7 @@ void MusicXMLParserNotations::addNotation(const Notation& notation, ChordRest* c
                               }
                         if (placement != "above" && placement != "below") {
                               placement = (const char*) 0;
-                              _logger->logError(QString("unknown %1 placement %2").arg(notation.name()).arg(placement), &_e);
+                              _logger->logError(QString("unknown %1 placement %2").arg(notation.name(), placement), &_e);
                               }
                         }
                   else {
@@ -6203,7 +6196,7 @@ void MusicXMLParserNotations::addToScore(ChordRest* const cr, Note* const note, 
       // more than one dynamic ???
       // LVIFIX: check import/export of <other-dynamics>unknown_text</...>
       // TODO remove duplicate code (see MusicXml::direction)
-      for (const auto& d : _dynamicsList) {
+      for (const auto& d : qAsConst(_dynamicsList)) {
             auto dynamic = new Dynamic(_score);
             dynamic->setDynamicType(d);
 //TODO:ws            if (hasYoffset) dyn->textStyle().setYoff(yoffset);

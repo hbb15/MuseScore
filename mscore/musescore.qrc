@@ -1,8 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>data/icons/edit.svg</file>
+        <file alias="styles/Leland.mss">../share/styles/Leland.mss</file>
         <file alias="fonts/mscore/metadata.json">../fonts/mscore/metadata.json</file>
         <file alias="fonts/gootville/metadata.json">../fonts/gootville/metadata.json</file>
+        <file alias="fonts/leland/metadata.json">../fonts/leland/metadata.json</file>
         <file alias="fonts/bravura/metadata.json">../fonts/bravura/bravura_metadata.json</file>
         <file alias="fonts/musejazz/metadata.json">../fonts/musejazz/metadata.json</file>
         <file alias="fonts/petaluma/metadata.json">../fonts/petaluma/petaluma_metadata.json</file>
@@ -12,6 +14,7 @@
         <file alias="fonts/fonts_tablature.xml">../fonts/fonts_tablature.xml</file>
         <file alias="fonts/fonts_figuredbass.xml">../fonts/fonts_figuredbass.xml</file>
         <file alias="data/instruments.xml">../share/instruments/instruments.xml</file>
+        <file alias="data/orders.xml">../share/instruments/orders.xml</file>
         <file alias="themes/style_light_fusion.css">../share/themes/style_light_fusion.css</file>
         <file alias="themes/style_dark_fusion.css">../share/themes/style_dark_fusion.css</file>
         <file alias="themes/palette_light_fusion.json">../share/themes/palette_light_fusion.json</file>
@@ -38,7 +41,6 @@
         <file>data/icons/png/window-close-hover-dark@2x.png</file>
         <file>data/icons/png/window-float-dark.png</file>
         <file>data/icons/png/window-float-dark@2x.png</file>
-        <file>revision.h</file>
         <file>data/musescore-logo-transbg-m.png</file>
         <file>data/musescore_logo_full.png</file>
         <file>data/greendot.svg</file>
@@ -199,6 +201,7 @@
         <file>data/icons/triangleDown.svg</file>
         <file>data/icons/triangleUp.svg</file>
         <file>data/icons/arrowsMoveToTop.svg</file>
+        <file>data/icons/arrowsMoveToBottom.svg</file>
         <file>data/win_opengl_buglist.json</file>
         <file>data/icons/bin.svg</file>
         <file>data/icons/braces.svg</file>
