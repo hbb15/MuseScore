@@ -16,6 +16,8 @@
 
 #include <QFileInfo>
 
+#include "cloud/loginmanager.h"
+
 #include "config.h"
 #include "globals.h"
 #include "musescore.h"
@@ -91,6 +93,11 @@
 #include "libmscore/chordlist.h"
 #include "libmscore/mscore.h"
 #include "thirdparty/qzip/qzipreader_p.h"
+#include "migration/scoremigrator_3_6.h"
+#include "migration/handlers/styledefaultshandler.h"
+#include "migration/handlers/lelandstylehandler.h"
+#include "migration/handlers/edwinstylehandler.h"
+#include "migration/handlers/resetallelementspositionshandler.h"
 
 
 namespace Ms {
@@ -360,7 +367,27 @@ Score* MuseScore::openScore(const QString& fn, bool switchTab)
 
       MasterScore* score = readScore(fn);
       if (score) {
+            ScoreMigrator_3_6 migrator;
+
+            migrator.registerHandler(new StyleDefaultsHandler());
+
+           if (Ms::preferences.getBool(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN)) {
+
+                  if (Ms::preferences.getBool(PREF_MIGRATION_APPLY_LELAND_STYLE))
+                        migrator.registerHandler(new LelandStyleHandler());
+
+                  if (Ms::preferences.getBool(PREF_MIGRATION_APPLY_EDWIN_STYLE))
+                        migrator.registerHandler(new EdwinStyleHandler());
+
+                  if (Ms::preferences.getString(PREF_IMPORT_COMPATIBILITY_RESET_ELEMENT_POSITIONS).contains("Yes"))
+                        migrator.registerHandler(new ResetAllElementsPositionsHandler());
+                  }
+
+            migrator.migrateScore(score);
+
             score->updateCapo();
+            score->update();
+            score->styleChanged();
             const int tabIdx = appendScore(score);
             if (switchTab)
                   setCurrentScoreView(tabIdx);
@@ -596,6 +623,7 @@ MasterScore* MuseScore::getNewFile()
                         tscore->style().set(Sid::harmonyPlay, MScore::defaultStyle().value(Sid::harmonyPlay));
                   }
             score->setStyle(tscore->style());
+            score->setScoreOrder(tscore->scoreOrder());
 
             // create instruments from template
             for (Part* tpart : tscore->parts()) {
@@ -1794,232 +1822,6 @@ void MuseScore::printFile()
       }
 
 //---------------------------------------------------------
-//   exportFile
-//    return true on success
-//---------------------------------------------------------
-
-void MuseScore::exportFile()
-      {
-      QStringList fl;
-      fl.append(tr("PDF File") + " (*.pdf)");
-      fl.append(tr("PNG Bitmap Graphic") + " (*.png)");
-      fl.append(tr("Scalable Vector Graphics") + " (*.svg)");
-#ifdef HAS_AUDIOFILE
-      fl.append(tr("Wave Audio") + " (*.wav)");
-      fl.append(tr("FLAC Audio") + " (*.flac)");
-      fl.append(tr("Ogg Vorbis Audio") + " (*.ogg)");
-#endif
-#ifdef USE_LAME
-      fl.append(tr("MP3 Audio") + " (*.mp3)");
-#endif
-      fl.append(tr("Standard MIDI File") + " (*.mid *.midi)");
-      fl.append(tr("Compressed MusicXML File") + " (*.mxl)");
-      fl.append(tr("Uncompressed MusicXML File") + " (*.musicxml)");
-      fl.append(tr("Uncompressed MusicXML File (outdated)") + " (*.xml)");
-      fl.append(tr("Uncompressed MuseScore 3 File") + " (*.mscx)");     // for debugging purposes
-
-      QString saveDialogTitle = tr("Export");
-
-      QString saveDirectory;
-      if (cs->masterScore()->fileInfo()->exists())
-            saveDirectory = cs->masterScore()->fileInfo()->dir().path();
-      else {
-            QSettings set;
-            if (lastSaveCopyDirectory.isEmpty())
-                  lastSaveCopyDirectory = set.value("lastSaveCopyDirectory", preferences.getString(PREF_APP_PATHS_MYSCORES)).toString();
-            saveDirectory = lastSaveCopyDirectory;
-            }
-
-      if (saveDirectory.isEmpty())
-            saveDirectory = preferences.getString(PREF_APP_PATHS_MYSCORES);
-
-      if (lastSaveCopyFormat.isEmpty()) {
-            QSettings set;
-            lastSaveCopyFormat = set.value("lastSaveCopyFormat", "pdf").toString();
-            }
-      QString saveFormat = lastSaveCopyFormat;
-
-      if (saveFormat.isEmpty())
-            saveFormat = "pdf";
-
-      QString name;
-#ifdef Q_OS_WIN
-      if (QOperatingSystemVersion::current() <= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 5, 1)) {   //XP
-            if (!cs->isMaster())
-                  name = QString("%1/%2-%3").arg(saveDirectory).arg(cs->masterScore()->fileInfo()->completeBaseName()).arg(createDefaultFileName(cs->title()));
-            else
-                  name = QString("%1/%2").arg(saveDirectory).arg(cs->masterScore()->fileInfo()->completeBaseName());
-            }
-      else
-#endif
-      if (!cs->isMaster())
-            name = QString("%1/%2-%3.%4").arg(saveDirectory).arg(cs->masterScore()->fileInfo()->completeBaseName()).arg(createDefaultFileName(cs->title())).arg(saveFormat);
-      else
-            name = QString("%1/%2.%3").arg(saveDirectory).arg(cs->masterScore()->fileInfo()->completeBaseName()).arg(saveFormat);
-
-      int idx = fl.indexOf(QRegExp(".+\\(\\*\\." + saveFormat + "\\)"), Qt::CaseInsensitive);
-      if (idx != -1)
-            fl.move(idx, 0);
-      QString filter = fl.join(";;");
-      QString fn = getSaveScoreName(saveDialogTitle, name, filter);
-      if (fn.isEmpty())
-            return;
-
-      QFileInfo fi(fn);
-      lastSaveCopyDirectory = fi.absolutePath();
-      lastSaveCopyFormat = fi.suffix();
-
-      if (fi.suffix().isEmpty())
-            QMessageBox::critical(this, tr("Export"), tr("Cannot determine file type"));
-      else
-            saveAs(cs, true, fn, fi.suffix());
-      }
-
-//---------------------------------------------------------
-//   exportParts
-//    return true on success
-//---------------------------------------------------------
-
-bool MuseScore::exportParts()
-      {
-      QStringList fl;
-      fl.append(tr("PDF File") + " (*.pdf)");
-      fl.append(tr("PNG Bitmap Graphic") + " (*.png)");
-      fl.append(tr("Scalable Vector Graphics") + " (*.svg)");
-#ifdef HAS_AUDIOFILE
-      fl.append(tr("Wave Audio") + " (*.wav)");
-      fl.append(tr("FLAC Audio") + " (*.flac)");
-      fl.append(tr("Ogg Vorbis Audio") + " (*.ogg)");
-#endif
-#ifdef USE_LAME
-      fl.append(tr("MP3 Audio") + " (*.mp3)");
-#endif
-      fl.append(tr("Standard MIDI File") + " (*.mid *.midi)");
-      fl.append(tr("Compressed MusicXML File") + " (*.mxl)");
-      fl.append(tr("Uncompressed MusicXML File") + " (*.musicxml)");
-      fl.append(tr("Uncompressed MusicXML File (outdated)") + " (*.xml)");
-      fl.append(tr("MuseScore 3 File") + " (*.mscz)");
-      fl.append(tr("Uncompressed MuseScore 3 File") + " (*.mscx)");     // for debugging purposes
-
-      QString saveDialogTitle = tr("Export Parts");
-
-      QString saveDirectory;
-      if (cs->masterScore()->fileInfo()->exists())
-            saveDirectory = cs->masterScore()->fileInfo()->dir().path();
-      else {
-            QSettings set;
-            if (lastSaveCopyDirectory.isEmpty())
-                lastSaveCopyDirectory = set.value("lastSaveCopyDirectory", preferences.getString(PREF_APP_PATHS_MYSCORES)).toString();
-            saveDirectory = lastSaveCopyDirectory;
-            }
-
-      if (saveDirectory.isEmpty())
-            saveDirectory = preferences.getString(PREF_APP_PATHS_MYSCORES);
-
-      if (lastSaveCopyFormat.isEmpty()) {
-            QSettings set;
-            lastSaveCopyFormat = set.value("lastSaveCopyFormat", "pdf").toString();
-            }
-      QString saveFormat = lastSaveCopyFormat;
-
-      if (saveFormat.isEmpty())
-            saveFormat = "pdf";
-
-      QString scoreName = cs->isMaster() ? cs->masterScore()->fileInfo()->completeBaseName() : cs->title();
-      QString name;
-#ifdef Q_OS_WIN
-      if (QOperatingSystemVersion::current() <= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 5, 1))   //XP
-            name = QString("%1/%2").arg(saveDirectory).arg(scoreName);
-      else
-#endif
-      name = QString("%1/%2.%3").arg(saveDirectory).arg(scoreName).arg(saveFormat);
-
-      int idx = fl.indexOf(QRegExp(".+\\(\\*\\." + saveFormat + "\\)"), Qt::CaseInsensitive);
-      if (idx != -1)
-            fl.move(idx, 0);
-      QString filter = fl.join(";;");
-      QString fn = getSaveScoreName(saveDialogTitle, name, filter);
-      if (fn.isEmpty())
-          return false;
-
-      QFileInfo fi(fn);
-      lastSaveCopyDirectory = fi.absolutePath();
-      lastSaveCopyFormat = fi.suffix();
-
-      QString ext = fi.suffix();
-      if (ext.isEmpty()) {
-            QMessageBox::critical(this, tr("Export Parts"), tr("Cannot determine file type"));
-            return false;
-            }
-
-      Score* thisScore = cs->masterScore();
-      bool overwrite = false;
-      bool noToAll = false;
-      QString confirmReplaceTitle = tr("Confirm Replace");
-      QString confirmReplaceMessage = tr("\"%1\" already exists.\nDo you want to replace it?\n");
-      QString replaceMessage = tr("Replace");
-      QString skipMessage = tr("Skip");
-      foreach (Excerpt* e, thisScore->excerpts())  {
-            Score* pScore = e->partScore();
-            QString partfn = fi.absolutePath() + "/" + fi.completeBaseName() + "-" + createDefaultFileName(pScore->title()) + "." + ext;
-            QFileInfo fip(partfn);
-            if (fip.exists() && !overwrite) {
-                  if(noToAll)
-                        continue;
-                  QMessageBox msgBox( QMessageBox::Question, confirmReplaceTitle,
-                        confirmReplaceMessage.arg(QDir::toNativeSeparators(partfn)),
-                        QMessageBox::Yes |  QMessageBox::YesToAll | QMessageBox::No |  QMessageBox::NoToAll);
-                  msgBox.setButtonText(QMessageBox::Yes, replaceMessage);
-                  msgBox.setButtonText(QMessageBox::No, skipMessage);
-                  msgBox.setButtonText(QMessageBox::YesToAll, tr("Replace All"));
-                  msgBox.setButtonText(QMessageBox::NoToAll, tr("Skip All"));
-                  int sb = msgBox.exec();
-                  if(sb == QMessageBox::YesToAll) {
-                        overwrite = true;
-                        }
-                  else if (sb == QMessageBox::NoToAll) {
-                        noToAll = true;
-                        continue;
-                        }
-                  else if (sb == QMessageBox::No)
-                        continue;
-                  }
-
-            if (!saveAs(pScore, true, partfn, ext))
-                  return false;
-            }
-      // For PDF, also export score and parts together
-      if (ext.toLower() == "pdf") {
-            QList<Score*> scores;
-            scores.append(thisScore);
-            foreach(Excerpt* e, thisScore->excerpts())  {
-                  scores.append(e->partScore());
-                  }
-            QString partfn(fi.absolutePath() + "/" + fi.completeBaseName() + "-" + createDefaultFileName(tr("Score_and_Parts")) + ".pdf");
-            QFileInfo fip(partfn);
-            if(fip.exists() && !overwrite) {
-                  if (!noToAll) {
-                        QMessageBox msgBox( QMessageBox::Question, confirmReplaceTitle,
-                              confirmReplaceMessage.arg(QDir::toNativeSeparators(partfn)),
-                              QMessageBox::Yes | QMessageBox::No);
-                        msgBox.setButtonText(QMessageBox::Yes, replaceMessage);
-                        msgBox.setButtonText(QMessageBox::No, skipMessage);
-                        int sb = msgBox.exec();
-                        if(sb == QMessageBox::Yes) {
-                              if (!savePdf(scores, partfn))
-                                    return false;
-                              }
-                        }
-                  }
-            else if (!savePdf(scores, partfn))
-                  return false;
-      }
-      if(!noToAll)
-            QMessageBox::information(this, tr("Export Parts"), tr("Parts were successfully exported"));
-      return true;
-      }
-
-//---------------------------------------------------------
 //   saveAs
 //---------------------------------------------------------
 
@@ -2511,6 +2313,7 @@ Score::FileError readScore(MasterScore* score, QString name, bool ignoreVersionE
       score->updateExpressive(MuseScore::synthesizer("Fluid"));
       score->setSaved(false);
       score->update();
+      score->styleChanged();
 
       if (!ignoreVersionError && !MScore::noGui)
             if (!score->sanityCheck(QString()))
@@ -3500,6 +3303,87 @@ QByteArray MuseScore::exportPdfAsJSON(Score* score)
             }
 
       return pdfData.toBase64();
+      }
+
+//---------------------------------------------------------
+//   parseSourceUrl
+//---------------------------------------------------------
+
+static void parseSourceUrl(const QString& sourceUrl, int& uid, int& nid)
+      {
+      if (!sourceUrl.isEmpty()) {
+            QStringList sl = sourceUrl.split("/");
+            if (sl.length() >= 1) {
+                  nid = sl.last().toInt();
+                  if (sl.length() >= 3) {
+                        uid = sl.at(sl.length() - 3).toInt();
+                        }
+                  }
+            }
+      }
+
+//---------------------------------------------------------
+//   saveOnline
+//---------------------------------------------------------
+
+bool MuseScore::saveOnline(const QStringList& inFilePaths)
+      {
+      if (!_loginManager->syncGetUser()) {
+            return false;
+            }
+
+      QTemporaryDir tempDir;
+      if (!tempDir.isValid()) {
+            qCritical() << qUtf8Printable(tr("Error: %1").arg(tempDir.errorString()));
+            return false;
+            }
+      QString tempPath = tempDir.path() + "/score.mscz";
+
+      bool all_successful = true;
+
+      for (auto path : inFilePaths) {
+            Score* score = mscore->readScore(path);
+            if (!score) {
+                  all_successful = false;
+                  continue;
+                  }
+
+            int uid = 0;
+            int nid = 0;
+            parseSourceUrl(score->metaTag("source"), uid, nid);
+
+            if (nid <= 0) {
+                  qCritical() << qUtf8Printable(tr("Error: '%1' tag missing or badly formed in %2").arg("source").arg(path));
+                  all_successful = false;
+                  continue;
+                  }
+
+            if (uid && uid != _loginManager->uid()) {
+                  qCritical() << qUtf8Printable(tr("Error: You are not the owner of the online score for %1").arg(path));
+                  all_successful = false;
+                  continue;
+                  }
+
+            if (!_loginManager->syncGetScoreInfo(nid)) {
+                  all_successful = false;
+                  continue;
+                  }
+            QString title = _loginManager->scoreTitle();
+
+            if (!mscore->saveAs(score, true, tempPath, "mscz")) {
+                  all_successful = false;
+                  continue;
+                  }
+
+            if (!_loginManager->syncUpload(tempPath, nid, title)) { // keep same title
+                  all_successful = false;
+                  continue;
+                  }
+
+            qInfo() << qUtf8Printable(tr("Uploaded score")) << path;
+            }
+
+      return all_successful;
       }
 
 //---------------------------------------------------------

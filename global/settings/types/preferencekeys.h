@@ -69,11 +69,12 @@
 #define PREF_IMPORT_GUITARPRO_CHARSET                       "import/guitarpro/charset"
 #define PREF_IMPORT_MUSICXML_IMPORTBREAKS                   "import/musicXML/importBreaks"
 #define PREF_IMPORT_MUSICXML_IMPORTLAYOUT                   "import/musicXML/importLayout"
-#define PREF_IMPORT_AVSOMR_USELOCAL                         "import/avsomr/useLocalEngine"
 #define PREF_IMPORT_OVERTURE_CHARSET                        "import/overture/charset"
 #define PREF_IMPORT_STYLE_STYLEFILE                         "import/style/styleFile"
 #define PREF_IMPORT_COMPATIBILITY_RESET_ELEMENT_POSITIONS   "import/compatibility/resetElementPositions"
-#define PREF_IMPORT_SCORE_MIGRATION_ENABLED                 "import/compatibility/score_migration_enabled"
+#define PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN                  "import/compatibility/do_not_ask_me_again"
+#define PREF_MIGRATION_APPLY_LELAND_STYLE                   "import/compatibility/apply_leland_style"
+#define PREF_MIGRATION_APPLY_EDWIN_STYLE                    "import/compatibility/apply_edwin_style"
 #define PREF_APP_PALETTESCALE                               "application/paletteScale"
 #define PREF_IO_ALSA_DEVICE                                 "io/alsa/device"
 #define PREF_IO_ALSA_FRAGMENTS                              "io/alsa/fragments"
@@ -143,6 +144,7 @@
 #define PREF_UI_APP_SHOWSTATUSBAR                           "ui/application/showStatusBar"
 #define PREF_UI_APP_USENATIVEDIALOGS                        "ui/application/useNativeDialogs"
 #define PREF_UI_PIANO_HIGHLIGHTCOLOR                        "ui/piano/highlightColor"
+#define PREF_UI_PIANO_SHOWPITCHHELP                         "ui/piano/showPitchHelp"
 #define PREF_UI_SCORE_NOTE_DROPCOLOR                        "ui/score/note/dropColor"
 #define PREF_UI_SCORE_DEFAULTCOLOR                          "ui/score/defaultColor"
 #define PREF_UI_SCORE_FRAMEMARGINCOLOR                      "ui/score/frameMarginColor"
@@ -187,8 +189,6 @@
 #define PREF_UI_BUTTON_HIGHLIGHT_COLOR_ENABLED_LIGHT_OFF    "ui/button/highlight/color/enabled/light/off"
 #define PREF_UI_INSPECTOR_STYLED_TEXT_COLOR_LIGHT           "ui/inspector/styledtext/color/light"
 #define PREF_UI_INSPECTOR_STYLED_TEXT_COLOR_DARK            "ui/inspector/styledtext/color/dark"
-#define PREF_UI_AVSOMR_RECOGNITION_COLOR                    "ui/avsomr/recognition/valid/color"
-#define PREF_UI_AVSOMR_NOT_RECOGNITION_COLOR                "ui/avsomr/recognition/notValid/color"
 #define PREF_PAN_SMOOTHLY_ENABLED                           "smoothPan/enabled"
 #define PREF_PAN_MODIFIER_BASE                              "smoothPan/modifier/baseSpeed"
 #define PREF_PAN_MODIFIER_STEP                              "smoothPan/modifier/step"
@@ -216,5 +216,10 @@
 //#define PREF_PAN_WEIGHT_SMART                               "smoothPan/weight/smart"
 //#define PREF_PAN_WEIGHT_ADVANCED                            "smoothPan/weight/advanced"
 //#define PREF_PAN_SMART_TIMER_DURATION                       "smoothPan/smart/timer/duration"
+#ifdef AVSOMR
+#define PREF_IMPORT_AVSOMR_USELOCAL                         "import/avsomr/useLocalEngine"
+#define PREF_UI_AVSOMR_RECOGNITION_COLOR                    "ui/avsomr/recognition/valid/color"
+#define PREF_UI_AVSOMR_NOT_RECOGNITION_COLOR                "ui/avsomr/recognition/notValid/color"
+#endif
 
 #endif // PREFERENCEKEYS_H

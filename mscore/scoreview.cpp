@@ -2310,6 +2310,10 @@ void ScoreView::cmd(const char* s)
               "prev-measure",
               "next-system",
               "prev-system",
+              "next-frame",
+              "prev-frame",
+              "next-section",
+              "prev-section",
               "empty-trailing-measure",
               "top-staff"}, [](ScoreView* cv, const QByteArray& cmd) {
 
@@ -2503,6 +2507,51 @@ void ScoreView::cmd(const char* s)
                   if (e) {
                         ScoreAccessibility::instance()->clearAccessibilityInfo();
                         cv->cmdGotoElement(e);
+                        }
+                  }},
+            {{"playback-position"}, [](ScoreView* cv, const QByteArray&) {
+                  ChordRest* cr { nullptr };
+                  Element* el { nullptr };
+                  int currentTrack = cv->score()->getSelectedElement() ?
+                                     cv->score()->getSelectedElement()->track() : 0;
+                  currentTrack = (currentTrack >= 0) ? currentTrack : 0;
+                  auto considerAllTracks { true }; // True : Consider all tracks instead of only voice-1 of first instrument
+                  auto next { false };             // False: Get current (rather than next) segment of playback cursor
+                  auto cursorPosition = cv->score()->repeatList().tick2utick(cv->score()->playPos().ticks());
+                  Fraction frac { Fraction::fromTicks(cursorPosition) };
+                  Segment* seg = next ? cv->score()->tick2rightSegment(frac, false) : cv->score()->tick2leftSegment(frac, false);
+
+                  if (seg) {
+                        if (seg->isChordRestType()) {
+                              if ((cr = seg->cr(currentTrack)))
+                                    el = cr;
+                              else {
+                                    for (int t = 0; t < cv->score()->ntracks(); t++) {
+                                          if ((cr = seg->cr(t))) {
+                                                el = cr;
+                                                break;
+                                                }
+                                          }
+                                    }
+                              }
+                        else {
+                              // Cycle through tracks if no CR* found
+                              if (considerAllTracks) {
+                                    for (int t = 0; t < cv->score()->ntracks(); t++) {
+                                          if ((cr = seg->cr(t))) {
+                                                el = cr;
+                                                break;
+                                                }
+                                          }
+                                    }
+                              // If still nothing found, get next CR*
+                              else el = seg->nextChordRest(0, false);
+                              }
+                        }
+                  if (el) {
+                        if (el->isChord())
+                              el = toChord(el)->upNote();
+                        cv->cmdGotoElement(el);
                         }
                   }},
             {{"rest", "rest-TAB"}, [](ScoreView* cv, const QByteArray&) {
@@ -3142,6 +3191,7 @@ void ScoreView::startNoteEntry()
       is.setRest(false);
       is.setNoteEntryMode(true);
       adjustCanvasPosition(el, false);
+      setEditElement(el);
 
       getAction("pad-rest")->setChecked(false);
       setMouseTracking(true);
@@ -3530,10 +3580,46 @@ void ScoreView::screenPrev()
 
 void ScoreView::pageTop()
       {
-      if (score()->layoutMode() == LayoutMode::LINE)
-            setOffset(thinPadding, 0.0);
-      else
-            setOffset(thinPadding, thinPadding);
+      switch (score()->layoutMode()) {
+            case LayoutMode::PAGE:
+                  {
+                  qreal dx = thinPadding, dy = thinPadding;
+                  Page* firstPage = score()->pages().front();
+                  Page* lastPage  = score()->pages().back();
+                  if (firstPage && lastPage) {
+                        QPointF offsetPt(xoffset(), yoffset());
+                        QRectF firstPageRect(firstPage->pos().x() * physicalZoomLevel(),
+                                             firstPage->pos().y() * physicalZoomLevel(),
+                                             firstPage->width() * physicalZoomLevel(),
+                                             firstPage->height() * physicalZoomLevel());
+                        QRectF lastPageRect(lastPage->pos().x() * physicalZoomLevel(),
+                                            lastPage->pos().y() * physicalZoomLevel(),
+                                            lastPage->width() * physicalZoomLevel(),
+                                            lastPage->height() * physicalZoomLevel());
+                        QRectF pagesRect = firstPageRect.united(lastPageRect);
+                        dx = qMax(thinPadding, (width() - pagesRect.width()) / 2);
+                        dy = qMax(thinPadding, (height() - pagesRect.height()) / 2);
+                        }
+                  setOffset(dx, dy);
+                  break;
+                  }
+            case LayoutMode::LINE:
+                  setOffset(thinPadding, 0.0);
+                  break;
+            case LayoutMode::SYSTEM:
+                  {
+                  qreal dx = thinPadding, dy = thinPadding;
+                  Page* page = score()->pages().front();
+                  if (page) {
+                        dx = qMax(thinPadding, (width() - page->width() * physicalZoomLevel()) / 2);
+                        }
+                  setOffset(dx, dy);
+                  break;
+                  }
+            default:
+                  setOffset(thinPadding, thinPadding);
+                  break;
+      }
       update();
       }
 

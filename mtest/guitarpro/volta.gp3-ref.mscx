@@ -6,7 +6,7 @@
     <Division>480</Division>
     <Style>
       <ArpeggioHiddenInStdIfTab>1</ArpeggioHiddenInStdIfTab>
-      <Spatium>1.76389</Spatium>
+      <Spatium>1.74978</Spatium>
       </Style>
     <showInvisible>1</showInvisible>
     <showUnprintable>1</showUnprintable>
@@ -55,7 +55,6 @@
     <Staff id="1">
       <VBox>
         <height>10</height>
-        <boxAutoSize>1</boxAutoSize>
         <linkedMain/>
         <Text>
           <linkedMain/>
@@ -878,7 +877,7 @@
       <Division>480</Division>
       <Style>
         <ArpeggioHiddenInStdIfTab>1</ArpeggioHiddenInStdIfTab>
-        <Spatium>1.76389</Spatium>
+        <Spatium>1.74978</Spatium>
         </Style>
       <showInvisible>1</showInvisible>
       <showUnprintable>1</showUnprintable>
@@ -942,7 +941,6 @@
       <Staff id="1">
         <VBox>
           <height>10</height>
-          <boxAutoSize>1</boxAutoSize>
           <linked>
             </linked>
           <Text>

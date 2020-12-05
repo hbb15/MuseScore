@@ -220,8 +220,8 @@ struct StyleVal2 {
       { Sid::SlurDottedWidth,             QVariant(.1) },
       { Sid::MinTieLength,                QVariant(1.0) },
       { Sid::SectionPause,                QVariant(qreal(3.0)) },
-      { Sid::MusicalSymbolFont,           QVariant(QString("Leland")) },
-      { Sid::MusicalTextFont,             QVariant(QString("Leland Text")) },
+      { Sid::MusicalSymbolFont,           QVariant(QString("Emmentaler")) },
+      { Sid::MusicalTextFont,             QVariant(QString("MScore Text")) },
       { Sid::showHeader,                  QVariant(false) },
       { Sid::headerFirstPage,             QVariant(false) },
       { Sid::headerOddEven,               QVariant(true) },
@@ -425,7 +425,7 @@ void readPageFormat(MStyle* style, XmlReader& e)
 
 void readTextStyle206(MStyle* style, XmlReader& e, std::map<QString, std::map<Sid, QVariant>>& excessStyles)
       {
-      QString family = "Edwin";
+      QString family = "FreeSerif";
       double size = 10;
       bool sizeIsSpatiumDependent = false;
       FontStyle fontStyle = FontStyle::Normal;
@@ -3467,6 +3467,7 @@ static void readBox(Box* b, XmlReader& e)
       b->setBottomMargin(0.0);
       b->setTopGap(0.0);
       b->setBottomGap(0.0);
+      b->setAutoSizeEnabled(false);
       b->setPropertyFlags(Pid::TOP_GAP, PropertyFlags::UNSTYLED);
       b->setPropertyFlags(Pid::BOTTOM_GAP, PropertyFlags::UNSTYLED);
 

@@ -167,6 +167,7 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::CHANGE_METHOD,           true,  "changeMethod",          P_TYPE::CHANGE_METHOD,       DUMMY_QT_TRANSLATE_NOOP("propertyName", "change method")   },        // the new, more general version of VELO_CHANGE_METHOD
       { Pid::PLACEMENT,               false, "placement",             P_TYPE::PLACEMENT,           DUMMY_QT_TRANSLATE_NOOP("propertyName", "placement")        },
       { Pid::HPLACEMENT,              false, "hplacement",            P_TYPE::HPLACEMENT,          DUMMY_QT_TRANSLATE_NOOP("propertyName", "horizontal placement")   },
+      { Pid::MMREST_RANGE_BRACKET_TYPE, false, "mmrestRangeBracketType", P_TYPE::INT,              DUMMY_QT_TRANSLATE_NOOP("propertyName", "multi-measure rest range bracket type")   },
       { Pid::VELOCITY,                false, "velocity",              P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "velocity")         },
       { Pid::JUMP_TO,                 true,  "jumpTo",                P_TYPE::STRING,              DUMMY_QT_TRANSLATE_NOOP("propertyName", "jump to")          },
       { Pid::PLAY_UNTIL,              true,  "playUntil",             P_TYPE::STRING,              DUMMY_QT_TRANSLATE_NOOP("propertyName", "play until")       },
@@ -179,10 +180,13 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::REPEAT_START,            true,  0,                       P_TYPE::BOOL,                ""                                                    },
       { Pid::REPEAT_JUMP,             true,  0,                       P_TYPE::BOOL,                ""                                                    },
       { Pid::MEASURE_NUMBER_MODE,     false, "measureNumberMode",     P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "measure number mode") },
+
       { Pid::GLISS_TYPE,              false, "subtype",               P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "subtype")          },
       { Pid::GLISS_TEXT,              false, 0,                       P_TYPE::STRING,              DUMMY_QT_TRANSLATE_NOOP("propertyName", "text")             },
-
       { Pid::GLISS_SHOW_TEXT,         false, 0,                       P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "showing text")     },
+      { Pid::GLISS_STYLE,             true,  "glissandoStyle",        P_TYPE::GLISS_STYLE,         DUMMY_QT_TRANSLATE_NOOP("propertyName", "glissando style") },
+      { Pid::GLISS_EASEIN,            false, "easeInSpin",            P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "ease in")          },
+      { Pid::GLISS_EASEOUT,           false, "easeOutSpin",           P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "ease out")         },
       { Pid::DIAGONAL,                false, 0,                       P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "diagonal")         },
       { Pid::GROUPS,                  false, 0,                       P_TYPE::GROUPS,              DUMMY_QT_TRANSLATE_NOOP("propertyName", "groups")           },
       { Pid::LINE_STYLE,              false, "lineStyle",             P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "line style")       },
@@ -227,7 +231,6 @@ static constexpr PropertyMetaData propertyList[] = {
       { Pid::ROLE,                    false, "role",                  P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "role")             },
       { Pid::TRACK,                   false, 0,                       P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "track")            },
 
-      { Pid::GLISSANDO_STYLE,         true,  "glissandoStyle",        P_TYPE::GLISSANDO_STYLE,     DUMMY_QT_TRANSLATE_NOOP("propertyName", "glissando style")  },
       { Pid::FRET_STRINGS,            true,  "strings",               P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "strings")          },
       { Pid::FRET_FRETS,              true,  "frets",                 P_TYPE::INT,                 DUMMY_QT_TRANSLATE_NOOP("propertyName", "frets")            },
       { Pid::FRET_NUT,                true,  "showNut",               P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "show nut")         },
@@ -347,6 +350,7 @@ static constexpr PropertyMetaData propertyList[] = {
 
       { Pid::START_WITH_LONG_NAMES,   false, "startWithLongNames",    P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "start with long names")  },
       { Pid::START_WITH_MEASURE_ONE,  true,  "startWithMeasureOne",   P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "start with measure one") },
+      { Pid::FIRST_SYSTEM_INDENTATION,true,  "firstSystemIndentation",P_TYPE::BOOL,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "first system indentation") },
 
       { Pid::PATH,                    false, "path",                  P_TYPE::PATH,                DUMMY_QT_TRANSLATE_NOOP("propertyName", "path") },
 
@@ -458,14 +462,14 @@ QVariant propertyFromString(Pid id, QString value)
             case P_TYPE::FONT:
             case P_TYPE::STRING:
                   return value;
-            case P_TYPE::GLISSANDO_STYLE: {
+            case P_TYPE::GLISS_STYLE: {
                   if ( value == "whitekeys")
                         return QVariant(int(GlissandoStyle::WHITE_KEYS));
                   else if ( value == "blackkeys")
                         return QVariant(int(GlissandoStyle::BLACK_KEYS));
                   else if ( value == "diatonic")
                         return QVariant(int(GlissandoStyle::DIATONIC));
-                  else if ( value == "portamento") 
+                  else if ( value == "portamento")
                         return QVariant(int(GlissandoStyle::PORTAMENTO));
                   else // e.g., normally "Chromatic"
                         return QVariant(int(GlissandoStyle::CHROMATIC));
@@ -597,7 +601,7 @@ QVariant propertyFromString(Pid id, QString value)
                         qDebug("bad align text <%s>", qPrintable(sl[1]));
                         return QVariant();
                         }
-                  return  int(align);
+                  return int(align);
                   }
             case P_TYPE::CHANGE_METHOD:
                   return QVariant(int(ChangeMap::nameToChangeMethod(value)));
@@ -644,7 +648,7 @@ QVariant readProperty(Pid id, XmlReader& e)
             case P_TYPE::FONT:
             case P_TYPE::STRING:
                   return QVariant(e.readElementText());
-            case P_TYPE::GLISSANDO_STYLE:
+            case P_TYPE::GLISS_STYLE:
             case P_TYPE::ORNAMENT_STYLE:
             case P_TYPE::DIRECTION:
             case P_TYPE::DIRECTION_H:
@@ -758,7 +762,7 @@ QString propertyToString(Pid id, QVariant value, bool mscx)
                               return "default";
                         }
                   break;
-            case P_TYPE::GLISSANDO_STYLE:
+            case P_TYPE::GLISS_STYLE:
                   switch (GlissandoStyle(value.toInt())) {
                         case GlissandoStyle::BLACK_KEYS:
                               return "blackkeys";

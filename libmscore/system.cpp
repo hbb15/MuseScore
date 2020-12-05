@@ -199,7 +199,7 @@ void System::adjustStavesNumber(int nstaves)
 ///   Layout the System
 //---------------------------------------------------------
 
-void System::layoutSystem(qreal xo1, const bool isFirstSystem)
+void System::layoutSystem(qreal xo1, const bool isFirstSystem, bool firstSystemIndent)
       {
       if (_staves.empty())                 // ignore vbox
             return;
@@ -213,11 +213,6 @@ void System::layoutSystem(qreal xo1, const bool isFirstSystem)
       //---------------------------------------------------
       qreal xoff2 = 0.0; // x offset for instrument name
 
-      bool shouldApplyIndentation = isFirstSystem && score()->styleB(Sid::enableIndentationOnFirstSystem);
-
-      if (shouldApplyIndentation)
-            xoff2 = styleP(Sid::firstSystemIndentationValue) * mag();
-
       for (const Part* p : score()->parts()) {
             if (firstVisibleSysStaffOfPart(p) < 0)
                   continue;
@@ -226,10 +221,13 @@ void System::layoutSystem(qreal xo1, const bool isFirstSystem)
                         t->layout();
                         qreal w = t->width() + point(instrumentNameOffset);
                         if (w > xoff2)
-                              xoff2 = shouldApplyIndentation ? xoff2 + w : w;
+                              xoff2 = w;
                         }
                   }
             }
+
+      if (isFirstSystem && firstSystemIndent)
+            xoff2 = qMax(xoff2, styleP(Sid::firstSystemIndentationValue) * mag());
 
       //---------------------------------------------------
       //  create brackets
@@ -288,7 +286,7 @@ void System::layoutSystem(qreal xo1, const bool isFirstSystem)
             ++nVisible;
             qreal staffMag = staff->mag(Fraction(0,1));     // ??? TODO
             int staffLines = staff->lines(Fraction(0,1));
-            if (staffLines == 1) {
+            if (staffLines <= 1) {
                   qreal h = staff->lineDistance(Fraction(0,1)) * staffMag * spatium();
                   s->bbox().setRect(_leftMargin + xo1, -h, 0.0, 2 * h);
                   }
@@ -330,7 +328,7 @@ void System::layoutSystem(qreal xo1, const bool isFirstSystem)
       }
 
 //---------------------------------------------------------
-//   layoutBracketsVertical
+//   setMeasureHeight
 //---------------------------------------------------------
 
 void System::setMeasureHeight(qreal height)
@@ -347,7 +345,6 @@ void System::setMeasureHeight(qreal height)
                   toHBox(m)->layout2();
                   }
             else if (m->isTBox()) {
-      //            m->bbox().setRect(0.0, 0.0, m->width(), height);
                   toTBox(m)->layout();
                   }
             else
@@ -1403,7 +1400,7 @@ qreal System::minDistance(System* s2) const
             return s2->vbox()->topGap() + vbox()->bottomGap();
 
       qreal minVerticalDistance = score()->styleP(Sid::minVerticalDistance);
-      qreal dist                = score()->minSystemDistance();
+      qreal dist = score()->enableVerticalSpread() ? styleP(Sid::minSystemSpread) : styleP(Sid::minSystemDistance);
       int firstStaff;
       int lastStaff;
 

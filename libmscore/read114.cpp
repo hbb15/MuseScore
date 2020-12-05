@@ -2273,6 +2273,7 @@ static void readBox(XmlReader& e, Box* b)
       b->setBottomMargin(0.0);
       b->setBoxHeight(Spatium(0));     // override default set in constructor
       b->setBoxWidth(Spatium(0));
+      b->setAutoSizeEnabled(false);
 
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());

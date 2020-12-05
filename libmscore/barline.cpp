@@ -439,7 +439,7 @@ void BarLine::getY() const
 
       int from    = _spanFrom;
       int to      = _spanTo;
-      int oneLine = st1->lines() == 1;
+      int oneLine = st1->lines() <= 1;
       if (oneLine && _spanFrom == 0) {
             from = BARLINE_SPAN_1LINESTAFF_FROM;
             if (!_spanStaff || (staffIdx1 == nstaves - 1))
@@ -528,6 +528,11 @@ void BarLine::drawDots(QPainter* painter, qreal x) const
             qreal offset = (score()->scoreFont()->name() == "Leland" || score()->scoreFont()->name() == "Bravura" || score()->scoreFont()->name() == "Petaluma") ? 0 : 0.5 * score()->spatium() * mag();
             y1l          = st->doty1() * _spatium + offset;
             y2l          = st->doty2() * _spatium + offset;
+            
+            //adjust for staffType offset
+            qreal stYOffset = st->yoffset().val() * _spatium;
+            y1l             += stYOffset;
+            y2l             += stYOffset;
             }
       drawSymbol(SymId::repeatDot, painter, QPointF(x, y1l));
       drawSymbol(SymId::repeatDot, painter, QPointF(x, y2l));

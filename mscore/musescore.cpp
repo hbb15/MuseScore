@@ -203,6 +203,7 @@ bool noWebView = false;
 bool exportScoreParts = false;
 bool saveScoreParts = false;
 bool ignoreWarnings = false;
+bool cliSaveOnline = false;
 bool exportScoreMedia = false;
 bool exportScoreMeta = false;
 bool exportScoreMp3 = false;
@@ -1358,43 +1359,31 @@ MuseScore::MuseScore()
       connect(openRecent, SIGNAL(aboutToShow()), SLOT(openRecentMenu()));
       connect(openRecent, SIGNAL(triggered(QAction*)), SLOT(selectScore(QAction*)));
 
-      for (auto i : {
-            "",
-            "file-save",
-            "file-save-as",
-            "file-save-a-copy",
-            "file-save-selection",
-            saveOnlineMenuItem,
-            "file-export",
-            "file-part-export",
-            "file-import-pdf",
-            "",
-            "file-close",
-            "",
-            "parts",
-            "album"}) {
-            if (!*i) {
-                  menuFile->addSeparator();
-                  continue;
-                  }
+      menuFile->addSeparator();
+      menuFile->addAction(getAction("file-close"));
+      menuFile->addAction(getAction("file-save"));
+      menuFile->addAction(getAction("file-save-as"));
+      menuFile->addAction(getAction("file-save-a-copy"));
+      menuFile->addAction(getAction("file-save-selection"));
+      menuFile->addAction(getAction(saveOnlineMenuItem));
 
-            if (strcmp(i, "album") == 0) { //enable Album feature in experimental mode
-                  if (enableExperimental)
-                        menuFile->addAction(getAction("album"));
-                  continue;
-                  }
-            else
-                  menuFile->addAction(getAction(i));
-            }
-      if (enableExperimental)
-            menuFile->addAction(getAction("layer"));
+      menuFile->addSeparator();
+      menuFile->addAction(getAction("file-import-pdf"));
+      menuFile->addAction(getAction("file-export"));
+
       menuFile->addSeparator();
       menuFile->addAction(getAction("edit-info"));
-      if (enableExperimental)
+      menuFile->addAction(getAction("parts"));
+
+      // Show these items only in experimental mode
+      if (enableExperimental) {
+            menuFile->addAction(getAction("album"));
+            menuFile->addAction(getAction("layer"));
             menuFile->addAction(getAction("media"));
+      }
       menuFile->addSeparator();
       menuFile->addAction(getAction("print"));
-#ifndef Q_OS_MAC
+#ifndef Q_OS_MAC // On Mac, the Quit option is already in the "MuseScore" menu
       menuFile->addSeparator();
       menuFile->addAction(getAction("quit"));
 #endif
@@ -1924,29 +1913,29 @@ MuseScore::MuseScore()
       Workspace::addRemainingFromMenuBar(mb);
 
       // Add all menus to workspace for loading
-      Workspace::addMenuAndString(menuFile, "menu-file");
-      Workspace::addMenuAndString(openRecent, "menu-open-recent");
-      Workspace::addMenuAndString(menuEdit, "menu-edit");
-      Workspace::addMenuAndString(menuView, "menu-view");
-      Workspace::addMenuAndString(menuToolbars, "menu-toolbars");
-      Workspace::addMenuAndString(menuWorkspaces, "menu-workspaces");
-      Workspace::addMenuAndString(menuAdd, "menu-add");
+      Workspace::addMenuAndString(menuFile,        "menu-file");
+      Workspace::addMenuAndString(openRecent,      "menu-open-recent");
+      Workspace::addMenuAndString(menuEdit,        "menu-edit");
+      Workspace::addMenuAndString(menuView,        "menu-view");
+      Workspace::addMenuAndString(menuToolbars,    "menu-toolbars");
+      Workspace::addMenuAndString(menuWorkspaces,  "menu-workspaces");
+      Workspace::addMenuAndString(menuAdd,         "menu-add");
       Workspace::addMenuAndString(menuAddMeasures, "menu-add-measures");
-      Workspace::addMenuAndString(menuAddFrames, "menu-add-frames");
-      Workspace::addMenuAndString(menuAddText, "menu-add-text");
-      Workspace::addMenuAndString(menuAddLines, "menu-add-lines");
-      Workspace::addMenuAndString(menuAddPitch, "menu-add-pitch");
+      Workspace::addMenuAndString(menuAddFrames,   "menu-add-frames");
+      Workspace::addMenuAndString(menuAddText,     "menu-add-text");
+      Workspace::addMenuAndString(menuAddLines,    "menu-add-lines");
+      Workspace::addMenuAndString(menuAddPitch,    "menu-add-pitch");
       Workspace::addMenuAndString(menuAddInterval, "menu-add-interval");
-      Workspace::addMenuAndString(menuTuplet, "menu-tuplet");
-      Workspace::addMenuAndString(menuFormat, "menu-format");
-      Workspace::addMenuAndString(menuTools, "menu-tools");
-      Workspace::addMenuAndString(menuVoices, "menu-voices");
-      Workspace::addMenuAndString(menuMeasure, "menu-measure");
+      Workspace::addMenuAndString(menuTuplet,      "menu-tuplet");
+      Workspace::addMenuAndString(menuFormat,      "menu-format");
+      Workspace::addMenuAndString(menuTools,       "menu-tools");
+      Workspace::addMenuAndString(menuVoices,      "menu-voices");
+      Workspace::addMenuAndString(menuMeasure,     "menu-measure");
 #ifdef SCRIPT_INTERFACE
-      Workspace::addMenuAndString(menuPlugins, "menu-plugins");
+      Workspace::addMenuAndString(menuPlugins,     "menu-plugins");
 #endif
-      Workspace::addMenuAndString(menuHelp, "menu-help");
-      Workspace::addMenuAndString(menuTours, "menu-tours");
+      Workspace::addMenuAndString(menuHelp,        "menu-help");
+      Workspace::addMenuAndString(menuTours,       "menu-tours");
 
       Workspace::writeGlobalMenuBar(mb);
 
@@ -2008,8 +1997,14 @@ MuseScore::MuseScore()
       connect(this, SIGNAL(musescoreWindowWasShown()), this, SLOT(checkForUpdates()),
             Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
-      if (!converterMode && !pluginMode)
+      if (!converterMode && !pluginMode) {
             _loginManager = new LoginManager(getAction(saveOnlineMenuItem), this);
+            const bool loadSuccess = _loginManager->load();
+
+            if (cliSaveOnline && !loadSuccess) {
+                  qFatal(qUtf8Printable(tr("No login credentials stored. Please sign in via the GUI.")));
+                  }
+            }
 
       connect(qApp, &QGuiApplication::focusWindowChanged, this, &MuseScore::onFocusWindowChanged);
       }
@@ -2607,7 +2602,8 @@ void MuseScore::reloadInstrumentTemplates()
 
 void MuseScore::askResetOldScorePositions(Score* score)
       {
-      if (preferences.getBool(PREF_IMPORT_SCORE_MIGRATION_ENABLED) && score->mscVersion() < MSCVERSION && score->styleB(Sid::qualityUpgradeAllowed)) {
+      if (!preferences.getBool(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN) && score->mscVersion() < MSCVERSION) {
+
             ScoreMigrationDialog* migrationDialog = new ScoreMigrationDialog(mscore->getQmlUiEngine(), score);
 
             migrationDialog->show();
@@ -2739,7 +2735,6 @@ void MuseScore::setCurrentScoreView(ScoreView* view)
       setFocusProxy(cv);
 
       getAction("file-save")->setEnabled(cs->masterScore()->isSavable());
-      getAction("file-part-export")->setEnabled(cs->masterScore()->excerpts().size() > 0);
       getAction("show-invisible")->setChecked(cs->showInvisible());
       getAction("show-unprintable")->setChecked(cs->showUnprintable());
       getAction("show-frames")->setChecked(cs->showFrames());
@@ -3840,6 +3835,8 @@ static bool doProcessJob(QString jsonFile)
 
 static bool processNonGui(const QStringList& argv)
       {
+      if (cliSaveOnline)
+            return mscore->saveOnline(argv);
       if (exportScoreMedia)
             return mscore->exportAllMediaFiles(argv[0], highlightConfigPath);
       if (exportScoreMeta)
@@ -4028,7 +4025,6 @@ bool MuseScoreApplication::event(QEvent* event)
 void MuseScore::focusScoreView()
       {
       if (currentScoreView()) {
-            currentScoreView()->activateWindow();
             currentScoreView()->setFocus();
             }
       else
@@ -4396,8 +4392,6 @@ void MuseScore::changeState(ScoreState val)
                   }
             }
 
-      if (getAction("file-part-export")->isEnabled())
-            getAction("file-part-export")->setEnabled(cs && cs->masterScore()->excerpts().size() > 0);
       if (getAction("join-measures")->isEnabled())
             getAction("join-measures")->setEnabled(cs && cs->masterScore()->excerpts().size() == 0);
       if (getAction("split-measure")->isEnabled())
@@ -6294,28 +6288,26 @@ void MuseScore::cmd(QAction* a, const QString& cmd)
             seq->seekEnd();
       else if (cmd == "keys")
             showKeyEditor();
-      else if (cmd == "file-open")
-            openFiles();
-      else if (cmd == "file-save")
-            saveFile();
-      else if (cmd == saveOnlineMenuItem)
-            showUploadScoreDialog();
-      else if (cmd == "file-export")
-            exportFile();
-      else if (cmd == "file-part-export")
-            exportParts();
-      else if (cmd == "file-import-pdf")
-            importScore();
-      else if (cmd == "file-close")
-            closeScore(cs);
-      else if (cmd == "file-save-as")
-            saveAs(cs, false);
-      else if (cmd == "file-save-selection")
-            saveSelection(cs);
-      else if (cmd == "file-save-a-copy")
-            saveAs(cs, true);
       else if (cmd == "file-new")
             newFile();
+      else if (cmd == "file-open")
+            openFiles();
+      else if (cmd == "file-close")
+            closeScore(cs);
+      else if (cmd == "file-save")
+            saveFile();
+      else if (cmd == "file-save-as")
+            saveAs(cs, false);
+      else if (cmd == "file-save-a-copy")
+            saveAs(cs, true);
+      else if (cmd == "file-save-selection")
+            saveSelection(cs);
+      else if (cmd == saveOnlineMenuItem)
+            showUploadScoreDialog();
+      else if (cmd == "file-import-pdf")
+            importScore();
+      else if (cmd == "file-export")
+            showExportDialog();
       else if (cmd == "unroll-repeats")
             scoreUnrolled(cs->masterScore());
       else if (cmd == "quit")
@@ -7517,7 +7509,7 @@ void MuseScore::updateUiStyleAndTheme()
       qApp->setStyleSheet(css);
 
       QString style = QString("*, QSpinBox { font: %1pt \"%2\" } ")
-                  .arg(QString::number(preferences.getInt(PREF_UI_THEME_FONTSIZE)), preferences.getString(PREF_UI_THEME_FONTFAMILY))
+                  .arg(QString::number(preferences.getDouble(PREF_UI_THEME_FONTSIZE)), preferences.getString(PREF_UI_THEME_FONTFAMILY))
                   + qApp->styleSheet();
       qApp->setStyleSheet(style);
 
@@ -7650,6 +7642,7 @@ MuseScoreApplication::CommandLineParseResult MuseScoreApplication::parseCommandL
       parser.addOption(QCommandLineOption({"f", "force"}, "Use with '-o <file>', ignore warnings reg. score being corrupted or from wrong version"));
       parser.addOption(QCommandLineOption({"b", "bitrate"}, "Use with '-o <file>.mp3', sets bitrate, in kbps", "bitrate"));
       parser.addOption(QCommandLineOption({"E", "install-extension"}, "Install an extension, load soundfont as default unless -e is passed too", "extension file"));
+      parser.addOption(QCommandLineOption(      "save-online", "Upload score(s) to their source URL. Replaces existing online score(s)."));
       parser.addOption(QCommandLineOption(      "score-media", "Export all media (excepting mp3) for a given score in a single JSON file and print it to stdout"));
       parser.addOption(QCommandLineOption(      "highlight-config", "Set highlight to svg, generated from a given score", "highlight-config"));
       parser.addOption(QCommandLineOption(      "score-meta", "Export score metadata to JSON document and print it to stdout"));
@@ -7792,6 +7785,15 @@ MuseScoreApplication::CommandLineParseResult MuseScoreApplication::parseCommandL
             else
                   fprintf(stderr, "MP3 bitrate value '%s' not recognized, using default setting from preferences instead.\n", qPrintable(temp));
            }
+
+      if (parser.isSet("save-online")) {
+            cliSaveOnline = true;
+            MScore::noGui = true;
+
+            if (parser.positionalArguments().isEmpty()) {
+                  qFatal("Must specify at least one score to save online.");
+            }
+      }
 
       if (parser.isSet("score-media")) {
             exportScoreMedia = true;
@@ -8040,7 +8042,6 @@ void MuseScore::init(QStringList& argv)
                   QRectF psf = p.paperRect(QPrinter::Inch);
                   MScore::defaultStyle().set(Sid::pageWidth,  psf.width());
                   MScore::defaultStyle().set(Sid::pageHeight, psf.height());
-                  MScore::defaultStyle().set(Sid::pagePrintableWidth, psf.width()-20.0/INCH);
                   MScore::defaultStyle().set(Sid::enableVerticalSpread, true);
                   }
             }

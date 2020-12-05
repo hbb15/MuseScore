@@ -173,6 +173,7 @@ enum class Pid {
       CHANGE_METHOD,
       PLACEMENT,              // Goes with P_TYPE::PLACEMENT
       HPLACEMENT,             // Goes with P_TYPE::HPLACEMENT
+      MMREST_RANGE_BRACKET_TYPE, // The brackets used arond the measure numbers indicating the range covered by the mmrest
       VELOCITY,
       JUMP_TO,
       PLAY_UNTIL,
@@ -185,10 +186,13 @@ enum class Pid {
       REPEAT_START,
       REPEAT_JUMP,
       MEASURE_NUMBER_MODE,
+
       GLISS_TYPE,
       GLISS_TEXT,
-
       GLISS_SHOW_TEXT,
+      GLISS_STYLE,
+      GLISS_EASEIN,
+      GLISS_EASEOUT,
       DIAGONAL,
       GROUPS,
       LINE_STYLE,
@@ -233,7 +237,6 @@ enum class Pid {
       ROLE,
       TRACK,
 
-      GLISSANDO_STYLE,
       FRET_STRINGS,
       FRET_FRETS,
       FRET_NUT,
@@ -355,9 +358,10 @@ enum class Pid {
 
       START_WITH_LONG_NAMES,
       START_WITH_MEASURE_ONE,
+      FIRST_SYSTEM_INDENTATION,
 
       PATH, // for ChordLine to make its shape changes undoable
-      
+
       PREFER_SHARP_FLAT,
 
       SET_KEY_TYPE,
@@ -396,7 +400,7 @@ enum class P_TYPE : char {
       GROUPS,
       SYMID,
       INT_LIST,
-      GLISSANDO_STYLE,
+      GLISS_STYLE,
       BARLINE_TYPE,
       HEAD_TYPE,        // enum class Notehead::Type
       HEAD_GROUP,       // enum class Notehead::Group
@@ -404,7 +408,7 @@ enum class P_TYPE : char {
       FONT,
       SUB_STYLE,
       ALIGN,
-      CHANGE_METHOD,    // enum class VeloChangeMethod (for single notedynamics)
+      CHANGE_METHOD,    // enum class VeloChangeMethod (for single note dynamics)
       CHANGE_SPEED,     // enum class Dynamic::Speed
       CLEF_TYPE,        // enum class ClefType
       DYNAMIC_TYPE,     // enum class Dynamic::Type

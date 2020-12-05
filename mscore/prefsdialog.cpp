@@ -370,7 +370,7 @@ void PreferenceDialog::start()
                   new IntPreferenceItem(PREF_IO_MIDI_SHORTESTNOTE, shortestNote,
                                           [this]() { applyShortestNote();  },  // apply function
                                           [this]() { updateShortestNote(); }), // update function
-                  new BoolPreferenceItem(PREF_IMPORT_SCORE_MIGRATION_ENABLED, scoreMigrationEnabled),
+                  new BoolPreferenceItem(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN, scoreMigrationEnabled),
                   new StringPreferenceItem(PREF_IMPORT_COMPATIBILITY_RESET_ELEMENT_POSITIONS, resetElementPositionsAlwaysAsk,
                                           [this]() { // apply function
                                                 if (resetElementPositionsAlwaysAsk->isChecked())
@@ -502,7 +502,7 @@ void PreferenceDialog::start()
                                                       fontFamily->addItem(currFontFamily);
                                                 fontFamily->setCurrentIndex(fontFamily->findText(currFontFamily));
                                                 }),
-                  new IntPreferenceItem(PREF_UI_THEME_FONTSIZE, fontSize),
+                  new DoublePreferenceItem(PREF_UI_THEME_FONTSIZE, fontSize),
                   new CustomPreferenceItem(PREF_UI_APP_GLOBALSTYLE, styleName,
                                           [&]() { // apply function
                                                 preferences.setCustomPreference<MuseScorePreferredStyleType>(PREF_UI_APP_GLOBALSTYLE, MuseScorePreferredStyleType(styleName->currentIndex()));
@@ -1235,9 +1235,7 @@ void PreferenceDialog::applyPageVertical()
                   ss->doLayout();
             }
       if (cv)
-            cv->setOffset(0.0, 0.0);
-      if (mscore->currentScoreView())
-            mscore->currentScoreView()->setOffset(0.0, 0.0);
+            cv->pageTop();
       mscore->scorePageLayoutChanged();
       mscore->update();
       }

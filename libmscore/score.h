@@ -683,7 +683,7 @@ class Score : public QObject, public ScoreElement {
       void undoPropertyChanged(ScoreElement*, Pid, const QVariant& v, PropertyFlags ps = PropertyFlags::NOSTYLE);
       inline virtual UndoStack* undoStack() const;
       void undo(UndoCommand*, EditData* = 0) const;
-      void undoRemoveMeasures(Measure*, Measure*);
+      void undoRemoveMeasures(Measure*, Measure*, bool preserveTies = false);
       void undoAddBracket(Staff* staff, int level, BracketType type, int span);
       void undoRemoveBracket(Bracket*);
       void undoInsertTime(const Fraction& tick, const Fraction& len);
@@ -734,7 +734,7 @@ class Score : public QObject, public ScoreElement {
       NoteVal noteValForPosition(Position pos, AccidentalType at, bool &error);
 
       void deleteItem(Element*);
-      void deleteMeasures(MeasureBase* firstMeasure, MeasureBase* lastMeasure);
+      void deleteMeasures(MeasureBase* firstMeasure, MeasureBase* lastMeasure, bool preserveTies = false);
       void cmdDeleteSelection();
       void cmdFullMeasureRest();
 
@@ -848,6 +848,10 @@ class Score : public QObject, public ScoreElement {
       Element* nextElement();
       Element* prevElement();
       ChordRest* cmdNextPrevSystem(ChordRest*, bool);
+      Box* cmdNextPrevFrame(MeasureBase*, bool) const;
+      Element* cmdNextPrevSection(Element*, bool) const;
+      MeasureBase* getNextPrevSectionBreak(MeasureBase*, bool) const;
+      Element* getScoreElementOfMeasureBase(MeasureBase*) const;
 
       void cmd(const QAction*, EditData&);
       int fileDivision(int t) const { return ((qint64)t * MScore::division + _fileDivision/2) / _fileDivision; }
@@ -881,8 +885,8 @@ class Score : public QObject, public ScoreElement {
       virtual MStyle& style()              { return _style;                  }
       virtual const MStyle& style() const  { return _style;                  }
 
-      void setStyle(const MStyle& s);
-      bool loadStyle(const QString&, bool ign = false);
+      void setStyle(const MStyle& s, const bool overlap = false);
+      bool loadStyle(const QString&, bool ign = false, const bool overlap = false);
       bool saveStyle(const QString&);
 
       QVariant styleV(Sid idx) const  { return style().value(idx);   }
@@ -968,7 +972,6 @@ class Score : public QObject, public ScoreElement {
 
       bool enableVerticalSpread() const;
       void setEnableVerticalSpread(bool val);
-      qreal minSystemDistance() const;
       qreal maxSystemDistance() const;
       ScoreOrder* scoreOrder() const        { return _scoreOrder;  }
       void setScoreOrder(ScoreOrder* order) { _scoreOrder = order; }

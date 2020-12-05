@@ -6,7 +6,7 @@
     <Division>480</Division>
     <Style>
       <chordsXmlFile>1</chordsXmlFile>
-      <Spatium>1.76389</Spatium>
+      <Spatium>1.74978</Spatium>
       </Style>
     <showInvisible>1</showInvisible>
     <showUnprintable>1</showUnprintable>
@@ -39,7 +39,6 @@
     <Staff id="1">
       <VBox>
         <height>10</height>
-        <boxAutoSize>1</boxAutoSize>
         <Text>
           <style>Title</style>
           <text>Chord Test1</text>

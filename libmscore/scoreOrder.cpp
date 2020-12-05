@@ -353,12 +353,26 @@ QString ScoreOrder::getFamilyName(const InstrumentTemplate* instrTemplate, bool 
             return QString("<unsorted>");
       if (soloist)
            return QString("<soloists>");
-      else if (instrumentMap.contains(instrTemplate->trackName.toLower()))
-            return instrumentMap[instrTemplate->trackName.toLower()].id;
+      else if (instrumentMap.contains(instrTemplate->id))
+            return instrumentMap[instrTemplate->id].id;
       else if (instrTemplate->family)
             return instrTemplate->family->id;
       else
             return QString("<unsorted>");
+      }
+
+//---------------------------------------------------------
+//   createUnsortedGroup
+//---------------------------------------------------------
+
+void ScoreOrder::createUnsortedGroup()
+      {
+      _unsorted  = new ScoreGroup(QString("<unsorted>"), "", "");
+      _unsorted->bracket            = false;
+      _unsorted->showSystemMarkings = false;
+      _unsorted->barLineSpan        = false;
+      _unsorted->thinBracket        = false;
+      groups.append(_unsorted);
       }
 
 //---------------------------------------------------------
@@ -429,23 +443,24 @@ void ScoreOrder::setCustomised()
 ScoreGroup* ScoreOrder::getGroup(const QString family, const QString instrumentGroup) const
       {
       if (family.isEmpty())
-            return nullptr;
+            return _unsorted;
 
-      ScoreGroup* unsorted { _unsorted };
+      ScoreGroup* unsorted { nullptr };
       for (ScoreGroup* sg : groups) {
-            if (sg->id() == family)
+            if (!sg->isUnsorted() && (sg->id() == family))
                   return sg;
             if (sg->isUnsorted(instrumentGroup))
                   unsorted = sg;
-            if (sg->isUnsorted() && !unsorted)
-                  unsorted = sg;
             }
-      return unsorted;
+      return unsorted ? unsorted : _unsorted;
       }
 
 ScoreGroup* ScoreOrder::getGroup(const QString id, const bool soloist) const
       {
       InstrumentIndex ii = searchTemplateIndexForId(id);
+      if (!ii.instrTemplate)
+            return _unsorted;
+
       QString family { getFamilyName(ii.instrTemplate, soloist) };
       return getGroup(family, instrumentGroups[ii.groupIndex]->id);
       }
@@ -476,14 +491,8 @@ void ScoreOrder::read(XmlReader& e)
             else
                   e.unknown();
             }
-      if (!_unsorted) {
-            _unsorted  = new ScoreGroup(QString("<unsorted>"), "", "");
-            _unsorted->bracket            = false;
-            _unsorted->showSystemMarkings = false;
-            _unsorted->barLineSpan        = false;
-            _unsorted->thinBracket        = false;
-            groups.append(_unsorted);
-            }
+      if (!_unsorted)
+            createUnsortedGroup();
       }
 
 //---------------------------------------------------------
@@ -589,6 +598,9 @@ void ScoreOrder::setBracketsAndBarlines(Score* score)
       for (Part* part : score->parts())
             {
             InstrumentIndex ii = searchTemplateIndexForId(part->instrument()->getId());
+            if (!ii.instrTemplate)
+                  continue;
+
             QString family { getFamilyName(ii.instrTemplate, part->soloist()) };
             ScoreGroup* sg = getGroup(family, instrumentGroups[ii.groupIndex]->id);
 
@@ -622,8 +634,6 @@ void ScoreOrder::setBracketsAndBarlines(Score* score)
                               thnBracketSpan  = 0;
                               }
                         }
-                  if (sg->thinBracket && !blockThinBracket && !staffIdx)
-                        thnBracketSpan += part->nstaves();
 
                   if (ii.instrTemplate->nstaves() > 1)
                         {
@@ -637,6 +647,8 @@ void ScoreOrder::setBracketsAndBarlines(Score* score)
                         }
                   else
                         {
+                        if (sg->thinBracket && !staffIdx)
+                              thnBracketSpan += part->nstaves();
                         if (prvStaff)
                               prvStaff->undoChangeProperty(Pid::STAFF_BARLINE_SPAN, (sg->barLineSpan && (!prvScoreGroup || (sg->section() == prvScoreGroup->section()))));
                         prvStaff = staff;
@@ -713,7 +725,7 @@ ScoreOrderList::ScoreOrderList()
       {
       _orders.clear();
       ScoreOrder* custom = new ScoreOrder(QString("<custom>"), qApp->translate("OrderXML", "Custom"));
-      custom->groups.append(new ScoreGroup(QString("<unsorted>"), QString(""), QString("")));
+      custom->createUnsortedGroup();
       addScoreOrder(custom);
       }
 
@@ -792,6 +804,20 @@ ScoreOrder* ScoreOrderList::findByName(const QString& name, bool customised)
                   }
             }
       return customisedOrder;
+      }
+
+//---------------------------------------------------------
+//   customScoreOrder
+//      return Custom ScoreOrder
+//---------------------------------------------------------
+
+ScoreOrder* ScoreOrderList::customScoreOrder() const
+      {
+      for (ScoreOrder* so : _orders) {
+            if (so->isCustom())
+                  return so;
+            }
+      return nullptr; // should never happen, there is always a custom score order.
       }
 
 //---------------------------------------------------------

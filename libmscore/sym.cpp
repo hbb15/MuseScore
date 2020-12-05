@@ -2924,11 +2924,11 @@ const std::array<const char*, int(SymId::lastSym)+1> Sym::symUserNames = { {
       "23 small diesis down",
       "23 small diesis up, (23S)",
       QT_TRANSLATE_NOOP("symUserNames", "25 small diesis down, 2° down [53 EDO]"),
-      QT_TRANSLATE_NOOP("symUserNames", "25 small diesis up, (25S, ~5:13S, ~37S, 5C plus 5C), 2° up [53 EDO]"),
+      QT_TRANSLATE_NOOP("symUserNames", "25 small diesis up, (25S, ~5:13S, ~37S, 5C plus 5C), 2° up [53 EDO]"),
       QT_TRANSLATE_NOOP("symUserNames", "35 large diesis down, 2° down [50 EDO], 5/18-tone down"),
       QT_TRANSLATE_NOOP("symUserNames", "35 large diesis up, (35L, ~13L, ~125L, sharp less 35M), 2°50 up"),
       QT_TRANSLATE_NOOP("symUserNames", "35 medium diesis down, 1°[50] 2°[27] down, 2/9-tone down"),
-      QT_TRANSLATE_NOOP("symUserNames", "35 medium diesis up, (35M, ~13M, ~125M, 5C plus 7C), 2/9-tone up"),
+      QT_TRANSLATE_NOOP("symUserNames", "35 medium diesis up, (35M, ~13M, ~125M, 5C plus 7C), 2/9-tone up"),
       "49 large diesis down",
       "49 large diesis up, (49L, ~31L, apotome less 49M)",
       "49 medium diesis down",
@@ -2952,7 +2952,7 @@ const std::array<const char*, int(SymId::lastSym)+1> Sym::symUserNames = { {
       "5:49 medium diesis down",
       "5:49 medium diesis up, (5:49M, half apotome)",
       QT_TRANSLATE_NOOP("symUserNames", "5:7 kleisma down"),
-      QT_TRANSLATE_NOOP("symUserNames", "5:7 kleisma up, (5:7k, ~11:13k, 7C less 5C)"),
+      QT_TRANSLATE_NOOP("symUserNames", "5:7 kleisma up, (5:7k, ~11:13k, 7C less 5C)"),
       QT_TRANSLATE_NOOP("symUserNames", "7 comma down, 1° down [43 EDO], 2° down [72 EDO], 1/6-tone down"),
       QT_TRANSLATE_NOOP("symUserNames", "7 comma up, (7C), 1° up [43 EDO], 2° up [72 EDO], 1/6-tone up"),
       "7:11 comma down, 1° down [60 EDO], 1/10-tone down",
@@ -6240,7 +6240,7 @@ void ScoreFont::draw(const std::vector<SymId>& ids, QPainter* p, const QSizeF& m
       QPointF pos(_pos);
       for (SymId id : ids) {
             draw(id, p, mag, pos, scale);
-            pos.rx() += (sym(id).advance() * mag.width());
+            pos.rx() += advance(id, mag.width());
             }
       }
 
@@ -6461,8 +6461,14 @@ void ScoreFont::load()
             };
       for (const auto &i : oo.keys()) {
             for (auto mapping : engravingDefaultsMapping) {
-                  if (i == mapping.first)
-                        _engravingDefaults.push_back(std::make_pair(mapping.second, oo.value(i).toDouble()));
+                  if (i == mapping.first) {
+                        qreal value = oo.value(i).toDouble();
+
+                        if (i == "beamSpacing")
+                              value /= oo.value("beamThickness").toDouble();
+
+                        _engravingDefaults.push_back(std::make_pair(mapping.second, value));
+                        }
                   else if (i == "textEnclosureThickness")
                         _textEnclosureThickness = oo.value(i).toDouble();
                   }
@@ -6749,7 +6755,7 @@ const QRectF ScoreFont::bbox(SymId id, qreal mag) const
 const QRectF ScoreFont::bbox(SymId id, const QSizeF& mag) const
       {
       if (useFallbackFont(id))
-            return fallbackFont()->bbox(id, mag.width());
+            return fallbackFont()->bbox(id, mag);
       QRectF r = sym(id).bbox();
       return QRectF(r.x() * mag.width(), r.y() * mag.height(), r.width() * mag.width(), r.height() * mag.height());
       }

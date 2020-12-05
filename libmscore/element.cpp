@@ -79,6 +79,7 @@
 #include "textframe.h"
 #include "text.h"
 #include "measurenumber.h"
+#include "mmrestrange.h"
 #include "textline.h"
 #include "tie.h"
 #include "timesig.h"
@@ -351,12 +352,15 @@ Fraction Element::playTick() const
 
 Fraction Element::beat() const
       {
+      // Returns an appropriate fraction of ticks for use as a "Beat" reference
+      // in the Select All Similar filter.
       int bar, beat, ticks;
       TimeSigMap* tsm = score()->sigmap();
       tsm->tickValues(tick().ticks(), &bar, &beat, &ticks);
       int ticksB = ticks_beat(tsm->timesig(tick().ticks()).timesig().denominator());
 
-      return Fraction((beat + 1 + ticks), ticksB);
+      Fraction complexFraction((++beat * ticksB) + ticks, ticksB);
+      return complexFraction.reduced();
       }
 
 //---------------------------------------------------------
@@ -1069,6 +1073,7 @@ Element* Element::create(ElementType type, Score* score)
             case ElementType::DYNAMIC:           return new Dynamic(score);
             case ElementType::TEXT:              return new Text(score);
             case ElementType::MEASURE_NUMBER:    return new MeasureNumber(score);
+            case ElementType::MMREST_RANGE:      return new MMRestRange(score);
             case ElementType::INSTRUMENT_NAME:   return new InstrumentName(score);
             case ElementType::STAFF_TEXT:        return new StaffText(score);
             case ElementType::SYSTEM_TEXT:       return new SystemText(score);
@@ -2079,6 +2084,9 @@ QVector<QLineF> Element::genericDragAnchorLines() const
             yp = system->staffCanvasYpage(stIdx);
             if (placement() == Placement::BELOW)
                   yp += system->staff(stIdx)->bbox().height();
+            //adjust anchor Y positions to staffType offset
+            if (staff())
+                yp += staff()->staffTypeForElement(this)->yoffset().val()* spatium();
             }
       else
             yp = parent()->canvasPos().y();
@@ -2468,6 +2476,12 @@ void Element::autoplaceSegmentElement(bool above, bool add)
             SysStaff* ss = m->system()->staff(si);
             QRectF r = bbox().translated(m->pos() + s->pos() + pos());
 
+            // Adjust bbox Y pos for staffType offset 
+            if (staffType()) {
+                  qreal stYOffset = staffType()->yoffset().val() * sp;
+                  r.translate(0.0, stYOffset);
+                  }
+            
             SkylineLine sk(!above);
             qreal d;
             if (above) {

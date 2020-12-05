@@ -61,13 +61,13 @@ struct StyleType {
 static const StyleType styleTypes[] {
       { Sid::pageWidth,               "pageWidth",               210.0/INCH },
       { Sid::pageHeight,              "pageHeight",              297.0/INCH }, // A4
-      { Sid::pagePrintableWidth,      "pagePrintableWidth",      190.0/INCH },
-      { Sid::pageEvenLeftMargin,      "pageEvenLeftMargin",      10.0/INCH  },
-      { Sid::pageOddLeftMargin,       "pageOddLeftMargin",       10.0/INCH  },
-      { Sid::pageEvenTopMargin,       "pageEvenTopMargin",       10.0/INCH  },
-      { Sid::pageEvenBottomMargin,    "pageEvenBottomMargin",    20.0/INCH  },
-      { Sid::pageOddTopMargin,        "pageOddTopMargin",        10.0/INCH  },
-      { Sid::pageOddBottomMargin,     "pageOddBottomMargin",     20.0/INCH  },
+      { Sid::pagePrintableWidth,      "pagePrintableWidth",      180.0/INCH },
+      { Sid::pageEvenLeftMargin,      "pageEvenLeftMargin",      15.0/INCH  },
+      { Sid::pageOddLeftMargin,       "pageOddLeftMargin",       15.0/INCH  },
+      { Sid::pageEvenTopMargin,       "pageEvenTopMargin",       15.0/INCH  },
+      { Sid::pageEvenBottomMargin,    "pageEvenBottomMargin",    15.0/INCH  },
+      { Sid::pageOddTopMargin,        "pageOddTopMargin",        15.0/INCH  },
+      { Sid::pageOddBottomMargin,     "pageOddBottomMargin",     15.0/INCH  },
       { Sid::pageTwosided,            "pageTwosided",            true       },
 
       { Sid::staffUpperBorder,        "staffUpperBorder",        Spatium(7.0)  },
@@ -79,12 +79,14 @@ static const StyleType styleTypes[] {
 
       { Sid::enableVerticalSpread,    "enableVerticalSpread",    false         },
       { Sid::spreadSystem,            "spreadSystem",            2.5           },
-      { Sid::spreadSquareBracket,     "spreadSquareBracket",     1.0           },
-      { Sid::spreadCurlyBracket,      "spreadCurlyBracket",      1.0           },
-      { Sid::maxSystemSpread,         "maxSystemSpread",         Spatium(35.0) },
-      { Sid::minStaffSpread,          "minSpreadSpread",         Spatium(1.0)  },
+      { Sid::spreadSquareBracket,     "spreadSquareBracket",     1.2           },
+      { Sid::spreadCurlyBracket,      "spreadCurlyBracket",      1.1           },
+      { Sid::minSystemSpread,         "minSystemSpread",         Spatium(8.5)  },
+      { Sid::maxSystemSpread,         "maxSystemSpread",         Spatium(32.0) },
+      { Sid::minStaffSpread,          "minSpreadSpread",         Spatium(3.5)  },
       { Sid::maxStaffSpread,          "maxSpreadSpread",         Spatium(20.0) },
       { Sid::maxAkkoladeDistance,     "maxAkkoladeDistance",     Spatium(6.5)  },
+      { Sid::maxPageFillSpread,       "maxPageFillSpread",       Spatium(4.0)  },
 
       { Sid::lyricsPlacement,         "lyricsPlacement",         int(Placement::BELOW)  },
       { Sid::lyricsPosAbove,          "lyricsPosAbove",          QPointF(0.0, -2.0) },
@@ -94,7 +96,7 @@ static const StyleType styleTypes[] {
       { Sid::lyricsMinDistance,       "lyricsMinDistance",       Spatium(0.0)  },
       { Sid::lyricsLineHeight,        "lyricsLineHeight",        1.0 },
       { Sid::lyricsDashMinLength,     "lyricsDashMinLength",     Spatium(0.4) },
-      { Sid::lyricsDashMaxLength,     "lyricsDashMaxLegth",      Spatium(0.8) },
+      { Sid::lyricsDashMaxLength,     "lyricsDashMaxLength",     Spatium(0.8) },
       { Sid::lyricsDashMaxDistance,   "lyricsDashMaxDistance",   Spatium(16.0) },
       { Sid::lyricsDashForce,         "lyricsDashForce",         QVariant(true) },
       { Sid::lyricsAlignVerseNumber,  "lyricsAlignVerseNumber",  true },
@@ -144,18 +146,18 @@ static const StyleType styleTypes[] {
       { Sid::systemFrameDistance,     "systemFrameDistance",     Spatium(7.0) },
       { Sid::frameSystemDistance,     "frameSystemDistance",     Spatium(7.0) },
       { Sid::minMeasureWidth,         "minMeasureWidth",         Spatium(5.0) },
-      { Sid::barWidth,                "barWidth",                Spatium(0.16) },
-      { Sid::doubleBarWidth,          "doubleBarWidth",          Spatium(0.16) },
+      { Sid::barWidth,                "barWidth",                Spatium(0.18) },
+      { Sid::doubleBarWidth,          "doubleBarWidth",          Spatium(0.18) },
 
-      { Sid::endBarWidth,             "endBarWidth",             Spatium(0.5) },
-      { Sid::doubleBarDistance,       "doubleBarDistance",       Spatium(.40 + .16) },
-      { Sid::endBarDistance,          "endBarDistance",          Spatium(.40 + (.16 + .50) * .5) },
-      { Sid::repeatBarlineDotSeparation, "repeatBarlineDotSeparation", Spatium(.40 + .46 * .5) },
+      { Sid::endBarWidth,             "endBarWidth",             Spatium(0.55) },
+      { Sid::doubleBarDistance,       "doubleBarDistance",       Spatium(0.55) },
+      { Sid::endBarDistance,          "endBarDistance",          Spatium(0.7) },
+      { Sid::repeatBarlineDotSeparation, "repeatBarlineDotSeparation", Spatium(0.7) },
       { Sid::repeatBarTips,           "repeatBarTips",           QVariant(false) },
       { Sid::startBarlineSingle,      "startBarlineSingle",      QVariant(false) },
       { Sid::startBarlineMultiple,    "startBarlineMultiple",    QVariant(true) },
 
-      { Sid::bracketWidth,            "bracketWidth",            Spatium(0.45) },
+      { Sid::bracketWidth,            "bracketWidth",            Spatium(0.44) },
       { Sid::bracketDistance,         "bracketDistance",         Spatium(0.1) },
       { Sid::akkoladeWidth,           "akkoladeWidth",           Spatium(1.6) },
       { Sid::akkoladeBarDistance,     "akkoladeBarDistance",     Spatium(.4) },
@@ -173,7 +175,7 @@ static const StyleType styleTypes[] {
       { Sid::keysigLeftMargin,        "keysigLeftMargin",        Spatium(0.5) },
       { Sid::ambitusMargin,           "ambitusMargin",           Spatium(0.5) },
 
-      { Sid::timesigLeftMargin,       "timesigLeftMargin",       Spatium(0.5) },
+      { Sid::timesigLeftMargin,       "timesigLeftMargin",       Spatium(0.63) },
       { Sid::timesigScale,            "timesigScale",            QVariant(QSizeF(1.0, 1.0)) },
       { Sid::midClefKeyRightMargin,   "midClefKeyRightMargin",   Spatium(1.0) },
       { Sid::clefKeyRightMargin,      "clefKeyRightMargin",      Spatium(0.8) },
@@ -186,33 +188,33 @@ static const StyleType styleTypes[] {
 
       { Sid::clefBarlineDistance,     "clefBarlineDistance",     Spatium(0.5) },
       { Sid::timesigBarlineDistance,  "timesigBarlineDistance",  Spatium(0.5) },
-      { Sid::stemWidth,               "stemWidth",               Spatium(0.13) },      // 0.09375
+      { Sid::stemWidth,               "stemWidth",               Spatium(0.11) },
       { Sid::shortenStem,             "shortenStem",             QVariant(true) },
       { Sid::shortStemProgression,    "shortStemProgression",    Spatium(0.25) },
       { Sid::shortestStem,            "shortestStem",            Spatium(2.25) },
       { Sid::beginRepeatLeftMargin,   "beginRepeatLeftMargin",   Spatium(1.0) },
-      { Sid::minNoteDistance,         "minNoteDistance",         Spatium(0.25) },      // 0.4
-      { Sid::barNoteDistance,         "barNoteDistance",         Spatium(1.0) },     // was 1.2
+      { Sid::minNoteDistance,         "minNoteDistance",         Spatium(0.15) },      // 0.4
+      { Sid::barNoteDistance,         "barNoteDistance",         Spatium(1.3) },     // was 1.2
 
-      { Sid::barAccidentalDistance,   "barAccidentalDistance",   Spatium(.3)   },
+      { Sid::barAccidentalDistance,   "barAccidentalDistance",   Spatium(0.65)   },
       { Sid::multiMeasureRestMargin,  "multiMeasureRestMargin",  Spatium(1.2)  },
-      { Sid::noteBarDistance,         "noteBarDistance",         Spatium(1.0)  },
+      { Sid::noteBarDistance,         "noteBarDistance",         Spatium(1.5)  },
       { Sid::measureSpacing,          "measureSpacing",          QVariant(1.2) },
-      { Sid::staffLineWidth,          "staffLineWidth",          Spatium(0.08) },     // 0.09375
+      { Sid::staffLineWidth,          "staffLineWidth",          Spatium(0.11) },
       { Sid::ledgerLineWidth,         "ledgerLineWidth",         Spatium(0.16) },     // 0.1875
-      { Sid::ledgerLineLength,        "ledgerLineLength",        Spatium(0.76) },     // notehead width + this value
+      { Sid::ledgerLineLength,        "ledgerLineLength",        Spatium(0.35) },     // notehead width + this value
       { Sid::accidentalDistance,      "accidentalDistance",      Spatium(0.22) },
-      { Sid::accidentalNoteDistance,  "accidentalNoteDistance",  Spatium(0.22) },
+      { Sid::accidentalNoteDistance,  "accidentalNoteDistance",  Spatium(0.25) },
 
       { Sid::beamWidth,               "beamWidth",               Spatium(0.5)  },     // was 0.48
-      { Sid::beamDistance,            "beamDistance",            QVariant(0.5) },     // 0.25sp units
-      { Sid::beamMinLen,              "beamMinLen",              Spatium(1.32) },     // 1.316178 exactly notehead widthen beams
+      { Sid::beamDistance,            "beamDistance",            QVariant(0.5) },
+      { Sid::beamMinLen,              "beamMinLen",              Spatium(1.3) },     // 1.316178 exactly notehead widthen beams
       { Sid::beamNoSlope,             "beamNoSlope",             QVariant(false) },
 
       { Sid::dotMag,                  "dotMag",                  QVariant(1.0) },
-      { Sid::dotNoteDistance,         "dotNoteDistance",         Spatium(0.35) },
+      { Sid::dotNoteDistance,         "dotNoteDistance",         Spatium(0.5) },
       { Sid::dotRestDistance,         "dotRestDistance",         Spatium(0.25) },
-      { Sid::dotDotDistance,          "dotDotDistance",          Spatium(0.5) },
+      { Sid::dotDotDistance,          "dotDotDistance",          Spatium(0.65) },
       { Sid::propertyDistanceHead,    "propertyDistanceHead",    Spatium(1.0) },
       { Sid::propertyDistanceStem,    "propertyDistanceStem",    Spatium(1.8) },
       { Sid::propertyDistance,        "propertyDistance",        Spatium(1.0) },
@@ -225,15 +227,15 @@ static const StyleType styleTypes[] {
       { Sid::lastSystemFillLimit,     "lastSystemFillLimit",     QVariant(0.3) },
 
       { Sid::hairpinPlacement,        "hairpinPlacement",        int(Placement::BELOW)  },
-      { Sid::hairpinPosAbove,         "hairpinPosAbove",         QPointF(0.0, -3.5) },
-      { Sid::hairpinPosBelow,         "hairpinPosBelow",         QPointF(.0, 3.5) },
+      { Sid::hairpinPosAbove,         "hairpinPosAbove",         QPointF(0.0, -2.0) },
+      { Sid::hairpinPosBelow,         "hairpinPosBelow",         QPointF(.0, 2) },
       { Sid::hairpinLinePosAbove,     "hairpinLinePosAbove",     QPointF(0.0, -3.0) },
       { Sid::hairpinLinePosBelow,     "hairpinLinePosBelow",     QPointF(.0, 4.0) },
-      { Sid::hairpinHeight,           "hairpinHeight",           Spatium(1.2) },
+      { Sid::hairpinHeight,           "hairpinHeight",           Spatium(1.15) },
       { Sid::hairpinContHeight,       "hairpinContHeight",       Spatium(0.5) },
-      { Sid::hairpinLineWidth,        "hairpinWidth",            Spatium(0.13) },
+      { Sid::hairpinLineWidth,        "hairpinWidth",            Spatium(0.12) },
       { Sid::hairpinFontFace,         "hairpinFontFace",         "Edwin" },
-      { Sid::hairpinFontSize,         "hairpinFontSize",         12.0 },
+      { Sid::hairpinFontSize,         "hairpinFontSize",         10.0 },
       { Sid::hairpinLineSpacing,      "hairpinLineSpacing",      1.0 },
       { Sid::hairpinFontSpatiumDependent, "hairpinFontSpatiumDependent", true },
       { Sid::hairpinFontStyle,        "hairpinFontStyle",        int(FontStyle::Italic) },
@@ -254,9 +256,9 @@ static const StyleType styleTypes[] {
       { Sid::hairpinLineLineStyle,    "hairpinLineLineStyle",    QVariant(int(Qt::CustomDashLine)) },
 
       { Sid::pedalPlacement,          "pedalPlacement",          int(Placement::BELOW)  },
-      { Sid::pedalPosAbove,           "pedalPosAbove",           QPointF(.0, -4) },
-      { Sid::pedalPosBelow,           "pedalPosBelow",           QPointF(.0, 4) },
-      { Sid::pedalLineWidth,          "pedalLineWidth",          Spatium(.15) },
+      { Sid::pedalPosAbove,           "pedalPosAbove",           QPointF(.0, -1) },
+      { Sid::pedalPosBelow,           "pedalPosBelow",           QPointF(.0, 2.5) },
+      { Sid::pedalLineWidth,          "pedalLineWidth",          Spatium(0.11) },
       { Sid::pedalLineStyle,          "pedalListStyle",          QVariant(int(Qt::SolidLine)) },
       { Sid::pedalBeginTextOffset,    "pedalBeginTextOffset",    QPointF(0.0, 0.15) },
       { Sid::pedalHookHeight,         "pedalHookHeight",         Spatium(-1.2) },
@@ -275,8 +277,8 @@ static const StyleType styleTypes[] {
       { Sid::pedalFrameBgColor,       "pedalFrameBgColor",       QColor(255, 255, 255, 0) },
 
       { Sid::trillPlacement,          "trillPlacement",          int(Placement::ABOVE)  },
-      { Sid::trillPosAbove,           "trillPosAbove",           QPointF(.0, -1) },
-      { Sid::trillPosBelow,           "trillPosBelow",           QPointF(.0, 1) },
+      { Sid::trillPosAbove,           "trillPosAbove",           QPointF(.0, -0.5) },
+      { Sid::trillPosBelow,           "trillPosBelow",           QPointF(.0, 2) },
 
       { Sid::vibratoPlacement,        "vibratoPlacement",        int(Placement::ABOVE)  },
       { Sid::vibratoPosAbove,         "vibratoPosAbove",         QPointF(.0, -1) },
@@ -428,7 +430,7 @@ static const StyleType styleTypes[] {
       { Sid::dontHideStavesInFirstSystem,
                                  "dontHidStavesInFirstSystm",    QVariant(true) },
       { Sid::enableIndentationOnFirstSystem,
-                                 "enableIndentationOnFirstSystem", QVariant(false) },
+                                 "enableIndentationOnFirstSystem", QVariant(true) },
       { Sid::firstSystemIndentationValue, "firstSystemIndentationValue", Spatium(5.0) },
       { Sid::alwaysShowBracketsWhenEmptyStavesAreHidden,
                                  "alwaysShowBracketsWhenEmptyStavesAreHidden", QVariant(false) },
@@ -444,7 +446,7 @@ static const StyleType styleTypes[] {
       { Sid::ArpeggioHookLen,         "ArpeggioHookLen",         Spatium(.8) },
       { Sid::ArpeggioHiddenInStdIfTab,"ArpeggioHiddenInStdIfTab",QVariant(false)},
       { Sid::SlurEndWidth,            "slurEndWidth",            Spatium(.07) },
-      { Sid::SlurMidWidth,            "slurMidWidth",            Spatium(.15) },
+      { Sid::SlurMidWidth,            "slurMidWidth",            Spatium(.21) },
       { Sid::SlurDottedWidth,         "slurDottedWidth",         Spatium(.10)  },
       { Sid::MinTieLength,            "minTieLength",            Spatium(1.0) },
       { Sid::SlurMinDistance,         "slurMinDistance",         Spatium(0.5) },
@@ -452,29 +454,29 @@ static const StyleType styleTypes[] {
       { Sid::MusicalSymbolFont,       "musicalSymbolFont",       QVariant(QString("Leland")) },
       { Sid::MusicalTextFont,         "musicalTextFont",         QVariant(QString("Leland Text")) },
 
-      { Sid::showHeader,              "showHeader",              QVariant(false) },
+      { Sid::showHeader,              "showHeader",              QVariant(true) },
       { Sid::headerFirstPage,         "headerFirstPage",         QVariant(false) },
       { Sid::headerOddEven,           "headerOddEven",           QVariant(true) },
-      { Sid::evenHeaderL,             "evenHeaderL",             QVariant(QString()) },
+      { Sid::evenHeaderL,             "evenHeaderL",             QVariant(QString("$p")) },
       { Sid::evenHeaderC,             "evenHeaderC",             QVariant(QString()) },
       { Sid::evenHeaderR,             "evenHeaderR",             QVariant(QString()) },
       { Sid::oddHeaderL,              "oddHeaderL",              QVariant(QString()) },
       { Sid::oddHeaderC,              "oddHeaderC",              QVariant(QString()) },
-      { Sid::oddHeaderR,              "oddHeaderR",              QVariant(QString()) },
+      { Sid::oddHeaderR,              "oddHeaderR",              QVariant(QString("$p")) },
       { Sid::showFooter,              "showFooter",              QVariant(true) },
 
       { Sid::footerFirstPage,         "footerFirstPage",         QVariant(true) },
       { Sid::footerOddEven,           "footerOddEven",           QVariant(true) },
-      { Sid::evenFooterL,             "evenFooterL",             QVariant(QString("$p")) },
+      { Sid::evenFooterL,             "evenFooterL",             QVariant(QString()) },
       { Sid::evenFooterC,             "evenFooterC",             QVariant(QString("$:copyright:")) },
       { Sid::evenFooterR,             "evenFooterR",             QVariant(QString()) },
       { Sid::oddFooterL,              "oddFooterL",              QVariant(QString()) },
       { Sid::oddFooterC,              "oddFooterC",              QVariant(QString("$:copyright:")) },
-      { Sid::oddFooterR,              "oddFooterR",              QVariant(QString("$p")) },
+      { Sid::oddFooterR,              "oddFooterR",              QVariant(QString()) },
 
       { Sid::voltaPosAbove,           "voltaPosAbove",           QPointF(0.0, -3.0) },
-      { Sid::voltaHook,               "voltaHook",               Spatium(1.9) },
-      { Sid::voltaLineWidth,          "voltaLineWidth",          Spatium(.1) },
+      { Sid::voltaHook,               "voltaHook",               Spatium(2.2) },
+      { Sid::voltaLineWidth,          "voltaLineWidth",          Spatium(0.11) },
       { Sid::voltaLineStyle,          "voltaLineStyle",          QVariant(int(Qt::SolidLine)) },
       { Sid::voltaFontFace,           "voltaFontFace",           "Edwin" },
       { Sid::voltaFontSize,           "voltaFontSize",           11.0 },
@@ -483,7 +485,7 @@ static const StyleType styleTypes[] {
       { Sid::voltaFontStyle,          "voltaFontStyle",          int(FontStyle::Bold) },
       { Sid::voltaColor,              "voltaColor",              QColor(0, 0, 0, 255) },
       { Sid::voltaAlign,              "voltaAlign",              QVariant::fromValue(Align::LEFT | Align::BASELINE) },
-      { Sid::voltaOffset,             "voltaOffset",             QPointF(0.5, 1.9) },
+      { Sid::voltaOffset,             "voltaOffset",             QPointF(0.6, 2.2) },
       { Sid::voltaFrameType,          "voltaFrameType",          int(FrameType::NO_FRAME) },
       { Sid::voltaFramePadding,       "voltaFramePadding",       0.2 },
       { Sid::voltaFrameWidth,         "voltaFrameWidth",         0.1 },
@@ -524,11 +526,11 @@ static const StyleType styleTypes[] {
       { Sid::ottava22MBnoText,        "ottava22MBnoText",        QString("<sym>ventiduesima</sym>") },
       { Sid::ottava22MBnoContinueText,"ottava22MBnoContinueText",QString("<sym>ventiduesima</sym>") },
 
-      { Sid::ottavaPosAbove,          "ottavaPosAbove",          QPointF(.0, -3.0) },
-      { Sid::ottavaPosBelow,          "ottavaPosBelow",          QPointF(.0, 3.0) },
-      { Sid::ottavaHookAbove,         "ottavaHookAbove",         Spatium(1.9) },
-      { Sid::ottavaHookBelow,         "ottavaHookBelow",         Spatium(-1.9) },
-      { Sid::ottavaLineWidth,         "ottavaLineWidth",         Spatium(.1) },
+      { Sid::ottavaPosAbove,          "ottavaPosAbove",          QPointF(.0, -2.0) },
+      { Sid::ottavaPosBelow,          "ottavaPosBelow",          QPointF(.0, 2.0) },
+      { Sid::ottavaHookAbove,         "ottavaHookAbove",         Spatium(1) },
+      { Sid::ottavaHookBelow,         "ottavaHookBelow",         Spatium(-1) },
+      { Sid::ottavaLineWidth,         "ottavaLineWidth",         Spatium(0.11) },
       { Sid::ottavaLineStyle,         "ottavaLineStyle",         QVariant(int(Qt::DashLine)) },
       { Sid::ottavaNumbersOnly,       "ottavaNumbersOnly",       true },
       { Sid::ottavaFontFace,          "ottavaFontFace",          "Edwin" },
@@ -561,23 +563,23 @@ static const StyleType styleTypes[] {
       { Sid::tupletMaxSlope,          "tupletMaxSlope",          QVariant(qreal(0.5)) },
       { Sid::tupletOufOfStaff,        "tupletOufOfStaff",        QVariant(true) },
       { Sid::tupletVHeadDistance,     "tupletVHeadDistance",     Spatium(.5) },
-      { Sid::tupletVStemDistance,     "tupletVStemDistance",     Spatium(.25) },
-      { Sid::tupletStemLeftDistance,  "tupletStemLeftDistance",  Spatium(.5) },
+      { Sid::tupletVStemDistance,     "tupletVStemDistance",     Spatium(.5) },
+      { Sid::tupletStemLeftDistance,  "tupletStemLeftDistance",  Spatium(0.0) },
       { Sid::tupletStemRightDistance, "tupletStemRightDistance", Spatium(.5) },
-      { Sid::tupletNoteLeftDistance,  "tupletNoteLeftDistance",  Spatium(0.0) },
+      { Sid::tupletNoteLeftDistance,  "tupletNoteLeftDistance",  Spatium(-0.5) },
       { Sid::tupletNoteRightDistance, "tupletNoteRightDistance", Spatium(0.0) },
       { Sid::tupletBracketWidth,      "tupletBracketWidth",      Spatium(0.1) },
       { Sid::tupletDirection,         "tupletDirection",         QVariant::fromValue<Direction>(Direction::AUTO) },
       { Sid::tupletNumberType,        "tupletNumberType",        int(TupletNumberType::SHOW_NUMBER) },
       { Sid::tupletBracketType,       "tupletBracketType",       int(TupletBracketType::AUTO_BRACKET) },
       { Sid::tupletFontFace,          "tupletFontFace",          "Edwin" },
-      { Sid::tupletFontSize,          "tupletFontSize",          10.0 },
+      { Sid::tupletFontSize,          "tupletFontSize",          9.0 },
       { Sid::tupletLineSpacing,       "tupletLineSpacing",       1.0 },
       { Sid::tupletFontSpatiumDependent, "tupletFontSpatiumDependent", true },
       { Sid::tupletFontStyle,         "tupletFontStyle",         int(FontStyle::Italic) },
       { Sid::tupletColor,             "tupletColor",             QColor(0, 0, 0, 255) },
       { Sid::tupletAlign,             "tupletAlign",             QVariant::fromValue(Align::CENTER) },
-      { Sid::tupletBracketHookHeight, "tupletBracketHookHeight", Spatium(1.0) },
+      { Sid::tupletBracketHookHeight, "tupletBracketHookHeight", Spatium(0.75) },
       { Sid::tupletOffset,            "tupletOffset",            QPointF()  },
       { Sid::tupletFrameType,         "tupletFrameType",         int(FrameType::NO_FRAME) },
       { Sid::tupletFramePadding,      "tupletFramePadding",      0.2 },
@@ -588,16 +590,16 @@ static const StyleType styleTypes[] {
 
       { Sid::barreLineWidth,          "barreLineWidth",          QVariant(1.0) },
       { Sid::scaleBarlines,           "scaleBarlines",           QVariant(true) },
-      { Sid::barGraceDistance,        "barGraceDistance",        Spatium(.6) },
+      { Sid::barGraceDistance,        "barGraceDistance",        Spatium(1.0) },
       { Sid::minVerticalDistance,     "minVerticalDistance",     Spatium(0.5) },
       { Sid::ornamentStyle,           "ornamentStyle",           int(MScore::OrnamentStyle::DEFAULT) },
-      { Sid::spatium,                 "Spatium",                 SPATIUM20 },
+      { Sid::spatium,                 "Spatium",                 24.8 },
 
       { Sid::autoplaceHairpinDynamicsDistance, "autoplaceHairpinDynamicsDistance", Spatium(0.5) },
 
       { Sid::dynamicsPlacement,       "dynamicsPlacement",       int(Placement::BELOW)  },
-      { Sid::dynamicsPosAbove,        "dynamicsPosAbove",        QPointF(.0, -3.0) },
-      { Sid::dynamicsPosBelow,        "dynamicsPosBelow",        QPointF(.0, 4.0) },
+      { Sid::dynamicsPosAbove,        "dynamicsPosAbove",        QPointF(.0, -1.5) },
+      { Sid::dynamicsPosBelow,        "dynamicsPosBelow",        QPointF(.0, 2.5) },
 
       { Sid::dynamicsMinDistance,         "dynamicsMinDistance",               Spatium(0.5) },
       { Sid::autoplaceVerticalAlignRange, "autoplaceVerticalAlignRange",     int(VerticalAlignRange::SYSTEM) },
@@ -825,7 +827,7 @@ static const StyleType styleTypes[] {
       { Sid::expressionColor,               "expressionColor",              QColor(0, 0, 0, 255) },
       { Sid::expressionAlign,               "expressionAlign",              QVariant::fromValue(Align::LEFT | Align::BASELINE) },
       { Sid::expressionPlacement,           "expressionPlacement",          int(Placement::BELOW)  },
-      { Sid::expressionOffset,              "expressionOffset",             QPointF(.0, 3.5) },
+      { Sid::expressionOffset,              "expressionOffset",             QPointF(.0, 2.5) },
       { Sid::expressionFrameType,           "expressionFrameType",          int(FrameType::NO_FRAME) },
       { Sid::expressionFramePadding,        "expressionFramePadding",       0.2 },
       { Sid::expressionFrameWidth,          "expressionFrameWidth",         0.1 },
@@ -872,20 +874,41 @@ static const StyleType styleTypes[] {
       { Sid::measureNumberFontSize,         "measureNumberFontSize",        8.0 },
       { Sid::measureNumberLineSpacing,      "measureNumberLineSpacing",     1.0 },
       { Sid::measureNumberFontSpatiumDependent, "measureNumberFontSpatiumDependent", true },
-      { Sid::measureNumberFontStyle,        "measureNumberFontStyle",       int(FontStyle::Normal) },
+      { Sid::measureNumberFontStyle,        "measureNumberFontStyle",       2 },
       { Sid::measureNumberColor,            "measureNumberColor",           QColor(0, 0, 0, 255) },
       { Sid::measureNumberPosAbove,         "measureNumberOffset",          QPointF(0.0, -2.0) }, // This measureNumberOffset cannot be renamed to measureNumberPosAbove for backward compatibility
       { Sid::measureNumberPosBelow,         "measureNumberPosBelow",        QPointF(0.0, 2.0) },
       { Sid::measureNumberOffsetType,       "measureNumberOffsetType",      int(OffsetType::SPATIUM)   },
       { Sid::measureNumberVPlacement,       "measureNumberVPlacement",      int(Placement::ABOVE) },
       { Sid::measureNumberHPlacement,       "measureNumberHPlacement",      int(HPlacement::LEFT) },
-      { Sid::measureNumberAlign,            "measureNumberAlign",           QVariant::fromValue(Align::HCENTER | Align::BASELINE) },
+      { Sid::measureNumberAlign,            "measureNumberAlign",           QVariant::fromValue(Align::LEFT | Align::BASELINE) },
       { Sid::measureNumberFrameType,        "measureNumberFrameType",       int(FrameType::NO_FRAME) },
       { Sid::measureNumberFramePadding,     "measureNumberFramePadding",    0.2 },
       { Sid::measureNumberFrameWidth,       "measureNumberFrameWidth",      0.1 },
       { Sid::measureNumberFrameRound,       "measureNumberFrameRound",      0 },
       { Sid::measureNumberFrameFgColor,     "measureNumberFrameFgColor",    QColor(0, 0, 0, 255) },
       { Sid::measureNumberFrameBgColor,     "measureNumberFrameBgColor",    QColor(255, 255, 255, 0) },
+
+      { Sid::mmRestShowMeasureNumberRange,  "mmRestShowMeasureNumberRange", false },
+      { Sid::mmRestRangeBracketType,        "mmRestRangeBracketType",       int(MMRestRangeBracketType::BRACKETS) },
+
+      { Sid::mmRestRangeFontFace,           "mmRestRangeFontFace",          "Edwin" },
+      { Sid::mmRestRangeFontSize,           "mmRestRangeFontSize",          8.0 },
+      { Sid::mmRestRangeFontSpatiumDependent, "mmRestRangeFontSpatiumDependent", true },
+      { Sid::mmRestRangeFontStyle,          "mmRestRangeFontStyle",         int(FontStyle::Normal)          },
+      { Sid::mmRestRangeColor,              "mmRestRangeColor",             QColor(0, 0, 0, 255)            },
+      { Sid::mmRestRangePosAbove,           "measureNumberPosAbove",        QPointF(0.0, -3.0)              },
+      { Sid::mmRestRangePosBelow,           "measureNumberPosBelow",        QPointF(0.0, 1.0)               },
+      { Sid::mmRestRangeOffsetType,         "mmRestRangeOffsetType",        int(OffsetType::SPATIUM)        },
+      { Sid::mmRestRangeVPlacement,         "mmRestRangeVPlacement",        int(Placement::BELOW)           },
+      { Sid::mmRestRangeHPlacement,         "mmRestRangeHPlacement",        int(HPlacement::CENTER)         },
+      { Sid::mmRestRangeAlign,              "mmRestRangeAlign",             QVariant::fromValue(Align::HCENTER | Align::BASELINE) },
+      { Sid::mmRestRangeFrameType,          "mmRestRangeFrameType",         int(FrameType::NO_FRAME)        },
+      { Sid::mmRestRangeFramePadding,       "mmRestRangeFramePadding",      0.2                             },
+      { Sid::mmRestRangeFrameWidth,         "mmRestRangeFrameWidth",        0.1                             },
+      { Sid::mmRestRangeFrameRound,         "mmRestRangeFrameRound",        0                               },
+      { Sid::mmRestRangeFrameFgColor,       "mmRestRangeFrameFgColor",      QColor(0, 0, 0, 255)            },
+      { Sid::mmRestRangeFrameBgColor,       "mmRestRangeFrameBgColor",      QColor(255, 255, 255, 0)        },
 
       { Sid::translatorFontFace,            "translatorFontFace",           "Edwin" },
       { Sid::translatorFontSize,            "translatorFontSize",           11.0 },
@@ -930,8 +953,8 @@ static const StyleType styleTypes[] {
       { Sid::staffTextAlign,                "staffAlign",                   QVariant::fromValue(Align::LEFT | Align::BASELINE) },
       { Sid::staffTextOffsetType,           "systemOffsetType",             int(OffsetType::SPATIUM)   },
       { Sid::staffTextPlacement,            "staffPlacement",               int(Placement::ABOVE) },
-      { Sid::staffTextPosAbove,             "staffPosAbove",                QPointF(.0, -2.0) },
-      { Sid::staffTextPosBelow,             "staffPosBelow",                QPointF(.0, 3.5)  },
+      { Sid::staffTextPosAbove,             "staffPosAbove",                QPointF(.0, -1.0) },
+      { Sid::staffTextPosBelow,             "staffPosBelow",                QPointF(.0, 2.5)  },
       { Sid::staffTextMinDistance,          "staffMinDistance",             Spatium(0.5)  },
       { Sid::staffTextFrameType,            "staffFrameType",               int(FrameType::NO_FRAME) },
       { Sid::staffTextFramePadding,         "staffFramePadding",            0.2 },
@@ -1046,12 +1069,12 @@ static const StyleType styleTypes[] {
       { Sid::bendArrowWidth,                "bendArrowWidth",               Spatium(.5) },
 
       { Sid::headerFontFace,                "headerFontFace",               "Edwin" },
-      { Sid::headerFontSize,                "headerFontSize",               8.0 },
+      { Sid::headerFontSize,                "headerFontSize",               11.0 },
       { Sid::headerLineSpacing,             "headerLineSpacing",            1.0 },
       { Sid::headerFontSpatiumDependent,    "headerFontSpatiumDependent",   false },
-      { Sid::headerFontStyle,               "headerFontStyle",              int(FontStyle::Normal) },
+      { Sid::headerFontStyle,               "headerFontStyle",              1 },
       { Sid::headerColor,                   "headerColor",                  QColor(0, 0, 0, 255) },
-      { Sid::headerAlign,                   "headerAlign",                  QVariant::fromValue(Align::LEFT) },
+      { Sid::headerAlign,                   "headerAlign",                  QVariant::fromValue(Align::CENTER | Align::TOP) },
       { Sid::headerOffset,                  "headerOffset",                 QPointF() },
       { Sid::headerFrameType,               "headerFrameType",              int(FrameType::NO_FRAME) },
       { Sid::headerFramePadding,            "headerFramePadding",           0.2 },
@@ -1061,12 +1084,12 @@ static const StyleType styleTypes[] {
       { Sid::headerFrameBgColor,            "headerFrameBgColor",           QColor(255, 255, 255, 0) },
 
       { Sid::footerFontFace,                "footerFontFace",               "Edwin" },
-      { Sid::footerFontSize,                "footerFontSize",               8.0 },
+      { Sid::footerFontSize,                "footerFontSize",               9.0 },
       { Sid::footerLineSpacing,             "footerLineSpacing",            1.0 },
       { Sid::footerFontSpatiumDependent,    "footerFontSpatiumDependent",   false },
       { Sid::footerFontStyle,               "footerFontStyle",              int(FontStyle::Normal) },
       { Sid::footerColor,                   "footerColor",                  QColor(0, 0, 0, 255) },
-      { Sid::footerAlign,                   "footerAlign",                  QVariant::fromValue(Align::LEFT) },
+      { Sid::footerAlign,                   "footerAlign",                  QVariant::fromValue(Align::CENTER | Align::BOTTOM) },
       { Sid::footerOffset,                  "footerOffset",                 QPointF(0.0, 5.0) },
       { Sid::footerFrameType,               "footerFrameType",              int(FrameType::NO_FRAME) },
       { Sid::footerFramePadding,            "footerFramePadding",           0.2 },
@@ -1370,8 +1393,8 @@ static const StyleType styleTypes[] {
       { Sid::palmMuteFrameBgColor,          "palmMuteFrameBgColor",          QColor(255, 255, 255, 0) },
       { Sid::palmMuteEndHookType,           "palmMuteEndHookType",           int(HookType::HOOK_90T) },
 
-      { Sid::fermataPosAbove,               "fermataPosAbove",               QPointF(.0, -1.0) },
-      { Sid::fermataPosBelow,               "fermataPosBelow",               QPointF(.0, 1.0)  },
+      { Sid::fermataPosAbove,               "fermataPosAbove",               QPointF(.0, -0.5) },
+      { Sid::fermataPosBelow,               "fermataPosBelow",               QPointF(.0, 0.5)  },
       { Sid::fermataMinDistance,            "fermataMinDistance",            Spatium(0.4)  },
 
       { Sid::fingeringPlacement,            "fingeringPlacement",            int(Placement::ABOVE) },
@@ -1385,13 +1408,14 @@ static const StyleType styleTypes[] {
       { Sid::pedalMinDistance,              "pedalMinDistance",              Spatium(0.7)  },
       { Sid::repeatMinDistance,             "repeatMinDistance",             Spatium(0.5)  },
       { Sid::textLineMinDistance,           "textLineMinDistance",           Spatium(0.7)  },
-      { Sid::trillMinDistance,              "trillMinDistance",              Spatium(1.0)  },
+      { Sid::trillMinDistance,              "trillMinDistance",              Spatium(0.5)  },
       { Sid::vibratoMinDistance,            "vibratoMinDistance",            Spatium(1.0)  },
       { Sid::voltaMinDistance,              "voltaMinDistance",              Spatium(1.0)  },
       { Sid::figuredBassMinDistance,        "figuredBassMinDistance",        Spatium(0.5)  },
       { Sid::tupletMinDistance,             "tupletMinDistance",             Spatium(0.5)  },
 
       { Sid::autoplaceEnabled,              "autoplaceEnabled",              true },
+      { Sid::usePre_3_6_defaults,           "usePre_3_6_defaults",           false},
 
       { Sid::numericHeightDisplacement,     "numericHeightDisplacement",     0.45 },
       { Sid::numericDistanceOctave,         "numericDistanceOctave",         0.5 },
@@ -1440,9 +1464,8 @@ static const StyleType styleTypes[] {
       { Sid::numericTupletNummerHigth,      "numericTupletNummerHigth",      0.0 },
       { Sid::numericTupletSlurThickness,    "numericTupletSlurThickness",    1.3 },
       { Sid::numericTupletNummerFontSize,   "numericTupletNummerFontSize",   0.6 },
-      { Sid::numericTupletNummerFont,       "numericTupletNummerFont",       "Numeric" },
+      { Sid::numericTupletNummerFont,       "numericTupletNummerFont",       "Numeric" }
 
-      { Sid::qualityUpgradeAllowed,         "qualityUpgradeAllowed",         true }
       };
 
 MStyle  MScore::_baseStyle;
@@ -1484,7 +1507,7 @@ const TextStyle titleTextStyle {{
       { Sid::titleFrameRound,                    Pid::FRAME_ROUND            },
       { Sid::titleFrameFgColor,                  Pid::FRAME_FG_COLOR         },
       { Sid::titleFrameBgColor,                  Pid::FRAME_BG_COLOR         },
-      
+
       }};
 
 const TextStyle subTitleTextStyle {{
@@ -1774,6 +1797,22 @@ const TextStyle measureNumberTextStyle {{
       { Sid::measureNumberFrameRound,            Pid::FRAME_ROUND            },
       { Sid::measureNumberFrameFgColor,          Pid::FRAME_FG_COLOR         },
       { Sid::measureNumberFrameBgColor,          Pid::FRAME_BG_COLOR         },
+      }};
+
+const TextStyle mmRestRangeTextStyle {{
+      { Sid::mmRestRangeFontFace,              Pid::FONT_FACE              },
+      { Sid::mmRestRangeFontSize,              Pid::FONT_SIZE              },
+      { Sid::mmRestRangeFontSpatiumDependent,  Pid::SIZE_SPATIUM_DEPENDENT },
+      { Sid::mmRestRangeFontStyle,             Pid::FONT_STYLE             },
+      { Sid::mmRestRangeColor,                 Pid::COLOR                  },
+      { Sid::mmRestRangeAlign,                 Pid::ALIGN                  },
+      { Sid::mmRestRangePosAbove,              Pid::OFFSET                 },
+      { Sid::mmRestRangeFrameType,             Pid::FRAME_TYPE             },
+      { Sid::mmRestRangeFramePadding,          Pid::FRAME_PADDING          },
+      { Sid::mmRestRangeFrameWidth,            Pid::FRAME_WIDTH            },
+      { Sid::mmRestRangeFrameRound,            Pid::FRAME_ROUND            },
+      { Sid::mmRestRangeFrameFgColor,          Pid::FRAME_FG_COLOR         },
+      { Sid::mmRestRangeFrameBgColor,          Pid::FRAME_BG_COLOR         },
       }};
 
 const TextStyle translatorTextStyle {{
@@ -2438,6 +2477,7 @@ static constexpr std::array<TextStyleName, int(Tid::TEXT_STYLES)> textStyles { {
       { QT_TRANSLATE_NOOP("TextStyle", "Tempo"),                   &tempoTextStyle,             Tid::TEMPO },
       { QT_TRANSLATE_NOOP("TextStyle", "Metronome"),               &metronomeTextStyle,         Tid::METRONOME },
       { QT_TRANSLATE_NOOP("TextStyle", "Measure Number"),          &measureNumberTextStyle,     Tid::MEASURE_NUMBER },
+      { QT_TRANSLATE_NOOP("TextStyle", "Multi-Measure Rest Range"), &mmRestRangeTextStyle,      Tid::MMREST_RANGE },
       { QT_TRANSLATE_NOOP("TextStyle", "Translator"),              &translatorTextStyle,        Tid::TRANSLATOR },
       { QT_TRANSLATE_NOOP("TextStyle", "Tuplet"),                  &tupletTextStyle,            Tid::TUPLET },
 
@@ -2552,6 +2592,7 @@ static const std::vector<Tid> _primaryTextStyles = {
       Tid::HEADER,
       Tid::FOOTER,
       Tid::MEASURE_NUMBER,
+      Tid::MMREST_RANGE,
       Tid::INSTRUMENT_EXCERPT,
       Tid::INSTRUMENT_CHANGE,
       Tid::STAFF,
@@ -2963,6 +3004,8 @@ void MStyle::load(XmlReader& e)
                   _customChordList = true;
                   chordListTag = true;
                   }
+            else if (tag == "lyricsDashMaxLegth") // pre-3.6 typo
+                  set(Sid::lyricsDashMaxLength, e.readDouble());
             else if (!readProperties(e))
                   e.unknown();
             }
@@ -2989,6 +3032,15 @@ void MStyle::load(XmlReader& e)
 
       if (!chordListTag)
             checkChordList();
+      }
+
+void MStyle::applyNewDefaults(const MStyle& other)
+      {
+      for (auto st : qAsConst(styleTypes))
+            if (isDefault(st.styleIdx())) {
+                  st._defaultValue = other.value(st.styleIdx());
+                  _values.at(st.idx()) = other.value(st.styleIdx());
+            }
       }
 
 //---------------------------------------------------------

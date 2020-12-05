@@ -116,17 +116,6 @@ Shortcut Shortcut::_sc[] = {
          },
       {
          MsWidget::MAIN_WINDOW,
-         STATE_NORMAL | STATE_NOTE_ENTRY | STATE_EDIT | STATE_PLAY,
-         "file-part-export",
-         QT_TRANSLATE_NOOP("action","Export Parts…"),
-         QT_TRANSLATE_NOOP("action","Export parts"),
-         QT_TRANSLATE_NOOP("action","Save a copy of the score's parts in various formats"),
-         Icons::fileSave_ICON,
-         Qt::WindowShortcut,
-         ShortcutFlags::A_SCORE
-         },
-      {
-         MsWidget::MAIN_WINDOW,
          STATE_DISABLED | STATE_NORMAL | STATE_NOTE_ENTRY | STATE_EDIT | STATE_PLAY,
          "file-import-pdf",
          QT_TRANSLATE_NOOP("action","Import PDF…"),
@@ -1190,6 +1179,20 @@ Shortcut Shortcut::_sc[] = {
       {
          MsWidget::SCORE_TAB,
          STATE_NORMAL | STATE_NOTE_ENTRY,
+         "prev-frame",
+         QT_TRANSLATE_NOOP("action","Previous Frame"),
+         QT_TRANSLATE_NOOP("action","Go to previous frame")
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY,
+         "prev-section",
+         QT_TRANSLATE_NOOP("action","Previous Section"),
+         QT_TRANSLATE_NOOP("action","Go to previous section")
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY,
          "prev-track",
          QT_TRANSLATE_NOOP("action","Previous Staff or Voice"),
          QT_TRANSLATE_NOOP("action","Previous staff or voice")
@@ -1218,9 +1221,30 @@ Shortcut Shortcut::_sc[] = {
       {
          MsWidget::SCORE_TAB,
          STATE_NORMAL | STATE_NOTE_ENTRY,
+         "next-frame",
+         QT_TRANSLATE_NOOP("action","Next Frame"),
+         QT_TRANSLATE_NOOP("action","Go to next frame")
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY,
+         "next-section",
+         QT_TRANSLATE_NOOP("action","Next Section"),
+         QT_TRANSLATE_NOOP("action","Go to next section")
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY,
          "top-staff",
          QT_TRANSLATE_NOOP("action","Top Staff"),
          QT_TRANSLATE_NOOP("action","Go to top staff")
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY,
+         "playback-position",
+         QT_TRANSLATE_NOOP("action","Playback Cursor Position"),
+         QT_TRANSLATE_NOOP("action","Go to recent playback cursor position")
          },
       {
          MsWidget::SCORE_TAB,
@@ -1863,6 +1887,61 @@ Shortcut Shortcut::_sc[] = {
          QT_TRANSLATE_NOOP("action","Double ♭"),
          QT_TRANSLATE_NOOP("action","Note input: Double ♭"),
          QT_TRANSLATE_NOOP("action","Double ♭"),
+         Icons::flatflat_ICON,
+         Qt::WindowShortcut,
+         ShortcutFlags::A_CHECKABLE
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY_STAFF_PITCHED | STATE_NOTE_ENTRY_STAFF_DRUM,
+         "sharp2-post",
+         QT_TRANSLATE_NOOP("action","Double ♯ (non-toggle)"),
+         QT_TRANSLATE_NOOP("action","Note input (non-toggle): Double ♯"),
+         QT_TRANSLATE_NOOP("action","Double ♯ (non-toggle)"),
+         Icons::sharpsharp_ICON,
+         Qt::WindowShortcut,
+         ShortcutFlags::A_CHECKABLE
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY_STAFF_PITCHED | STATE_NOTE_ENTRY_STAFF_DRUM,
+         "sharp-post",
+         QT_TRANSLATE_NOOP("action","♯ (non-toggle)"),
+         QT_TRANSLATE_NOOP("action","Note input (non-toggle): ♯"),
+         QT_TRANSLATE_NOOP("action","♯ (non-toggle)"),
+         Icons::sharp_ICON,
+         Qt::WindowShortcut,
+         ShortcutFlags::A_CHECKABLE
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY_STAFF_PITCHED | STATE_NOTE_ENTRY_STAFF_DRUM,
+         "nat-post",
+         QT_TRANSLATE_NOOP("action","♮ (non-toggle)"),
+         QT_TRANSLATE_NOOP("action","Note input (non-toggle): ♮"),
+         QT_TRANSLATE_NOOP("action","♮ (non-toggle)"),
+         Icons::natural_ICON,
+         Qt::WindowShortcut,
+         ShortcutFlags::A_CHECKABLE
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY_STAFF_PITCHED | STATE_NOTE_ENTRY_STAFF_DRUM,
+         "flat-post",
+         QT_TRANSLATE_NOOP("action","♭ (non-toggle)"),
+         QT_TRANSLATE_NOOP("action","Note input (non-toggle): ♭"),
+         QT_TRANSLATE_NOOP("action","♭ (non-toggle)"),
+         Icons::flat_ICON,
+         Qt::WindowShortcut,
+         ShortcutFlags::A_CHECKABLE
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY_STAFF_PITCHED | STATE_NOTE_ENTRY_STAFF_DRUM,
+         "flat2-post",
+         QT_TRANSLATE_NOOP("action","Double ♭ (non-toggle)"),
+         QT_TRANSLATE_NOOP("action","Note input (non-toggle): Double ♭"),
+         QT_TRANSLATE_NOOP("action","Double ♭ (non-toggle)"),
          Icons::flatflat_ICON,
          Qt::WindowShortcut,
          ShortcutFlags::A_CHECKABLE

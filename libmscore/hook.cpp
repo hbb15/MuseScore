@@ -91,7 +91,6 @@ void Hook::layout()
 void Hook::draw(QPainter* painter) const
       {
 
-
       if (staff() && staff()->isNumericStaff( tick())) {
             painter->setPen(QPen(curColor(), _numericLineThick));
             for (int i = 0; i < qAbs(_hookType); ++i){
@@ -106,9 +105,8 @@ void Hook::draw(QPainter* painter) const
             // hide if belonging to the second chord of a cross-measure pair
             if (chord() && chord()->crossMeasure() == CrossMeasure::SECOND)
                   return;
-            Symbol::draw(painter);
+      painter->setPen(curColor());
+      drawSymbol(_sym, painter);
             }
-
-
       }
 }

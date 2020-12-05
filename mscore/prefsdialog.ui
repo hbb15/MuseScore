@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>834</width>
-    <height>739</height>
+    <width>706</width>
+    <height>486</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -54,8 +54,8 @@
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>131</width>
-         <height>31</height>
+         <width>0</width>
+         <height>0</height>
         </size>
        </property>
       </spacer>
@@ -477,7 +477,11 @@
            </widget>
           </item>
           <item row="2" column="3">
-           <widget class="QSpinBox" name="fontSize"/>
+           <widget class="QDoubleSpinBox" name="fontSize">
+            <property name="suffix">
+             <string>pt</string>
+            </property>
+           </widget>
           </item>
           <item row="2" column="1">
            <widget class="QFontComboBox" name="fontFamily"/>
@@ -570,8 +574,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -586,8 +590,8 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>0</width>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -761,8 +765,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -795,10 +799,7 @@
       <attribute name="title">
        <string>Canvas</string>
       </attribute>
-      <layout class="QVBoxLayout">
-       <property name="spacing">
-        <number>6</number>
-       </property>
+      <layout class="QGridLayout" name="gridLayout1">
        <property name="leftMargin">
         <number>9</number>
        </property>
@@ -811,7 +812,20 @@
        <property name="bottomMargin">
         <number>9</number>
        </property>
-       <item>
+       <item row="3" column="0">
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_2">
          <property name="accessibleName">
           <string>Background</string>
@@ -930,7 +944,7 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_3">
          <property name="accessibleName">
           <string>Paper</string>
@@ -1056,12 +1070,70 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="1" column="1">
+        <widget class="QGroupBox" name="groupBox_11">
+         <property name="title">
+          <string>Scroll Pages</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_12">
+          <item row="0" column="1">
+           <widget class="QRadioButton" name="pageHorizontal">
+            <property name="text">
+             <string>Horizontally</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QRadioButton" name="pageVertical">
+            <property name="text">
+             <string>Vertically</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <spacer name="horizontalSpacer_22">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="limitScrollArea">
+            <property name="toolTip">
+             <string>Limit the scroll area to the edges of the score</string>
+            </property>
+            <property name="whatsThis">
+             <string>If this is checked, scrolling will stop at the edge of the score.</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>If this is checked, scrolling will stop at the edge of the score.</string>
+            </property>
+            <property name="text">
+             <string>Limit scroll area to page borders</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1">
         <widget class="QGroupBox" name="groupBox_7">
          <property name="title">
           <string>Zoom</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout3">
+         <layout class="QGridLayout" name="gridLayout31">
           <item row="0" column="2">
            <widget class="QSpinBox" name="zoomDefaultLevel">
             <property name="enabled">
@@ -1207,8 +1279,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>487</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -1216,52 +1288,7 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_11">
-         <property name="title">
-          <string>Scroll Pages</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_12">
-          <item row="0" column="0">
-           <widget class="QRadioButton" name="pageHorizontal">
-            <property name="text">
-             <string>Horizontally</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QRadioButton" name="pageVertical">
-            <property name="text">
-             <string>Vertically</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="limitScrollArea">
-            <property name="toolTip">
-             <string>Limit the scroll area to the edges of the score</string>
-            </property>
-            <property name="whatsThis">
-             <string>If this is checked, scrolling will stop at the edge of the score.</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>If this is checked, scrolling will stop at the edge of the score.</string>
-            </property>
-            <property name="text">
-             <string>Limit scroll area to page borders</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
+       <item row="2" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
           <string>Miscellaneous</string>
@@ -1283,6 +1310,13 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>Proximity for selecting elements:</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="1">
            <widget class="QSpinBox" name="proximity">
             <property name="accessibleName">
@@ -1299,41 +1333,21 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2" colspan="2">
-           <spacer>
+          <item row="1" column="2">
+           <spacer name="horizontalSpacer_5">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>201</width>
+              <width>40</width>
               <height>20</height>
              </size>
             </property>
            </spacer>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_24">
-            <property name="text">
-             <string>Proximity for selecting elements:</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -1344,8 +1358,8 @@
       <attribute name="title">
        <string>Note Input</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
+      <layout class="QGridLayout" name="gridLayout5">
+       <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_13">
          <property name="title">
           <string>Note Input</string>
@@ -1401,8 +1415,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -1410,7 +1424,20 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="3" column="0">
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="1">
         <widget class="QGroupBox" name="playNotes">
          <property name="mouseTracking">
           <bool>true</bool>
@@ -1432,18 +1459,11 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_37">
-            <property name="text">
-             <string>Default duration:</string>
-            </property>
-           </widget>
           </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="playChordOnAddNote">
@@ -1484,10 +1504,17 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_37">
+            <property name="text">
+             <string>Default duration:</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="2" column="0" colspan="2">
         <widget class="QGroupBox" name="rcGroup">
          <property name="toolTip">
           <string>Enable MIDI remote control</string>
@@ -1622,8 +1649,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -2103,8 +2130,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -2116,8 +2143,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -2129,8 +2156,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -2526,19 +2553,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <spacer>
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tabScore">
@@ -2818,8 +2832,8 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>0</width>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -2884,8 +2898,8 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -3133,8 +3147,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -3249,8 +3263,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -3332,8 +3346,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>324</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -3377,8 +3391,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -3393,8 +3407,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>0</width>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -3408,8 +3422,86 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
       <attribute name="title">
        <string>Import</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_10">
-       <item>
+      <layout class="QGridLayout" name="gridLayout_16">
+       <item row="5" column="0">
+        <widget class="QGroupBox" name="resetElementPositions">
+         <property name="toolTip">
+          <string>Reset element positions when importing scores from older MuseScore versions.</string>
+         </property>
+         <property name="title">
+          <string>Reset Element Positions</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QRadioButton" name="resetElementPositionsAlwaysAsk">
+            <property name="text">
+             <string>Always ask</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="resetElementPositionsYes">
+            <property name="text">
+             <string>Yes</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="resetElementPositionsNo">
+            <property name="text">
+             <string>No</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_21">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QGroupBox" name="MusicXML">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="accessibleName">
+          <string notr="true">MusicXML</string>
+         </property>
+         <property name="title">
+          <string notr="true">MusicXML</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_13">
+          <item>
+           <widget class="QCheckBox" name="importLayout">
+            <property name="text">
+             <string>Import layout</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="importBreaks">
+            <property name="text">
+             <string>Import system and page breaks</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="0">
         <widget class="QGroupBox" name="styleUsedForImport">
          <property name="title">
           <string>Style Used for Import</string>
@@ -3463,109 +3555,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
          </layout>
         </widget>
        </item>
-       <item>
-        <widget class="QGroupBox" name="characterSetUsedWhenImportingBinaryFiles">
-         <property name="title">
-          <string>Character Set Used When Importing Binary Files</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_12">
-          <item>
-           <layout class="QFormLayout" name="formLayout">
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_49">
-              <property name="text">
-               <string>Overture import character set:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QComboBox" name="importCharsetListOve">
-              <property name="accessibleName">
-               <string>Overture import character set</string>
-              </property>
-              <property name="accessibleDescription">
-               <string>Choose Overture import character set</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_23">
-              <property name="text">
-               <string>Guitar Pro import character set:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="importCharsetListGP">
-              <property name="accessibleName">
-               <string>Guitar Pro import character set</string>
-              </property>
-              <property name="accessibleDescription">
-               <string>Choose Guitar Pro import character set</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="MusicXML">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="accessibleName">
-          <string notr="true">MusicXML</string>
-         </property>
-         <property name="title">
-          <string notr="true">MusicXML</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_13">
-          <item>
-           <widget class="QCheckBox" name="importLayout">
-            <property name="text">
-             <string>Import layout</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="importBreaks">
-            <property name="text">
-             <string>Import system and page breaks</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_omr">
-         <property name="title">
-          <string>OMR</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_omr">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="useLocalAvsOmr">
-            <property name="text">
-             <string>Use local OMR engine</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
+       <item row="2" column="1">
         <widget class="QGroupBox" name="MIDI">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>100</height>
-          </size>
-         </property>
          <property name="accessibleName">
           <string notr="true">MIDI</string>
          </property>
@@ -3645,8 +3636,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>525</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -3654,53 +3645,67 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
          </layout>
         </widget>
        </item>
-       <item>
-        <widget class="QGroupBox" name="resetElementPositions">
-         <property name="toolTip">
-          <string>Reset element positions when importing scores from older MuseScore versions.</string>
+       <item row="7" column="0">
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="1">
+        <widget class="QGroupBox" name="characterSetUsedWhenImportingBinaryFiles">
          <property name="title">
-          <string>Reset Element Positions</string>
+          <string>Character Set Used When Importing Binary Files</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <layout class="QVBoxLayout" name="verticalLayout_12">
           <item>
-           <widget class="QRadioButton" name="resetElementPositionsAlwaysAsk">
-            <property name="text">
-             <string>Always ask</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="resetElementPositionsYes">
-            <property name="text">
-             <string>Yes</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="resetElementPositionsNo">
-            <property name="text">
-             <string>No</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_21">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_49">
+              <property name="text">
+               <string>Overture import character set:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QComboBox" name="importCharsetListOve">
+              <property name="accessibleName">
+               <string>Overture import character set</string>
+              </property>
+              <property name="accessibleDescription">
+               <string>Choose Overture import character set</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="importCharsetListGP">
+              <property name="accessibleName">
+               <string>Guitar Pro import character set</string>
+              </property>
+              <property name="accessibleDescription">
+               <string>Choose Guitar Pro import character set</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_23">
+              <property name="text">
+               <string>Guitar Pro import character set:</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="5" column="1">
         <widget class="QGroupBox" name="groupBox_scoreMigration">
          <property name="title">
           <string>Score improvements</string>
@@ -3716,18 +3721,21 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
          </layout>
         </widget>
        </item>
-       <item>
-        <spacer>
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="6" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox_omr">
+         <property name="title">
+          <string>OMR</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+         <layout class="QGridLayout" name="gridLayout_omr">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="useLocalAvsOmr">
+            <property name="text">
+             <string>Use local OMR engine</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -3746,8 +3754,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>0</width>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -3782,8 +3790,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -3933,8 +3941,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -4087,8 +4095,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -4263,8 +4271,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>40</width>
-             <height>20</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
           </spacer>
@@ -4300,36 +4308,6 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
           <string>Automatic Update Check</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="4" column="0">
-           <spacer name="verticalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="2" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
           <item row="0" column="0">
            <widget class="QCheckBox" name="checkUpdateStartup">
             <property name="text">
@@ -4343,6 +4321,19 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
              <string>Check for new version of MuseScore extensions</string>
             </property>
            </widget>
+          </item>
+          <item row="3" column="0">
+           <spacer name="verticalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
@@ -4397,8 +4388,8 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
-               <height>20</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
             </spacer>
@@ -4473,7 +4464,6 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
   <tabstop>fontFamily</tabstop>
   <tabstop>fontSize</tabstop>
   <tabstop>autoSave</tabstop>
-  <tabstop>autoSaveTime</tabstop>
   <tabstop>oscServer</tabstop>
   <tabstop>oscPort</tabstop>
   <tabstop>bgColorButton</tabstop>
@@ -4546,6 +4536,10 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
   <tabstop>instrumentList1Button</tabstop>
   <tabstop>instrumentList2</tabstop>
   <tabstop>instrumentList2Button</tabstop>
+  <tabstop>scoreOrderList1</tabstop>
+  <tabstop>scoreOrderList1Button</tabstop>
+  <tabstop>scoreOrderList2</tabstop>
+  <tabstop>scoreOrderList2Button</tabstop>
   <tabstop>defaultStyle</tabstop>
   <tabstop>defaultStyleButton</tabstop>
   <tabstop>partStyle</tabstop>
@@ -4578,11 +4572,12 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
   <tabstop>importCharsetListOve</tabstop>
   <tabstop>importLayout</tabstop>
   <tabstop>importBreaks</tabstop>
-  <tabstop>useLocalAvsOmr</tabstop>
   <tabstop>shortestNote</tabstop>
   <tabstop>resetElementPositionsAlwaysAsk</tabstop>
   <tabstop>resetElementPositionsYes</tabstop>
   <tabstop>resetElementPositionsNo</tabstop>
+  <tabstop>scoreMigrationEnabled</tabstop>
+  <tabstop>useLocalAvsOmr</tabstop>
   <tabstop>pngResolution</tabstop>
   <tabstop>pngTransparent</tabstop>
   <tabstop>exportPdfDpi</tabstop>
@@ -4609,6 +4604,7 @@ Adjusting latency can help synchronize your MIDI hardware with MuseScore's inter
   <tabstop>advancedSearch</tabstop>
   <tabstop>resetToDefault</tabstop>
   <tabstop>buttonBox</tabstop>
+  <tabstop>autoSaveTime</tabstop>
  </tabstops>
  <resources>
   <include location="musescore.qrc"/>

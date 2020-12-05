@@ -103,7 +103,6 @@
     <Staff id="1">
       <VBox>
         <height>10</height>
-        <boxAutoSize>1</boxAutoSize>
         <linkedMain/>
         <Text>
           <linkedMain/>
@@ -1062,7 +1061,7 @@
       <Division>480</Division>
       <Style>
         <createMultiMeasureRests>1</createMultiMeasureRests>
-        <Spatium>1.76389</Spatium>
+        <Spatium>1.74978</Spatium>
         </Style>
       <showInvisible>1</showInvisible>
       <showUnprintable>1</showUnprintable>
@@ -1110,7 +1109,6 @@
       <Staff id="1">
         <VBox>
           <height>10</height>
-          <boxAutoSize>1</boxAutoSize>
           <linked>
             </linked>
           <Text>
@@ -1246,7 +1244,7 @@
                 <Fingering>
                   <linked>
                     </linked>
-                  <offset x="1.05809" y="-4.67501"/>
+                  <offset x="1.06662" y="-4.71271"/>
                   <text>2</text>
                   </Fingering>
                 <pitch>67</pitch>
@@ -1776,7 +1774,7 @@
       <Division>480</Division>
       <Style>
         <createMultiMeasureRests>1</createMultiMeasureRests>
-        <Spatium>1.76389</Spatium>
+        <Spatium>1.74978</Spatium>
         </Style>
       <showInvisible>1</showInvisible>
       <showUnprintable>1</showUnprintable>
@@ -1822,7 +1820,6 @@
       <Staff id="1">
         <VBox>
           <height>10</height>
-          <boxAutoSize>1</boxAutoSize>
           <linked>
             <location>
               <staves>-1</staves>

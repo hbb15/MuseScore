@@ -727,6 +727,7 @@ void Chord::addLedgerLines()
       qreal lineDistance = 1;
       qreal mag         = 1;
       bool staffVisible  = true;
+      int stepOffset = 0;                       // for staff type changes with a step offset
 
       if (segment()) { //not palette
             Fraction tick = segment()->tick();
@@ -737,14 +738,15 @@ void Chord::addLedgerLines()
             lineDistance  = st->lineDistance(tick);
             mag           = staff()->mag(tick);
             staffVisible  = !staff()->invisible(tick);
+            stepOffset = st->staffType(tick)->stepOffset();
             }
 
       // need ledger lines?
-      if (downLine() <= lineBelow + 1 && upLine() >= -1)
+      if (downLine() + stepOffset <= lineBelow + 1 && upLine() + stepOffset >= -1)
             return;
 
       // the extra length of a ledger line with respect to notehead (half of it on each side)
-      qreal extraLen = score()->styleP(Sid::ledgerLineLength) * mag * 0.5;
+      qreal extraLen = score()->styleP(Sid::ledgerLineLength) * mag;
       qreal hw;
       qreal minX, maxX;                         // note extrema in raster units
       int   minLine, maxLine;
@@ -773,7 +775,7 @@ void Chord::addLedgerLines()
                   }
             for (int i = from; i < int(n) && i >= 0 ; i += delta) {
                   Note* note = _notes.at(i);
-                  int l = note->line();
+                  int l = note->line() + stepOffset;
 
                   // if 1st pass and note not below staff or 2nd pass and note not above staff
                   if ((!j && l <= lineBelow + 1) || (j && l >= -1))
@@ -825,8 +827,6 @@ void Chord::addLedgerLines()
                   if (l < minLine) {
                         for (int i1 = l; i1 < minLine; i1 += 2) {
                               lld.line = i1;
-                              if (lineDistance != 1.0)
-                                    lld.line *= lineDistance;
                               lld.minX = minX;
                               lld.maxX = maxX;
                               lld.visible = visible;
@@ -838,8 +838,6 @@ void Chord::addLedgerLines()
                   if (l > maxLine) {
                         for (int i1 = maxLine+2; i1 <= l; i1 += 2) {
                               lld.line = i1;
-                              if (lineDistance != 1.0)
-                                    lld.line *= lineDistance;
                               lld.minX = minX;
                               lld.maxX = maxX;
                               lld.visible = visible;
@@ -851,7 +849,7 @@ void Chord::addLedgerLines()
                   }
             if (minLine < 0 || maxLine > lineBelow) {
                   qreal _spatium = spatium();
-                  qreal stepDistance = 0.5;     // staff() ? staff()->lineDistance() * 0.5 : 0.5;
+                  qreal stepDistance = lineDistance * 0.5;
                   for (auto lld : vecLines) {
                         LedgerLine* h = new LedgerLine(score());
                         h->setParent(this);
@@ -1394,7 +1392,6 @@ qreal Chord::defaultStemLength() const
             }
 
       qreal normalStemLen = small() ? 2.5 : 3.5;
-      normalStemLen += hookAdjustment(score()->styleSt(Sid::MusicalSymbolFont), hookIdx, up(), small());
       if (hookIdx && tab == 0) {
             if (up() && durationType().dots()) {
                   //
@@ -1641,11 +1638,9 @@ void Chord::layoutStem()
                   _hook->layout();
                   QPointF p(_stem->hookPos());
                   if (up()) {
-                        p.ry() -= _hook->bbox().top();
                         p.rx() -= _stem->width();
                         }
                   else {
-                        p.ry() -= _hook->bbox().bottom();
                         p.rx() -= _stem->width();
                         }
                   _hook->setPos(p);
@@ -1851,7 +1846,8 @@ QPointF Chord::pagePos() const
             System* system = pc->segment()->system();
             if (!system)
                   return p;
-            p.ry() += system->staffYpage(vStaffIdx());
+            qreal staffYOffset = staff() ? staff()->staffType(tick())->yoffset().val() * spatium() : 0.0;
+            p.ry() += system->staffYpage(vStaffIdx()) + staffYOffset;
             return p;
             }
       return Element::pagePos();

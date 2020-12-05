@@ -73,10 +73,12 @@ enum class Sid {
       spreadSystem,
       spreadSquareBracket,
       spreadCurlyBracket,
+      minSystemSpread,
       maxSystemSpread,
       minStaffSpread,
       maxStaffSpread,
       maxAkkoladeDistance,
+      maxPageFillSpread,
 
       lyricsPlacement,
       lyricsPosAbove,
@@ -875,6 +877,27 @@ enum class Sid {
       measureNumberFrameFgColor,
       measureNumberFrameBgColor,
 
+      mmRestShowMeasureNumberRange,
+      mmRestRangeBracketType,
+
+      mmRestRangeFontFace,
+      mmRestRangeFontSize,
+      mmRestRangeFontSpatiumDependent,
+      mmRestRangeFontStyle,
+      mmRestRangeColor,
+      mmRestRangePosAbove,
+      mmRestRangePosBelow,
+      mmRestRangeOffsetType,
+      mmRestRangeVPlacement,
+      mmRestRangeHPlacement,
+      mmRestRangeAlign,
+      mmRestRangeFrameType,
+      mmRestRangeFramePadding,
+      mmRestRangeFrameWidth,
+      mmRestRangeFrameRound,
+      mmRestRangeFrameFgColor,
+      mmRestRangeFrameBgColor,
+
       translatorFontFace,
       translatorFontSize,
       translatorLineSpacing,
@@ -1380,7 +1403,7 @@ enum class Sid {
       tupletMinDistance,
 
       autoplaceEnabled,
-      qualityUpgradeAllowed,
+      usePre_3_6_defaults,
 
       numericHeightDisplacement,
       numericDistanceOctave,
@@ -1468,6 +1491,7 @@ class MStyle {
 
       bool load(QFile* qf, bool ign = false);
       void load(XmlReader& e);
+      void applyNewDefaults(const MStyle& other);
       void save(XmlWriter& xml, bool optimize);
       bool readProperties(XmlReader&);
       bool readStyleValCompat(XmlReader&);

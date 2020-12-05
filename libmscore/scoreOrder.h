@@ -91,6 +91,7 @@ class ScoreOrder {
       void readFamily(XmlReader& e, const QString section, bool br, bool ssm, bool bls, bool tbr);
       void readSection(XmlReader& e);
       QString getFamilyName(const InstrumentTemplate *instrTemplate, bool soloist) const;
+      void createUnsortedGroup();
 
 
    public:
@@ -124,6 +125,8 @@ class ScoreOrder {
       bool isScoreOrder(const Score* score) const;
 
       void dump() const;
+
+      friend class ScoreOrderList;
       };
 
 //---------------------------------------------------------
@@ -143,6 +146,7 @@ class ScoreOrderList {
       ScoreOrder* findById(const QString& orderId) const;
       ScoreOrder* getById(const QString& orderId);
       ScoreOrder* findByName(const QString& orderName, bool customised=false);
+      ScoreOrder* customScoreOrder() const;
       int getScoreOrderIndex(const ScoreOrder* order) const;
       QList<ScoreOrder*> searchScoreOrders(const QList<int>& indices) const;
       QList<ScoreOrder*> searchScoreOrders(const Score* score) const;

@@ -118,10 +118,12 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::spreadSystem,            false, spreadSystem,            resetSpreadSystem        },
       { Sid::spreadSquareBracket,     false, spreadSquareBracket,     resetSpreadSquareBracket },
       { Sid::spreadCurlyBracket,      false, spreadCurlyBracket,      resetSpreadCurlyBracket  },
+      { Sid::minSystemSpread,         false, minSystemSpread,         resetMinSystemSpread     },
       { Sid::maxSystemSpread,         false, maxSystemSpread,         resetMaxSystemSpread     },
       { Sid::minStaffSpread,          false, minStaffSpread,          resetMinStaffSpread      },
       { Sid::maxStaffSpread,          false, maxStaffSpread,          resetMaxStaffSpread      },
       { Sid::maxAkkoladeDistance,     false, maxAkkoladeDistance,     resetMaxAkkoladeDistance },
+      { Sid::maxPageFillSpread,       false, maxPageFillSpread,       resetMaxPageFillSpread },
 
       { Sid::lyricsPlacement,         false, lyricsPlacement,         resetLyricsPlacement         },
       { Sid::lyricsPosAbove,          false, lyricsPosAbove,          resetLyricsPosAbove          },
@@ -305,6 +307,13 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       { Sid::measureNumberPosAbove,    false, measureNumberPosAbove,        resetMeasureNumberPosAbove },
       { Sid::measureNumberPosBelow,    false, measureNumberPosBelow,        resetMeasureNumberPosBelow },
 
+      { Sid::mmRestShowMeasureNumberRange, false, mmRestShowMeasureNumberRange,  0 },
+      { Sid::mmRestRangeBracketType,       false, mmRestRangeBracketType,        resetMmRestRangeBracketType },
+      { Sid::mmRestRangeVPlacement,        false, mmRestRangeVPlacement,         resetMmRestRangeVPlacement },
+      { Sid::mmRestRangeHPlacement,        false, mmRestRangeHPlacement,         resetMmRestRangeHPlacement },
+      { Sid::mmRestRangePosAbove,          false, mmRestRangePosAbove,           resetMMRestRangePosAbove },
+      { Sid::mmRestRangePosBelow,          false, mmRestRangePosBelow,           resetMMRestRangePosBelow },
+
       { Sid::beamDistance,             true,  beamDistance,                 0 },
       { Sid::beamNoSlope,              false, beamNoSlope,                  0 },
       { Sid::graceNoteMag,             true,  graceNoteSize,                resetGraceNoteSize  },
@@ -447,17 +456,26 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
             lyricsPlacement, textLinePlacement, hairpinPlacement, pedalLinePlacement,
             trillLinePlacement, vibratoLinePlacement, dynamicsPlacement,
             tempoTextPlacement, staffTextPlacement, rehearsalMarkPlacement,
-            measureNumberVPlacement
+            measureNumberVPlacement, mmRestRangeVPlacement
             }) {
             cb->clear();
             cb->addItem(tr("Above"), int(Placement::ABOVE));
             cb->addItem(tr("Below"), int(Placement::BELOW));
             }
+      for (QComboBox* cb : std::vector<QComboBox*> {
+           measureNumberHPlacement, mmRestRangeHPlacement
+           }) {
+            cb->clear();
+            cb->addItem(tr("Left"),   int(HPlacement::LEFT));
+            cb->addItem(tr("Center"), int(HPlacement::CENTER));
+            cb->addItem(tr("Right"),  int(HPlacement::RIGHT));
+            }
 
-      measureNumberHPlacement->clear();
-      measureNumberHPlacement->addItem(tr("Left"),   int(HPlacement::LEFT));
-      measureNumberHPlacement->addItem(tr("Center"), int(HPlacement::CENTER));
-      measureNumberHPlacement->addItem(tr("Right"),  int(HPlacement::RIGHT));
+      mmRestRangeBracketType->clear();
+      mmRestRangeBracketType->addItem(tr("None"),        int(MMRestRangeBracketType::NONE));
+      mmRestRangeBracketType->addItem(tr("Brackets"),    int(MMRestRangeBracketType::BRACKETS));
+      mmRestRangeBracketType->addItem(tr("Parentheses"), int(MMRestRangeBracketType::PARENTHESES));
+
 
       autoplaceVerticalAlignRange->clear();
       autoplaceVerticalAlignRange->addItem(tr("Segment"), int(VerticalAlignRange::SEGMENT));
@@ -589,16 +607,17 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
       showFooter->setToolTip(toolTipHeaderFooter);
       showFooter->setToolTipDuration(5000);
 
-      connect(buttonBox,           SIGNAL(clicked(QAbstractButton*)), SLOT(buttonClicked(QAbstractButton*)));
-      connect(enableVerticalSpread,SIGNAL(toggled(bool)),             SLOT(toggleVerticalJustificationStaves(bool)));
-      connect(headerOddEven,       SIGNAL(toggled(bool)),             SLOT(toggleHeaderOddEven(bool)));
-      connect(footerOddEven,       SIGNAL(toggled(bool)),             SLOT(toggleFooterOddEven(bool)));
-      connect(chordDescriptionFileButton, SIGNAL(clicked()),          SLOT(selectChordDescriptionFile()));
-      connect(chordsStandard,      SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
-      connect(chordsJazz,          SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
-      connect(chordsCustom,        SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
-      connect(chordsXmlFile,       SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
-      connect(chordDescriptionFile,&QLineEdit::editingFinished,       [=]() { setChordStyle(true); });
+      connect(buttonBox,             SIGNAL(clicked(QAbstractButton*)), SLOT(buttonClicked(QAbstractButton*)));
+      connect(enableVerticalSpread,  SIGNAL(toggled(bool)),             SLOT(enableVerticalSpreadClicked(bool)));
+      connect(disableVerticalSpread, SIGNAL(toggled(bool)),             SLOT(disableVerticalSpreadClicked(bool)));
+      connect(headerOddEven,         SIGNAL(toggled(bool)),             SLOT(toggleHeaderOddEven(bool)));
+      connect(footerOddEven,         SIGNAL(toggled(bool)),             SLOT(toggleFooterOddEven(bool)));
+      connect(chordDescriptionFileButton, SIGNAL(clicked()),            SLOT(selectChordDescriptionFile()));
+      connect(chordsStandard,        SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
+      connect(chordsJazz,            SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
+      connect(chordsCustom,          SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
+      connect(chordsXmlFile,         SIGNAL(toggled(bool)),             SLOT(setChordStyle(bool)));
+      connect(chordDescriptionFile,  &QLineEdit::editingFinished,       [=]() { setChordStyle(true); });
       //chordDescriptionFile->setEnabled(false);
 
       chordDescriptionFileButton->setIcon(*icons[int(Icons::fileOpen_ICON)]);
@@ -666,7 +685,7 @@ EditStyle::EditStyle(Score* s, QWidget* parent)
             mapper2->setMapping(sw.widget, int(sw.idx));
             }
 
-      int topBottomMargin = automaticCapitalization->rect().height() - preferences.getInt(PREF_UI_THEME_FONTSIZE);
+      int topBottomMargin = automaticCapitalization->rect().height() - preferences.getDouble(PREF_UI_THEME_FONTSIZE);
       topBottomMargin /= 2;
       topBottomMargin = topBottomMargin > 4 ? topBottomMargin - 4 : 0;
       automaticCapitalization->layout()->setContentsMargins(9, topBottomMargin, 9, topBottomMargin);
@@ -834,6 +853,7 @@ const std::map<ElementType, EditStylePage> EditStyle::PAGES = {
       { ElementType::SCORE,               &EditStyle::PageScore    },
       { ElementType::PAGE,                &EditStyle::PagePage     },
       { ElementType::MEASURE_NUMBER,      &EditStyle::PageMeasureNumbers },
+      { ElementType::MMREST_RANGE,        &EditStyle::PageMeasureNumbers },
       { ElementType::BRACKET,             &EditStyle::PageSystem   },
       { ElementType::BRACKET_ITEM,        &EditStyle::PageSystem   },
       { ElementType::CLEF,                &EditStyle::PageClefs    },
@@ -1290,7 +1310,7 @@ void EditStyle::setValues()
 
       toggleHeaderOddEven(lstyle.value(Sid::headerOddEven).toBool());
       toggleFooterOddEven(lstyle.value(Sid::footerOddEven).toBool());
-      toggleVerticalJustificationStaves(lstyle.value(Sid::enableVerticalSpread).toBool());
+      disableVerticalSpread->setChecked(!lstyle.value(Sid::enableVerticalSpread).toBool());
       }
 
 //---------------------------------------------------------
@@ -1394,23 +1414,24 @@ void EditStyle::enableStyleWidget(const Sid idx, bool enable)
       }
 
 //---------------------------------------------------------
-//   toggleVerticalJustificationStaves
+//   enableVerticalSpreadClicked
 //---------------------------------------------------------
 
-void EditStyle::toggleVerticalJustificationStaves(bool checked)
+void EditStyle::enableVerticalSpreadClicked(bool checked)
       {
-      enableStyleWidget(Sid::staffDistance, !checked);
-      enableStyleWidget(Sid::akkoladeDistance, !checked);
-      enableStyleWidget(Sid::minSystemDistance, !checked);
-      enableStyleWidget(Sid::maxSystemDistance, !checked);
+      disableVerticalSpread->setChecked(!checked);
+      cs->setLayoutAll();
+      }
 
-      enableStyleWidget(Sid::spreadSystem, checked);
-      enableStyleWidget(Sid::spreadSquareBracket, checked);
-      enableStyleWidget(Sid::spreadCurlyBracket, checked);
-      enableStyleWidget(Sid::maxSystemSpread, checked);
-      enableStyleWidget(Sid::minStaffSpread, checked);
-      enableStyleWidget(Sid::maxStaffSpread, checked);
-      enableStyleWidget(Sid::maxAkkoladeDistance, checked);
+//---------------------------------------------------------
+//   disableVerticalSpreadClicked
+//---------------------------------------------------------
+
+void EditStyle::disableVerticalSpreadClicked(bool checked)
+      {
+      cs->style().set(Sid::enableVerticalSpread, !checked);
+      enableVerticalSpread->setChecked(!checked);
+      cs->setLayoutAll();
       }
 
 //---------------------------------------------------------
@@ -1772,4 +1793,3 @@ void EditStyle::resetUserStyleName()
       }
 
 } //namespace Ms
-
