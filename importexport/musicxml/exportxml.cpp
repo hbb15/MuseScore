@@ -96,7 +96,7 @@
 #include "libmscore/fret.h"
 #include "libmscore/tie.h"
 #include "libmscore/undo.h"
-#include "libmscore/textline.h"
+#include "libmscore/textlinebase.h"
 #include "libmscore/fermata.h"
 #include "libmscore/textframe.h"
 #include "libmscore/instrchange.h"
@@ -1930,6 +1930,10 @@ void ExportMusicXml::timesig(TimeSig* tsig)
             tagName += " symbol=\"common\"";
       else if (st == TimeSigType::ALLA_BREVE)
             tagName += " symbol=\"cut\"";
+      else if (st == TimeSigType::CUT_BACH)
+            tagName += " symbol=\"cut2\"";
+      else if (st == TimeSigType::CUT_TRIPLE)
+            tagName += " symbol=\"cut3\"";
       if (!tsig->visible())
             tagName += " print-object=\"no\"";
       tagName += color2xml(tsig);
@@ -2390,17 +2394,6 @@ void ExportMusicXml::wavyLineStartStop(const ChordRest* const cr, Notations& not
       }
 
 //---------------------------------------------------------
-//   hasBreathMark - determine if chord has breath-mark
-//---------------------------------------------------------
-
-static Breath* hasBreathMark(Chord* ch)
-      {
-      Fraction tick = ch->tick() + ch->actualTicks();
-      Segment* s = ch->measure()->findSegment(SegmentType::Breath, tick);
-      return s ? toBreath(s->element(ch->track())) : 0;
-      }
-
-//---------------------------------------------------------
 //   tremoloSingleStartStop
 //---------------------------------------------------------
 
@@ -2710,7 +2703,7 @@ void ExportMusicXml::chordAttributes(Chord* chord, Notations& notations, Technic
                   }
             }
 
-      if (Breath* b = hasBreathMark(chord)) {
+      if (Breath* b = chord->hasBreathMark()) {
             notations.tag(_xml);
             articulations.tag(_xml);
             _xml.tagE(b->isCaesura() ? "caesura" : "breath-mark");
@@ -3546,6 +3539,14 @@ void ExportMusicXml::rest(Rest* rest, int staff)
                   fl.push_back(e);
             }
       fermatas(fl, _xml, notations);
+
+      Articulations articulations;
+      if (Breath* b = rest->hasBreathMark()) {
+            notations.tag(_xml);
+            articulations.tag(_xml);
+            _xml.tagE(b->isCaesura() ? "caesura" : "breath-mark");
+            }
+      articulations.etag(_xml);
 
       Ornaments ornaments;
       wavyLineStartStop(rest, notations, ornaments, _trillStart, _trillStop);
@@ -5131,7 +5132,7 @@ static void spannerStart(ExportMusicXml* exp, int strack, int etrack, int track,
                                     exp->pedal(toPedal(e), sstaff, seg->tick());
                                     break;
                               case ElementType::TEXTLINE:
-                                    exp->textLine(toTextLine(e), sstaff, seg->tick());
+                                    exp->textLine(toTextLineBase(e), sstaff, seg->tick());
                                     break;
                               case ElementType::LET_RING:
                                     exp->textLine(toLetRing(e), sstaff, seg->tick());
@@ -5185,7 +5186,7 @@ static void spannerStop(ExportMusicXml* exp, int strack, int etrack, const Fract
                               exp->pedal(toPedal(e), sstaff, Fraction(-1,1));
                               break;
                         case ElementType::TEXTLINE:
-                              exp->textLine(toTextLine(e), sstaff, Fraction(-1,1));
+                              exp->textLine(toTextLineBase(e), sstaff, Fraction(-1,1));
                               break;
                         case ElementType::LET_RING:
                               exp->textLine(toLetRing(e), sstaff, Fraction(-1,1));
@@ -5696,7 +5697,7 @@ void ExportMusicXml::findAndExportClef(const Measure* const m, const int staves,
                         clefDebug("exportxml: clef at start measure ti=%d ct=%d gen=%d", tick, int(cle->clefType()), cle->generated());
                         // output only clef changes, not generated clefs at line beginning
                         // exception: at tick=0, export clef anyway
-                        if (tick.isZero() || !cle->generated()) {
+                        if ((tick.isZero() || !cle->generated()) && ((seg->measure() != m) || ((seg->segmentType() == SegmentType::HeaderClef) && !cle->otherClef()))) {
                               clefDebug("exportxml: clef exported");
                               clef(sstaff, cle->clefType(), color2xml(cle));
                               }
@@ -5924,6 +5925,8 @@ void ExportMusicXml::writeElement(Element* el, const Measure* m, int sstaff, boo
                   }
             else if (!el->generated() && tickIsInMiddleOfMeasure(ti, m))
                   clef(sstaff, cle->clefType(), color2xml(cle));
+            else if (!el->generated() && (ti == m->tick()) && (cle->segment()->segmentType() != SegmentType::HeaderClef))
+                  clef(sstaff, cle->clefType(), color2xml(cle) + QString(" after-barline=\"yes\""));
             else
                   clefDebug("exportxml: clef not exported");
             }
@@ -6070,7 +6073,10 @@ void MeasureNumberStateHandler::updateForMeasure(const Measure* const m)
       {
       // restart measure numbering after a section break if startWithMeasureOne is set
       // check the previous MeasureBase instead of Measure to catch breaks in frames too
-      const auto previousMB = m->prev();
+      const MeasureBase* previousMB = m->prev();
+      if (previousMB)
+            previousMB = previousMB->findPotentialSectionBreak();
+
       if (previousMB) {
             const auto layoutSectionBreak = previousMB->sectionBreakElement();
             if (layoutSectionBreak && layoutSectionBreak->startWithMeasureOne())

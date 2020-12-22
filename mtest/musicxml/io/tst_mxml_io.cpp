@@ -74,6 +74,7 @@ private slots:
       void chordDiagrams1() { mxmlIoTest("testChordDiagrams1"); }
       void chordNoVoice() { mxmlIoTestRef("testChordNoVoice"); }
       void clefs1() { mxmlIoTest("testClefs1"); }
+      void clefs2() { mxmlIoTest("testClefs2"); }
       void completeMeasureRests() { mxmlIoTest("testCompleteMeasureRests"); }
       void cueNotes() { mxmlIoTest("testCueNotes"); }
       void cueNotes2() { mxmlMscxExportTestRef("testCueNotes2"); }
@@ -131,6 +132,7 @@ private slots:
       void lyricsVoice2a() { mxmlIoTest("testLyricsVoice2a"); }
       void lyricsVoice2b() { mxmlIoTestRef("testLyricsVoice2b"); }
       void measureLength() { mxmlIoTestRef("testMeasureLength"); }
+      void measureStyleSlash() { mxmlImportTestRef("testMeasureStyleSlash"); }
       void midiPortExport() { mxmlMscxExportTestRef("testMidiPortExport"); }
       void multiInstrumentPart1() { mxmlIoTest("testMultiInstrumentPart1"); }
       void multiInstrumentPart2() { mxmlIoTest("testMultiInstrumentPart2"); }
@@ -186,6 +188,7 @@ private slots:
       void tempo2() { mxmlIoTestRef("testTempo2"); }
       void tempo3() { mxmlIoTestRef("testTempo3"); }
       void tempo4() { mxmlIoTestRef("testTempo4"); }
+      void textLines() { mxmlMscxExportTestRef("testTextLines"); }
       void timesig1() { mxmlIoTest("testTimesig1"); }
       void timesig3() { mxmlIoTest("testTimesig3"); }
       void trackHandling() { mxmlIoTest("testTrackHandling"); }

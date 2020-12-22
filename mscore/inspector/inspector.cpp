@@ -320,14 +320,19 @@ void Inspector::update(Score* s)
                         case ElementType::LAYOUT_BREAK:
                               if (toLayoutBreak(element())->layoutBreakType() == LayoutBreak::Type::SECTION)
                                     ie = new InspectorSectionBreak(this);
+#if 0 // currently empty and such not needed
                               else
                                     ie = new InspectorBreak(this);
+#endif
                               break;
                         case ElementType::BEND:
                               ie = new InspectorBend(this);
                               break;
                         case ElementType::TREMOLO:
-                              ie = new InspectorTremolo(this);
+                              if (toTremolo(element())->customStyleApplicable())
+                                    ie = new InspectorTremolo(this);
+                              else
+                                    ie = new InspectorElement(this);
                               break;
                         case ElementType::TREMOLOBAR:
                               ie = new InspectorTremoloBar(this);
@@ -1063,6 +1068,7 @@ InspectorTremolo::InspectorTremolo(QWidget* parent)
       mapSignals(iiList, ppList);
       }
 
+#if 0 // not needed currently
 //---------------------------------------------------------
 //   setElement
 //---------------------------------------------------------
@@ -1079,6 +1085,7 @@ void InspectorTremolo::setElement()
                   }
             }
       }
+#endif
 
 //---------------------------------------------------------
 //   InspectorClef

@@ -3558,18 +3558,14 @@ static void loadScores(const QStringList& argv)
                   }
             }
       else {
-            foreach(const QString& name, argv) {
+            for(const QString& name : argv) {
                   if (name.isEmpty())
                         continue;
-                  MasterScore* score = mscore->readScore(name);
-                  if (score) {
-                        mscore->appendScore(score);
+
+                  Score* score = mscore->openScore(name);
+
+                  if (score)
                         scoresOnCommandline = true;
-                        if(!MScore::noGui) {
-                              mscore->addRecentScore(score);
-                              mscore->writeSessionFile(false);
-                              }
-                        }
                   }
             }
 
@@ -7305,7 +7301,7 @@ bool MuseScore::saveMp3(Score* score, QIODevice* device, bool& wasCanceled)
                               frames    -= n;
                               }
                         const NPlayEvent& e = playPos->second;
-                        if (!e.discard() && e.isChannelEvent()) {
+                        if (!(!e.velo() && e.discard()) && e.isChannelEvent()) {
                               int channelIdx = e.channel();
                               Channel* c = score->masterScore()->midiMapping(channelIdx)->articulation();
                               if (!c->mute()) {

@@ -1466,9 +1466,15 @@ PalettePanel* MuseScore::newLinesPalettePanel()
 
       TextLine* textLine = new TextLine(gscore);
       textLine->setLen(w);
-      textLine->setBeginText("VII");
+      textLine->setBeginText("Staff");
       textLine->setEndHookType(HookType::HOOK_90);
-      sp->append(textLine, QT_TRANSLATE_NOOP("Palette", "Text line"));
+      sp->append(textLine, QT_TRANSLATE_NOOP("Palette", "Staff Text line"));
+
+      TextLine* systemTextLine = new TextLine(gscore, true);
+      systemTextLine->setLen(w);
+      systemTextLine->setBeginText("System");
+      systemTextLine->setEndHookType(HookType::HOOK_90);
+      sp->append(systemTextLine, QT_TRANSLATE_NOOP("Palette", "System Text line"));
 
       TextLine* line = new TextLine(gscore);
       line->setLen(w);
@@ -1735,11 +1741,13 @@ PalettePanel* MuseScore::newTimePalettePanel()
             { 7,  8, TimeSigType::NORMAL, "7/8" },
             { 9,  8, TimeSigType::NORMAL, "9/8" },
             { 12, 8, TimeSigType::NORMAL, "12/8" },
-            { 4,  4, TimeSigType::FOUR_FOUR,  QT_TRANSLATE_NOOP("Palette", "4/4 common time") },
-            { 2,  2, TimeSigType::ALLA_BREVE, QT_TRANSLATE_NOOP("Palette", "2/2 alla breve") },
+            { 4,  4, TimeSigType::FOUR_FOUR,  QT_TRANSLATE_NOOP("symUserNames", "Common time") },
+            { 2,  2, TimeSigType::ALLA_BREVE, QT_TRANSLATE_NOOP("symUserNames", "Cut time") },
             { 2,  2, TimeSigType::NORMAL, "2/2" },
             { 3,  2, TimeSigType::NORMAL, "3/2" },
             { 4,  2, TimeSigType::NORMAL, "4/2" },
+            { 2,  2, TimeSigType::CUT_BACH, QT_TRANSLATE_NOOP("symUserNames", "Cut time (Bach)") },
+            { 9,  8, TimeSigType::CUT_TRIPLE, QT_TRANSLATE_NOOP("symUserNames", "Cut triple time (9/8)") },
             };
 
       PalettePanel* sp = new PalettePanel(PalettePanel::Type::TimeSig);

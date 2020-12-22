@@ -205,6 +205,8 @@ static const StyleType styleTypes[] {
       { Sid::ledgerLineLength,        "ledgerLineLength",        Spatium(0.35) },     // notehead width + this value
       { Sid::accidentalDistance,      "accidentalDistance",      Spatium(0.22) },
       { Sid::accidentalNoteDistance,  "accidentalNoteDistance",  Spatium(0.25) },
+      { Sid::bracketedAccidentalPadding,  "bracketedAccidentalPadding",  Spatium(0.175) }, // Padding inside parentheses for bracketed accidentals
+      { Sid::alignAccidentalsLeft,    "alignAccidentalsLeft",    QVariant(false) },   // When laid out in columns, whether accidentals align left or right. Musescore <= 3.5 uses left alignment.
 
       { Sid::beamWidth,               "beamWidth",               Spatium(0.5)  },     // was 0.48
       { Sid::beamDistance,            "beamDistance",            QVariant(0.5) },
@@ -614,6 +616,16 @@ static const StyleType styleTypes[] {
       { Sid::textLineFrameFgColor,      "textLineFrameFgColor",       QColor(0, 0, 0, 255) },
       { Sid::textLineFrameBgColor,      "textLineFrameBgColor",       QColor(255, 255, 255, 0) },
 
+      { Sid::systemTextLinePlacement,         "systemTextLinePlacement",         int(Placement::ABOVE)  },
+      { Sid::systemTextLinePosAbove,          "systemTextLinePosAbove",          QPointF(.0, -1.0) },
+      { Sid::systemTextLinePosBelow,          "systemTextLinePosBelow",          QPointF(.0, 1.0) },
+      { Sid::systemTextLineFrameType,         "systemTextLineFrameType",          int(FrameType::NO_FRAME) },
+      { Sid::systemTextLineFramePadding,      "systemTextLineFramePadding",       0.2 },
+      { Sid::systemTextLineFrameWidth,        "systemTextLineFrameWidth",         0.1 },
+      { Sid::systemTextLineFrameRound,        "systemTextLineFrameRound",         0 },
+      { Sid::systemTextLineFrameFgColor,      "systemTextLineFrameFgColor",       QColor(0, 0, 0, 255) },
+      { Sid::systemTextLineFrameBgColor,      "systemTextLineFrameBgColor",       QColor(255, 255, 255, 0) },
+
       { Sid::tremoloBarLineWidth,       "tremoloBarLineWidth",       Spatium(0.12) },
       { Sid::jumpPosAbove,              "jumpPosAbove",              QPointF(.0, -2.0) },
       { Sid::markerPosAbove,            "markerPosAbove",            QPointF(.0, -2.0) },
@@ -669,7 +681,7 @@ static const StyleType styleTypes[] {
       { Sid::subTitleFrameBgColor,          "subTitleFrameBgColor",          QColor(255, 255, 255, 0) },
 
       { Sid::composerFontFace,              "composerFontFace",              "Edwin" },
-      { Sid::composerFontSize,              "composerFontSize",              12.0 },
+      { Sid::composerFontSize,              "composerFontSize",              11.0 },
       { Sid::composerLineSpacing,           "composerLineSpacing",           1.0 },
       { Sid::composerFontSpatiumDependent,  "composerFontSpatiumDependent",  false  },
       { Sid::composerFontStyle,             "composerFontStyle",             int(FontStyle::Normal) },
@@ -685,7 +697,7 @@ static const StyleType styleTypes[] {
       { Sid::composerFrameBgColor,          "composerFrameBgColor",          QColor(255, 255, 255, 0) },
 
       { Sid::lyricistFontFace,              "lyricistFontFace",              "Edwin" },
-      { Sid::lyricistFontSize,              "lyricistFontSize",              12.0 },
+      { Sid::lyricistFontSize,              "lyricistFontSize",              11.0 },
       { Sid::lyricistLineSpacing,           "lyricistLineSpacing",           1.0 },
       { Sid::lyricistFontSpatiumDependent,  "lyricistFontSpatiumDependent",  false  },
       { Sid::lyricistFontStyle,             "lyricistFontStyle",             int(FontStyle::Normal) },
@@ -761,7 +773,7 @@ static const StyleType styleTypes[] {
       { Sid::stringNumberOffset,            "stringNumberOffset",            QPointF(0.0, 0.0) },
 
       { Sid::longInstrumentFontFace,        "longInstrumentFontFace",       "Edwin" },
-      { Sid::longInstrumentFontSize,        "longInstrumentFontSize",       12.0 },
+      { Sid::longInstrumentFontSize,        "longInstrumentFontSize",       10.0 },
       { Sid::longInstrumentLineSpacing,     "longInstrumentLineSpacing",    1.0 },
       { Sid::longInstrumentFontSpatiumDependent, "longInstrumentFontSpatiumDependent", true },
       { Sid::longInstrumentFontStyle,       "longInstrumentFontStyle",      int(FontStyle::Normal) },
@@ -776,7 +788,7 @@ static const StyleType styleTypes[] {
       { Sid::longInstrumentFrameBgColor,    "longInstrumentFrameBgColor",   QColor(255, 255, 255, 0) },
 
       { Sid::shortInstrumentFontFace,       "shortInstrumentFontFace",      "Edwin" },
-      { Sid::shortInstrumentFontSize,       "shortInstrumentFontSize",      12.0 },
+      { Sid::shortInstrumentFontSize,       "shortInstrumentFontSize",      10.0 },
       { Sid::shortInstrumentLineSpacing,    "shortInstrumentLineSpacing",   1.0 },
       { Sid::shortInstrumentFontSpatiumDependent, "shortInstrumentFontSpatiumDependent", true },
       { Sid::shortInstrumentFontStyle,      "shortInstrumentFontStyle",     int(FontStyle::Normal) },
@@ -791,7 +803,7 @@ static const StyleType styleTypes[] {
       { Sid::shortInstrumentFrameBgColor,   "shortInstrumentFrameBgColor",  QColor(255, 255, 255, 0) },
 
       { Sid::partInstrumentFontFace,        "partInstrumentFontFace",       "Edwin" },
-      { Sid::partInstrumentFontSize,        "partInstrumentFontSize",       18.0 },
+      { Sid::partInstrumentFontSize,        "partInstrumentFontSize",       14.0 },
       { Sid::partInstrumentLineSpacing,     "partInstrumentLineSpacing",    1.0 },
       { Sid::partInstrumentFontSpatiumDependent, "partInstrumentFontSpatiumDependent", false },
       { Sid::partInstrumentFontStyle,       "partInstrumentFontStyle",      int(FontStyle::Normal) },
@@ -820,7 +832,7 @@ static const StyleType styleTypes[] {
       { Sid::dynamicsFrameBgColor,          "dynamicsFrameBgColor",         QColor(255, 255, 255, 0) },
 
       { Sid::expressionFontFace,            "expressionFontFace",           "Edwin" },
-      { Sid::expressionFontSize,            "expressionFontSize",           11.0 },
+      { Sid::expressionFontSize,            "expressionFontSize",           10.0 },
       { Sid::expressionLineSpacing,         "expressionLineSpacing",        1.0 },
       { Sid::expressionFontSpatiumDependent, "expressionFontSpatiumDependent", true },
       { Sid::expressionFontStyle,           "expressionFontStyle",          int(FontStyle::Italic) },
@@ -1027,12 +1039,21 @@ static const StyleType styleTypes[] {
       { Sid::frameFrameBgColor,             "frameFrameBgColor",            QColor(255, 255, 255, 0) },
 
       { Sid::textLineFontFace,              "textLineFontFace",             "Edwin" },
-      { Sid::textLineFontSize,              "textLineFontSize",             12.0 },
+      { Sid::textLineFontSize,              "textLineFontSize",             10.0 },
       { Sid::textLineLineSpacing,           "textLineLineSpacing",          1.0 },
       { Sid::textLineFontSpatiumDependent,  "textLineFontSpatiumDependent", true },
       { Sid::textLineFontStyle,             "textLineFontStyle",            int(FontStyle::Normal) },
       { Sid::textLineColor,                 "textLineColor",                QColor(0, 0, 0, 255) },
       { Sid::textLineTextAlign,             "textLineTextAlign",            QVariant::fromValue(Align::LEFT | Align::VCENTER) },
+      { Sid::textLineSystemFlag,            "textLineSystemFlag",           false },
+
+      { Sid::systemTextLineFontFace,              "systemTextLineFontFace",             "Edwin" },
+      { Sid::systemTextLineFontSize,              "systemTextLineFontSize",             12.0 },
+      { Sid::systemTextLineFontSpatiumDependent,  "systemTextLineFontSpatiumDependent", true },
+      { Sid::systemTextLineFontStyle,             "systemTextLineFontStyle",            int(FontStyle::Normal) },
+      { Sid::systemTextLineColor,                 "systemTextLineColor",                QColor(0, 0, 0, 255) },
+      { Sid::systemTextLineTextAlign,             "systemTextLineTextAlign",            QVariant::fromValue(Align::LEFT | Align::VCENTER) },
+      { Sid::systemTextLineSystemFlag,            "systemTextLineSystemFlag",           true },
 
       { Sid::glissandoFontFace,             "glissandoFontFace",            "Edwin" },
       { Sid::glissandoFontSize,             "glissandoFontSize",            QVariant(8.0) },
@@ -1408,6 +1429,7 @@ static const StyleType styleTypes[] {
       { Sid::pedalMinDistance,              "pedalMinDistance",              Spatium(0.7)  },
       { Sid::repeatMinDistance,             "repeatMinDistance",             Spatium(0.5)  },
       { Sid::textLineMinDistance,           "textLineMinDistance",           Spatium(0.7)  },
+      { Sid::systemTextLineMinDistance,     "systemTextLineMinDistance",     Spatium(0.7)  },
       { Sid::trillMinDistance,              "trillMinDistance",              Spatium(0.5)  },
       { Sid::vibratoMinDistance,            "vibratoMinDistance",            Spatium(1.0)  },
       { Sid::voltaMinDistance,              "voltaMinDistance",              Spatium(1.0)  },
@@ -2454,61 +2476,61 @@ struct TextStyleName {
       Tid tid;
       };
 
+// Must be in sync with Tid enum (in types.h)
+
 static constexpr std::array<TextStyleName, int(Tid::TEXT_STYLES)> textStyles { {
       { QT_TRANSLATE_NOOP("TextStyle", "Default"),                 &defaultTextStyle,           Tid::DEFAULT },
+// Page-orientde styles
       { QT_TRANSLATE_NOOP("TextStyle", "Title"),                   &titleTextStyle,             Tid::TITLE },
       { QT_TRANSLATE_NOOP("TextStyle", "Subtitle"),                &subTitleTextStyle,          Tid::SUBTITLE },
       { QT_TRANSLATE_NOOP("TextStyle", "Composer"),                &composerTextStyle,          Tid::COMPOSER },
       { QT_TRANSLATE_NOOP("TextStyle", "Lyricist"),                &lyricistTextStyle,          Tid::POET },
-
-      { QT_TRANSLATE_NOOP("TextStyle", "Lyrics Odd Lines"),        &lyricsOddTextStyle,         Tid::LYRICS_ODD },
-      { QT_TRANSLATE_NOOP("TextStyle", "Lyrics Even Lines"),       &lyricsEvenTextStyle,        Tid::LYRICS_EVEN },
-      { QT_TRANSLATE_NOOP("TextStyle", "Fingering"),               &fingeringTextStyle,         Tid::FINGERING },
-      { QT_TRANSLATE_NOOP("TextStyle", "LH Guitar Fingering"),     &lhGuitarFingeringTextStyle, Tid::LH_GUITAR_FINGERING },
-      { QT_TRANSLATE_NOOP("TextStyle", "RH Guitar Fingering"),     &rhGuitarFingeringTextStyle, Tid::RH_GUITAR_FINGERING },
-      { QT_TRANSLATE_NOOP("TextStyle", "String Number"),           &stringNumberTextStyle,      Tid::STRING_NUMBER },
-
+      { QT_TRANSLATE_NOOP("TextStyle", "Translator"),              &translatorTextStyle,        Tid::TRANSLATOR },
+      { QT_TRANSLATE_NOOP("TextStyle", "Frame"),                   &frameTextStyle,             Tid::FRAME },
+      { QT_TRANSLATE_NOOP("TextStyle", "Instrument Name (Part)"),  &partInstrumentTextStyle,    Tid::INSTRUMENT_EXCERPT },
       { QT_TRANSLATE_NOOP("TextStyle", "Instrument Name (Long)"),  &longInstrumentTextStyle,    Tid::INSTRUMENT_LONG },
       { QT_TRANSLATE_NOOP("TextStyle", "Instrument Name (Short)"), &shortInstrumentTextStyle,   Tid::INSTRUMENT_SHORT },
-      { QT_TRANSLATE_NOOP("TextStyle", "Instrument Name (Part)"),  &partInstrumentTextStyle,    Tid::INSTRUMENT_EXCERPT },
-      { QT_TRANSLATE_NOOP("TextStyle", "Dynamics"),                &dynamicsTextStyle,          Tid::DYNAMICS },
-      { QT_TRANSLATE_NOOP("TextStyle", "Expression"),              &expressionTextStyle,        Tid::EXPRESSION },
-
-      { QT_TRANSLATE_NOOP("TextStyle", "Tempo"),                   &tempoTextStyle,             Tid::TEMPO },
-      { QT_TRANSLATE_NOOP("TextStyle", "Metronome"),               &metronomeTextStyle,         Tid::METRONOME },
+      { QT_TRANSLATE_NOOP("TextStyle", "Instrument Change"),       &instrumentChangeTextStyle,  Tid::INSTRUMENT_CHANGE },
+      { QT_TRANSLATE_NOOP("TextStyle", "Header"),                  &headerTextStyle,            Tid::HEADER },
+      { QT_TRANSLATE_NOOP("TextStyle", "Footer"),                  &footerTextStyle,            Tid::FOOTER },
+// Measure-oriented styles
       { QT_TRANSLATE_NOOP("TextStyle", "Measure Number"),          &measureNumberTextStyle,     Tid::MEASURE_NUMBER },
       { QT_TRANSLATE_NOOP("TextStyle", "Multi-Measure Rest Range"), &mmRestRangeTextStyle,      Tid::MMREST_RANGE },
-      { QT_TRANSLATE_NOOP("TextStyle", "Translator"),              &translatorTextStyle,        Tid::TRANSLATOR },
-      { QT_TRANSLATE_NOOP("TextStyle", "Tuplet"),                  &tupletTextStyle,            Tid::TUPLET },
-
+// Sytem-level styles
+      { QT_TRANSLATE_NOOP("TextStyle", "Tempo"),                   &tempoTextStyle,             Tid::TEMPO },
+      { QT_TRANSLATE_NOOP("TextStyle", "Metronome"),               &metronomeTextStyle,         Tid::METRONOME },
+      { QT_TRANSLATE_NOOP("TextStyle", "Repeat Text Left"),        &repeatLeftTextStyle,        Tid::REPEAT_LEFT },
+      { QT_TRANSLATE_NOOP("TextStyle", "Repeat Text Right"),       &repeatRightTextStyle,       Tid::REPEAT_RIGHT },
+      { QT_TRANSLATE_NOOP("TextStyle", "Rehearsal Mark"),          &rehearsalMarkTextStyle,     Tid::REHEARSAL_MARK },
       { QT_TRANSLATE_NOOP("TextStyle", "System"),                  &systemTextStyle,            Tid::SYSTEM },
+// Staff oriented styles
       { QT_TRANSLATE_NOOP("TextStyle", "Staff"),                   &staffTextStyle,             Tid::STAFF },
+      { QT_TRANSLATE_NOOP("TextStyle", "Expression"),              &expressionTextStyle,        Tid::EXPRESSION },
+      { QT_TRANSLATE_NOOP("TextStyle", "Dynamics"),                &dynamicsTextStyle,          Tid::DYNAMICS },
+      { QT_TRANSLATE_NOOP("TextStyle", "Hairpin"),                 &hairpinTextStyle,           Tid::HAIRPIN },
+      { QT_TRANSLATE_NOOP("TextStyle", "Lyrics Odd Lines"),        &lyricsOddTextStyle,         Tid::LYRICS_ODD },
+      { QT_TRANSLATE_NOOP("TextStyle", "Lyrics Even Lines"),       &lyricsEvenTextStyle,        Tid::LYRICS_EVEN },
       { QT_TRANSLATE_NOOP("TextStyle", "Chord Symbol"),            &chordSymbolTextStyleA,      Tid::HARMONY_A },
       { QT_TRANSLATE_NOOP("TextStyle", "Chord Symbol (Alternate)"),&chordSymbolTextStyleB,      Tid::HARMONY_B },
       { QT_TRANSLATE_NOOP("TextStyle", "Roman Numeral Analysis"),  &romanNumeralTextStyle,      Tid::HARMONY_ROMAN },
       { QT_TRANSLATE_NOOP("TextStyle", "Nashville Number"),        &nashvilleNumberTextStyle,   Tid::HARMONY_NASHVILLE },
-      { QT_TRANSLATE_NOOP("TextStyle", "Rehearsal Mark"),          &rehearsalMarkTextStyle,     Tid::REHEARSAL_MARK },
-
-      { QT_TRANSLATE_NOOP("TextStyle", "Repeat Text Left"),        &repeatLeftTextStyle,        Tid::REPEAT_LEFT },
-      { QT_TRANSLATE_NOOP("TextStyle", "Repeat Text Right"),       &repeatRightTextStyle,       Tid::REPEAT_RIGHT },
-      { QT_TRANSLATE_NOOP("TextStyle", "Frame"),                   &frameTextStyle,             Tid::FRAME },
+// Note oriented styles
+      { QT_TRANSLATE_NOOP("TextStyle", "Tuplet"),                  &tupletTextStyle,            Tid::TUPLET },
+      { QT_TRANSLATE_NOOP("TextStyle", "Sticking"),                &stickingTextStyle,          Tid::STICKING },
+      { QT_TRANSLATE_NOOP("TextStyle", "Fingering"),               &fingeringTextStyle,         Tid::FINGERING },
+      { QT_TRANSLATE_NOOP("TextStyle", "LH Guitar Fingering"),     &lhGuitarFingeringTextStyle, Tid::LH_GUITAR_FINGERING },
+      { QT_TRANSLATE_NOOP("TextStyle", "RH Guitar Fingering"),     &rhGuitarFingeringTextStyle, Tid::RH_GUITAR_FINGERING },
+      { QT_TRANSLATE_NOOP("TextStyle", "String Number"),           &stringNumberTextStyle,      Tid::STRING_NUMBER },
+// Line-oriented styles
       { QT_TRANSLATE_NOOP("TextStyle", "Text Line"),               &textLineTextStyle,          Tid::TEXTLINE },
-      { QT_TRANSLATE_NOOP("TextStyle", "Glissando"),               &glissandoTextStyle,         Tid::GLISSANDO },
-
-      { QT_TRANSLATE_NOOP("TextStyle", "Ottava"),                  &ottavaTextStyle,            Tid::OTTAVA },
       { QT_TRANSLATE_NOOP("TextStyle", "Volta"),                   &voltaTextStyle,             Tid::VOLTA },
+      { QT_TRANSLATE_NOOP("TextStyle", "Ottava"),                  &ottavaTextStyle,            Tid::OTTAVA },
+      { QT_TRANSLATE_NOOP("TextStyle", "Glissando"),               &glissandoTextStyle,         Tid::GLISSANDO },
       { QT_TRANSLATE_NOOP("TextStyle", "Pedal"),                   &pedalTextStyle,             Tid::PEDAL },
+      { QT_TRANSLATE_NOOP("TextStyle", "Bend"),                    &bendTextStyle,              Tid::BEND },
       { QT_TRANSLATE_NOOP("TextStyle", "Let Ring"),                &letRingTextStyle,           Tid::LET_RING },
       { QT_TRANSLATE_NOOP("TextStyle", "Palm Mute"),               &palmMuteTextStyle,          Tid::PALM_MUTE },
-
-      { QT_TRANSLATE_NOOP("TextStyle", "Hairpin"),                 &hairpinTextStyle,           Tid::HAIRPIN },
-      { QT_TRANSLATE_NOOP("TextStyle", "Bend"),                    &bendTextStyle,              Tid::BEND },
-      { QT_TRANSLATE_NOOP("TextStyle", "Header"),                  &headerTextStyle,            Tid::HEADER },
-      { QT_TRANSLATE_NOOP("TextStyle", "Footer"),                  &footerTextStyle,            Tid::FOOTER },
-      { QT_TRANSLATE_NOOP("TextStyle", "Instrument Change"),       &instrumentChangeTextStyle,  Tid::INSTRUMENT_CHANGE },
-
-      { QT_TRANSLATE_NOOP("TextStyle", "Sticking"),                &stickingTextStyle,          Tid::STICKING },
-
+// User styles
       { QT_TRANSLATE_NOOP("TextStyle", "User-1"),                  &user1TextStyle,             Tid::USER1 },
       { QT_TRANSLATE_NOOP("TextStyle", "User-2"),                  &user2TextStyle,             Tid::USER2 },
       { QT_TRANSLATE_NOOP("TextStyle", "User-3"),                  &user3TextStyle,             Tid::USER3 },
@@ -2589,21 +2611,21 @@ static const std::vector<Tid> _primaryTextStyles = {
       Tid::POET,
       Tid::TRANSLATOR,
       Tid::FRAME,
+      Tid::INSTRUMENT_EXCERPT,
+      Tid::INSTRUMENT_CHANGE,
       Tid::HEADER,
       Tid::FOOTER,
       Tid::MEASURE_NUMBER,
       Tid::MMREST_RANGE,
-      Tid::INSTRUMENT_EXCERPT,
-      Tid::INSTRUMENT_CHANGE,
-      Tid::STAFF,
+      Tid::TEMPO,
+      Tid::REPEAT_LEFT,
+      Tid::REPEAT_RIGHT,
+      Tid::REHEARSAL_MARK,
       Tid::SYSTEM,
+      Tid::STAFF,
       Tid::EXPRESSION,
       Tid::DYNAMICS,
       Tid::HAIRPIN,
-      Tid::TEMPO,
-      Tid::REHEARSAL_MARK,
-      Tid::REPEAT_LEFT,
-      Tid::REPEAT_RIGHT,
       Tid::LYRICS_ODD,
       Tid::LYRICS_EVEN,
       Tid::HARMONY_A,

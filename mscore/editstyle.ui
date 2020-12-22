@@ -173,6 +173,11 @@
       </item>
       <item>
        <property name="text">
+        <string>System Text Line</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Articulations, Ornaments</string>
        </property>
       </item>
@@ -509,6 +514,9 @@
                   <property name="text">
                    <string>Vertical position of number:</string>
                   </property>
+                  <property name="buddy">
+                   <cstring>mmRestNumberPos</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item row="2" column="1">
@@ -568,6 +576,9 @@
                 </property>
                 <property name="text">
                  <string>First system indentation value:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>indentationValue</cstring>
                 </property>
                </widget>
               </item>
@@ -1333,6 +1344,9 @@
                 <property name="text">
                  <string>Min. system distance</string>
                 </property>
+                <property name="buddy">
+                 <cstring>minSystemSpread</cstring>
+                </property>
                </widget>
               </item>
               <item row="0" column="4">
@@ -1536,7 +1550,7 @@
                  <string>Max. staff distance:</string>
                 </property>
                 <property name="buddy">
-                 <cstring>maxAkkoladeDistance</cstring>
+                 <cstring>maxStaffSpread</cstring>
                 </property>
                </widget>
               </item>
@@ -1648,6 +1662,9 @@
                 <property name="text">
                  <string>Max. grand staff distance:</string>
                 </property>
+                <property name="buddy">
+                 <cstring>maxAkkoladeDistance</cstring>
+                </property>
                </widget>
               </item>
               <item row="4" column="4">
@@ -1684,6 +1701,9 @@
                <widget class="QLabel" name="label_161">
                 <property name="text">
                  <string>Max. page fill distance:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>maxPageFillSpread</cstring>
                 </property>
                </widget>
               </item>
@@ -1993,91 +2013,7 @@
            <string>Sizes</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_27">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_38">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Small staff size:</string>
-             </property>
-             <property name="buddy">
-              <cstring>smallStaffSize</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QSpinBox" name="smallStaffSize">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string notr="true">%</string>
-             </property>
-             <property name="minimum">
-              <number>10</number>
-             </property>
-             <property name="maximum">
-              <number>200</number>
-             </property>
-             <property name="value">
-              <number>70</number>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QToolButton" name="resetSmallStaffSize">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Small staff size' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <spacer name="horizontalSpacer_24">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_44">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Small note size:</string>
-             </property>
-             <property name="buddy">
-              <cstring>smallNoteSize</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
+           <item row="1" column="1" colspan="2">
             <widget class="QSpinBox" name="smallNoteSize">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -2099,61 +2035,7 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_39">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Grace note size:</string>
-             </property>
-             <property name="buddy">
-              <cstring>graceNoteSize</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QSpinBox" name="graceNoteSize">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string notr="true">%</string>
-             </property>
-             <property name="minimum">
-              <number>10</number>
-             </property>
-             <property name="maximum">
-              <number>200</number>
-             </property>
-             <property name="value">
-              <number>70</number>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_45">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Small clef size:</string>
-             </property>
-             <property name="buddy">
-              <cstring>smallClefSize</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
+           <item row="3" column="1" rowspan="2" colspan="2">
             <widget class="QSpinBox" name="smallClefSize">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -2175,24 +2057,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="2">
-            <widget class="QToolButton" name="resetSmallNoteSize">
-             <property name="toolTip">
-              <string>Reset to default</string>
-             </property>
-             <property name="accessibleName">
-              <string>Reset 'Small note size' value</string>
-             </property>
-             <property name="text">
-              <string notr="true"/>
-             </property>
-             <property name="icon">
-              <iconset resource="musescore.qrc">
-               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
+           <item row="2" column="3" colspan="2">
             <widget class="QToolButton" name="resetGraceNoteSize">
              <property name="toolTip">
               <string>Reset to default</string>
@@ -2209,7 +2074,7 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="2">
+           <item row="3" column="3">
             <widget class="QToolButton" name="resetSmallClefSize">
              <property name="toolTip">
               <string>Reset to default</string>
@@ -2223,6 +2088,161 @@
              <property name="icon">
               <iconset resource="musescore.qrc">
                <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1" colspan="2">
+            <widget class="QSpinBox" name="graceNoteSize">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string notr="true">%</string>
+             </property>
+             <property name="minimum">
+              <number>10</number>
+             </property>
+             <property name="maximum">
+              <number>200</number>
+             </property>
+             <property name="value">
+              <number>70</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_44">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Small note size:</string>
+             </property>
+             <property name="buddy">
+              <cstring>smallNoteSize</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3" colspan="2">
+            <widget class="QToolButton" name="resetSmallNoteSize">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Small note size' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_39">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Grace note size:</string>
+             </property>
+             <property name="buddy">
+              <cstring>graceNoteSize</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="5">
+            <spacer name="horizontalSpacer_24">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_38">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Small staff size:</string>
+             </property>
+             <property name="buddy">
+              <cstring>smallStaffSize</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3" colspan="2">
+            <widget class="QToolButton" name="resetSmallStaffSize">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Small staff size' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" rowspan="2">
+            <widget class="QLabel" name="label_45">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Small clef size:</string>
+             </property>
+             <property name="buddy">
+              <cstring>smallClefSize</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="2">
+            <widget class="QSpinBox" name="smallStaffSize">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string notr="true">%</string>
+             </property>
+             <property name="minimum">
+              <number>10</number>
+             </property>
+             <property name="maximum">
+              <number>200</number>
+             </property>
+             <property name="value">
+              <number>70</number>
              </property>
             </widget>
            </item>
@@ -2911,6 +2931,9 @@
              <property name="text">
               <string>Horizontal placement:</string>
              </property>
+             <property name="buddy">
+              <cstring>measureNumberHPlacement</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="4" colspan="2">
@@ -2952,6 +2975,9 @@
              <property name="text">
               <string>Vertical placement:</string>
              </property>
+             <property name="buddy">
+              <cstring>measureNumberVPlacement</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="6">
@@ -2983,6 +3009,9 @@
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="buddy">
+              <cstring>measureNumberPosAbove</cstring>
              </property>
             </widget>
            </item>
@@ -3019,6 +3048,9 @@
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="buddy">
+              <cstring>measureNumberPosBelow</cstring>
              </property>
             </widget>
            </item>
@@ -3090,6 +3122,9 @@
              <property name="text">
               <string>Vertical placement</string>
              </property>
+             <property name="buddy">
+              <cstring>mmRestRangeVPlacement</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="1">
@@ -3112,12 +3147,18 @@
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
              </property>
+             <property name="buddy">
+              <cstring>mmRestRangePosAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="0">
             <widget class="QLabel" name="label_164">
              <property name="text">
               <string>Bracket type</string>
+             </property>
+             <property name="buddy">
+              <cstring>mmRestRangeBracketType</cstring>
              </property>
             </widget>
            </item>
@@ -3147,6 +3188,9 @@
              <property name="text">
               <string>Horizontal placement</string>
              </property>
+             <property name="buddy">
+              <cstring>mmRestRangeHPlacement</cstring>
+             </property>
             </widget>
            </item>
            <item row="2" column="2">
@@ -3170,6 +3214,9 @@
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="buddy">
+              <cstring>mmRestRangePosBelow</cstring>
              </property>
             </widget>
            </item>
@@ -3316,6 +3363,9 @@
              <property name="text">
               <string>Brace thickness:</string>
              </property>
+             <property name="buddy">
+              <cstring>akkoladeWidth</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="3">
@@ -3341,6 +3391,9 @@
             <widget class="QLabel" name="braceDistanceLabel">
              <property name="text">
               <string>Brace distance:</string>
+             </property>
+             <property name="buddy">
+              <cstring>akkoladeBarDistance</cstring>
              </property>
             </widget>
            </item>
@@ -3583,9 +3636,123 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QGroupBox" name="accidentalsGroup">
+         <widget class="QGroupBox" name="groupBox_2">
           <property name="title">
            <string>Accidentals</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_51">
+           <item row="1" column="2" rowspan="2">
+            <widget class="QDoubleSpinBox" name="accidentalsBracketsBadding">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="accessibleName">
+              <string>Double spin box for padding inside parentheses around accidentals</string>
+             </property>
+             <property name="suffix">
+              <string>sp</string>
+             </property>
+             <property name="decimals">
+              <number>3</number>
+             </property>
+             <property name="minimum">
+              <double>-10.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>10.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="4" rowspan="2">
+            <widget class="QToolButton" name="resetAccidentalsBracketPadding">
+             <property name="toolTip">
+              <string>Reset to padding inside parentheses to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'padding inside parentheses for bracketed accidentals' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" rowspan="2" colspan="2">
+            <widget class="QLabel" name="label_147">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Bracketed accidentals have a margin between the accidental and the brackets.</string>
+             </property>
+             <property name="text">
+              <string>Padding inside parentheses</string>
+             </property>
+             <property name="buddy">
+              <cstring>accidentalsBracketsBadding</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="6" rowspan="2">
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="accidentalsOctaveColumnsAlignLeft">
+             <property name="toolTip">
+              <string>When a chord has accidentals octave apart, these will be placed in the same columns. However, sometimes one of these accidentals can be larger than another, causing thus moving the others. 
+By default, they will be placed such as that their right end are at the same level. Use this checkbox to override this behaviour.</string>
+             </property>
+             <property name="text">
+              <string>Align octaves left</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QToolButton" name="resetAccidentalsOctaveColumnsAlignLeft">
+             <property name="toolTip">
+              <string>Reset to padding inside parentheses to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'align accidentals left in columns' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="accidentalsGroup">
+          <property name="title">
+           <string>Tuning</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_31">
            <item>
@@ -4546,6 +4713,9 @@
              <property name="text">
               <string>Double barline thickness:</string>
              </property>
+             <property name="buddy">
+              <cstring>doubleBarWidth</cstring>
+             </property>
             </widget>
            </item>
            <item row="4" column="1">
@@ -4596,6 +4766,9 @@
             <widget class="QLabel" name="label_82">
              <property name="text">
               <string>Thin barline thickness:</string>
+             </property>
+             <property name="buddy">
+              <cstring>barWidth</cstring>
              </property>
             </widget>
            </item>
@@ -4725,6 +4898,9 @@
              <property name="text">
               <string>Thick barline distance:</string>
              </property>
+             <property name="buddy">
+              <cstring>endBarDistance</cstring>
+             </property>
             </widget>
            </item>
            <item row="3" column="0" colspan="2">
@@ -4817,6 +4993,9 @@
              <property name="text">
               <string>Thick barline thickness:</string>
              </property>
+             <property name="buddy">
+              <cstring>endBarWidth</cstring>
+             </property>
             </widget>
            </item>
            <item row="9" column="0">
@@ -4824,12 +5003,18 @@
              <property name="text">
               <string>Repeat barline to dots distance:</string>
              </property>
+             <property name="buddy">
+              <cstring>repeatBarlineDotSeparation</cstring>
+             </property>
             </widget>
            </item>
            <item row="8" column="0">
             <widget class="QLabel" name="label_86">
              <property name="text">
               <string>Double barline distance:</string>
+             </property>
+             <property name="buddy">
+              <cstring>doubleBarDistance</cstring>
              </property>
             </widget>
            </item>
@@ -5224,6 +5409,9 @@
             <widget class="QLabel" name="label_57">
              <property name="text">
               <string>Beam distance (relative to beam thickness):</string>
+             </property>
+             <property name="buddy">
+              <cstring>beamDistance</cstring>
              </property>
             </widget>
            </item>
@@ -5775,6 +5963,9 @@
                 <property name="text">
                  <string comment="Tuplet bracket">Bracket hook height:</string>
                 </property>
+                <property name="buddy">
+                 <cstring>tupletBracketHookHeight</cstring>
+                </property>
                </widget>
               </item>
               <item row="0" column="1">
@@ -6222,6 +6413,9 @@
              <property name="text">
               <string>Autoplace min. distance:</string>
              </property>
+             <property name="buddy">
+              <cstring>slurMinDistance</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="0">
@@ -6464,6 +6658,9 @@
              <property name="text">
               <string>Position above:</string>
              </property>
+             <property name="buddy">
+              <cstring>hairpinPosAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="2">
@@ -6639,6 +6836,9 @@
             <widget class="QLabel" name="label_129">
              <property name="text">
               <string>Position below:</string>
+             </property>
+             <property name="buddy">
+              <cstring>hairpinPosBelow</cstring>
              </property>
             </widget>
            </item>
@@ -6890,6 +7090,9 @@
              <property name="text">
               <string>Position:</string>
              </property>
+             <property name="buddy">
+              <cstring>voltaPosAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="2" column="2">
@@ -7072,6 +7275,9 @@
              <property name="text">
               <string>Position below:</string>
              </property>
+             <property name="buddy">
+              <cstring>ottavaPosBelow</cstring>
+             </property>
             </widget>
            </item>
            <item row="6" column="2">
@@ -7144,6 +7350,9 @@
             <widget class="QLabel" name="label_81">
              <property name="text">
               <string>Position above:</string>
+             </property>
+             <property name="buddy">
+              <cstring>ottavaPosAbove</cstring>
              </property>
             </widget>
            </item>
@@ -7229,7 +7438,7 @@
               <string>Hook height below:</string>
              </property>
              <property name="buddy">
-              <cstring>ottavaHookAbove</cstring>
+              <cstring>ottavaHookBelow</cstring>
              </property>
             </widget>
            </item>
@@ -7338,6 +7547,9 @@
             <widget class="QLabel" name="label_96">
              <property name="text">
               <string>Position above:</string>
+             </property>
+             <property name="buddy">
+              <cstring>pedalLinePosAbove</cstring>
              </property>
             </widget>
            </item>
@@ -7474,6 +7686,9 @@
              <property name="text">
               <string>Position below:</string>
              </property>
+             <property name="buddy">
+              <cstring>pedalLinePosBelow</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="1">
@@ -7546,6 +7761,9 @@
             <widget class="QLabel" name="label_97">
              <property name="text">
               <string>Position above:</string>
+             </property>
+             <property name="buddy">
+              <cstring>trillLinePosAbove</cstring>
              </property>
             </widget>
            </item>
@@ -7625,6 +7843,9 @@
              <property name="text">
               <string>Position below:</string>
              </property>
+             <property name="buddy">
+              <cstring>trillLinePosBelow</cstring>
+             </property>
             </widget>
            </item>
            <item row="2" column="2">
@@ -7680,6 +7901,9 @@
             <widget class="QLabel" name="label_971">
              <property name="text">
               <string>Position above:</string>
+             </property>
+             <property name="buddy">
+              <cstring>vibratoLinePosAbove</cstring>
              </property>
             </widget>
            </item>
@@ -7759,6 +7983,9 @@
              <property name="text">
               <string>Position below:</string>
              </property>
+             <property name="buddy">
+              <cstring>vibratoLinePosBelow</cstring>
+             </property>
             </widget>
            </item>
            <item row="2" column="2">
@@ -7833,7 +8060,7 @@
               <string>Line thickness:</string>
              </property>
              <property name="buddy">
-              <cstring>barreLineWidth</cstring>
+              <cstring>bendLineWidth</cstring>
              </property>
             </widget>
            </item>
@@ -7860,7 +8087,7 @@
               <string>Arrow width:</string>
              </property>
              <property name="buddy">
-              <cstring>barreLineWidth</cstring>
+              <cstring>bendArrowWidth</cstring>
              </property>
             </widget>
            </item>
@@ -7952,6 +8179,9 @@
              <property name="text">
               <string>Position below:</string>
              </property>
+             <property name="buddy">
+              <cstring>textLinePosBelow</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="1">
@@ -8013,6 +8243,9 @@
              <property name="text">
               <string>Position above:</string>
              </property>
+             <property name="buddy">
+              <cstring>textLinePosAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="2">
@@ -8066,6 +8299,152 @@
         </item>
         <item>
          <spacer name="verticalSpacer_24">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="PageSystemTextLine">
+       <layout class="QVBoxLayout" name="verticalLayout_54">
+        <item>
+         <widget class="QGroupBox" name="groupBox_46">
+          <property name="title">
+           <string>System Text Line</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_46">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_211">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Position below:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="systemTextLinePlacement">
+             <item>
+              <property name="text">
+               <string notr="true">Above</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string notr="true">Below</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QToolButton" name="resetSystemTextLinePlacement">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Placement' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QToolButton" name="resetSystemTextLinePosBelow">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Position below' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_213">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Position above:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QToolButton" name="resetSystemTextLinePosAbove">
+             <property name="toolTip">
+              <string>Reset to default</string>
+             </property>
+             <property name="accessibleName">
+              <string>Reset 'Position above' value</string>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="musescore.qrc">
+               <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_214">
+             <property name="text">
+              <string>Placement:</string>
+             </property>
+             <property name="buddy">
+              <cstring>textLinePlacement</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <spacer name="horizontalSpacer_47">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="1">
+            <widget class="Ms::OffsetSelect" name="systemTextLinePosAbove" native="true"/>
+           </item>
+           <item row="2" column="1">
+            <widget class="Ms::OffsetSelect" name="systemTextLinePosBelow" native="true"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_34">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -8269,7 +8648,7 @@
               <string>Autoplace min. distance:</string>
              </property>
              <property name="buddy">
-              <cstring>dynamicsMinDistance</cstring>
+              <cstring>fermataMinDistance</cstring>
              </property>
             </widget>
            </item>
@@ -8299,6 +8678,9 @@
             <widget class="QLabel" name="label_168">
              <property name="text">
               <string>Position above:</string>
+             </property>
+             <property name="buddy">
+              <cstring>fermataPosAbove</cstring>
              </property>
             </widget>
            </item>
@@ -8343,6 +8725,9 @@
             <widget class="QLabel" name="label_167">
              <property name="text">
               <string>Position below:</string>
+             </property>
+             <property name="buddy">
+              <cstring>fermataPosBelow</cstring>
              </property>
             </widget>
            </item>
@@ -8438,7 +8823,7 @@
               <string>Placement:</string>
              </property>
              <property name="buddy">
-              <cstring>textLinePlacement</cstring>
+              <cstring>staffTextPlacement</cstring>
              </property>
             </widget>
            </item>
@@ -8446,6 +8831,9 @@
             <widget class="QLabel" name="label_180">
              <property name="text">
               <string>Autoplace min. distance:</string>
+             </property>
+             <property name="buddy">
+              <cstring>staffTextMinDistance</cstring>
              </property>
             </widget>
            </item>
@@ -8522,6 +8910,9 @@
              <property name="text">
               <string>Position below:</string>
              </property>
+             <property name="buddy">
+              <cstring>staffTextPosBelow</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="1">
@@ -8548,6 +8939,9 @@
              </property>
              <property name="text">
               <string>Position above:</string>
+             </property>
+             <property name="buddy">
+              <cstring>staffTextPosAbove</cstring>
              </property>
             </widget>
            </item>
@@ -8599,6 +8993,9 @@
              <property name="text">
               <string>Autoplace min. distance:</string>
              </property>
+             <property name="buddy">
+              <cstring>tempoTextMinDistance</cstring>
+             </property>
             </widget>
            </item>
            <item row="2" column="0">
@@ -8611,6 +9008,9 @@
              </property>
              <property name="text">
               <string>Position below:</string>
+             </property>
+             <property name="buddy">
+              <cstring>tempoTextPosBelow</cstring>
              </property>
             </widget>
            </item>
@@ -8673,6 +9073,9 @@
              <property name="text">
               <string>Position above:</string>
              </property>
+             <property name="buddy">
+              <cstring>tempoTextPosAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="2">
@@ -8698,7 +9101,7 @@
               <string>Placement:</string>
              </property>
              <property name="buddy">
-              <cstring>textLinePlacement</cstring>
+              <cstring>tempoTextPlacement</cstring>
              </property>
             </widget>
            </item>
@@ -8790,6 +9193,9 @@
             <widget class="QLabel" name="label_189">
              <property name="text">
               <string>Dash thickness:</string>
+             </property>
+             <property name="buddy">
+              <cstring>lyricsDashLineThickness</cstring>
              </property>
             </widget>
            </item>
@@ -8990,6 +9396,9 @@
              <property name="text">
               <string>Dash pad:</string>
              </property>
+             <property name="buddy">
+              <cstring>lyricsDashPad</cstring>
+             </property>
             </widget>
            </item>
            <item row="3" column="1">
@@ -9029,6 +9438,9 @@
             <widget class="QLabel" name="label_196">
              <property name="text">
               <string>Dash Y position ratio:</string>
+             </property>
+             <property name="buddy">
+              <cstring>lyricsDashYposRatio</cstring>
              </property>
             </widget>
            </item>
@@ -9086,12 +9498,18 @@
              <property name="text">
               <string>Melisma pad:</string>
              </property>
+             <property name="buddy">
+              <cstring>lyricsMelismaPad</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="0">
             <widget class="QLabel" name="label_80">
              <property name="text">
               <string>Melisma thickness:</string>
+             </property>
+             <property name="buddy">
+              <cstring>lyricsLineThickness</cstring>
              </property>
             </widget>
            </item>
@@ -9365,6 +9783,9 @@
              <property name="text">
               <string>Position below:</string>
              </property>
+             <property name="buddy">
+              <cstring>lyricsPosBelow</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="0">
@@ -9378,12 +9799,18 @@
              <property name="text">
               <string>Position above:</string>
              </property>
+             <property name="buddy">
+              <cstring>lyricsPosAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="label_133">
              <property name="text">
               <string>Line height:</string>
+             </property>
+             <property name="buddy">
+              <cstring>lyricsLineHeight</cstring>
              </property>
             </widget>
            </item>
@@ -9650,12 +10077,18 @@
              <property name="text">
               <string>Position above:</string>
              </property>
+             <property name="buddy">
+              <cstring>dynamicsPosAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_141">
              <property name="text">
               <string>Position below:</string>
+             </property>
+             <property name="buddy">
+              <cstring>dynamicsPosBelow</cstring>
              </property>
             </widget>
            </item>
@@ -9713,6 +10146,9 @@
              <property name="text">
               <string>Autoplace min. distance:</string>
              </property>
+             <property name="buddy">
+              <cstring>rehearsalMarkMinDistance</cstring>
+             </property>
             </widget>
            </item>
            <item row="2" column="0">
@@ -9725,6 +10161,9 @@
              </property>
              <property name="text">
               <string>Position below:</string>
+             </property>
+             <property name="buddy">
+              <cstring>rehearsalMarkPosBelow</cstring>
              </property>
             </widget>
            </item>
@@ -9787,6 +10226,9 @@
              <property name="text">
               <string>Position above:</string>
              </property>
+             <property name="buddy">
+              <cstring>rehearsalMarkPosAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="2">
@@ -9812,7 +10254,7 @@
               <string>Placement:</string>
              </property>
              <property name="buddy">
-              <cstring>textLinePlacement</cstring>
+              <cstring>rehearsalMarkPlacement</cstring>
              </property>
             </widget>
            </item>
@@ -10500,7 +10942,7 @@
             </widget>
            </item>
            <item row="3" column="3">
-            <spacer name="verticalSpacer_34">
+            <spacer name="verticalSpacer_341">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -10523,6 +10965,9 @@
                 <property name="text">
                  <string>Maximum shift below:</string>
                 </property>
+                <property name="buddy">
+                 <cstring>maxChordShiftBelow</cstring>
+                </property>
                </widget>
               </item>
               <item row="3" column="2">
@@ -10542,12 +10987,18 @@
                 <property name="text">
                  <string>Distance to fretboard diagram:</string>
                 </property>
+                <property name="buddy">
+                 <cstring>harmonyFretDist</cstring>
+                </property>
                </widget>
               </item>
               <item row="3" column="0">
                <widget class="QLabel" name="label_123">
                 <property name="text">
                  <string>Maximum shift above:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>maxChordShiftAbove</cstring>
                 </property>
                </widget>
               </item>
@@ -10575,12 +11026,18 @@
                 <property name="text">
                  <string>Minimum chord spacing:</string>
                 </property>
+                <property name="buddy">
+                 <cstring>minHarmonyDistance</cstring>
+                </property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_1002">
                 <property name="text">
                  <string>Maximum barline distance:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>maxHarmonyBarDistance</cstring>
                 </property>
                </widget>
               </item>
@@ -10736,7 +11193,7 @@
           <property name="title">
            <string>Fretboard Diagrams</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_46">
+          <layout class="QGridLayout" name="gridLayout_471">
            <item row="0" column="0">
             <widget class="QLabel" name="label_602">
              <property name="text">
@@ -10895,6 +11352,9 @@
              <property name="text">
               <string>Relative dot size:</string>
              </property>
+             <property name="buddy">
+              <cstring>fretDotSize</cstring>
+             </property>
             </widget>
            </item>
            <item row="4" column="1">
@@ -10920,6 +11380,9 @@
             <widget class="QLabel" name="label_54">
              <property name="text">
               <string>String spacing:</string>
+             </property>
+             <property name="buddy">
+              <cstring>fretStringSpacing</cstring>
              </property>
             </widget>
            </item>
@@ -10950,6 +11413,9 @@
              <property name="text">
               <string>Fret spacing:</string>
              </property>
+             <property name="buddy">
+              <cstring>fretFretSpacing</cstring>
+             </property>
             </widget>
            </item>
            <item row="6" column="1">
@@ -10979,6 +11445,9 @@
              <property name="text">
               <string>Maximum shift above:</string>
              </property>
+             <property name="buddy">
+              <cstring>maxFretShiftAbove</cstring>
+             </property>
             </widget>
            </item>
            <item row="7" column="1">
@@ -11006,6 +11475,9 @@
             <widget class="QLabel" name="label_145">
              <property name="text">
               <string>Maximum shift below:</string>
+             </property>
+             <property name="buddy">
+              <cstring>maxFretShiftBelow</cstring>
              </property>
             </widget>
            </item>
@@ -11073,6 +11545,9 @@
                 <property name="text">
                  <string>Frame:</string>
                 </property>
+                <property name="buddy">
+                 <cstring>textStyleFrameType</cstring>
+                </property>
                </widget>
               </item>
               <item row="0" column="1">
@@ -11134,6 +11609,9 @@
                    <property name="text">
                     <string>Thickness:</string>
                    </property>
+                   <property name="buddy">
+                    <cstring>textStyleFrameBorder</cstring>
+                   </property>
                   </widget>
                  </item>
                  <item row="4" column="1">
@@ -11182,12 +11660,18 @@
                    <property name="text">
                     <string>Margin:</string>
                    </property>
+                   <property name="buddy">
+                    <cstring>textStyleFramePadding</cstring>
+                   </property>
                   </widget>
                  </item>
                  <item row="4" column="0">
                   <widget class="QLabel" name="label_212">
                    <property name="text">
                     <string>Corner radius:</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>textStyleFrameBorderRadius</cstring>
                    </property>
                   </widget>
                  </item>
@@ -11239,12 +11723,18 @@
                    <property name="text">
                     <string>Border:</string>
                    </property>
+                   <property name="buddy">
+                    <cstring>textStyleFrameForeground</cstring>
+                   </property>
                   </widget>
                  </item>
                  <item row="1" column="0">
                   <widget class="QLabel" name="label_204">
                    <property name="text">
                     <string>Highlight:</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>textStyleFrameBackground</cstring>
                    </property>
                   </widget>
                  </item>
@@ -11309,6 +11799,9 @@
              <property name="text">
               <string>Font:</string>
              </property>
+             <property name="buddy">
+              <cstring>textStyleFontFace</cstring>
+             </property>
             </widget>
            </item>
            <item row="8" column="2">
@@ -11350,6 +11843,9 @@
              <property name="text">
               <string>Color:</string>
              </property>
+             <property name="buddy">
+              <cstring>textStyleColor</cstring>
+             </property>
             </widget>
            </item>
            <item row="7" column="1">
@@ -11380,6 +11876,9 @@
              <property name="text">
               <string>Style:</string>
              </property>
+             <property name="buddy">
+              <cstring>textStyleFontStyle</cstring>
+             </property>
             </widget>
            </item>
            <item row="8" column="1">
@@ -11406,6 +11905,9 @@
             <widget class="QLabel" name="label_186">
              <property name="text">
               <string>Offset:</string>
+             </property>
+             <property name="buddy">
+              <cstring>textStyleOffset</cstring>
              </property>
             </widget>
            </item>
@@ -11472,12 +11974,18 @@
              <property name="text">
               <string>Align:</string>
              </property>
+             <property name="buddy">
+              <cstring>textStyleAlign</cstring>
+             </property>
             </widget>
            </item>
            <item row="0" column="0">
             <widget class="QLabel" name="labelStyleName">
              <property name="text">
               <string>Name:</string>
+             </property>
+             <property name="buddy">
+              <cstring>styleName</cstring>
              </property>
             </widget>
            </item>
@@ -11495,6 +12003,9 @@
             <widget class="QLabel" name="label_207">
              <property name="text">
               <string>Size:</string>
+             </property>
+             <property name="buddy">
+              <cstring>textStyleFontSize</cstring>
              </property>
             </widget>
            </item>
@@ -11515,6 +12026,9 @@
             <widget class="QLabel" name="label_1471">
              <property name="text">
               <string>Line Spacing: </string>
+             </property>
+             <property name="buddy">
+              <cstring>textStyleLineSpacing</cstring>
              </property>
             </widget>
            </item>
@@ -14058,7 +14572,6 @@
   <tabstop>graceNoteSize</tabstop>
   <tabstop>resetGraceNoteSize</tabstop>
   <tabstop>smallClefSize</tabstop>
-  <tabstop>resetSmallClefSize</tabstop>
   <tabstop>showHeader</tabstop>
   <tabstop>showHeaderFirstPage</tabstop>
   <tabstop>headerOddEven</tabstop>
@@ -14096,9 +14609,7 @@
   <tabstop>resetMmRestRangeVPlacement</tabstop>
   <tabstop>mmRestRangeHPlacement</tabstop>
   <tabstop>resetMmRestRangeHPlacement</tabstop>
-  <tabstop>mmRestRangePosAbove</tabstop>
   <tabstop>resetMMRestRangePosAbove</tabstop>
-  <tabstop>mmRestRangePosBelow</tabstop>
   <tabstop>resetMMRestRangePosBelow</tabstop>
   <tabstop>bracketWidth</tabstop>
   <tabstop>akkoladeWidth</tabstop>
@@ -14114,6 +14625,10 @@
   <tabstop>dividerRightY</tabstop>
   <tabstop>clefTab1</tabstop>
   <tabstop>clefTab2</tabstop>
+  <tabstop>accidentalsOctaveColumnsAlignLeft</tabstop>
+  <tabstop>resetAccidentalsOctaveColumnsAlignLeft</tabstop>
+  <tabstop>accidentalsBracketsBadding</tabstop>
+  <tabstop>resetAccidentalsBracketPadding</tabstop>
   <tabstop>accidentalTable</tabstop>
   <tabstop>radioKeySigNatNone</tabstop>
   <tabstop>radioKeySigNatBefore</tabstop>
@@ -14289,6 +14804,10 @@
   <tabstop>resetTextLinePlacement</tabstop>
   <tabstop>resetTextLinePosAbove</tabstop>
   <tabstop>resetTextLinePosBelow</tabstop>
+  <tabstop>systemTextLinePlacement</tabstop>
+  <tabstop>resetSystemTextLinePlacement</tabstop>
+  <tabstop>resetSystemTextLinePosAbove</tabstop>
+  <tabstop>resetSystemTextLinePosBelow</tabstop>
   <tabstop>propertyDistanceHead</tabstop>
   <tabstop>resetPropertyDistanceHead</tabstop>
   <tabstop>propertyDistanceStem</tabstop>
@@ -14440,8 +14959,10 @@
   <tabstop>textStyleFrameBorderRadius</tabstop>
   <tabstop>resetTextStyleFrameBorderRadius</tabstop>
   <tabstop>buttonTogglePagelist</tabstop>
+  <tabstop>resetSmallClefSize</tabstop>
  </tabstops>
  <resources>
+  <include location="musescore.qrc"/>
   <include location="musescore.qrc"/>
  </resources>
  <connections>

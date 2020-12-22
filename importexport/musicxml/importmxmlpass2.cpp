@@ -1391,6 +1391,7 @@ void MusicXMLParserPass2::initPartState(const QString& partId)
       _tremStart = 0;
       _figBass = 0;
       _multiMeasureRestCount = -1;
+      _measureStyleSlash = MusicXmlSlash::NONE;
       _extendedLyrics.init();
       }
 
@@ -2284,7 +2285,8 @@ void MusicXMLParserPass2::staffTuning(StringData* t)
 
 /**
  Parse the /score-partwise/part/measure/measure-style node.
- Initializes the "in multi-measure rest" state
+ - Initializes the "in multi-measure rest" state
+ - Set/reset the "rhythmic/slash notation" state
  */
 
 void MusicXMLParserPass2::measureStyle(Measure* measure)
@@ -2301,6 +2303,12 @@ void MusicXMLParserPass2::measureStyle(Measure* measure)
                         }
                   else
                         _logger->logError(QString("multiple-rest %1 not supported").arg(multipleRest), &_e);
+                  }
+            else if (_e.name() == "slash") {
+                  QString type = _e.attributes().value("type").toString();
+                  QString stems = _e.attributes().value("use-stems").toString();
+                  _measureStyleSlash = type == "start" ? (stems == "yes" ? MusicXmlSlash::RHYTHM : MusicXmlSlash::SLASH) : MusicXmlSlash::NONE;
+                  _e.skipCurrentElement();
                   }
             else
                   skipLogCurrElem();
@@ -3594,6 +3602,7 @@ void MusicXMLParserPass2::clef(const QString& partId, Measure* measure, const Fr
       // - single staff
       // - multi-staff with same clef
       QString strClefno = _e.attributes().value("number").toString();
+      const bool afterBarline = _e.attributes().value("after-barline") == "yes";
       int clefno = 1; // default
       if (strClefno != "")
             clefno = strClefno.toInt();
@@ -3692,7 +3701,12 @@ void MusicXMLParserPass2::clef(const QString& partId, Measure* measure, const Fr
       clefs->setClefType(clef);
       int track = _pass1.trackForPart(partId) + clefno * VOICES;
       clefs->setTrack(track);
-      Segment* s = measure->getSegment(tick.isNotZero() ? SegmentType::Clef : SegmentType::HeaderClef, tick);
+      Segment* s;
+      // check if the clef change needs to be in the previous measure
+      if (!afterBarline && (tick == measure->tick()) && measure->prevMeasure())
+            s = measure->prevMeasure()->getSegment(SegmentType::Clef, tick);
+      else
+            s = measure->getSegment(tick.isNotZero() ? SegmentType::Clef : SegmentType::HeaderClef, tick);
       s->add(clefs);
 
       // set the correct staff type
@@ -3736,6 +3750,18 @@ static bool determineTimeSig(const QString beats, const QString beatType, const 
             st = TimeSigType::FOUR_FOUR;
             bts = 4;
             btp = 4;
+            return true;
+            }
+      else if (beats == "2" && beatType == "2" && timeSymbol == "cut2") {
+            st = TimeSigType::CUT_BACH;
+            bts = 2;
+            btp = 2;
+            return true;
+            }
+      else if (beats == "9" && beatType == "8" && timeSymbol == "cut3") {
+            st = TimeSigType::CUT_TRIPLE;
+            bts = 9;
+            btp = 8;
             return true;
             }
       else {
@@ -4590,6 +4616,12 @@ Note* MusicXMLParserPass2::note(const QString& partId,
 
       // add figured bass element
       addFiguredBassElemens(fbl, noteStartTime, msTrack, dura, measure);
+
+      // convert to slash or rhythmic notation if needed
+      // TODO in the case of slash notation, we assume that given notes do in fact correspond to slash beats
+      if (c && _measureStyleSlash != MusicXmlSlash::NONE) {
+            c->setSlash(true, _measureStyleSlash == MusicXmlSlash::SLASH);
+            }
 
       // don't count chord or grace note duration
       // note that this does not check the MusicXML requirement that notes in a chord

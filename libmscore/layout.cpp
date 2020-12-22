@@ -759,7 +759,7 @@ static bool resolveAccidentals(AcEl* left, AcEl* right, qreal& lx, qreal pd, qre
 //   layoutAccidental
 //---------------------------------------------------------
 
-static qreal layoutAccidental(AcEl* me, AcEl* above, AcEl* below, qreal colOffset, QVector<Note*>& leftNotes, qreal pnd, qreal pd, qreal sp)
+static QPair<qreal, qreal> layoutAccidental(AcEl* me, AcEl* above, AcEl* below, qreal colOffset, QVector<Note*>& leftNotes, qreal pnd, qreal pd, qreal sp)
       {
       qreal lx = colOffset;
       Accidental* acc = me->note->accidental();
@@ -767,9 +767,27 @@ static qreal layoutAccidental(AcEl* me, AcEl* above, AcEl* below, qreal colOffse
       pnd *= mag;
       pd *= mag;
 
+      Chord* chord = me->note->chord();
+      Staff* staff = chord->staff();
+      Fraction tick = chord->tick();
+
       // extra space for ledger lines
-      if (me->line <= -2 || me->line >= me->note->staff()->lines(me->note->chord()->tick()) * 2)
-            lx = qMin(lx, -0.2 * sp);
+      qreal ledgerAdjust = 0.0;
+      qreal ledgerVerticalClear = 0.0;
+      bool ledgerAbove = chord->upNote()->line() <= -2;
+      bool ledgerBelow = chord->downNote()->line() >= staff->lines(tick) * 2;
+      if (ledgerAbove || ledgerBelow) {
+            // ledger lines are present
+            // check for collision with lines above & below staff
+            // note that on 1-line staff, both collisions are possible at once
+            // TODO: account for cutouts in accidental
+            qreal lds = staff->lineDistance(tick) * sp;
+            if ((ledgerAbove && me->top + lds <= pnd) || (ledgerBelow && staff->lines(tick) * lds - me->bottom <= pnd)) {
+                  ledgerAdjust = -acc->score()->styleS(Sid::ledgerLineLength).val() * sp;
+                  ledgerVerticalClear = acc->score()->styleS(Sid::ledgerLineWidth).val() * 0.5 * sp;
+                  lx = qMin(lx, ledgerAdjust);
+                  }
+            }
 
       // clear left notes
       int lns = leftNotes.size();
@@ -779,11 +797,24 @@ static qreal layoutAccidental(AcEl* me, AcEl* above, AcEl* below, qreal colOffse
             qreal lnTop = (lnLine - 1) * 0.5 * sp;
             qreal lnBottom = lnTop + sp;
             if (me->top - lnBottom <= pnd && lnTop - me->bottom <= pnd) {
+                  qreal lnLedgerAdjust = 0.0;
+                  if (lnLine <= -2 || lnLine >= staff->lines(tick) * 2) {
+                        // left note has a ledger line we probably need to clear horizontally as well
+                        // except for accidentals that clear the last extended ledger line vertically
+                        // in these cases, the accidental may tuck closer
+                        Note* lastLnNote = lnLine < 0  ? leftNotes[0] : leftNotes[lns - 1];
+                        int lastLnLine = lastLnNote->line();
+                        qreal ledgerY = (lastLnLine / 2) * sp;
+                        if (me->line < 0 && ledgerY - me->bottom < ledgerVerticalClear)
+                              lnLedgerAdjust = ledgerAdjust;
+                        else if (me->line > 0 && me->top - ledgerY < ledgerVerticalClear)
+                              lnLedgerAdjust = ledgerAdjust;
+                        }
                   // undercut note above if possible
                   if (lnBottom - me->top <= me->ascent - pnd)
-                        lx = qMin(lx, ln->x() + ln->chord()->x() + me->rightClear);
+                        lx = qMin(lx, ln->x() + ln->chord()->x() + lnLedgerAdjust + me->rightClear);
                   else
-                        lx = qMin(lx, ln->x() + ln->chord()->x());
+                        lx = qMin(lx, ln->x() + ln->chord()->x() + lnLedgerAdjust);
                   }
             else if (lnTop > me->bottom)
                   break;
@@ -804,7 +835,7 @@ static qreal layoutAccidental(AcEl* me, AcEl* above, AcEl* below, qreal colOffse
       else
             me->x = lx - pnd - acc->width() - acc->bbox().x();
 
-      return me->x;
+      return QPair<qreal, qreal> (me->x, me->x + me->width);
       }
 
 //---------------------------------------------------------
@@ -1010,7 +1041,6 @@ void Score::layoutChords3(std::vector<Note*>& notes, const Staff* staff, Segment
             // unmatched accidentals will use zig zag approach (see below)
             // starting to the left of the octave columns
 
-            qreal minX = 0.0;
             int columnTop[7] = { -1, -1, -1, -1, -1, -1, -1 };
 
             // find columns of octaves
@@ -1094,28 +1124,40 @@ void Score::layoutChords3(std::vector<Note*>& notes, const Staff* staff, Segment
             if (nAcc > 1)
                   std::sort(umi.begin(), umi.end());
 
-            // lay out columns
+            bool alignLeft = score()->styleB(Sid::alignAccidentalsLeft);
+
+            // through columns
             for (int i = 0; i < nColumns; ++i) {
-                  int pc = column[i];
+                  // column index
+                  const int pc = column[i];
+
+                  qreal minX = 0.0;
+                  qreal maxX = 0.0;
+
                   AcEl* below = 0;
-                  // lay out accidentals
+                  // through accidentals in this column
                   for (int j = columnBottom[pc]; j != -1; j = aclist[j].next) {
-                        qreal x = layoutAccidental(&aclist[j], 0, below, colOffset, leftNotes, pnd, pd, sp);
-                        minX = qMin(minX, x);
+                        QPair<qreal, qreal> x = layoutAccidental(&aclist[j], 0, below, colOffset, leftNotes, pnd, pd, sp);
+                        minX = qMin(minX, x.first);
+                        maxX = qMin(maxX, x.second);
                         below = &aclist[j];
                         }
-                  // align within column
+
+                  // align
                   int next = -1;
                   for (int j = columnBottom[pc]; j != -1; j = next) {
-                        next = aclist[j].next;
-                        if (next != -1 && aclist[j].line == aclist[next].line)
-                              continue;
-                        aclist[j].x = minX;
+                        AcEl* current = &aclist[j];
+                        next = current->next;
+                        if (next != -1 && current->line == aclist[next].line)
+                                continue;
+
+                        if (alignLeft)
+                                current->x = minX;
+                        else
+                              current->x = maxX - current->width;
                         }
-                  // move to next column
                   colOffset = minX;
                   }
-
             }
 
       else {
@@ -1124,7 +1166,6 @@ void Score::layoutChords3(std::vector<Note*>& notes, const Staff* staff, Segment
             }
 
       if (nAcc) {
-
             // for accidentals with no octave matches, use zig zag approach
             // layout right to left in pairs, (next) highest then lowest
 
@@ -1158,7 +1199,6 @@ void Score::layoutChords3(std::vector<Note*>& notes, const Staff* staff, Segment
                         layoutAccidental(me, above, below, colOffset, leftNotes, pnd, pd, sp);
                         }
                   }
-
             }
 
       for (const AcEl& e : qAsConst(aclist)) {
@@ -1534,24 +1574,25 @@ static void distributeStaves(Page* page)
       qreal prevYBottom { page->tm() };
       qreal yBottom     { 0.0        };
       bool  vbox        { false      };
+      bool transferNormalBracket { false };
+      bool transferCurlyBracket  { false };
       for (System* system : page->systems()) {
             if (system->vbox()) {
-                  VerticalGapData* vgd = new VerticalGapData(system, nullptr, nullptr, prevYBottom);
+                  VerticalGapData* vgd = new VerticalGapData(!ngaps++, system, nullptr, nullptr, prevYBottom);
                   vgd->addSpaceAroundVBox(true);
                   prevYBottom = system->y();
                   yBottom     = system->y() + system->height();
                   vbox        = true;
-                  if (ngaps++)
-                        vgdl.append(vgd);
-                  else
-                        delete vgd;
+                  vgdl.append(vgd);
+                  transferNormalBracket = false;
+                  transferCurlyBracket  = false;
                   }
             else {
-                  bool newSystem          { true };
+                  bool newSystem       { true };
                   bool addSpaceAroundNormalBracket { false };
                   bool addSpaceAroundCurlyBracket  { false };
-                  int endNormalBracket { - 1 };
-                  int endCurlyBracket  { - 1 };
+                  int endNormalBracket { -1   };
+                  int endCurlyBracket  { -1   };
                   int staffNr { -1 };
                   for (SysStaff* sysStaff : *system->staves()) {
                         Staff* staff { score->staff(++staffNr)};
@@ -1571,19 +1612,21 @@ static void distributeStaves(Page* page)
                         if (!sysStaff->show())
                               continue;
 
-                        VerticalGapData* vgd = new VerticalGapData(system, staff, sysStaff, prevYBottom);
+                        VerticalGapData* vgd = new VerticalGapData(!ngaps++, system, staff, sysStaff, prevYBottom);
 
                         if (newSystem) {
                               vgd->addSpaceBetweenSections();
                               newSystem = false;
                               }
-                        if (addSpaceAroundNormalBracket) {
+                        if (addSpaceAroundNormalBracket || transferNormalBracket) {
                               vgd->addSpaceAroundNormalBracket();
                               addSpaceAroundNormalBracket = false;
+                              transferNormalBracket = false;
                               }
-                        if (addSpaceAroundCurlyBracket) {
+                        if (addSpaceAroundCurlyBracket || transferCurlyBracket) {
                               vgd->addSpaceAroundCurlyBracket();
                               addSpaceAroundCurlyBracket = false;
+                              transferCurlyBracket = false;
                               }
                         else if (staffNr < endCurlyBracket) {
                               vgd->insideCurlyBracket();
@@ -1596,11 +1639,10 @@ static void distributeStaves(Page* page)
 
                         prevYBottom = system->y() + sysStaff->y() + sysStaff->bbox().height();
                         yBottom     = system->y() + sysStaff->y() + sysStaff->skyline().south().max();
-                        if (ngaps++)
-                              vgdl.append(vgd);
-                        else
-                              delete vgd;
+                        vgdl.append(vgd);
                         }
+                  transferNormalBracket = endNormalBracket >= 0;
+                  transferCurlyBracket  = endCurlyBracket >= 0;
                   }
             }
       --ngaps;
@@ -1610,14 +1652,17 @@ static void distributeStaves(Page* page)
             return;
 
       // Try to make the gaps equal, taking the spread factors and maximum spacing into account.
-      static const int maxPasses { 10 };   // Saveguard to prevent endless loops.
+      static const int maxPasses { 20 };   // Saveguard to prevent endless loops.
       int pass { 0 };
       while (!almostZero(spaceLeft) && (ngaps > 0) && (++pass < maxPasses)) {
             ngaps = 0;
-            const qreal smallest     { vgdl.smallest()         };
-            const qreal nextSmallest { vgdl.smallest(smallest) };
+            qreal smallest     { vgdl.smallest()         };
+            qreal nextSmallest { vgdl.smallest(smallest) };
             if (almostZero(smallest) || almostZero(nextSmallest))
                   break;
+
+            if ((nextSmallest - smallest) * vgdl.sumStretchFactor() > spaceLeft)
+                  nextSmallest = smallest + spaceLeft/vgdl.sumStretchFactor();
 
             qreal addedSpace { 0.0 };
             VerticalGapDataList modified;
@@ -1625,22 +1670,26 @@ static void distributeStaves(Page* page)
                   if (!almostZero(vgd->spacing() - smallest))
                         continue;
                   qreal step { nextSmallest - vgd->spacing() };
+                  if (step < 0.0)
+                        continue;
                   step = vgd->addSpacing(step);
                   if (!almostZero(step)) {
                         addedSpace += step * vgd->factor();
                         modified.append(vgd);
                         ++ngaps;
                         }
+                  if ((spaceLeft - addedSpace) <= 0.0)
+                        break;
                   }
             if ((spaceLeft - addedSpace) <= 0.0)
                   {
-                  qreal step = (spaceLeft - addedSpace) / modified.sumStretchFactor();
-                  for (VerticalGapData* vgd : modified) {
-                        vgd->addSpacing(step);
-                        addedSpace += step * vgd->factor();
-                        }
+                  for (VerticalGapData* vgd : modified)
+                        vgd->undoLastAddSpacing();
+                  ngaps = 0;
                   }
-            spaceLeft -= addedSpace;
+            else {
+                  spaceLeft -= addedSpace;
+                  }
             }
 
       // If there is still space left, distribute the space of the staves.
@@ -1669,21 +1718,26 @@ static void distributeStaves(Page* page)
             if (vgd->sysStaff)
                   systems.insert(vgd->system);
             systemShift += vgd->actualAddedSpace();
-            if (prvSystem && (prvSystem != vgd->system)) {
+            if (prvSystem == vgd->system) {
+                  staffShift += vgd->actualAddedSpace();
+                  }
+            else {
                   vgd->system->rypos() += systemShift;
-                  prvSystem->setDistance(vgd->system->y() - prvSystem->y());
-                  prvSystem->setHeight(prvSystem->height() + staffShift);
+                  if (prvSystem) {
+                        prvSystem->setDistance(vgd->system->y() - prvSystem->y());
+                        prvSystem->setHeight(prvSystem->height() + staffShift);
+                        }
                   staffShift = 0.0;
                   }
-            else
-                  staffShift  += vgd->actualAddedSpace();
 
             if (vgd->sysStaff)
                   vgd->sysStaff->bbox().translate(0.0, staffShift);
+
             prvSystem = vgd->system;
             }
-      if (prvSystem)
+      if (prvSystem) {
             prvSystem->setHeight(prvSystem->height() + staffShift);
+            }
 
       for (System* system : systems) {
             system->setMeasureHeight(system->height());
@@ -3736,7 +3790,9 @@ System* Score::collectSystem(LayoutContext& lc)
       {
       if (!lc.curMeasure)
             return 0;
-      Measure* measure  = _systems.empty() ? 0 : _systems.back()->lastMeasure();
+      const MeasureBase* measure  = _systems.empty() ? 0 : _systems.back()->measures().back();
+      if (measure)
+            measure = measure->findPotentialSectionBreak();
       if (measure) {
             lc.firstSystem        = measure->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
             lc.firstSystemIndent  = lc.firstSystem && measure->sectionBreakElement()->firstSystemIdentation() && styleB(Sid::enableIndentationOnFirstSystem);
@@ -3835,6 +3891,10 @@ System* Score::collectSystem(LayoutContext& lc)
                   // measure in the system and we finally can create the end barline for it
 
                   Measure* m = toMeasure(lc.prevMeasure);
+                  // TODO: if lc.curMeasure is a frame, removing the trailer may be premature
+                  // but merely skipping this code isn't good enough,
+                  // we need to find the right time to re-enable the trailer,
+                  // since it seems to be disabled somewhere else
                   if (m->trailer()) {
                         qreal ow = m->width();
                         m->removeSystemTrailer();
@@ -3855,6 +3915,12 @@ System* Score::collectSystem(LayoutContext& lc)
                                     }
                               }
                         }
+                  // TODO: we actually still don't know for sure
+                  // if this will be the last true measure of the system or not
+                  // since the lc.curMeasure may be a frame
+                  // but at this point we have no choice but to assume it isn't
+                  // since we don't know yet if another true measure will fit
+                  // worst that happens is we don't get the automatic double bar before a courtesy key signature
                   minWidth += m->createEndBarLines(false);    // create final barLine
                   }
 
@@ -3910,6 +3976,7 @@ System* Score::collectSystem(LayoutContext& lc)
                               if (!s->enabled())
                                     s->setEnabled(true);
                               }
+                        // TODO: use findPotentialSectionBreak here to handle breaks on frames correctly?
                         bool firstSystem = lc.prevMeasure->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
                         if (curHeader)
                               m->addSystemHeader(firstSystem);
@@ -4036,14 +4103,19 @@ System* Score::collectSystem(LayoutContext& lc)
       layoutSystemElements(system, lc);
       system->layout2();   // compute staff distances
 	  LyricsLayout3(system, lc);
-
-      lm  = system->lastMeasure();
-      if (lm) {
-            lc.firstSystem        = lm->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
-            lc.firstSystemIndent  = lc.firstSystem && lm->sectionBreakElement()->firstSystemIdentation() && styleB(Sid::enableIndentationOnFirstSystem);
-            lc.startWithLongNames = lc.firstSystem && lm->sectionBreakElement()->startWithLongNames();
+      // TODO: now that the code at the top of this function does this same backwards search,
+      // we might be able to eliminate this block
+      // but, lc might be used elsewhere so we need to be careful
+#if 1
+      measure = system->measures().back();
+      if (measure)
+            measure = measure->findPotentialSectionBreak();
+      if (measure) {
+            lc.firstSystem        = measure->sectionBreak() && _layoutMode != LayoutMode::FLOAT;
+            lc.firstSystemIndent  = lc.firstSystem && measure->sectionBreakElement()->firstSystemIdentation() && styleB(Sid::enableIndentationOnFirstSystem);
+            lc.startWithLongNames = lc.firstSystem && measure->sectionBreakElement()->startWithLongNames();
             }
-
+#endif
       return system;
       }
 
@@ -4589,22 +4661,29 @@ void LayoutContext::collectPage()
       {
       const qreal slb = score->styleP(Sid::staffLowerBorder);
       bool breakPages = score->layoutMode() != LayoutMode::SYSTEM;
-      //qreal y         = prevSystem ? prevSystem->y() + prevSystem->height() : page->tm();
       qreal ey        = page->height() - page->bm();
+      qreal y         = 0.0;
 
       System* nextSystem = 0;
       int systemIdx = -1;
 
-      qreal y = page->systems().isEmpty() ? page->tm() : page->system(0)->y() + page->system(0)->height();
       // re-calculate positions for systems before current
       // (they may have been filled on previous layout)
       int pSystems = page->systems().size();
+      if (pSystems > 0) {
+            page->system(0)->restoreLayout2();
+            y = page->system(0)->y() + page->system(0)->height();
+            }
+      else {
+             y = page->tm();
+            }
       for (int i = 1; i < pSystems; ++i) {
             System* cs = page->system(i);
             System* ps = page->system(i - 1);
             qreal distance = ps->minDistance(cs);
             y += distance;
             cs->setPos(page->lm(), y);
+            cs->restoreLayout2();
             y += cs->height();
             }
 
@@ -4648,6 +4727,7 @@ void LayoutContext::collectPage()
 
             y += distance;
             curSystem->setPos(page->lm(), y);
+            curSystem->restoreLayout2();
             page->appendSystem(curSystem);
             y += curSystem->height();
 
@@ -4655,7 +4735,7 @@ void LayoutContext::collectPage()
             //  check for page break or if next system will fit on page
             //
             bool collected = false;
-            if (rangeDone && !score->enableVerticalSpread()) {
+            if (rangeDone) {
                   // take next system unchanged
                   if (systemIdx > 0) {
                         nextSystem = score->systems().value(systemIdx++);
@@ -4940,11 +5020,6 @@ void Score::doLayoutRange(const Fraction& st, const Fraction& et)
             }
       if (!layoutAll && m->system()) {
             System* system  = m->system();
-            if (enableVerticalSpread()) {
-                  system = system->page()->systems().first();
-                  lc.endTick = system->page()->systems().last()->endTick();
-                  }
-
             int systemIndex = _systems.indexOf(system);
             lc.page         = system->page();
             lc.curPage      = pageIdx(lc.page);
@@ -4966,7 +5041,12 @@ void Score::doLayoutRange(const Fraction& st, const Fraction& et)
                   lc.tick      = Fraction(0,1);
                   }
             else {
-                  LayoutBreak* sectionBreak = lc.nextMeasure->prevMeasure()->sectionBreakElement();
+                  const MeasureBase* mb = lc.nextMeasure->prev();
+                  if (mb)
+                        mb->findPotentialSectionBreak();
+                  LayoutBreak* sectionBreak = mb->sectionBreakElement();
+                  // TODO: also use mb in else clause here?
+                  // probably not, only actual measures have meaningful numbers
                   if (sectionBreak && sectionBreak->startWithMeasureOne())
                         lc.measureNo = 0;
                   else
@@ -5088,11 +5168,17 @@ LayoutContext::~LayoutContext()
 //   VerticalStretchData
 //---------------------------------------------------------
 
-VerticalGapData::VerticalGapData(System *sys, Staff *st, SysStaff *sst, qreal y)
-      : system(sys), sysStaff(sst), staff(st)
+VerticalGapData::VerticalGapData(bool first, System *sys, Staff *st, SysStaff *sst, qreal y)
+      : _fixedHeight(first), system(sys), sysStaff(sst), staff(st)
       {
-      _spacing = system->y() + (sysStaff ? sysStaff->y() : 0.0) - y;
-      _maxActualSpacing = system->score()->styleP(Sid::maxStaffSpread);
+      if (_fixedHeight) {
+            _normalisedSpacing = system->score()->styleP(Sid::staffUpperBorder);
+            _maxActualSpacing = _normalisedSpacing;
+            }
+      else {
+            _normalisedSpacing = system->y() + (sysStaff ? sysStaff->y() : 0.0) - y;
+            _maxActualSpacing = system->score()->styleP(Sid::maxStaffSpread);
+            }
       }
 
 //---------------------------------------------------------
@@ -5101,8 +5187,10 @@ VerticalGapData::VerticalGapData(System *sys, Staff *st, SysStaff *sst, qreal y)
 
 void VerticalGapData::updateFactor(qreal factor)
       {
+      if (_fixedHeight)
+            return;
       qreal f = qMax(factor, _factor);
-      _spacing *= _factor / f;
+      _normalisedSpacing *= _factor / f;
       _factor = f;
       }
 
@@ -5113,7 +5201,8 @@ void VerticalGapData::updateFactor(qreal factor)
 void VerticalGapData::addSpaceBetweenSections()
       {
       updateFactor(system->score()->styleD(Sid::spreadSystem));
-      _maxActualSpacing = system->score()->styleP(Sid::maxSystemSpread);
+      if (!_fixedHeight)
+            _maxActualSpacing = qMax(_maxActualSpacing, system->score()->styleP(Sid::maxSystemSpread));
       }
 
 //---------------------------------------------------------
@@ -5123,9 +5212,10 @@ void VerticalGapData::addSpaceBetweenSections()
 void VerticalGapData::addSpaceAroundVBox(bool above)
       {
       _fixedHeight = true;
-      updateFactor(1.0);
+      _factor = 1.0;
       const Score* score { system->score() };
-      _spacing = above ? score->styleP(Sid::frameSystemDistance) : score->styleP(Sid::systemFrameDistance);
+      _normalisedSpacing = above ? score->styleP(Sid::frameSystemDistance) : score->styleP(Sid::systemFrameDistance);
+      _maxActualSpacing = _normalisedSpacing;
       }
 
 //---------------------------------------------------------
@@ -5171,7 +5261,7 @@ qreal VerticalGapData::factor() const
 
 qreal VerticalGapData::spacing() const
       {
-      return _spacing + _addedSpace;
+      return _normalisedSpacing + _addedNormalisedSpace;
       }
 
 //---------------------------------------------------------
@@ -5180,7 +5270,7 @@ qreal VerticalGapData::spacing() const
 
 qreal VerticalGapData::actualAddedSpace() const
       {
-      return _addedSpace * factor();
+      return _addedNormalisedSpace * factor();
       }
 
 //---------------------------------------------------------
@@ -5191,17 +5281,37 @@ qreal VerticalGapData::addSpacing(qreal step)
       {
       if (_fixedHeight)
             return 0.0;
-      if ((_spacing >= _maxActualSpacing)) {
-            _spacing = _maxActualSpacing;
+      if ((_normalisedSpacing >= _maxActualSpacing)) {
+            _normalisedSpacing = _maxActualSpacing;
             step = 0.0;
             }
       else {
-            qreal newSpacing { _spacing + _addedSpace + step };
+            qreal newSpacing { _normalisedSpacing + _addedNormalisedSpace + step };
             if ((newSpacing >= _maxActualSpacing))
-                  step = _maxActualSpacing - _spacing - _addedSpace;
+                  step = _maxActualSpacing - _normalisedSpacing - _addedNormalisedSpace;
             }
-      _addedSpace += step;
+      _addedNormalisedSpace += step;
+      _lastStep = step;
       return step;
+      }
+
+//---------------------------------------------------------
+//   isFixedHeight
+//---------------------------------------------------------
+
+bool VerticalGapData::isFixedHeight() const
+      {
+      return _fixedHeight;
+      }
+
+//---------------------------------------------------------
+//   undoLastAddSpacing
+//---------------------------------------------------------
+
+void VerticalGapData::undoLastAddSpacing()
+      {
+      _addedNormalisedSpace -= _lastStep;
+      _lastStep = 0.0;
       }
 
 //---------------------------------------------------------
@@ -5233,8 +5343,7 @@ qreal VerticalGapDataList::sumStretchFactor() const
       {
       qreal sum { 0.0 };
       for (VerticalGapData* vsd : *this)
-//            if (vsd->canAddSpace())
-                  sum += vsd->factor();
+            sum += vsd->factor();
       return sum;
       }
 
@@ -5246,12 +5355,14 @@ qreal VerticalGapDataList::smallest(qreal limit) const
       {
       VerticalGapData* vdp { nullptr };
       for (VerticalGapData* vgd : *this) {
-//            if ((limit >= 0.0) && (qCeil(limit) == qCeil(vgd->normalisedSpacing())))
+            if (vgd->isFixedHeight())
+                  continue;
             if ((qCeil(limit) == qCeil(vgd->spacing())))
                   continue;
-            if (!vdp ||  (vgd->spacing() <  vdp->spacing()))
+            if (!vdp || (vgd->spacing() <  vdp->spacing()))
                   vdp = vgd;
             }
       return vdp ? vdp->spacing() : 0.0;
       }
+
 }

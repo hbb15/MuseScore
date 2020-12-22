@@ -59,6 +59,26 @@ SysStaff::~SysStaff()
       }
 
 //---------------------------------------------------------
+//   saveLayout
+//---------------------------------------------------------
+
+void SysStaff::saveLayout()
+      {
+      _height =  bbox().height();
+      _yPos = bbox().y();
+      }
+
+//---------------------------------------------------------
+//   saveLayout
+//---------------------------------------------------------
+
+void SysStaff::restoreLayout()
+      {
+      bbox().setY(_yPos);
+      bbox().setHeight(_height);
+      }
+
+//---------------------------------------------------------
 //   System
 //---------------------------------------------------------
 
@@ -725,6 +745,7 @@ void System::layout2()
 //                  ss->setYOff(staff->lines(0) == 1 ? _spatium * staff->mag(0) : 0.0);
                   ss->setYOff(yOffset);
                   ss->bbox().setRect(_leftMargin, y - yOffset, width() - _leftMargin, h);
+                  ss->saveLayout();
                   break;
                   }
 
@@ -842,13 +863,14 @@ void System::layout2()
 //            ss->setYOff(staff->lines(0) == 1 ? _spatium * staff->mag(0) : 0.0);
             ss->setYOff(yOffset);
             ss->bbox().setRect(_leftMargin, y - yOffset, width() - _leftMargin, h);
+            ss->saveLayout();
             y += dist;
             }
 
-      qreal systemHeight = staff(visibleStaves.back().first)->bbox().bottom();
-      setHeight(systemHeight);
+      _systemHeight = staff(visibleStaves.back().first)->bbox().bottom();
+      setHeight(_systemHeight);
 
-      setMeasureHeight(systemHeight);
+      setMeasureHeight(_systemHeight);
 
       //---------------------------------------------------
       //  layout brackets vertical position
@@ -884,6 +906,22 @@ void System::layout2()
                   }
             }
 
+      }
+
+//---------------------------------------------------------
+//   restoreLayout2
+//---------------------------------------------------------
+
+void System::restoreLayout2()
+      {
+      if (vbox())
+            return;
+
+      for (SysStaff* s : _staves)
+            s->restoreLayout();
+
+      setHeight(_systemHeight);
+      setMeasureHeight(_systemHeight);
       }
 
 //---------------------------------------------------------
@@ -1566,6 +1604,52 @@ qreal System::spacerDistance(bool up) const
                   }
             }
       return dist;
+      }
+
+//---------------------------------------------------------
+//   firstNoteRestSegmentX
+//    in System() coordinates
+//    returns the position of the first note or rest,
+//    or the position just after the last non-chordrest segment
+//---------------------------------------------------------
+
+qreal System::firstNoteRestSegmentX(bool leading)
+      {
+      qreal margin = score()->spatium();
+      for (const MeasureBase* mb : measures()) {
+            if (mb->isMeasure()) {
+                  const Measure* measure = static_cast<const Measure*>(mb);
+                  for (const Segment* seg = measure->first(); seg; seg = seg->next()) {
+                        if (seg->isChordRestType()) {
+                              qreal noteRestPos = seg->measure()->pos().x() + seg->pos().x();
+                              if (!leading)
+                                    return noteRestPos;
+
+                              // first CR found; back up to previous segment
+                              seg = seg->prevActive();
+                              while (seg && seg->allElementsInvisible())
+                                    seg = seg->prevActive();
+                              if (seg) {
+                                    // find maximum width
+                                    qreal width = 0.0;
+                                    int n = score()->nstaves();
+                                    for (int i = 0; i < n; ++i) {
+                                          if (!staff(i)->show())
+                                                continue;
+                                          Element* e = seg->element(i * VOICES);
+                                          if (e && e->addToSkyline())
+                                                width = qMax(width, e->pos().x() + e->bbox().right());
+                                          }
+                                    return qMin(seg->measure()->pos().x() + seg->pos().x() + width + margin, noteRestPos);
+                                    }
+                              else
+                                    return margin;
+                              }
+                        }
+                  }
+            }
+      qDebug("firstNoteRestSegmentX: did not find segment");
+      return margin;
       }
 
 //---------------------------------------------------------

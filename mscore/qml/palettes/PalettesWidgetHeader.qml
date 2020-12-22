@@ -44,6 +44,15 @@ Item {
         searchTextField.selectAll()
     }
 
+    function stopPaletteSearch() {
+        searchTextField.clear()
+        searchTextFieldShown = false
+        if (paletteTree.currentTreeItem)
+            paletteTree.currentTreeItem.forceActiveFocus()
+        else
+            startSearchButton.forceActiveFocus()
+    }
+
     function showPaletteOptionsMenu() {
         paletteOptionsMenu.x = paletteOptionsButton.x + paletteOptionsButton.width - paletteOptionsMenu.width;
         paletteOptionsMenu.y = paletteOptionsButton.y;
@@ -75,9 +84,9 @@ Item {
             Layout.preferredHeight: searchTextField.height
             Layout.preferredWidth: searchTextField.height
             text: qsTr("Search")
-            padding: 4
+            padding: 5
             contentItem: StyledIcon {
-                source: "icons/search.png"
+                source: "icons/MagnifyingGlass.svg"
             }
             onClicked: {
                 palettesListPopup.visible = false
@@ -93,7 +102,7 @@ Item {
             padding: 4
             text: qsTr("Options")
             contentItem: StyledIcon {
-                source: "icons/menu_dots.svg"
+                source: "icons/ThreeDotMenu.svg"
             }
             onClicked: {
                 palettesListPopup.visible = false
@@ -105,6 +114,7 @@ Item {
             id: searchTextField
             visible: searchTextFieldShown
             Layout.fillWidth: true
+            rightPadding: stopSearchButton.width + 6
 
             placeholderText: qsTr("Search")
             font: globalStyle.font
@@ -134,6 +144,7 @@ Item {
 
             Keys.onDownPressed: paletteTree.focusFirstItem();
             Keys.onUpPressed: paletteTree.focusLastItem();
+            Keys.onEscapePressed: stopPaletteSearch();
 
             StyledToolButton {
                 id: stopSearchButton
@@ -145,13 +156,9 @@ Item {
                 }
                 width: height
                 flat: true
-                onClicked: {
-                    searchTextField.clear()
-                    searchTextFieldShown = false
-                    paletteTree.currentTreeItem
-                }
+                onClicked: stopPaletteSearch()
 
-                padding: 4
+                padding: 5
 
                 text: qsTr("Stop search")
 
@@ -165,7 +172,7 @@ Item {
                 }
 
                 contentItem: StyledIcon {
-                    source: "icons/clear.png"
+                    source: "icons/CloseButton.svg"
                 }
             }
         }
