@@ -1272,11 +1272,12 @@ const ChordDescription* Harmony::getDescription(const QString& name, const Parse
 
 const RealizedHarmony& Harmony::getRealizedHarmony()
       {
-      int offset = 0; //semitone offset for pitch adjustment
       Staff* st = staff();
+      int capo = st->capo(tick()) - 1;
+      int offset = (capo < 0 ? 0 : capo);   //semitone offset for pitch adjustment
       Interval interval = st->part()->instrument(tick())->transpose();
       if (!score()->styleB(Sid::concertPitch))
-            offset = interval.chromatic;
+            offset += interval.chromatic;
 
       //Adjust for Nashville Notation, might be temporary
       // TODO: set dirty on add/remove of keysig
@@ -1501,8 +1502,12 @@ void Harmony::draw(QPainter* painter) const
       for (const TextSegment* ts : textList) {
             QFont f(ts->font);
             f.setPointSizeF(f.pointSizeF() * MScore::pixelRatio);
+#ifndef Q_OS_MACOS
+            TextBase::drawTextWorkaround(painter, f, ts->pos(), ts->text);
+#else
             painter->setFont(f);
             painter->drawText(ts->pos(), ts->text);
+#endif
             }
       }
 

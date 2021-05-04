@@ -1473,8 +1473,8 @@ qreal Chord::minAbsStemLength() const
       if (!_tremolo)
             return 0.0;
 
-      const qreal sw = score()->styleS(Sid::tremoloStrokeWidth).val() * mag();
-      const qreal td = score()->styleS(Sid::tremoloDistance).val() * mag();
+      const qreal sw = score()->styleS(Sid::tremoloStrokeWidth).val() * chordMag();
+      const qreal td = score()->styleS(Sid::tremoloDistance).val() * chordMag();
       int beamLvl = beams();
       const qreal beamDist = beam() ? beam()->beamDist() : (sw * spatium());
 
@@ -1504,7 +1504,7 @@ qreal Chord::minAbsStemLength() const
 
       // two-note tremolo
       else {
-            if (_tremolo->chord1()->up() == _tremolo->chord2()->up()) {
+            if (_tremolo->chord2() && _tremolo->chord1()->up() == _tremolo->chord2()->up()) {
                   const qreal tremoloMinHeight = _tremolo->minHeight() * spatium();
                   return tremoloMinHeight + beamLvl * beamDist + 2 * td * spatium();
                   }
@@ -2179,9 +2179,10 @@ void Chord::layoutPitched()
 void Chord::layoutTablature()
       {
       qreal _spatium          = spatium();
-      qreal dotNoteDistance   = score()->styleP(Sid::dotNoteDistance);
-      qreal minNoteDistance   = score()->styleP(Sid::minNoteDistance);
-      qreal minTieLength      = score()->styleP(Sid::MinTieLength);
+      qreal mag_              = staff() ? staff()->mag(this) : 1.0;    // palette elements do not have a staff
+      qreal dotNoteDistance   = score()->styleP(Sid::dotNoteDistance) * mag_;
+      qreal minNoteDistance   = score()->styleP(Sid::minNoteDistance) * mag_;
+      qreal minTieLength      = score()->styleP(Sid::MinTieLength)    * mag_;
 
       for (Chord* c : qAsConst(_graceNotes))
             c->layoutTablature();
@@ -2424,7 +2425,7 @@ void Chord::layoutTablature()
       // allocate enough room for glissandi
       if (_endsGlissando) {
             if (!rtick().isZero())                        // if not at beginning of measure
-                  lll += (0.5 + score()->styleS(Sid::MinTieLength).val()) * _spatium;
+                  lll += _spatium * 0.5 + minTieLength;
             // special case of system-initial glissando final note is handled in Glissando::layout() itself
             }
 
@@ -3020,8 +3021,14 @@ Element* Chord::drop(EditData& data)
                         t->setChords(this, ch2);
                         }
                   }
-                  if (tremolo())
+                  if (tremolo()) {
+                        bool sameType = (e->subtype() == tremolo()->subtype());
                         score()->undoRemoveElement(tremolo());
+                        if (sameType) {
+                              delete e;
+                              return 0;
+                              }
+                        }
                   e->setParent(this);
                   e->setTrack(track());
                   score()->undoAddElement(e);
@@ -3296,18 +3303,27 @@ void Chord::removeMarkings(bool keepTremolo)
       }
 
 //---------------------------------------------------------
+//   chordMag
+//---------------------------------------------------------
+
+qreal Chord::chordMag() const
+      {
+      qreal m = 1.0;
+      if (small())
+            m *= score()->styleD(Sid::smallNoteMag);
+      if (_noteType != NoteType::NORMAL)
+            m *= score()->styleD(Sid::graceNoteMag);
+      return m;
+      }
+
+//---------------------------------------------------------
 //   mag
 //---------------------------------------------------------
 
 qreal Chord::mag() const
       {
       const Staff* st = staff();
-      qreal m = st ? st->mag(this) : 1.0;
-      if (small())
-            m *= score()->styleD(Sid::smallNoteMag);
-      if (_noteType != NoteType::NORMAL)
-            m *= score()->styleD(Sid::graceNoteMag);
-      return m;
+      return (st ? st->mag(this) : 1.0) * chordMag();
       }
 
 //---------------------------------------------------------

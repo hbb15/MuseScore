@@ -52,6 +52,7 @@
 #include "libmscore/staff.h"
 #include "libmscore/stafftext.h"
 #include "libmscore/sym.h"
+#include "libmscore/tempo.h"
 #include "libmscore/tempotext.h"
 #include "libmscore/tie.h"
 #include "libmscore/timesig.h"
@@ -435,17 +436,18 @@ static Instrument createInstrument(const MusicXMLInstrument& mxmlInstr, const In
       {
       Instrument instr;
 
-      InstrumentTemplate* it {};
+      InstrumentTemplate* it = nullptr;
       if (!mxmlInstr.sound.isEmpty()) {
-            it = Ms::searchTemplateForMusicXmlId(mxmlInstr.sound);
-            }
+          it = Ms::searchTemplateForMusicXmlId(mxmlInstr.sound);
+      }
 
-      /*
-      qDebug("sound '%s' it %p trackname '%s' program %d",
-             qPrintable(mxmlInstr.sound), it,
-             it ? qPrintable(it->trackName) : "",
-             mxmlInstr.midiProgram);
-       */
+      if (!it) {
+          it = Ms::searchTemplateForInstrNameList({mxmlInstr.name});
+      }
+
+      if (!it) {
+          it = Ms::searchTemplateForMidiProgram(mxmlInstr.midiProgram);
+      }
 
       if (it) {
             // initialize from template with matching MusicXmlId
@@ -731,7 +733,10 @@ static QString nextPartOfFormattedString(QXmlStreamReader& e)
             if (ok)
                   importedtext += QString("<font size=\"%1\"/>").arg(size);
             }
-      if (!fontFamily.isEmpty() && txt == syms) {
+
+      bool needUseDefaultFont = preferences.getBool(PREF_MIGRATION_APPLY_EDWIN_FOR_XML_FILES);
+
+      if (!fontFamily.isEmpty() && txt == syms && !needUseDefaultFont) {
             // add font family only if no <sym> replacement made
             importedtext += QString("<font face=\"%1\"/>").arg(fontFamily);
             }
@@ -816,6 +821,8 @@ static void addLyrics(MxmlLogger* logger, const QXmlStreamReader* const xmlreade
 
 static void addElemOffset(Element* el, int track, const QString& placement, Measure* measure, const Fraction& tick)
       {
+      if (!measure)
+          return;
       /*
        qDebug("addElem el %p track %d placement %s tick %d",
        el, track, qPrintable(placement), tick);
@@ -1165,7 +1172,10 @@ static void addTextToNote(int l, int c, QString txt, QString placement, QString 
             if (!txt.isEmpty()) {
                   TextBase* t = new Fingering(score, subType);
                   t->setPlainText(txt);
-                  if (!fontFamily.isEmpty()) {
+
+                  bool needUseDefaultFont = preferences.getBool(PREF_MIGRATION_APPLY_EDWIN_FOR_XML_FILES);
+
+                  if (!fontFamily.isEmpty() && !needUseDefaultFont) {
                         t->setFamily(fontFamily);
                         t->setPropertyFlags(Pid::FONT_FACE, PropertyFlags::UNSTYLED);
                         }
@@ -1349,7 +1359,8 @@ static void resetTuplets(Tuplets& tuplets)
                   if (actualDuration > Fraction(0, 1) && missingDuration > Fraction(0, 1)) {
                         qDebug("add missing %s to previous tuplet", qPrintable(missingDuration.print()));
                         const auto& firstElement = tuplet->elements().at(0);
-                        const auto extraRest = addRest(firstElement->score(), firstElement->measure(), firstElement->tick() + missingDuration, firstElement->track(), 0,
+                        // appended the rest to the current end of the tuplet (firstElement->tick() + actualDuration)
+                        const auto extraRest = addRest(firstElement->score(), firstElement->measure(), firstElement->tick() + actualDuration, firstElement->track(), 0,
                                                        TDuration { missingDuration* tuplet->ratio() }, missingDuration);
                         if (extraRest) {
                               extraRest->setTuplet(tuplet);
@@ -1762,7 +1773,7 @@ static void removeBeam(Beam*& beam)
 //   handleBeamAndStemDir
 //---------------------------------------------------------
 
-static void handleBeamAndStemDir(ChordRest* cr, const Beam::Mode bm, const Direction sd, Beam*& beam)
+static void handleBeamAndStemDir(ChordRest* cr, const Beam::Mode bm, const Direction sd, Beam*& beam, bool hasBeamingInfo)
       {
       if (!cr) return;
       // create a new beam
@@ -1803,10 +1814,17 @@ static void handleBeamAndStemDir(ChordRest* cr, const Beam::Mode bm, const Direc
                   beam->add(cr);
                   }
             }
-      // if no beam, set stem direction on chord itself and set beam to auto
+      // if no beam, set stem direction on chord itself
       if (!beam) {
             static_cast<Chord*>(cr)->setStemDirection(sd);
-            cr->setBeamMode(Beam::Mode::AUTO);
+            // set beam to none if score has beaming information and note can get beam, otherwise
+            // set to auto
+            bool canGetBeam = (cr->durationType().type() >= TDuration::DurationType::V_EIGHTH &&
+                               cr->durationType().type() <= TDuration::DurationType::V_1024TH);
+            if (hasBeamingInfo && canGetBeam)
+                  cr->setBeamMode(Beam::Mode::NONE);
+            else
+                  cr->setBeamMode(Beam::Mode::AUTO);
             }
       // terminate the current beam and add to the score
       if (beam && bm == Beam::Mode::END)
@@ -1930,6 +1948,15 @@ static void addGraceChordsBefore(Chord* c, GraceChordList& gcl)
       }
 
 //---------------------------------------------------------
+//   hasTempoTextAtTick
+//---------------------------------------------------------
+
+static bool hasTempoTextAtTick(const TempoMap* const tempoMap, const int tick)
+      {
+      return tempoMap->count(tick) > 0;
+      }
+
+//---------------------------------------------------------
 //   measure
 //---------------------------------------------------------
 
@@ -1948,6 +1975,7 @@ void MusicXMLParserPass2::measure(const QString& partId,
       if (!measure) {
             _logger->logError(QString("measure at tick %1 not found!").arg(time.ticks()), &_e);
             skipLogCurrElem();
+            return;
             }
 
       // handle implicit measure
@@ -2032,23 +2060,37 @@ void MusicXMLParserPass2::measure(const QString& partId,
                               _logger->logError("backup beyond measure start", &_e);
                               mTime.set(0, 1);
                               }
+                        // check if the tick position is smaller than the minimum division resolution
+                        // (possibly caused by rounding errors) and in that case set position to 0
+                        if (mTime.isNotZero() && (_divs > 0) && (mTime < Fraction(1, 4*_divs))) {
+                              _logger->logError("backup to a fractional tick smaller than the minimum division", &_e);
+                              mTime.set(0, 1);
+                              }
                         }
                   }
             else if (_e.name() == "sound") {
                   QString tempo = _e.attributes().value("tempo").toString();
 
                   if (!tempo.isEmpty()) {
-                        double tpo = tempo.toDouble() / 60;
+                        // sound tempo="..."
+                        // create an invisible default TempoText
+                        // to prevent duplicates, only if none is present yet
                         Fraction tick = time + mTime;
+                        if (hasTempoTextAtTick(_score->tempomap(), tick.ticks())) {
+                              _logger->logError(QString("duplicate tempo at tick %1").arg(tick.ticks()), &_e);
+                              }
+                        else {
+                              double tpo = tempo.toDouble() / 60;
+                              TempoText* t = new TempoText(_score);
+                              t->setXmlText(QString("%1 = %2").arg(TempoText::duration2tempoTextString(TDuration(TDuration::DurationType::V_QUARTER)), tempo));
+                              t->setVisible(false);
+                              t->setTempo(tpo);
+                              t->setFollowText(true);
 
-                        TempoText* t = new TempoText(_score);
-                        t->setXmlText(QString("%1 = %2").arg(TempoText::duration2tempoTextString(TDuration(TDuration::DurationType::V_QUARTER)), tempo));
-                        t->setTempo(tpo);
-                        t->setFollowText(true);
+                              _score->setTempo(tick, tpo);
 
-                        _score->setTempo(tick, tpo);
-
-                        addElemOffset(t, _pass1.trackForPart(partId), "above", measure, tick);
+                              addElemOffset(t, _pass1.trackForPart(partId), "above", measure, tick);
+                              }
                         }
                   _e.skipCurrentElement();
                   }
@@ -2074,6 +2116,9 @@ void MusicXMLParserPass2::measure(const QString& partId,
       gac = gcl.size();
       addGraceChordsAfter(prevChord, gcl, gac);
 
+      // prevent tuplets from crossing measure boundaries
+      resetTuplets(tuplets);
+
       // fill possible gaps in voice 1
       Part* part = _pass1.getPart(partId); // should not fail, we only get here if the part exists
       fillGapsInFirstVoices(measure, part);
@@ -2098,9 +2143,6 @@ void MusicXMLParserPass2::measure(const QString& partId,
             // measure is first measure after a multi-measure rest
             measure->setBreakMultiMeasureRest(true);
             }
-
-      // prevent tuplets from crossing measure boundaries
-      resetTuplets(tuplets);
 
       Q_ASSERT(_e.isEndElement() && _e.name() == "measure");
       }
@@ -2402,12 +2444,18 @@ void MusicXMLParserDirection::direction(const QString& partId,
       if (_wordsText != "" || _rehearsalText != "" || _metroText != "") {
             TextBase* t = 0;
             if (_tpoSound > 0.1) {
-                  _tpoSound /= 60;
-                  t = new TempoText(_score);
-                  t->setXmlText(_wordsText + _metroText);
-                  ((TempoText*) t)->setTempo(_tpoSound);
-                  ((TempoText*) t)->setFollowText(true);
-                  _score->setTempo(tick, _tpoSound);
+                  // to prevent duplicates, only create a TempoText if none is present yet
+                  if (hasTempoTextAtTick(_score->tempomap(), tick.ticks())) {
+                        _logger->logError(QString("duplicate tempo at tick %1").arg(tick.ticks()), &_e);
+                        }
+                  else {
+                        _tpoSound /= 60;
+                        t = new TempoText(_score);
+                        t->setXmlText(_wordsText + _metroText);
+                        ((TempoText*) t)->setTempo(_tpoSound);
+                        ((TempoText*) t)->setFollowText(true);
+                        _score->setTempo(tick, _tpoSound);
+                        }
                   }
             else {
                   if (_wordsText != "" || _metroText != "") {
@@ -2426,31 +2474,41 @@ void MusicXMLParserDirection::direction(const QString& partId,
                         }
                   }
 
-            if (_enclosure == "circle") {
-                  t->setFrameType(FrameType::CIRCLE);
-                  }
-            else if (_enclosure == "none") {
-                  t->setFrameType(FrameType::NO_FRAME);
-                  }
-            else if (_enclosure == "rectangle") {
-                  t->setFrameType(FrameType::SQUARE);
-                  t->setFrameRound(0);
-                  }
+            if (t) {
+                  if (_enclosure == "circle") {
+                        t->setFrameType(FrameType::CIRCLE);
+                        }
+                  else if (_enclosure == "none") {
+                        t->setFrameType(FrameType::NO_FRAME);
+                        }
+                  else if (_enclosure == "rectangle") {
+                        t->setFrameType(FrameType::SQUARE);
+                        t->setFrameRound(0);
+                        }
 
 //TODO:ws            if (_hasDefaultY) t->textStyle().setYoff(_defaultY);
-            addElemOffset(t, track, placement, measure, tick + _offset);
+                  addElemOffset(t, track, placement, measure, tick + _offset);
+                  }
             }
       else if (_tpoSound > 0) {
-            double tpo = _tpoSound / 60;
-            TempoText* t = new TempoText(_score);
-            t->setXmlText(QString("%1 = %2").arg(TempoText::duration2tempoTextString(TDuration(TDuration::DurationType::V_QUARTER))).arg(_tpoSound));
-            t->setTempo(tpo);
-            t->setFollowText(true);
+            // direction without text but with sound tempo="..."
+            // create an invisible default TempoText
+            if (hasTempoTextAtTick(_score->tempomap(), tick.ticks())) {
+                  _logger->logError(QString("duplicate tempo at tick %1").arg(tick.ticks()), &_e);
+                  }
+            else {
+                  double tpo = _tpoSound / 60;
+                  TempoText* t = new TempoText(_score);
+                  t->setXmlText(QString("%1 = %2").arg(TempoText::duration2tempoTextString(TDuration(TDuration::DurationType::V_QUARTER))).arg(_tpoSound));
+                  t->setVisible(false);
+                  t->setTempo(tpo);
+                  t->setFollowText(true);
 
-            // TBD may want ro use tick + _offset if sound is affected
-            _score->setTempo(tick, tpo);
+                  // TBD may want ro use tick + _offset if sound is affected
+                  _score->setTempo(tick, tpo);
 
-            addElemOffset(t, track, placement, measure, tick + _offset);
+                  addElemOffset(t, track, placement, measure, tick + _offset);
+                  }
             }
 
       // do dynamics
@@ -3948,9 +4006,10 @@ static Chord* findOrCreateChord(Score* score, Measure* m,
       Chord* c = m->findChord(tick, track);
       if (c == 0) {
             c = new Chord(score);
-            // better not to force beam end, as the beam palette does not support it
             if (bm == Beam::Mode::END)
-                  c->setBeamMode(Beam::Mode::AUTO);
+                  // The beam palette does not support beam END, use MID instead which means "beam
+                  // current note together with previous note".
+                  c->setBeamMode(Beam::Mode::MID);
             else
                   c->setBeamMode(bm);
             c->setTrack(track);
@@ -4497,7 +4556,7 @@ Note* MusicXMLParserPass2::note(const QString& partId,
                   // regular note
                   // handle beam
                   if (!chord)
-                        handleBeamAndStemDir(c, bm, stemDir, currBeam);
+                        handleBeamAndStemDir(c, bm, stemDir, currBeam, _pass1.hasBeamingInfo());
 
                   // append any grace chord after chord to the previous chord
                   const auto prevChord = measure->findChord(prevSTime, msTrack + msVoice);
@@ -4976,14 +5035,11 @@ void MusicXMLParserPass2::harmony(const QString& partId, Measure* measure, const
                         if (_e.name() == "root-step") {
                               // attributes: print-style
                               step = _e.readElementText();
-                              /* TODO: check if this is required
-                              if (ee.hasAttribute("text")) {
-                                    QString rtext = ee.attribute("text");
-                                    if (rtext == "") {
+                              if (_e.attributes().hasAttribute("text")) {
+                                    if (_e.attributes().value("text").toString() == "") {
                                           invalidRoot = true;
+                                          }
                                     }
-                              }
-                               */
                               }
                         else if (_e.name() == "root-alter") {
                               // attributes: print-object, print-style
@@ -5010,11 +5066,13 @@ void MusicXMLParserPass2::harmony(const QString& partId, Measure* measure, const
                   // attributes: use-symbols  yes-no
                   //             text, stack-degrees, parentheses-degree, bracket-degrees,
                   //             print-style, halign, valign
-
                   kindText = _e.attributes().value("text").toString();
                   symbols = _e.attributes().value("use-symbols").toString();
                   parens = _e.attributes().value("parentheses-degrees").toString();
                   kind = _e.readElementText();
+                  if (kind == "none") {
+                        ha->setRootTpc(Tpc::TPC_INVALID);
+                        }
                   }
             else if (_e.name() == "inversion") {
                   // attributes: print-style
@@ -5575,7 +5633,6 @@ void MusicXMLParserNotations::ornaments()
             else if (_e.name() == "inverted-mordent"
                      || _e.name() == "mordent") {
                   mordentNormalOrInverted();
-                  _e.readNext();
                   }
             else {
                   skipLogCurrElem();
@@ -5616,7 +5673,6 @@ void MusicXMLParserNotations::technical()
                                                                        _e.attributes(), "technical");
                   notation.setText(_e.readElementText());
                   _notations.push_back(notation);
-                  _e.readNext();
                   }
             else if (_e.name() == "harmonic") {
                   harmonic();
@@ -6001,7 +6057,7 @@ Notation Notation::notationWithAttributes(const QString& name, const QXmlStreamA
                                           const QString& parent, const SymId& symId)
       {
       Notation notation { name, parent, symId };
-      for (const auto &attr : attributes) {
+      for (const auto& attr : attributes) {
             notation.addAttribute(attr.name(), attr.value());
             }
       return notation;

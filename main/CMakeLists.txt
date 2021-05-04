@@ -37,7 +37,7 @@ if (APPLE)
             set (MACOSX_BUNDLE_SHORT_VERSION_STRING ${MUSESCORE_VERSION_FULL}.${CMAKE_BUILD_NUMBER})
             set (MACOSX_BUNDLE_BUNDLE_VERSION ${MUSESCORE_VERSION_FULL}.${CMAKE_BUILD_NUMBER})
       endif(CMAKE_BUILD_NUMBER)
-            set (MACOSX_BUNDLE_COPYRIGHT musescore.org)
+      set (MACOSX_BUNDLE_COPYRIGHT "Copyright © 1999-2021 MuseScore BVBA and others. Published under the GNU General Public License.")
 else (APPLE)
       set (ExecutableName mscore)
 endif (APPLE)
@@ -87,7 +87,9 @@ if (APPLE)
 
       set_target_properties (mscore
           PROPERTIES
-          XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET 10.10)
+          XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET 10.10
+          XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${MACOSX_BUNDLE_GUI_IDENTIFIER})
+
       # Enable dSym generation
       #set_target_properties (mscore
       #    PROPERTIES

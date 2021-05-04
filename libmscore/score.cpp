@@ -74,6 +74,7 @@
 #include "breath.h"
 #include "instrchange.h"
 #include "synthesizerstate.h"
+#include "image.h"
 
 namespace Ms {
 
@@ -358,6 +359,13 @@ Score* Score::clone()
       XmlWriter xml(this, &buffer);
       xml.header();
 
+      // TODO: this code to set MSC_VERSION explicitly causes the preview score in page settings dialog
+      // to always use current style defaults rather than those of the source score
+      // this clearly wrong for the page settings dialog and causes https://musescore.org/en/node/317272
+      // it's possible this code should be replaced by code that sets version based on the source score
+      // but it's also possible other code relies on the current behavior
+      // it's also possible MasterScore::clone() should contain the same change
+      // but for now, we are simply fixing up the style in PageSettings::setScore()
       xml.stag("museScore version=\"" MSC_VERSION "\"");
       write(xml, false);
       xml.etag();
@@ -612,7 +620,7 @@ void Score::dragPosition(const QPointF& p, int* rst, Segment** seg, qreal spacin
       {
       const System* preferredSystem = (*seg) ? (*seg)->system() : nullptr;
       Measure* m = searchMeasure(p, preferredSystem, spacingFactor);
-      if (m == 0)
+      if (m == 0 || m->isMMRest())
             return;
 
       System* s = m->system();
@@ -1425,13 +1433,15 @@ void Score::addElement(Element* element)
             case ElementType::ARTICULATION:
             case ElementType::ARPEGGIO:
                   {
-                  Element* cr = parent;
-                  if (cr->isChord())
-                        createPlayEvents(toChord(cr));
+                  if (parent && parent->isChord())
+                        createPlayEvents(toChord(parent));
                   }
                   break;
             case ElementType::HARMONY:
                   element->part()->updateHarmonyChannels(true);
+                  break;
+            case ElementType::IMAGE:
+                  toImage(element)->setUsed(true);
                   break;
 
             default:
@@ -1596,6 +1606,9 @@ void Score::removeElement(Element* element)
                   break;
             case ElementType::HARMONY:
                   element->part()->updateHarmonyChannels(true, true);
+                  break;
+            case ElementType::IMAGE:
+                  toImage(element)->setUsed(false);
                   break;
 
             default:
@@ -2668,12 +2681,6 @@ void Score::sortStaves(QList<int>& dst)
                   trackMap.insert(idx * VOICES + itrack, track++);
             }
       _staves = dl;
-      for (Excerpt* e : excerpts()) {
-            QMultiMap<int, int> oldTracks = e->tracks();
-            e->tracks().clear();
-            for (QMap<int, int>::iterator it = oldTracks.begin(); it != oldTracks.end(); ++it)
-                  e->tracks().insert(trackMap[it.key()], it.value());
-            }
 
       for (Measure* m = firstMeasure(); m; m = m->nextMeasure()) {
             m->sortStaves(dst);
@@ -2694,6 +2701,25 @@ void Score::sortStaves(QList<int>& dst)
                   }
             }
       setLayoutAll();
+      }
+
+//---------------------------------------------------------
+//   mapExcerptTracks
+//---------------------------------------------------------
+
+void Score::mapExcerptTracks(QList<int> &dst)
+      {
+      for (Excerpt* e : excerpts()) {
+            QMultiMap<int, int> tr = e->tracks();
+            QMultiMap<int, int> tracks;
+            for (QMap<int, int>::iterator it = tr.begin(); it != tr.end(); ++it) {
+                  int prvStaffIdx = it.key() / VOICES;
+                  int curStaffIdx = dst.indexOf(prvStaffIdx);
+                  int offset = (curStaffIdx - prvStaffIdx) * VOICES;
+                  tracks.insert(it.key() + offset, it.value());
+                  }
+            e->tracks() = tracks;
+            }
       }
 
 //---------------------------------------------------------
@@ -3950,7 +3976,7 @@ ChordRest* Score::findCR(Fraction tick, int track) const
             tick = m->tick();
       Segment* s = m->first(SegmentType::ChordRest);
       for (Segment* ns = s; ; ns = ns->next(SegmentType::ChordRest)) {
-            if (ns == 0 || ns->tick() > tick)
+            if (!ns || ns->tick() > tick)
                   break;
             Element* el = ns->element(track);
             if (el && el->isRest() && toRest(el)->isGap())
@@ -4288,6 +4314,9 @@ ChordRest* Score::cmdTopStaff(ChordRest* cr)
 
 bool Score::hasLyrics()
       {
+      if (!firstMeasure())
+            return false;
+
       SegmentType st = SegmentType::ChordRest;
       for (Segment* seg = firstMeasure()->first(st); seg; seg = seg->next1(st)) {
             for (int i = 0; i < ntracks(); ++i) {
@@ -4305,6 +4334,9 @@ bool Score::hasLyrics()
 
 bool Score::hasHarmonies()
       {
+      if (!firstMeasure())
+            return false;
+
       SegmentType st = SegmentType::ChordRest;
       for (Segment* seg = firstMeasure()->first(st); seg; seg = seg->next1(st)) {
             for (Element* e : seg->annotations()) {
@@ -4810,11 +4842,9 @@ void Score::setStyle(const MStyle& s, const bool overlap)
       for (int i = static_cast<int>(Sid::NOSTYLE) + 1; i < static_cast<int>(Sid::STYLES); i++) {
           Sid sid = static_cast<Sid>(i);
 
-          if (!style().isDefault(sid))
-                styleCopy.set(sid, style().value(sid));
+          if (!styleCopy.isDefault(sid))
+                style().set(sid, styleCopy.value(sid));
           }
-
-      style() = styleCopy;
       }
 
 //---------------------------------------------------------

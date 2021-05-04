@@ -861,6 +861,7 @@ Score::FileError MasterScore::loadCompressedMsc(QIODevice* io, bool ignoreVersio
                         }
                   }
             }
+
       XmlReader e(dbuf);
       e.setDocName(masterScore()->fileInfo()->completeBaseName());
 
@@ -893,6 +894,41 @@ Score::FileError MasterScore::loadCompressedMsc(QIODevice* io, bool ignoreVersio
             audio()->setData(dbuf1);
             }
       return retval;
+      }
+
+int MasterScore::styleDefaultByMscVersion(const int mscVer) const
+      {
+      constexpr int LEGACY_MSC_VERSION_V3 = 301;
+      constexpr int LEGACY_MSC_VERSION_V2 = 206;
+      constexpr int LEGACY_MSC_VERSION_V1 = 114;
+
+      if (mscVer > LEGACY_MSC_VERSION_V2 && mscVer < MSCVERSION)
+            return LEGACY_MSC_VERSION_V3;
+
+      if (mscVer > LEGACY_MSC_VERSION_V1 && mscVer <= LEGACY_MSC_VERSION_V2)
+            return LEGACY_MSC_VERSION_V2;
+
+      if (mscVer <= LEGACY_MSC_VERSION_V1)
+            return LEGACY_MSC_VERSION_V1;
+
+      return MSCVERSION;
+      }
+
+int MasterScore::readStyleDefaultsVersion()
+      {
+      if (styleB(Sid::usePre_3_6_defaults))
+            return style().defaultStyleVersion();
+
+      XmlReader e(readToBuffer());
+      e.setDocName(masterScore()->fileInfo()->completeBaseName());
+
+      while (!e.atEnd()) {
+            e.readNext();
+            if (e.name() == "defaultsVersion")
+                  return e.readInt();
+            }
+
+      return styleDefaultByMscVersion(mscVersion());
       }
 
 //---------------------------------------------------------
@@ -996,6 +1032,17 @@ Score::FileError MasterScore::read1(XmlReader& e, bool ignoreVersionError)
                         if (mscVersion() == 300)
                               return FileError::FILE_OLD_300_FORMAT;
                         }
+
+                  if (created() && !preferences.getString(PREF_SCORE_STYLE_DEFAULTSTYLEFILE).isEmpty()) {
+                        setStyle(MScore::defaultStyle());
+                        }
+                  else {
+                        int defaultsVersion = readStyleDefaultsVersion();
+
+                        setStyle(*MStyle::resolveStyleDefaults(defaultsVersion));
+                        style().setDefaultStyleVersion(defaultsVersion);
+                        }
+
                   Score::FileError error;
                   if (mscVersion() <= 114)
                         error = read114(e);

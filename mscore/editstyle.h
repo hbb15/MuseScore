@@ -21,6 +21,7 @@
 #define __EDITSTYLE_H__
 
 #include "ui_editstyle.h"
+#include "abstractdialog.h"
 #include "globals.h"
 #include "libmscore/mscore.h"
 #include "libmscore/style.h"
@@ -55,7 +56,7 @@ typedef QWidget* EditStyle::* EditStylePage;
 //   EditStyle
 //---------------------------------------------------------
 
-class EditStyle : public QDialog, private Ui::EditStyleBase {
+class EditStyle : public AbstractDialog, private Ui::EditStyleBase {
       Q_OBJECT
 
       Score* cs = nullptr;
@@ -64,18 +65,21 @@ class EditStyle : public QDialog, private Ui::EditStyleBase {
       QScrollArea* scrollArea = nullptr;
       bool isTooBig = false;
       bool hasShown = false;
+      bool needResetStyle = false;
 
       virtual void showEvent(QShowEvent*);
       virtual void hideEvent(QHideEvent*);
       QVariant getValue(Sid idx);
       void setValues();
 
+      void resetStyle(Score* score);
       void applyToAllParts();
       const StyleWidget& styleWidget(Sid) const;
 
       void adjustPagesStackSize(int currentPageIndex);
+      void setHeaderFooterToolTip();
 
-      static const std::map<ElementType, EditStylePage> PAGES;
+      static EditStylePage pageForElement(Element*);
 
    private slots:
       void selectChordDescriptionFile();
@@ -99,9 +103,13 @@ class EditStyle : public QDialog, private Ui::EditStyleBase {
       void textStyleValueChanged(Pid, QVariant);
       void on_comboFBFont_currentIndexChanged(int index);
       void on_buttonTogglePagelist_clicked();
+      void on_resetStylesButton_clicked();
       void editUserStyleName();
       void endEditUserStyleName();
       void resetUserStyleName();
+
+   protected:
+      void retranslate();
 
    public:
       EditStyle(Score*, QWidget*);
@@ -111,8 +119,11 @@ class EditStyle : public QDialog, private Ui::EditStyleBase {
       void gotoElement(Element* e);
       void gotoHeaderFooterPage();
       static bool elementHasPage(Element* e);
+      
+   public slots:
+      void accept();
+      void reject();
       };
-
 
 } // namespace Ms
 #endif

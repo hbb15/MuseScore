@@ -236,6 +236,7 @@ void ScoreView::setScore(Score* s)
                   }
             else
                   _score->addViewer(this);
+            pageTop(); // (re)set position
             }
 
       if (shadowNote == 0) {
@@ -612,9 +613,10 @@ void ScoreView::moveCursor(const Fraction& tick)
       if (s == 0)
             return;
 
-      QColor c(MScore::selectColor[0]);
-      c.setAlpha(50);
-      _cursor->setColor(c);
+      _cursorColor = QColor(MScore::cursorColor);
+      if(_cursorColor.alpha() > MAX_CURSOR_ALPHA)
+            _cursorColor.setAlpha(50);
+      _cursor->setColor(_cursorColor);
       _cursor->setTick(tick);
 
       System* system = measure->system();
@@ -672,6 +674,10 @@ void ScoreView::moveControlCursor(const Fraction& tick)
       _controlCursor->setColor(c);
       _controlCursor->setTick(tick);
 
+      if (_timeElapsed < 0) {
+            _timeElapsed = 0;
+            }
+
       int realX = _cursor->rect().x();
       int controlX = _controlCursor->rect().x();
       double distance = realX - controlX;
@@ -718,8 +724,8 @@ void ScoreView::moveControlCursor(const Fraction& tick)
             _timeElapsed += addition;
             }
       else { // reposition the cursor when distance is too great
-            double curOffset = _cursor->rect().x() - score()->firstMeasure()->pos().x();
-            double length = score()->lastMeasure()->pos().x() - score()->firstMeasure()->pos().x();
+            double curOffset = _cursor->rect().x() - score()->firstMeasureMM()->pos().x();
+            double length = score()->lastMeasureMM()->pos().x() - score()->firstMeasureMM()->pos().x();
             _timeElapsed = (curOffset / length) * score()->durationWithoutRepeats() * 1000;
             _controlModifier = _panSettings.controlModifierBase;
             }
@@ -743,7 +749,7 @@ void ScoreView::moveControlCursor(const Fraction& tick)
 
 
       // Calculate the position of the controlCursor based on the timeElapsed (which is not the real time that has passed)
-      qreal x = score()->firstMeasure()->pos().x() + (score()->lastMeasure()->pos().x() - score()->firstMeasure()->pos().x()) * (_timeElapsed / (score()->durationWithoutRepeats() * 1000));
+      qreal x = score()->firstMeasureMM()->pos().x() + (score()->lastMeasureMM()->pos().x() - score()->firstMeasureMM()->pos().x()) * (_timeElapsed / (score()->durationWithoutRepeats() * 1000));
       x -= score()->spatium();
       _controlCursor->setRect(QRectF(x, _cursor->rect().y(), _cursor->rect().width(), _cursor->rect().height()));
       update(_matrix.mapRect(_controlCursor->rect()).toRect().adjusted(-1,-1,1,1));
@@ -1397,6 +1403,8 @@ void ScoreView::paint(const QRect& r, QPainter& p)
                         if (MScore::showSkylines) {
                               for (const System* system : page->systems()) {
                                     for (SysStaff* ss : *system->staves()) {
+                                          if (!ss->show())
+                                                continue;
                                           QPointF pt(system->ipos().x(), system->ipos().y() + ss->y());
                                           p.translate(pt);
                                           ss->skyline().paint(p);
@@ -2204,6 +2212,9 @@ void ScoreView::cmd(const char* s)
             {{"nashville-number-text"}, [](ScoreView* cv, const QByteArray&) {
                   cv->changeState(ViewState::NORMAL);
                   cv->cmdAddChordName(HarmonyType::NASHVILLE);
+                  }},
+            {{"frame-text"}, [](ScoreView* cv, const QByteArray&) {
+                  cv->cmdAddText(Tid::FRAME);
                   }},
             {{"title-text"}, [](ScoreView* cv, const QByteArray&) {
                   cv->cmdAddText(Tid::TITLE);
@@ -3580,46 +3591,7 @@ void ScoreView::screenPrev()
 
 void ScoreView::pageTop()
       {
-      switch (score()->layoutMode()) {
-            case LayoutMode::PAGE:
-                  {
-                  qreal dx = thinPadding, dy = thinPadding;
-                  Page* firstPage = score()->pages().front();
-                  Page* lastPage  = score()->pages().back();
-                  if (firstPage && lastPage) {
-                        QPointF offsetPt(xoffset(), yoffset());
-                        QRectF firstPageRect(firstPage->pos().x() * physicalZoomLevel(),
-                                             firstPage->pos().y() * physicalZoomLevel(),
-                                             firstPage->width() * physicalZoomLevel(),
-                                             firstPage->height() * physicalZoomLevel());
-                        QRectF lastPageRect(lastPage->pos().x() * physicalZoomLevel(),
-                                            lastPage->pos().y() * physicalZoomLevel(),
-                                            lastPage->width() * physicalZoomLevel(),
-                                            lastPage->height() * physicalZoomLevel());
-                        QRectF pagesRect = firstPageRect.united(lastPageRect);
-                        dx = qMax(thinPadding, (width() - pagesRect.width()) / 2);
-                        dy = qMax(thinPadding, (height() - pagesRect.height()) / 2);
-                        }
-                  setOffset(dx, dy);
-                  break;
-                  }
-            case LayoutMode::LINE:
-                  setOffset(thinPadding, 0.0);
-                  break;
-            case LayoutMode::SYSTEM:
-                  {
-                  qreal dx = thinPadding, dy = thinPadding;
-                  Page* page = score()->pages().front();
-                  if (page) {
-                        dx = qMax(thinPadding, (width() - page->width() * physicalZoomLevel()) / 2);
-                        }
-                  setOffset(dx, dy);
-                  break;
-                  }
-            default:
-                  setOffset(thinPadding, thinPadding);
-                  break;
-      }
+      setOffset(thinPadding, score()->layoutMode() == LayoutMode::LINE ? 0.0 : thinPadding);
       update();
       }
 
@@ -4030,9 +4002,9 @@ void ScoreView::cmdAddSlur(const Slur* slurTemplate)
                         if (!e->isChord())
                               continue;
                         ChordRest* cr = toChordRest(e);
-                        if (!cr1 || cr1->tick() > cr->tick())
+                        if (!cr1 || cr->isBefore(cr1))
                               cr1 = cr;
-                        if (!cr2 || cr2->tick() < cr->tick())
+                        if (!cr2 || cr2->isBefore(cr))
                               cr2 = cr;
                         }
                   if (cr1 && (cr1 != cr2))
@@ -4098,7 +4070,7 @@ void ScoreView::addSlur(ChordRest* cr1, ChordRest* cr2, const Slur* slurTemplate
             _score->inputState().setSlur(slur);
             ss->setSelected(true);
             }
-      else if (switchToSlur) {
+      else if (switchToSlur && score()->selection().isSingle()) {
             startEditMode(ss);
             }
       }
@@ -4648,6 +4620,7 @@ void ScoreView::cmdAddText(Tid tid, Tid customTid, PropertyFlags pf, Placement p
       if (tid == Tid::STAFF && customTid == Tid::EXPRESSION)
             tid = customTid;  // expression is not first class element, but treat as such
       switch (tid) {
+            case Tid::FRAME:
             case Tid::TITLE:
             case Tid::SUBTITLE:
             case Tid::COMPOSER:
@@ -5283,8 +5256,15 @@ void ScoreView::cmdMoveCR(bool left)
                               break;
                         }
                   ChordRest* cr2 = left ? prevChordRest(cr1) : nextChordRest(cr1);
-                  if (cr2 && cr1->measure() == cr2->measure() && !cr1->tuplet() && !cr2->tuplet()
-                      && cr1->durationType() == cr2->durationType() && cr1->ticks() == cr2->ticks()) {
+                  // ensures cr1 is the left chord, useful in SwapCR::flip()
+                  if (left)
+                        std::swap(cr1, cr2);
+                  if (cr1 && cr2 && cr1->measure() == cr2->measure() && !cr1->tuplet() && !cr2->tuplet()
+                     && cr1->durationType() == cr2->durationType() && cr1->ticks() == cr2->ticks()
+                     // if two chords belong to different two-note tremolos, abort
+                     && !(cr1->isChord() && toChord(cr1)->tremolo() && toChord(cr1)->tremolo()->twoNotes()
+                        && cr2->isChord() && toChord(cr2)->tremolo() && toChord(cr2)->tremolo()->twoNotes()
+                        && toChord(cr1)->tremolo() != toChord(cr2)->tremolo())) {
                         if (!cmdActive) {
                               _score->startCmd();
                               cmdActive = true;

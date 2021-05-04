@@ -1426,6 +1426,7 @@ enum class Sid {
 
       autoplaceEnabled,
       usePre_3_6_defaults,
+      defaultsVersion,
 
       numericHeightDisplacement,
       numericDistanceOctave,
@@ -1481,6 +1482,11 @@ enum class Sid {
       };
 END_QT_REGISTERED_ENUM(Sid)
 
+inline uint qHash(Sid id)
+{
+    return static_cast<uint>(id);
+}
+
 //---------------------------------------------------------
 //   MStyle
 ///   \cond PLUGIN_API \private \endcond
@@ -1494,6 +1500,7 @@ class MStyle {
 
       ChordList _chordList;
       bool _customChordList;        // if true, chordlist will be saved as part of score
+      int _defaultStyleVersion = -1;
 
    public:
       MStyle();
@@ -1504,6 +1511,8 @@ class MStyle {
       void set(Sid idx, const QVariant& v);
 
       bool isDefault(Sid idx) const;
+      void setDefaultStyleVersion(const int defaultsVersion);
+      int defaultStyleVersion() const { return _defaultStyleVersion; }
 
       const ChordDescription* chordDescription(int id) const;
       ChordList* chordList()  { return &_chordList; }
@@ -1513,17 +1522,19 @@ class MStyle {
 
       bool load(QFile* qf, bool ign = false);
       void load(XmlReader& e);
-      void applyNewDefaults(const MStyle& other);
+      void applyNewDefaults(const MStyle& other, const int defaultsVersion);
       void save(XmlWriter& xml, bool optimize);
       bool readProperties(XmlReader&);
       bool readStyleValCompat(XmlReader&);
       bool readTextStyleValCompat(XmlReader&);
 
-      void reset(Score*);
+      void resetAllStyles(Score* score, const QSet<Sid>& ignoredStyles = QSet<Sid>());
+      void resetStyles(Score* score, const QSet<Sid>& stylesToReset);
 
       static const char* valueType(const Sid);
       static const char* valueName(const Sid);
       static Sid styleIdx(const QString& name);
+      static MStyle* resolveStyleDefaults(const int defaultsVersion);
       };
 
 //---------------------------------------------------------
@@ -1552,6 +1563,8 @@ Tid textStyleFromName(const QString&);
 
 const std::vector<Tid>& allTextStyles();
 const std::vector<Tid>& primaryTextStyles();
+
+QSet<Sid> pageStyles();
 
 #ifndef NDEBUG
 extern void checkStyles();

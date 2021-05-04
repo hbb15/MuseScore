@@ -15,6 +15,7 @@
 #include "musescore.h"
 #include "seq.h"
 #include "texttools.h"
+#include "pianotools.h"
 #include "fotomode.h"
 #include "tourhandler.h"
 #include "scoreaccessibility.h"
@@ -493,6 +494,7 @@ void ScoreView::mousePressEvent(QMouseEvent* ev)
       editData.pos       = editData.startMove;
       editData.buttons   = ev->buttons();
       editData.modifiers = qApp->keyboardModifiers();
+      editData.key       = 0;
 
       bool gripFound = false;
       if (hasEditGrips() && ev->button() == Qt::LeftButton) {
@@ -757,8 +759,8 @@ void ScoreView::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
       if (!clickedElement->isEditable()) {
             if (clickedElement->isInstrumentName()) // double-click an instrument name to open the edit staff/part properties menu
                   elementPropertyAction("staff-props", clickedElement);
-            else if (clickedElement->isText() && (toText(clickedElement)->tid() == Tid::FOOTER || toText(clickedElement)->tid() == Tid::HEADER)) // double-click an instrument name to open the edit staff/part properties menu
-                  elementPropertyAction("style-header-footer", clickedElement);
+            else if (clickedElement->isText() && (toText(clickedElement)->tid() == Tid::HEADER || toText(clickedElement)->tid() == Tid::FOOTER)) // double-click a header/footer to open the Header/Footer page in the Style dialog
+                  elementPropertyAction("style", clickedElement);
             return;
             }
 

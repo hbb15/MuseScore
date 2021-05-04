@@ -890,6 +890,16 @@ Shortcut Shortcut::_sc[] = {
       {
          MsWidget::SCORE_TAB,
          STATE_NORMAL | STATE_NOTE_ENTRY,
+         "reset-text-style-overrides",
+         QT_TRANSLATE_NOOP("action","Reset Text Style Overrides"),
+         QT_TRANSLATE_NOOP("action","Reset text style overrides"),
+         QT_TRANSLATE_NOOP("action","Reset all text style overrides to default"),
+         Icons::Invalid_ICON,
+         Qt::WindowShortcut
+         },
+      {
+         MsWidget::SCORE_TAB,
+         STATE_NORMAL | STATE_NOTE_ENTRY,
          "reset-groupings",
          QT_TRANSLATE_NOOP("action","Regroup Rhythms"),
          QT_TRANSLATE_NOOP("action","Regroup rhythms"),
@@ -2879,7 +2889,8 @@ Shortcut Shortcut::_sc[] = {
          MsWidget::MAIN_WINDOW,
          STATE_NORMAL | STATE_NOTE_ENTRY,
          "find",
-         QT_TRANSLATE_NOOP("action","Find")
+         QT_TRANSLATE_NOOP("action","Find / Go To"),
+         QT_TRANSLATE_NOOP("action","Find / Go to")
          },
       {
          MsWidget::MAIN_WINDOW,
@@ -4129,7 +4140,7 @@ Shortcut Shortcut::_sc[] = {
          STATE_ALL,
          "zoom-in-horiz-pre",
          QT_TRANSLATE_NOOP("action", "Zoom In Horizontally"),
-         QT_TRANSLATE_NOOP("action", "Zoom in horizontal - piano roll editor"),
+         QT_TRANSLATE_NOOP("action", "Zoom in horizontally - piano roll editor"),
          0,
          Icons::Invalid_ICON
          },
@@ -4138,7 +4149,7 @@ Shortcut Shortcut::_sc[] = {
          STATE_ALL,
          "zoom-out-horiz-pre",
          QT_TRANSLATE_NOOP("action", "Zoom Out Horizontally"),
-         QT_TRANSLATE_NOOP("action", "Zoom out horizontal - piano roll editor"),
+         QT_TRANSLATE_NOOP("action", "Zoom out horizontally - piano roll editor"),
          0,
          Icons::Invalid_ICON
          },
@@ -4147,7 +4158,7 @@ Shortcut Shortcut::_sc[] = {
          STATE_ALL,
          "zoom-in-vert-pre",
          QT_TRANSLATE_NOOP("action", "Zoom In Vertically"),
-         QT_TRANSLATE_NOOP("action", "Zoom in vertical - piano roll editor"),
+         QT_TRANSLATE_NOOP("action", "Zoom in vertically - piano roll editor"),
          0,
          Icons::Invalid_ICON
          },
@@ -4156,7 +4167,7 @@ Shortcut Shortcut::_sc[] = {
          STATE_ALL,
          "zoom-out-vert-pre",
          QT_TRANSLATE_NOOP("action", "Zoom Out Vertically"),
-         QT_TRANSLATE_NOOP("action", "Zoom out vertical - piano roll editor"),
+         QT_TRANSLATE_NOOP("action", "Zoom out vertically - piano roll editor"),
          0,
          Icons::Invalid_ICON
          },
@@ -4626,7 +4637,7 @@ void Shortcut::read(XmlReader& e)
                   QKeySequence seq  = Shortcut::keySeqFromString(e.readElementText(), QKeySequence::PortableText);
 #ifndef NDEBUG
                   for (const Shortcut& sc : _sc) {
-                        for (const QKeySequence s : sc._keys) {
+                        for (const QKeySequence& s : sc._keys) {
                               if (s == seq)
                                     qDebug("Ambiguous shortcut for action <%s>", _key.data());
                               }

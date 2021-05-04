@@ -135,6 +135,7 @@ void TextBase::endEdit(EditData& ed)
             // command. Text shouldn't happen to be empty in other cases though.
             Q_ASSERT(newlyAdded || textWasEdited);
 
+            setXmlText(ted->oldXmlText);    // reset text to value before editing
             undo->reopen();
             score()->undoRemoveElement(this);
             ed.element = 0;
@@ -537,12 +538,10 @@ void SplitJoinText::join(EditData* ed)
             t->textBlock(line-1).removeEmptyFragment();
       t->textBlock(line-1).fragments().append(*fragmentsList);
       delete fragmentsList;
-      int lines = t->rows();
-      if (line < lines)
-            t->textBlock(line).setEol(eol);
       t->textBlockList().removeAt(line);
 
       c.setRow(line-1);
+      c.curLine().setEol(eol);
       c.setColumn(col);
       c.setFormat(*charFmt);             // restore orig. format at new line
       c.clearSelection();
@@ -556,6 +555,7 @@ void SplitJoinText::split(EditData* ed)
       {
       TextBase* t   = c.text();
       int line      = c.row();
+      bool eol      = c.curLine().eol();
       t->setTextInvalid();
       t->triggerLayout();
 
@@ -564,7 +564,7 @@ void SplitJoinText::split(EditData* ed)
       c.curLine().setEol(true);
 
       c.setRow(line+1);
-      c.curLine().setEol(true);
+      c.curLine().setEol(eol);
       c.setColumn(0);
       c.setFormat(*charFmt);             // restore orig. format at new line
       c.clearSelection();

@@ -271,6 +271,13 @@ bool Beam::twoBeamedNotes()
       int dist2     = c2->upLine() - upDnLimit;
       if ((dist1 == -dist2) || (-dist1 == dist2)) {
             _up = false;
+#if 0
+            // this code appears to implement a rule
+            // that says two middle-line beamed notes
+            // should follow the same beam direction as a previous beam group
+            // but we don't follow this rule for single notes or for larger beam groups
+            // also, it makes little sense to follow it if the previous group
+            // is in another measure, which may end up on another system or page
             Segment* s = c1->segment();
             s = s->prev1(SegmentType::ChordRest);
             if (s) {
@@ -281,6 +288,7 @@ bool Beam::twoBeamedNotes()
                               _up = c->beam()->up();
                         }
                   }
+#endif
             }
       else if (qAbs(dist1) > qAbs(dist2))
             _up = dist1 > 0;
@@ -1732,7 +1740,7 @@ void Beam::layout2(std::vector<ChordRest*>crl, SpannerSegmentType, int frag)
                   for (; i < n; ++i) {
                         ChordRest* c = crl[i];
                         ChordRest* p = i ? crl[i - 1] : 0;
-                        int l = c->durationType().hooks() - 1;
+                        int l = c->isChord() ? c->durationType().hooks() - 1 : beamLevel;
 
                         Mode bm = Groups::endBeam(c, p);
                         b32 = (beamLevel >= 1) && (bm == Mode::BEGIN32);
@@ -2199,6 +2207,8 @@ std::vector<QPointF> Beam::gripsPositions(const EditData& ed) const
                   break;
                   }
             }
+      if (!c2) // no chord/rest found, no need to check again below
+            return {}; // just ignore the requested operation
 
       int y = pagePos().y();
 

@@ -75,10 +75,12 @@ PreferenceDialog::PreferenceDialog(QWidget* parent)
       setModal(true);
       shortcutsChanged = false;
 
-#ifdef Q_OS_MAC // On Mac, we have an extra theme option,
-      // namely to follow the system's Dark Mode
+      styleName->clear();
+      styleName->addItem(tr("Light"));
+      styleName->addItem(tr("Dark"));
+#ifdef Q_OS_MAC // On Mac, we have a theme option to follow the system's Dark Mode
       if (CocoaBridge::isSystemDarkModeSupported())
-            styleName->addItem(QCoreApplication::translate("PrefsDialogBase", "System"));
+            styleName->addItem(tr("System"));
 #endif
 
 #ifndef USE_JACK
@@ -309,6 +311,12 @@ void PreferenceDialog::start()
                   new BoolPreferenceItem(PREF_EXPORT_PNG_USETRANSPARENCY, pngTransparent),
                   new BoolPreferenceItem(PREF_IMPORT_MUSICXML_IMPORTBREAKS, importBreaks),
                   new BoolPreferenceItem(PREF_IMPORT_MUSICXML_IMPORTLAYOUT, importLayout),
+                  new BoolPreferenceItem(PREF_MIGRATION_APPLY_EDWIN_FOR_XML_FILES, applyDefaultTypeFaceToImportedScores,
+                                      [this]() { preferences.setPreference(PREF_MIGRATION_APPLY_EDWIN_FOR_XML_FILES, applyDefaultTypeFaceToImportedScores->isChecked()); }, // apply function
+                                      [this]() {
+                                            bool value = preferences.getBool(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN_XML) && preferences.getBool(PREF_MIGRATION_APPLY_EDWIN_FOR_XML_FILES);
+                                            applyDefaultTypeFaceToImportedScores->setChecked(value);
+                                            }), // update function
             #ifdef AVSOMR
                   new BoolPreferenceItem(PREF_IMPORT_AVSOMR_USELOCAL, useLocalAvsOmr, [&](){ updateUseLocalAvsOmr(); }),
             #endif
@@ -332,8 +340,6 @@ void PreferenceDialog::start()
                   new BoolPreferenceItem(PREF_UI_APP_STARTUP_SHOWSTARTCENTER, showStartcenter),
                   new BoolPreferenceItem(PREF_UI_APP_STARTUP_SHOWTOURS, showTours),
                   new BoolPreferenceItem(PREF_APP_TELEMETRY_ALLOWED, collectTelemetry),
-                  new BoolPreferenceItem(PREF_IO_JACK_TIMEBASEMASTER, becomeTimebaseMaster),
-                  new BoolPreferenceItem(PREF_IO_JACK_REMEMBERLASTCONNECTIONS, rememberLastMidiConnections),
                   new BoolPreferenceItem(PREF_SCORE_NOTE_WARNPITCHRANGE, warnPitchRange),
                   new StringPreferenceItem(PREF_IMPORT_OVERTURE_CHARSET, importCharsetListOve, nullptr, [&](){ updateCharsetListOve(); }),      // keep the default apply
                   new StringPreferenceItem(PREF_IMPORT_GUITARPRO_CHARSET, importCharsetListGP, nullptr, [&](){ updateCharsetListGP(); }),       // keep the default apply
@@ -373,6 +379,7 @@ void PreferenceDialog::start()
                   new BoolPreferenceItem(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN, scoreMigrationEnabled,
                                           [this]() { preferences.setPreference(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN, !scoreMigrationEnabled->isChecked()); }, // apply function
                                           [this]() { scoreMigrationEnabled->setChecked(!preferences.getBool(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN)); }), // update function
+                  new BoolPreferenceItem(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN_XML),
                   new StringPreferenceItem(PREF_UI_APP_LANGUAGE, language, [&](){ languageApply(); }, [&](){ languageUpdate(); }),
                   new CustomPreferenceItem(PREF_APP_STARTUP_SESSIONSTART, lastSession,
                                           [this]() { // apply function
@@ -495,6 +502,8 @@ void PreferenceDialog::start()
                   new BoolPreferenceItem(PREF_IO_PULSEAUDIO_USEPULSEAUDIO, pulseaudioDriver, doNothing),
                   new BoolPreferenceItem(PREF_IO_JACK_USEJACKMIDI, useJackMidi, doNothing),
                   new BoolPreferenceItem(PREF_IO_JACK_USEJACKTRANSPORT, useJackTransport, doNothing),
+                  new BoolPreferenceItem(PREF_IO_JACK_TIMEBASEMASTER, becomeTimebaseMaster, doNothing),
+                  new BoolPreferenceItem(PREF_IO_JACK_REMEMBERLASTCONNECTIONS, rememberLastMidiConnections, doNothing),
                   new StringPreferenceItem(PREF_IO_ALSA_DEVICE, alsaDevice, doNothing),
                   new IntPreferenceItem(PREF_IO_ALSA_SAMPLERATE, alsaSampleRate, doNothing),
                   new IntPreferenceItem(PREF_IO_ALSA_PERIODSIZE, alsaPeriodSize, doNothing),
@@ -558,12 +567,6 @@ PreferenceDialog::~PreferenceDialog()
 void PreferenceDialog::retranslate()
       {
       retranslateUi(this);
-#ifdef Q_OS_MAC // On Mac, we have an extra theme option,
-      // namely, to follow the system's Dark Mode.
-      // Of course, we need to translate that too :)
-      if (CocoaBridge::isSystemDarkModeSupported())
-            styleName->setItemText(2, QCoreApplication::translate("PrefsDialogBase", "System"));
-#endif
       updateValues();
       }
 
@@ -643,6 +646,14 @@ void PreferenceDialog::updateValues(bool useDefaultValues, bool setup)
       {
       if (useDefaultValues)
             preferences.setReturnDefaultValuesMode(true);
+
+      styleName->clear();
+      styleName->addItem(tr("Light"));
+      styleName->addItem(tr("Dark"));
+#ifdef Q_OS_MAC // On Mac, we have a theme option to follow the system's Dark Mode
+      if (CocoaBridge::isSystemDarkModeSupported())
+            styleName->addItem(tr("System"));
+#endif
 
       advancedWidget->updatePreferences();
 
@@ -1380,9 +1391,10 @@ void PreferenceDialog::apply()
                         || preferences.getBool(PREF_IO_JACK_REMEMBERLASTCONNECTIONS) != rememberLastMidiConnections->isChecked()
                         || preferences.getBool(PREF_IO_JACK_TIMEBASEMASTER) != becomeTimebaseMaster->isChecked())
                         && (wasJack && nowJack);
-            //till this
 
-            preferences.setPreference(PREF_IO_JACK_USEJACKTRANSPORT, jackDriver->isChecked() && useJackTransport->isChecked()); //this
+            preferences.setPreference(PREF_IO_JACK_TIMEBASEMASTER, becomeTimebaseMaster->isChecked());
+            preferences.setPreference(PREF_IO_JACK_REMEMBERLASTCONNECTIONS, rememberLastMidiConnections->isChecked());
+            preferences.setPreference(PREF_IO_JACK_USEJACKTRANSPORT, jackDriver->isChecked() && useJackTransport->isChecked());
 
             if (jackParametersChanged) {
                   // Change parameters of JACK driver without unload
@@ -1427,6 +1439,7 @@ void PreferenceDialog::apply()
       #ifdef USE_PORTMIDI
             preferences.setPreference(PREF_IO_PORTMIDI_INPUTDEVICE, portMidiInput->currentText());
             preferences.setPreference(PREF_IO_PORTMIDI_OUTPUTDEVICE, portMidiOutput->currentText());
+            preferences.setPreference(PREF_IO_PORTMIDI_OUTPUTLATENCYMILLISECONDS, portMidiOutputLatencyMilliseconds->value());
             if (seq->driver() && static_cast<PortMidiDriver*>(static_cast<Portaudio*>(seq->driver())->mididriver())->isSameCoreMidiIacBus(preferences.getString(PREF_IO_PORTMIDI_INPUTDEVICE), preferences.getString(PREF_IO_PORTMIDI_OUTPUTDEVICE))) {
                   QMessageBox msgBox;
                   msgBox.setWindowTitle(tr("Possible MIDI Loopback"));
@@ -1692,7 +1705,7 @@ void PreferenceDialog::selectExtensionsDirectory()
 
 void PreferenceDialog::updateTranslationClicked()
       {
-      ResourceManager r(0);
+      ResourceManager r(this);
       r.selectLanguagesTab();
       r.exec();
       }

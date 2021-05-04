@@ -1069,7 +1069,7 @@ bool Segment::hasElements(int minTrack, int maxTrack) const
 
 bool Segment::allElementsInvisible() const
       {
-      if (isType(SegmentType::BarLineType | SegmentType::ChordRest | SegmentType::Breath))
+      if (isType(SegmentType::BarLineType | SegmentType::ChordRest))
             return false;
 
       for (Element* e : _elist) {
@@ -1165,7 +1165,7 @@ void Segment::scanElements(void* data, void (*func)(void*, Element*), bool all)
       {
       for (int track = 0; track < score()->nstaves() * VOICES; ++track) {
             int staffIdx = track/VOICES;
-            if (!all && !(score()->staff(staffIdx)->show())) {
+            if (!all && !(score()->staff(staffIdx)->show() && system() && !system()->staves()->empty() && system()->staff(staffIdx)->show())) {
                   track += VOICES - 1;
                   continue;
                   }
@@ -1636,6 +1636,8 @@ Element* Segment::nextElement(int activeStaff)
       Element* e = score()->selection().element();
       if (!e && !score()->selection().elements().isEmpty() )
             e = score()->selection().elements().first();
+      if (!e)
+            return nullptr;
       switch (e->type()) {
             case ElementType::DYNAMIC:
             case ElementType::HARMONY:
@@ -1763,6 +1765,8 @@ Element* Segment::prevElement(int activeStaff)
       Element* e = score()->selection().element();
       if (!e && !score()->selection().elements().isEmpty() )
             e = score()->selection().elements().last();
+      if (!e)
+            return nullptr;
       switch (e->type()) {
             case ElementType::DYNAMIC:
             case ElementType::HARMONY:

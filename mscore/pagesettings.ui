@@ -248,6 +248,13 @@
       <number>0</number>
      </property>
      <item>
+      <widget class="QPushButton" name="resetPageStyleButton">
+       <property name="text">
+        <string>Reset All Page Settings to Default</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>

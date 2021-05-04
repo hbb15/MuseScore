@@ -183,7 +183,7 @@ static void copyOverlapData(VoiceOverlapDetector& vod, VoiceList& vcLst)
 //---------------------------------------------------------
 
 MusicXMLParserPass1::MusicXMLParserPass1(Score* score, MxmlLogger* logger)
-      : _divs(0), _score(score), _logger(logger)
+      : _divs(0), _score(score), _logger(logger), _hasBeamingInfo(false)
       {
       // nothing
       }
@@ -1100,7 +1100,11 @@ void MusicXMLParserPass1::identification()
                   _score->setMetaTag("copyright", _e.readElementText());
             else if (_e.name() == "encoding") {
                   // TODO
-                  _e.skipCurrentElement(); // skip but don't log
+                  while (_e.readNextStartElement()) {
+                        if (_e.name() == "supports" && _e.attributes().value("element") == "beam" && _e.attributes().value("type") == "yes")
+                              _hasBeamingInfo = true;
+                        _e.skipCurrentElement();
+                        }
                   // _score->setMetaTag("encoding", _e.readElementText()); works with DOM but not with pull parser
                   // temporarily fake the encoding tag (compliant with DOM parser) to help the autotester
                   if (MScore::debugMode)
@@ -1238,7 +1242,10 @@ static QString nextPartOfFormattedString(QXmlStreamReader& e)
             if (ok)
                   importedtext += QString("<font size=\"%1\"/>").arg(size);
             }
-      if (!fontFamily.isEmpty() && txt == syms) {
+
+      bool needUseDefaultFont = preferences.getBool(PREF_MIGRATION_APPLY_EDWIN_FOR_XML_FILES);
+
+      if (!fontFamily.isEmpty() && txt == syms && !needUseDefaultFont) {
             // add font family only if no <sym> replacement made
             importedtext += QString("<font face=\"%1\"/>").arg(fontFamily);
             }
@@ -1365,6 +1372,8 @@ static void updateStyles(Score* score,
       const auto dblLyricSize = lyricSize.toDouble(); // but avoid comparing (double) floating point number with exact value later
       const auto epsilon = 0.001;                     // use epsilon instead
 
+      bool needUseDefaultFont = preferences.getBool(PREF_MIGRATION_APPLY_EDWIN_FOR_XML_FILES);
+
       // loop over all text styles (except the empty, always hidden, first one)
       // set all text styles to the MusicXML defaults
       for (const auto tid : allTextStyles()) {
@@ -1383,7 +1392,7 @@ static void updateStyles(Score* score,
                   continue;
             const TextStyle* ts = textStyle(tid);
             for (const StyledProperty& a :* ts) {
-                  if (a.pid == Pid::FONT_FACE && wordFamily != "")
+                  if (a.pid == Pid::FONT_FACE && wordFamily != "" && !needUseDefaultFont)
                         score->style().set(a.sid, wordFamily);
                   else if (a.pid == Pid::FONT_SIZE && dblWordSize > epsilon)
                         score->style().set(a.sid, dblWordSize);
@@ -1391,7 +1400,7 @@ static void updateStyles(Score* score,
             }
 
       // handle lyrics odd and even lines separately
-      if (lyricFamily != "") {
+      if (lyricFamily != "" && !needUseDefaultFont) {
             score->style().set(Sid::lyricsOddFontFace, lyricFamily);
             score->style().set(Sid::lyricsEvenFontFace, lyricFamily);
             }
@@ -2243,12 +2252,30 @@ void MusicXMLParserPass1::measure(const QString& partId,
 
       // if necessary, round up to an integral number of 1/64s,
       // to comply with MuseScores actual measure length constraints
-      // TODO: calculate in fraction
-      int length = mDura.ticks();
-      int correctedLength = length;
-      if ((length % (MScore::division/16)) != 0) {
-            correctedLength = ((length / (MScore::division/16)) + 1) * (MScore::division/16);
-            mDura = Fraction::fromTicks(correctedLength);
+      Fraction length = mDura * Fraction(64,1);
+      Fraction correctedLength = mDura;
+      length.reduce();
+      if (length.denominator() != 1) {
+            Fraction roundDown = Fraction(length.numerator() / length.denominator(), 64);
+            Fraction roundUp = Fraction(length.numerator() / length.denominator() + 1, 64);
+            // mDura is not an integer multiple of 1/64;
+            // first check if the duration is larger than an integer multiple of 1/64
+            // by an amount smaller than the minimum division resolution
+            // in that case, round down (rounding errors have possibly occurred),
+            // otherwise, round up
+            if ((_divs > 0) && ((mDura - roundDown) < Fraction(1, 4*_divs))) {
+                  _logger->logError(QString("rounding down measure duration %1 to %2")
+                                    .arg(qPrintable(mDura.print())).arg(qPrintable(roundDown.print())),
+                                    &_e);
+                  correctedLength = roundDown;
+                  }
+            else {
+                  _logger->logError(QString("rounding up measure duration %1 to %2")
+                                    .arg(qPrintable(mDura.print())).arg(qPrintable(roundUp.print())),
+                                    &_e);
+                  correctedLength = roundUp;
+                  }
+            mDura = correctedLength;
             }
 
       // set measure duration to a suitable value given the time signature
@@ -3129,8 +3156,10 @@ void MusicXMLParserPass1::note(const QString& partId,
                   }
             else if (_e.name() == "accidental")
                   _e.skipCurrentElement();  // skip but don't log
-            else if (_e.name() == "beam")
+            else if (_e.name() == "beam") {
+                  _hasBeamingInfo = true;
                   _e.skipCurrentElement();  // skip but don't log
+                  }
             else if (_e.name() == "chord") {
                   chord = true;
                   _e.readNext();

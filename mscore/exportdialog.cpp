@@ -141,7 +141,7 @@ void ExportDialog::retranslate()
       
       musicxmlFileTypeComboBox->setItemText(0, tr("Compressed") + " (*.mxl)");
       musicxmlFileTypeComboBox->setItemText(1, tr("Uncompressed") + " (*.musicxml)");
-      musicxmlFileTypeComboBox->setItemText(2, tr("Uncompressed (deprecated)") + " (*.xml)");
+      musicxmlFileTypeComboBox->setItemText(2, tr("Uncompressed (outdated)") + " (*.xml)");
 
       buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Export…"));
       }
@@ -446,10 +446,10 @@ void ExportDialog::accept()
       QString name = QString("%1/%2").arg(saveDirectory, cs->masterScore()->fileInfo()->completeBaseName());
       if (oneScore) {
             Score* score = scores.first();
-            name.append(QString(" - %1").arg(score->isMaster() ? tr("Full Score") : score->title()));
+            name.append(QString("%1").arg(score->isMaster() ? "" : "-" + mscore->saveFilename(score->title())));
             }
       else if (singlePDF)
-            name.append(QString(" - %1").arg(containsMasterScore ? tr("Score and Parts") : tr("Parts")));
+            name.append(QString("-%1").arg(containsMasterScore ? tr("Score_and_Parts") : tr("Parts")));
 
 #ifdef Q_OS_WIN
       if (QOperatingSystemVersion::current() > QOperatingSystemVersion(QOperatingSystemVersion::Windows, 5, 1))    // XP
@@ -473,22 +473,21 @@ void ExportDialog::accept()
       // At this moment, close the dialog
       QDialog::accept();
 
-      bool success = true;
       if (singlePDF)
             // Export the selected scores as one pdf file, directly with the filename the user typed
-            success = mscore->savePdf(scores, filename);
+            mscore->savePdf(scores, filename);
       else if (oneScore)
             // Export the selected score, directly with the filename the user typed
-            success = mscore->saveAs(scores.first(), true, filename, suffix);
+            mscore->saveAs(scores.first(), true, filename, suffix);
       else {
             // Export the selected scores as separate files, appending the part names to the filename
             SaveReplacePolicy replacePolicy = SaveReplacePolicy::NO_CHOICE;
 
             for (Score* score : scores) {
-                  QString definitiveFilename = QString("%1/%2 - %3.%4")
+                  QString definitiveFilename = QString("%1/%2%3.%4")
                         .arg(fileinfo.absolutePath(),
                              fileinfo.completeBaseName(),
-                             score->isMaster() ? tr("Full Score") : score->title(),
+                             score->isMaster() ? "" : "-" + mscore->saveFilename(score->title()),
                              suffix);
                   if (saveFormat != "png" && saveFormat != "svg" && QFileInfo(definitiveFilename).exists()) {
                         // Png and Svg export functions change the filename, so they
@@ -515,12 +514,9 @@ void ExportDialog::accept()
                                     break;
                               }
                         }
-                  if (!mscore->saveAs(score, true, definitiveFilename, suffix, &replacePolicy))
-                        success = false;
+                  mscore->saveAs(score, true, definitiveFilename, suffix, &replacePolicy);
                   }
             }
-      if (success)
-            QMessageBox::information(this, tr("Export"), tr("Export was successful."));
       }
 
 //---------------------------------------------------------

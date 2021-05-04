@@ -751,6 +751,19 @@ void TextFragment::draw(QPainter* p, const TextBase* t) const
       QFont f(font(t));
       f.setPointSizeF(f.pointSizeF() * MScore::pixelRatio);
 #ifndef Q_OS_MACOS
+      TextBase::drawTextWorkaround(p, f, pos, text);
+#else
+      p->setFont(f);
+      p->drawText(pos, text);
+#endif
+      }
+
+//---------------------------------------------------------
+//   drawTextWorkaround
+//---------------------------------------------------------
+
+void TextBase::drawTextWorkaround(QPainter* p, QFont& f, const QPointF pos, const QString text)
+      {
       qreal mm = p->worldTransform().m11();
       if (!(MScore::pdfPrinting) && (mm < 1.0) && f.bold() && !(f.underline())) {
             // workaround for https://musescore.org/en/node/284218
@@ -819,10 +832,6 @@ void TextFragment::draw(QPainter* p, const TextBase* t) const
             p->setFont(f);
             p->drawText(pos, text);
             }
-#else
-      p->setFont(f);
-      p->drawText(pos, text);
-#endif
       }
 
 //---------------------------------------------------------
@@ -1647,6 +1656,8 @@ void TextBase::createLayout()
                         cursor.setColumn(0);
                         if (rows() <= cursor.row())
                               _layout.append(TextBlock());
+                        if (_layout[cursor.row()].fragments().size() == 0)
+                              _layout[cursor.row()].insertEmptyFragmentIfNeeded(&cursor); // an empty fragment may be needed on either side of the newline
                         }
                   else {
                         if (symState)

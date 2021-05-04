@@ -495,7 +495,8 @@ class Score : public QObject, public ScoreElement {
       ChordRest* nextMeasure(ChordRest* element, bool selectBehavior = false, bool mmRest = false);
       ChordRest* prevMeasure(ChordRest* element, bool mmRest = false);
       void cmdSetBeamMode(Beam::Mode);
-      void cmdResetStyle();
+      void cmdResetAllStyle();
+      void cmdResetTextStyleOverrides();
       void cmdFlip();
       Note* getSelectedNote();
       ChordRest* upStaff(ChordRest* cr);
@@ -790,6 +791,7 @@ class Score : public QObject, public ScoreElement {
       void appendPart(const InstrumentTemplate*);
       void updateStaffIndex();
       void sortStaves(QList<int>& dst);
+      void mapExcerptTracks(QList<int>& l);
 
       bool showInvisible() const       { return _showInvisible; }
       bool showUnprintable() const     { return _showUnprintable; }
@@ -1378,6 +1380,8 @@ class MasterScore : public Score {
       FileError read302(XmlReader&);
       QByteArray readToBuffer();
       QByteArray readCompressedToBuffer();
+      int readStyleDefaultsVersion();
+      int styleDefaultByMscVersion(const int mscVer) const;
 
       Omr* omr() const                         { return _omr;     }
       void setOmr(Omr* o)                      { _omr = o;        }
@@ -1480,6 +1484,10 @@ inline Fraction Score::pos(POS pos) const              { return _masterScore->po
 inline void Score::setPos(POS pos, Fraction tick)      { _masterScore->setPos(pos, tick);        }
 
 extern MasterScore* gscore;
+
+extern MStyle* styleDefaults114();
+extern MStyle* styleDefaults206();
+extern MStyle* styleDefaults301();
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(LayoutFlags);
 

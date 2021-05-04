@@ -48,6 +48,7 @@ class StaffName {
       StaffName(const QString& s, int p=0);
 
       bool operator==(const StaffName&) const;
+      QString toString() const;
       void read(XmlReader&);
       void write(XmlWriter& xml, const char* name) const;
       int pos() const { return _pos; }
@@ -62,6 +63,7 @@ class StaffNameList : public QList<StaffName> {
 
    public:
       void write(XmlWriter& xml, const char* name) const;
+      QStringList toStringList() const;
       };
 
 //---------------------------------------------------------
@@ -288,6 +290,9 @@ class Instrument {
       qreal getVelocityMultiplier(const QString& name);
       void updateGateTime(int* gateTime, int channelIdx, const QString& name);
 
+      QString recognizeInstrumentId() const;
+      int recognizeMidiProgram() const;
+
       bool operator==(const Instrument&) const;
       bool isDifferentInstrument(const Instrument& i) const;
 
@@ -326,7 +331,7 @@ class Instrument {
       void setMidiActions(const QList<NamedEventList>& l)    { _midiActions = l;  }
       void setArticulation(const QList<MidiArticulation>& l) { _articulation = l; }
       const StringData* stringData() const                   { return &_stringData; }
-      void setStringData(const StringData& d)                { _stringData = d;     }
+      void setStringData(const StringData& d)                { _stringData.set(d);  }
 
       void setLongName(const QString& f);
       void setShortName(const QString& f);

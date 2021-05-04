@@ -125,6 +125,8 @@ static const int PROJECT_LIST_LEN = 6;
 extern const char* voiceActions[];
 extern bool mscoreFirstStart;
 
+QString localeName();
+
 using NotesColors = QHash<int /* noteIndex */, QColor>;
 
 //---------------------------------------------------------
@@ -328,7 +330,6 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
 
       Inspector* _inspector          { 0 };
       OmrPanel* omrPanel             { 0 };
-      QWidget* lastFocusWidget       { 0 };
 
       QPushButton* showMidiImportButton {0};
 
@@ -489,13 +490,15 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void createPlayPanel();
 
       ScoreTab* createScoreTab();
-      void askResetOldScorePositions(Score* score);
+      void askMigrateScore(Score* score);
 
       QString getUtmParameters(QString medium) const;
 
       void checkForUpdatesNoUI();
 
       void doLoadFiles(const QStringList& filter, bool switchTab, bool singleFile);
+
+      void askAboutApplyingEdwinIfNeed(const QString& fileSuffix);
 
    signals:
       void windowSplit(bool);
@@ -635,8 +638,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void addRecentScore(Score*);
       QFileDialog* saveAsDialog();
       QFileDialog* saveCopyDialog();
-      EditStyle* styleDlg() { return _styleDlg; }
-      void setStyleDlg(EditStyle* es) { _styleDlg = es; }
+      void showStyleDialog(Element* e = nullptr);
 
       QString lastSaveCopyDirectory;
       QString lastSaveCopyFormat;
@@ -681,7 +683,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void loadFile(const QUrl&);
       QTemporaryFile* getTemporaryScoreFileCopy(const QFileInfo& info, const QString& baseNameTemplate);
       QNetworkAccessManager* networkManager();
-      virtual Score* openScore(const QString& fn, bool switchTab = true);
+      virtual Score* openScore(const QString& fn, bool switchTab = true, const bool appendToExistingTabs = true, const QString& withFilename = "") override;
       bool hasToCheckForUpdate();
       bool hasToCheckForExtensionsUpdate();
       static bool unstable();
@@ -770,6 +772,7 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       bool saveScoreParts(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
       bool exportPartsPdfsToJSON(const QString& inFilePath, const QString& outFilePath = "/dev/stdout");
       bool exportTransposedScoreToJSON(const QString& inFilePath, const QString& transposeOptions, const QString& outFilePath = "/dev/stdout");
+      bool updateSource(const QString& scorePath, const QString& newSource);
       /////////////////////////////////////////////////
 
       void scoreUnrolled(MasterScore* original);
@@ -874,6 +877,8 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void showHelp(const QUrl&);
 
       TourHandler* tourHandler()       { return _tourHandler; }
+
+      bool isModalDialogOpen() { return QApplication::activeModalWidget() != nullptr || QApplication::modalWindow() != nullptr; }
 
 #ifdef SCRIPT_INTERFACE
       void registerPlugin(PluginDescription*);

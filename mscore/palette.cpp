@@ -263,7 +263,7 @@ void Palette::contextMenuEvent(QContextMenuEvent* event)
       int i = idx(event->pos());
       if (i == -1) {
             // palette context menu
-            if (!_moreElements)
+            if (_isSymbolsPaletteInMasterPalette || !_moreElements)
                   return;
             QMenu menu;
             QAction* moreAction = menu.addAction(tr("More Elements…"));
@@ -271,6 +271,20 @@ void Palette::contextMenuEvent(QContextMenuEvent* event)
             QAction* action = menu.exec(mapToGlobal(event->pos()));
             if (action == moreAction)
                   emit displayMore(_name);
+            return;
+            }
+
+      if (_isSymbolsPaletteInMasterPalette) {
+            QMenu menu;
+            QAction* copyNameMenuItem = menu.addAction(tr("Copy SMuFL Symbol Code"));
+            if (menu.exec(mapToGlobal(event->pos())) == copyNameMenuItem) {
+                  PaletteCell* cell = cellAt(i);
+                  if (cell) {
+                        QRegularExpression regex("<sym>(.+?)</sym>");
+                        QString symSmuflName = QString("<sym>%1</sym>").arg(regex.match(cell->name).captured(1));
+                        QApplication::clipboard()->setText(symSmuflName);
+                        }
+                  }
             return;
             }
 
@@ -575,7 +589,7 @@ bool Palette::applyPaletteElement(Element* element, Qt::KeyboardModifiers modifi
                   LayoutBreak* breakElement = toLayoutBreak(element);
                   score->cmdToggleLayoutBreak(breakElement->layoutBreakType());
                   }
-            else if (element->isSlur() && addSingle) {
+            else if (element->isSlur()) {
                   viewer->cmdAddSlur(toSlur(element));
                   }
             else if (element->isSLine() && !element->isGlissando() && addSingle) {
@@ -686,7 +700,7 @@ bool Palette::applyPaletteElement(Element* element, Qt::KeyboardModifiers modifi
                                                 Interval v = staff->part()->instrument(tick1)->transpose();
                                                 if (!v.isZero()) {
                                                       Key k = okeysig->key();
-                                                      okeysig->setKey(transposeKey(k, v, okeysig->part()->preferSharpFlat()));
+                                                      okeysig->setKey(transposeKey(k, v, staff->part()->preferSharpFlat()));
                                                       }
                                                 }
                                           oelement = okeysig;

@@ -258,6 +258,7 @@ enum MsError {
       NO_MIME,
       DEST_NO_CR,
       CANNOT_CHANGE_LOCAL_TIMESIG,
+      CORRUPTED_MEASURE,
       };
 
 /// \cond PLUGIN_API \private \endcond
@@ -311,7 +312,7 @@ class MScore {
 
       static void init();
 
-      static const MStyle& baseStyle()             { return _baseStyle;            }
+      static MStyle& baseStyle()                   { return _baseStyle;            }
       static void setBaseStyle(const MStyle& style) { _baseStyle = style;          }
       static MStyle& defaultStyle()                { return _defaultStyle;         }
       static const MStyle* defaultStyleForParts()  { return _defaultStyleForParts; }
@@ -333,6 +334,7 @@ class MScore {
       static void setVerticalOrientation(bool val) { _verticalOrientation = val;  }
 
       static QColor selectColor[VOICES];
+      static QColor cursorColor;
       static QColor defaultColor;
       static QColor dropColor;
       static QColor layoutBreakColor;

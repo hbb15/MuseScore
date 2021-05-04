@@ -6,10 +6,8 @@
     <Division>480</Division>
     <Style>
       <enableVerticalSpread>1</enableVerticalSpread>
-      <useStandardNoteNames>0</useStandardNoteNames>
       <concertPitch>1</concertPitch>
-      <enableIndentationOnFirstSystem>1</enableIndentationOnFirstSystem>
-      <Spatium>1.76389</Spatium>
+      <Spatium>1.75</Spatium>
       </Style>
     <showInvisible>1</showInvisible>
     <showUnprintable>1</showUnprintable>
@@ -26,7 +24,7 @@
     <metaTag name="translator"></metaTag>
     <metaTag name="workNumber"></metaTag>
     <metaTag name="workTitle"></metaTag>
-    <Order id="string-ensemble" customised="1">
+    <Order id="string-ensemble" customized="1">
       <name>String Ensemble</name>
       <instrument id="viola">
         <family id="orchestral-strings">Orchestral Strings</family>
@@ -109,15 +107,20 @@
           <gateTime>100</gateTime>
           </Articulation>
         <Channel name="arco">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="40"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="pizzicato">
           <program value="45"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="tremolo">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="44"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -185,15 +188,20 @@
           <gateTime>100</gateTime>
           </Articulation>
         <Channel name="arco">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="40"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="pizzicato">
           <program value="45"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="tremolo">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="44"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -263,15 +271,20 @@
           <gateTime>100</gateTime>
           </Articulation>
         <Channel name="arco">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="41"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="pizzicato">
           <program value="45"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="tremolo">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="44"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -340,22 +353,26 @@
           <gateTime>100</gateTime>
           </Articulation>
         <Channel name="arco">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="42"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="pizzicato">
           <program value="45"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="tremolo">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="44"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
     <Staff id="1">
       <VBox>
         <height>10</height>
-        <boxAutoSize>0</boxAutoSize>
         <Text>
           <style>Title</style>
           <text>String Quartet</text>

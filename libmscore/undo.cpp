@@ -1092,6 +1092,37 @@ void SortStaves::undo(EditData*)
       }
 
 //---------------------------------------------------------
+//   MapExcerptTracks
+//---------------------------------------------------------
+
+MapExcerptTracks::MapExcerptTracks(Score* s, QList<int> l)
+      {
+      score = s;
+
+      /*
+       *    In list l [x] represents the previous index of the staffIdx x.
+       *    If the a staff x is a newly added staff, l[x] = -1.
+       *    For the "undo" all staves which value -1 are *not* remapped since
+       *    it is assumed this staves are removed later.
+       */
+      for (int i = 0; i < l.size(); ++i) {
+            if (l[i] >= 0)
+                  rlist.insert(l[i], i);
+            }
+      list = l;
+      }
+
+void MapExcerptTracks::redo(EditData*)
+      {
+      score->mapExcerptTracks(list);
+      }
+
+void MapExcerptTracks::undo(EditData*)
+      {
+      score->mapExcerptTracks(rlist);
+      }
+
+//---------------------------------------------------------
 //   ChangePitch
 //---------------------------------------------------------
 
@@ -1692,10 +1723,14 @@ void ChangeStyleVal::flip(EditData*)
                         if (score->styleB(Sid::chordsXmlFile))
                             score->style().chordList()->read("chords.xml");
                         score->style().chordList()->read(score->styleSt(Sid::chordDescriptionFile));
+                        score->style().setCustomChordList(score->styleSt(Sid::chordStyle) == "custom");
                         }
                         break;
                   case Sid::spatium:
                         score->spatiumChanged(v.toDouble(), value.toDouble());
+                        break;
+                  case Sid::defaultsVersion:
+                        score->style().setDefaultStyleVersion(value.toInt());
                         break;
                   default:
                         break;
@@ -2142,6 +2177,15 @@ void SwapCR::flip(EditData*)
       Segment* s1 = cr1->segment();
       Segment* s2 = cr2->segment();
       int track = cr1->track();
+
+      if (cr1->isChord() && cr2->isChord() && toChord(cr1)->tremolo()
+         && (toChord(cr1)->tremolo() == toChord(cr2)->tremolo())) {
+            Tremolo* t = toChord(cr1)->tremolo();
+            Chord* c1 = t->chord1();
+            Chord* c2 = t->chord2();
+            t->setParent(toChord(c2));
+            t->setChords(toChord(c2), toChord(c1));
+            }
 
       Element* cr = s1->element(track);
       s1->setElement(track, s2->element(track));

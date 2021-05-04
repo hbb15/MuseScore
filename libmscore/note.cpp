@@ -1309,7 +1309,7 @@ void Note::draw(QPainter* painter) const
                   if (i < in->minPitchP() || i > in->maxPitchP())
                         painter->setPen(selected() ? Qt::darkRed : Qt::red);
                   else if (i < in->minPitchA() || i > in->maxPitchA())
-                        painter->setPen(selected() ? QColor(0x565600) : Qt::darkYellow);
+                        painter->setPen(selected() ? QColor("#565600") : Qt::darkYellow);
                   }
             // draw blank notehead to avoid staff and ledger lines
             if (_cachedSymNull != SymId::noSym) {
@@ -2453,8 +2453,8 @@ void Note::layout2()
       for (Element* e : _el) {
             if (!score()->tagIsValid(e->tag()))
                   continue;
-            e->setMag(mag());
             if (e->isSymbol()) {
+                  e->setMag(mag());
                   qreal w = headWidth();
                   Symbol* sym = toSymbol(e);
                   e->layout();
@@ -2475,6 +2475,7 @@ void Note::layout2()
                         }
                   }
             else if (e->isFingering()) {
+                  // don't set mag; fingerings should not scale with note
                   Fingering* f = toFingering(e);
                   if (f->propertyFlags(Pid::PLACEMENT) == PropertyFlags::STYLED)
                         f->setPlacement(f->calculatePlacement());
@@ -2484,6 +2485,7 @@ void Note::layout2()
                         f->layout();
                   }
             else {
+                  e->setMag(mag());
                   e->layout();
                   }
             }
@@ -3552,6 +3554,8 @@ Element* Note::nextElement()
       Element* e = score()->selection().element();
       if (!e && !score()->selection().elements().isEmpty() )
             e = score()->selection().elements().first();
+      if (!e)
+            return nullptr;
       switch (e->type()) {
             case ElementType::SYMBOL:
             case ElementType::IMAGE:
@@ -3569,7 +3573,7 @@ Element* Note::nextElement()
                                     return i->spannerSegments().front();
                               }
                         }
-                  return 0;
+                  return nullptr;
                   }
 
             case ElementType::TIE_SEGMENT:
@@ -3595,7 +3599,7 @@ Element* Note::nextElement()
                                     return i->spannerSegments().front();
                               }
                         }
-                  return 0;
+                  return nullptr;
 
             case ElementType::NOTE:
                   if (!_el.empty())
@@ -3608,10 +3612,10 @@ Element* Note::nextElement()
                                     return i->spannerSegments().front();
                               }
                         }
-                  return 0;
+                  return nullptr;
 
             default:
-                  return 0;
+                  return nullptr;
             }
       }
 
@@ -3624,6 +3628,8 @@ Element* Note::prevElement()
       Element* e = score()->selection().element();
       if (!e && !score()->selection().elements().isEmpty() )
             e = score()->selection().elements().last();
+      if (!e)
+            return nullptr;
       switch (e->type()) {
             case ElementType::SYMBOL:
             case ElementType::IMAGE:
@@ -3648,7 +3654,7 @@ Element* Note::prevElement()
             case ElementType::ACCIDENTAL:
                   return this;
             default:
-                  return 0;
+                  return nullptr;
             }
       }
 

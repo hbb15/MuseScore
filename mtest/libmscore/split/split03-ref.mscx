@@ -29,12 +29,13 @@
           </StaffType>
         </Staff>
       <trackName>Voice</trackName>
-      <Instrument>
+      <Instrument id="voice">
         <trackName>Voice</trackName>
         <minPitchP>36</minPitchP>
         <maxPitchP>94</maxPitchP>
         <minPitchA>40</minPitchA>
         <maxPitchA>79</maxPitchA>
+        <instrumentId>voice.vocals</instrumentId>
         <Articulation>
           <velocity>100</velocity>
           <gateTime>100</gateTime>
@@ -52,6 +53,7 @@
           <gateTime>100</gateTime>
           </Articulation>
         <Channel>
+          <program value="52"/>
           </Channel>
         </Instrument>
       </Part>
@@ -78,7 +80,7 @@
             <sigD>4</sigD>
             </TimeSig>
           <Tempo>
-            <tempo>1.66667</tempo>
+            <tempo>1.6666666666666667</tempo>
             <text>𝅘𝅥 = 100</text>
             </Tempo>
           <Spanner type="HairPin">

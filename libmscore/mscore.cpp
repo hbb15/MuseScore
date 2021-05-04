@@ -88,6 +88,7 @@ qreal   MScore::horizontalPageGapEven = 1.0;
 qreal   MScore::horizontalPageGapOdd = 50.0;
 
 QColor  MScore::selectColor[VOICES];
+QColor  MScore::cursorColor;
 QColor  MScore::defaultColor;
 QColor  MScore::layoutBreakColor;
 QColor  MScore::frameMarginColor;
@@ -151,6 +152,7 @@ std::vector<MScoreError> MScore::errorList {
       { NO_MIME,                         "p6", QT_TRANSLATE_NOOP("error", "Nothing to paste")                                                      },
       { DEST_NO_CR,                      "p7", QT_TRANSLATE_NOOP("error", "Destination is not a chord or rest")                                    },
       { CANNOT_CHANGE_LOCAL_TIMESIG,     "l1", QT_TRANSLATE_NOOP("error", "Cannot change local time signature:\nMeasure is not empty")             },
+      { CORRUPTED_MEASURE,               "c1", QT_TRANSLATE_NOOP("error", "Cannot change time signature in front of a corrupted measure")          },
       };
 
 MsError MScore::_error { MS_NO_ERROR };
@@ -301,13 +303,13 @@ void MScore::init()
             _globalShare = QString( INSTPREFIX "/share/" INSTALL_NAME);
 #endif
 
-      selectColor[0].setNamedColor("0065BF");   //blue
-      selectColor[1].setNamedColor("007F00");   //green
-      selectColor[2].setNamedColor("C53F00");   //orange
-      selectColor[3].setNamedColor("C31989");   //purple
+      selectColor[0].setNamedColor("#0065BF");   //blue
+      selectColor[1].setNamedColor("#007F00");   //green
+      selectColor[2].setNamedColor("#C53F00");   //orange
+      selectColor[3].setNamedColor("#C31989");   //purple
 
       defaultColor           = Qt::black;
-      dropColor              = QColor(0x1778db);
+      dropColor              = QColor("#1778db");
       defaultPlayDuration    = 300;      // ms
       warnPitchRange         = true;
       pedalEventsMinTicks    = 1;
@@ -317,9 +319,9 @@ void MScore::init()
 
       lastError           = "";
 
-      layoutBreakColor    = QColor(0xA0A0A4);
-      frameMarginColor    = QColor(0xA0A0A4);
-      bgColor.setNamedColor("dddddd");
+      layoutBreakColor    = QColor("#A0A0A4");
+      frameMarginColor    = QColor("#A0A0A4");
+      bgColor.setNamedColor("#dddddd");
 
       //
       //  initialize styles
@@ -425,7 +427,7 @@ bool MScore::readDefaultStyle(QString file)
       QFile f(file);
       if (!f.open(QIODevice::ReadOnly))
             return false;
-      bool rv = style.load(&f);
+      bool rv = style.load(&f, true);
       if (rv)
             setDefaultStyle(style);
       f.close();

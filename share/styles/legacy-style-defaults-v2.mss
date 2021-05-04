@@ -68,8 +68,8 @@
     <barWidth>0.16</barWidth>
     <doubleBarWidth>0.16</doubleBarWidth>
     <endBarWidth>0.5</endBarWidth>
-    <doubleBarDistance>0.56</doubleBarDistance>
-    <endBarDistance>0.73</endBarDistance>
+    <doubleBarDistance>0.46</doubleBarDistance>
+    <endBarDistance>0.63</endBarDistance>
     <repeatBarlineDotSeparation>0.63</repeatBarlineDotSeparation>
     <repeatBarTips>0</repeatBarTips>
     <startBarlineSingle>0</startBarlineSingle>
@@ -86,13 +86,13 @@
     <dividerRightSym>systemDivider</dividerRightSym>
     <dividerRightX>0</dividerRightX>
     <dividerRightY>0</dividerRightY>
-    <clefLeftMargin>0.8</clefLeftMargin>
+    <clefLeftMargin>0.64</clefLeftMargin>
     <keysigLeftMargin>0.5</keysigLeftMargin>
     <ambitusMargin>0.5</ambitusMargin>
     <timesigLeftMargin>0.5</timesigLeftMargin>
     <timesigScale w="1" h="1"/>
     <midClefKeyRightMargin>1</midClefKeyRightMargin>
-    <clefKeyRightMargin>0.8</clefKeyRightMargin>
+    <clefKeyRightMargin>1.75</clefKeyRightMargin>
     <clefKeyDistance>1</clefKeyDistance>
     <clefTimesigDistance>1</clefTimesigDistance>
     <keyTimesigDistance>1</keyTimesigDistance>
@@ -107,7 +107,7 @@
     <shortestStem>2.25</shortestStem>
     <beginRepeatLeftMargin>1</beginRepeatLeftMargin>
     <minNoteDistance>0.25</minNoteDistance>
-    <barNoteDistance>1</barNoteDistance>
+    <barNoteDistance>1.2</barNoteDistance>
     <barAccidentalDistance>0.3</barAccidentalDistance>
     <multiMeasureRestMargin>1.2</multiMeasureRestMargin>
     <noteBarDistance>1</noteBarDistance>
@@ -184,7 +184,7 @@
     <vibratoPlacement>0</vibratoPlacement>
     <vibratoPosAbove x="0" y="-1"/>
     <vibratoPosBelow x="0" y="1"/>
-    <harmonyFretDist>1</harmonyFretDist>
+    <harmonyFretDist>0.5</harmonyFretDist>
     <minHarmonyDistance>0.5</minHarmonyDistance>
     <maxHarmonyBarDistance>3</maxHarmonyBarDistance>
     <maxChordShiftAbove>0</maxChordShiftAbove>
@@ -269,6 +269,7 @@
     <pageNumberOddEven>1</pageNumberOddEven>
     <showMeasureNumber>1</showMeasureNumber>
     <showMeasureNumberOne>0</showMeasureNumberOne>
+    <measureNumberAlign>center,baseline</measureNumberAlign>
     <measureNumberInterval>5</measureNumberInterval>
     <measureNumberSystem>1</measureNumberSystem>
     <measureNumberAllStaffs>0</measureNumberAllStaffs>
@@ -411,7 +412,6 @@
     <tremoloBoxHeight>0.65</tremoloBoxHeight>
     <tremoloLineWidth>0.5</tremoloLineWidth>
     <tremoloDistance>0.8</tremoloDistance>
-    <tremoloPlacement>0</tremoloPlacement>
     <tremoloStrokeStyle>0</tremoloStrokeStyle>
     <linearStretch>1.5</linearStretch>
     <crossMeasureValues>0</crossMeasureValues>
@@ -470,9 +470,9 @@
     <defaultFontStyle>0</defaultFontStyle>
     <defaultColor r="0" g="0" b="0" a="255"/>
     <defaultFrameType>0</defaultFrameType>
-    <defaultFramePadding>0.2</defaultFramePadding>
-    <defaultFrameWidth>0.1</defaultFrameWidth>
-    <defaultFrameRound>0</defaultFrameRound>
+    <defaultFramePadding>0.5</defaultFramePadding>
+    <defaultFrameWidth>0.2</defaultFrameWidth>
+    <defaultFrameRound>25</defaultFrameRound>
     <defaultFrameFgColor r="0" g="0" b="0" a="255"/>
     <defaultFrameBgColor r="255" g="255" b="255" a="0"/>
     <defaultOffset x="0" y="0"/>
@@ -487,9 +487,9 @@
     <titleOffset x="0" y="0"/>
     <titleOffsetType>0</titleOffsetType>
     <titleFrameType>0</titleFrameType>
-    <titleFramePadding>0.2</titleFramePadding>
-    <titleFrameWidth>0.1</titleFrameWidth>
-    <titleFrameRound>0</titleFrameRound>
+    <titleFramePadding>0.5</titleFramePadding>
+    <titleFrameWidth>0.2</titleFrameWidth>
+    <titleFrameRound>25</titleFrameRound>
     <titleFrameFgColor r="0" g="0" b="0" a="255"/>
     <titleFrameBgColor r="255" g="255" b="255" a="0"/>
     <subTitleFontFace>FreeSerif</subTitleFontFace>
@@ -500,9 +500,9 @@
     <subTitleOffset x="0" y="10"/>
     <subTitleOffsetType>0</subTitleOffsetType>
     <subTitleFrameType>0</subTitleFrameType>
-    <subTitleFramePadding>0.2</subTitleFramePadding>
-    <subTitleFrameWidth>0.1</subTitleFrameWidth>
-    <subTitleFrameRound>0</subTitleFrameRound>
+    <subTitleFramePadding>0.5</subTitleFramePadding>
+    <subTitleFrameWidth>0.2</subTitleFrameWidth>
+    <subTitleFrameRound>25</subTitleFrameRound>
     <subTitleFrameFgColor r="0" g="0" b="0" a="255"/>
     <subTitleFrameBgColor r="255" g="255" b="255" a="0"/>
     <composerFontFace>FreeSerif</composerFontFace>
@@ -513,9 +513,9 @@
     <composerOffset x="0" y="0"/>
     <composerOffsetType>0</composerOffsetType>
     <composerFrameType>0</composerFrameType>
-    <composerFramePadding>0.2</composerFramePadding>
-    <composerFrameWidth>0.1</composerFrameWidth>
-    <composerFrameRound>0</composerFrameRound>
+    <composerFramePadding>0.5</composerFramePadding>
+    <composerFrameWidth>0.2</composerFrameWidth>
+    <composerFrameRound>25</composerFrameRound>
     <composerFrameFgColor r="0" g="0" b="0" a="255"/>
     <composerFrameBgColor r="255" g="255" b="255" a="0"/>
     <lyricistFontFace>FreeSerif</lyricistFontFace>
@@ -526,9 +526,9 @@
     <lyricistOffset x="0" y="0"/>
     <lyricistOffsetType>0</lyricistOffsetType>
     <lyricistFrameType>0</lyricistFrameType>
-    <lyricistFramePadding>0.2</lyricistFramePadding>
-    <lyricistFrameWidth>0.1</lyricistFrameWidth>
-    <lyricistFrameRound>0</lyricistFrameRound>
+    <lyricistFramePadding>0.5</lyricistFramePadding>
+    <lyricistFrameWidth>0.2</lyricistFrameWidth>
+    <lyricistFrameRound>25</lyricistFrameRound>
     <lyricistFrameFgColor r="0" g="0" b="0" a="255"/>
     <lyricistFrameBgColor r="255" g="255" b="255" a="0"/>
     <fingeringFontFace>FreeSerif</fingeringFontFace>
@@ -537,9 +537,9 @@
     <fingeringFontStyle>0</fingeringFontStyle>
     <fingeringColor r="0" g="0" b="0" a="255"/>
     <fingeringFrameType>0</fingeringFrameType>
-    <fingeringFramePadding>0.2</fingeringFramePadding>
-    <fingeringFrameWidth>0.1</fingeringFrameWidth>
-    <fingeringFrameRound>0</fingeringFrameRound>
+    <fingeringFramePadding>0.5</fingeringFramePadding>
+    <fingeringFrameWidth>0.2</fingeringFrameWidth>
+    <fingeringFrameRound>25</fingeringFrameRound>
     <fingeringFrameFgColor r="0" g="0" b="0" a="255"/>
     <fingeringFrameBgColor r="255" g="255" b="255" a="0"/>
     <fingeringOffset x="0" y="0"/>
@@ -549,9 +549,9 @@
     <lhGuitarFingeringFontStyle>0</lhGuitarFingeringFontStyle>
     <lhGuitarFingeringColor r="0" g="0" b="0" a="255"/>
     <lhGuitarFingeringFrameType>0</lhGuitarFingeringFrameType>
-    <lhGuitarFingeringFramePadding>0.2</lhGuitarFingeringFramePadding>
-    <lhGuitarFingeringFrameWidth>0.1</lhGuitarFingeringFrameWidth>
-    <lhGuitarFingeringFrameRound>0</lhGuitarFingeringFrameRound>
+    <lhGuitarFingeringFramePadding>0.5</lhGuitarFingeringFramePadding>
+    <lhGuitarFingeringFrameWidth>0.2</lhGuitarFingeringFrameWidth>
+    <lhGuitarFingeringFrameRound>25</lhGuitarFingeringFrameRound>
     <lhGuitarFingeringFrameFgColor r="0" g="0" b="0" a="255"/>
     <lhGuitarFingeringFrameBgColor r="255" g="255" b="255" a="0"/>
     <lhGuitarFingeringOffset x="-0.5" y="0"/>
@@ -561,9 +561,9 @@
     <rhGuitarFingeringFontStyle>0</rhGuitarFingeringFontStyle>
     <rhGuitarFingeringColor r="0" g="0" b="0" a="255"/>
     <rhGuitarFingeringFrameType>0</rhGuitarFingeringFrameType>
-    <rhGuitarFingeringFramePadding>0.2</rhGuitarFingeringFramePadding>
-    <rhGuitarFingeringFrameWidth>0.1</rhGuitarFingeringFrameWidth>
-    <rhGuitarFingeringFrameRound>0</rhGuitarFingeringFrameRound>
+    <rhGuitarFingeringFramePadding>0.5</rhGuitarFingeringFramePadding>
+    <rhGuitarFingeringFrameWidth>0.2</rhGuitarFingeringFrameWidth>
+    <rhGuitarFingeringFrameRound>25</rhGuitarFingeringFrameRound>
     <rhGuitarFingeringFrameFgColor r="0" g="0" b="0" a="255"/>
     <rhGuitarFingeringFrameBgColor r="255" g="255" b="255" a="0"/>
     <rhGuitarFingeringOffset x="0" y="0"/>
@@ -610,9 +610,9 @@
     <partInstrumentColor r="0" g="0" b="0" a="255"/>
     <partInstrumentOffset x="0" y="0"/>
     <partInstrumentFrameType>0</partInstrumentFrameType>
-    <partInstrumentFramePadding>0.2</partInstrumentFramePadding>
-    <partInstrumentFrameWidth>0.1</partInstrumentFrameWidth>
-    <partInstrumentFrameRound>0</partInstrumentFrameRound>
+    <partInstrumentFramePadding>0.5</partInstrumentFramePadding>
+    <partInstrumentFrameWidth>0.2</partInstrumentFrameWidth>
+    <partInstrumentFrameRound>25</partInstrumentFrameRound>
     <partInstrumentFrameFgColor r="0" g="0" b="0" a="255"/>
     <partInstrumentFrameBgColor r="255" g="255" b="255" a="0"/>
     <dynamicsFontFace>FreeSerif</dynamicsFontFace>
@@ -650,9 +650,9 @@
     <tempoPosBelow x="0" y="3"/>
     <tempoMinDistance>0.5</tempoMinDistance>
     <tempoFrameType>0</tempoFrameType>
-    <tempoFramePadding>0.2</tempoFramePadding>
-    <tempoFrameWidth>0.1</tempoFrameWidth>
-    <tempoFrameRound>0</tempoFrameRound>
+    <tempoFramePadding>0.5</tempoFramePadding>
+    <tempoFrameWidth>0.2</tempoFrameWidth>
+    <tempoFrameRound>25</tempoFrameRound>
     <tempoFrameFgColor r="0" g="0" b="0" a="255"/>
     <tempoFrameBgColor r="255" g="255" b="255" a="0"/>
     <metronomeFontFace>FreeSerif</metronomeFontFace>
@@ -707,9 +707,9 @@
     <systemPosBelow x="0" y="3.5"/>
     <systemMinDistance>0.5</systemMinDistance>
     <systemFrameType>0</systemFrameType>
-    <systemFramePadding>0.2</systemFramePadding>
-    <systemFrameWidth>0.1</systemFrameWidth>
-    <systemFrameRound>0</systemFrameRound>
+    <systemFramePadding>0.5</systemFramePadding>
+    <systemFrameWidth>0.2</systemFrameWidth>
+    <systemFrameRound>25</systemFrameRound>
     <systemFrameFgColor r="0" g="0" b="0" a="255"/>
     <systemFrameBgColor r="255" g="255" b="255" a="0"/>
     <staffFontFace>FreeSerif</staffFontFace>
@@ -719,13 +719,13 @@
     <staffTextColor r="0" g="0" b="0" a="255"/>
     <systemOffsetType>1</systemOffsetType>
     <staffPlacement>0</staffPlacement>
-    <staffPosAbove x="0" y="-2"/>
+    <staffPosAbove x="0" y="-4"/>
     <staffPosBelow x="0" y="3.5"/>
     <staffMinDistance>0.5</staffMinDistance>
     <staffFrameType>0</staffFrameType>
-    <staffFramePadding>0.2</staffFramePadding>
-    <staffFrameWidth>0.1</staffFrameWidth>
-    <staffFrameRound>0</staffFrameRound>
+    <staffFramePadding>0.5</staffFramePadding>
+    <staffFrameWidth>0.2</staffFrameWidth>
+    <staffFrameRound>25</staffFrameRound>
     <staffFrameFgColor r="0" g="0" b="0" a="255"/>
     <staffFrameBgColor r="255" g="255" b="255" a="0"/>
     <rehearsalMarkFontFace>FreeSerif</rehearsalMarkFontFace>
@@ -750,9 +750,9 @@
     <repeatLeftColor r="0" g="0" b="0" a="255"/>
     <repeatLeftPlacement>0</repeatLeftPlacement>
     <repeatLeftFrameType>0</repeatLeftFrameType>
-    <repeatLeftFramePadding>0.2</repeatLeftFramePadding>
-    <repeatLeftFrameWidth>0.1</repeatLeftFrameWidth>
-    <repeatLeftFrameRound>0</repeatLeftFrameRound>
+    <repeatLeftFramePadding>0.5</repeatLeftFramePadding>
+    <repeatLeftFrameWidth>0.2</repeatLeftFrameWidth>
+    <repeatLeftFrameRound>25</repeatLeftFrameRound>
     <repeatLeftFrameFgColor r="0" g="0" b="0" a="255"/>
     <repeatLeftFrameBgColor r="255" g="255" b="255" a="0"/>
     <repeatRightFontFace>FreeSerif</repeatRightFontFace>
@@ -762,9 +762,9 @@
     <repeatRightColor r="0" g="0" b="0" a="255"/>
     <repeatRightPlacement>0</repeatRightPlacement>
     <repeatRightFrameType>0</repeatRightFrameType>
-    <repeatRightFramePadding>0.2</repeatRightFramePadding>
-    <repeatRightFrameWidth>0.1</repeatRightFrameWidth>
-    <repeatRightFrameRound>0</repeatRightFrameRound>
+    <repeatRightFramePadding>0.5</repeatRightFramePadding>
+    <repeatRightFrameWidth>0.2</repeatRightFrameWidth>
+    <repeatRightFrameRound>25</repeatRightFrameRound>
     <repeatRightFrameFgColor r="0" g="0" b="0" a="255"/>
     <repeatRightFrameBgColor r="255" g="255" b="255" a="0"/>
     <frameFontFace>FreeSerif</frameFontFace>

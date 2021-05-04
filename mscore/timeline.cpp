@@ -93,6 +93,17 @@ void TDockWidget::closeEvent(QCloseEvent* event)
       }
 
 //---------------------------------------------------------
+//   changeEvent
+//---------------------------------------------------------
+
+void TDockWidget::changeEvent(QEvent* event)
+      {
+      QDockWidget::changeEvent(event);
+      if (event->type() == QEvent::LanguageChange)
+            setWindowTitle(tr("Timeline"));
+      }
+
+//---------------------------------------------------------
 //   TRowLabels
 //---------------------------------------------------------
 
@@ -1054,9 +1065,13 @@ void Timeline::drawGrid(int globalRows, int globalCols, int startMeasure, int en
                   if (partList.size() > row) {
                         doc.setHtml(partList.at(row)->longName());
                         partName = doc.toPlainText();
+                        if (partName.isEmpty()) { // No Long instrument name? Fall back to Part name
+                              doc.setHtml(partList.at(row)->partName());
+                              partName = doc.toPlainText();
+                              }
+                        if (partName.isEmpty()) // No Part name? Fall back to Instrument name
+                              partName = partList.at(row)->instrumentName();
                         }
-                  if (partName.isEmpty() && partList.size() > row)
-                        partName = partList.at(row)->instrumentName();
 
                   graphicsRectItem->setToolTip(initialLetter + QString(" ") + QString::number(currMeasure->no() + 1) + QString(", ") + partName);
                   graphicsRectItem->setPen(QPen(activeTheme().backgroundColor));
@@ -2452,6 +2467,34 @@ void Timeline::showEvent(QShowEvent* evt)
       }
 
 //---------------------------------------------------------
+//   changeEvent
+//---------------------------------------------------------
+
+void Timeline::changeEvent(QEvent* event)
+      {
+      QGraphicsView::changeEvent(event);
+      if (event->type() == QEvent::LanguageChange) {
+            _metas.clear();
+            std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t1(tr("Tempo"), &Ms::Timeline::tempoMeta, true);
+            std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t2(tr("Time Signature"), &Ms::Timeline::timeMeta, true);
+            std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t3(tr("Rehearsal Mark"), &Ms::Timeline::rehearsalMeta, true);
+            std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t4(tr("Key Signature"), &Ms::Timeline::keyMeta, true);
+            std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t5(tr("Barlines"), &Ms::Timeline::barlineMeta, true);
+            std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t6(tr("Jumps and Markers"), &Ms::Timeline::jumpMarkerMeta, true);
+            std::tuple<QString, void (Timeline::*)(Segment*, int*, int), bool> t7(tr("Measures"), &Ms::Timeline::measureMeta, true);
+            _metas.push_back(t1);
+            _metas.push_back(t2);
+            _metas.push_back(t3);
+            _metas.push_back(t4);
+            _metas.push_back(t5);
+            _metas.push_back(t6);
+            _metas.push_back(t7);
+
+            updateGridFull();
+            }
+      }
+
+//---------------------------------------------------------
 //   Timeline::updateGrid
 //---------------------------------------------------------
 
@@ -2495,10 +2538,13 @@ void Timeline::updateGridFromCmdState()
 
       const bool layoutAll = layoutChanged && (cState.startTick() < Fraction(0, 1) || cState.endTick() < Fraction(0, 1));
 
-      const int startMeasure = layoutAll ? 0 : _score->tick2measure(cState.startTick())->measureIndex();
-      const int endMeasure = layoutAll ? _score->nmeasures() : (_score->tick2measure(cState.endTick())->measureIndex() + 1);
+      const Measure* startMeasure = layoutAll ? nullptr : _score->tick2measure(cState.startTick());
+      const int startMeasureIndex = startMeasure ? startMeasure->measureIndex() : 0;
 
-      updateGrid(startMeasure, endMeasure);
+      const Measure* endMeasure = layoutAll ? nullptr : _score->tick2measure(cState.endTick());
+      const int endMeasureIndex = endMeasure ? (endMeasure->measureIndex() + 1) : _score->nmeasures();
+
+      updateGrid(startMeasureIndex, endMeasureIndex);
       }
 
 //---------------------------------------------------------
@@ -2751,7 +2797,11 @@ std::vector<std::pair<QString, bool>> Timeline::getLabels()
             QString partName = "";
             doc.setHtml(partList.at(stave)->longName());
             partName = doc.toPlainText();
-            if (partName.isEmpty())
+            if (partName.isEmpty()) { // No Long instrument name? Fall back to Part name
+                  doc.setHtml(partList.at(stave)->partName());
+                  partName = doc.toPlainText();
+                  }
+            if (partName.isEmpty()) // No Part name? Fall back to Instrument name
                   partName = partList.at(stave)->instrumentName();
 
             std::pair<QString, bool> instrumentLabel = std::make_pair(partName, partList.at(stave)->show());

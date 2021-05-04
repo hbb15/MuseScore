@@ -519,7 +519,7 @@ bool Score::rewriteMeasures(Measure* fm, Measure* lm, const Fraction& ns, int st
             Fraction tick2 = m2->endTick();
             auto spanners = s->spannerMap().findOverlapping(tick1.ticks(), tick2.ticks());
             for (auto i : spanners) {
-                  if (i.value->tick() >= tick1)
+                  if (i.value->tick() >= tick1 && i.value->tick() < tick2)
                         undo(new RemoveElement(i.value));
                   }
             s->undoRemoveMeasures(m1, m2, true);
@@ -627,13 +627,6 @@ bool Score::rewriteMeasures(Measure* fm, const Fraction& ns, int staffIdx)
                                     else
                                           break;
                                     }
-                              }
-                        else {
-                              // this can be hit for local time signatures as well
-                              // (if we are rewriting all staves, but one has a local time signature)
-                              // TODO: detect error conditions better, have clearer error messages
-                              // and perform necessary fixups
-                              MScore::setError(TUPLET_CROSSES_BAR);
                               }
                         for (Measure* m = fm1; m; m = m->nextMeasure()) {
                               if (m->first(SegmentType::TimeSig))
@@ -1269,7 +1262,10 @@ void Score::cmdAddTie(bool addToChord)
       for (Note* note : noteList) {
             if (note->tieFor()) {
                   qDebug("cmdAddTie: note %p has already tie? noteFor: %p", note, note->tieFor());
-                  continue;
+                  if (addToChord)
+                        continue;
+                  else
+                        undoRemoveElement(note->tieFor());
                   }
 
             if (noteEntryMode()) {
@@ -2148,7 +2144,7 @@ void Score::deleteMeasures(MeasureBase* is, MeasureBase* ie, bool preserveTies)
       if (ie->isMeasure()) {
             Measure* iem = toMeasure(ie);
             if (iem->isMMRest())
-                  ie = iem = iem->mmRestLast();
+                  ie = /*iem = */iem->mmRestLast();
 //TODO            createEndBar = (iem == lastMeasureMM()) && (iem->endBarLineType() == BarLineType::END);
             createEndBar = false;
             }
@@ -2499,6 +2495,15 @@ void Score::cmdDeleteSelection()
                               tick = toRest(e)->tick();
                         else if (e->isSpannerSegment())
                               tick = toSpannerSegment(e)->spanner()->tick();
+                        else if (e->isBreath()) {
+                              // we want the tick of the ChordRest that precedes the breath mark (in the same track)
+                              for (Segment* s = toBreath(e)->segment()->prev(); s; s = s->prev()) {
+                                    if (s->isChordRestType() && s->element(e->track())) {
+                                          tick = s->tick();
+                                          break;
+                                          }
+                                    }
+                              }
                         else if (e->parent()
                            && (e->parent()->isSegment() || e->parent()->isChord() || e->parent()->isNote() || e->parent()->isRest()))
                               tick = e->parent()->tick();
@@ -3935,7 +3940,6 @@ void Score::updateInstrumentChangeTranspositions(KeySigEvent& key, Staff* staff,
                         Measure* m = tick2measure(Fraction::fromTicks(nextTick));
                         Segment* s = m->tick2segment(Fraction::fromTicks(nextTick), SegmentType::KeySig);
                         int track = staff->idx() * VOICES;
-                        KeySig* keySig = toKeySig(s->element(track));
                         if (key.isAtonal() && !e.isAtonal()) {
                               e.setMode(KeyMode::NONE);
                               e.setKey(Key::C);
@@ -3949,7 +3953,9 @@ void Score::updateInstrumentChangeTranspositions(KeySigEvent& key, Staff* staff,
                               nkey = transposeKey(nkey, previousTranspose);
                               e.setKey(nkey);
                               }
-                        undo(new ChangeKeySig(keySig, e, keySig->showCourtesy()));
+                        KeySig* keySig = toKeySig(s->element(track));
+                        if (keySig)
+                              undo(new ChangeKeySig(keySig, e, keySig->showCourtesy()));
                         nextTick = kl->nextKeyTick(nextTick);
                         }
                   else
@@ -4425,6 +4431,7 @@ void Score::undoAddElement(Element* element)
          || (et == ElementType::MARKER)
          || (et == ElementType::TEMPO_TEXT)
          || (et == ElementType::VOLTA)
+         || ((et == ElementType::TEXTLINE) && element->systemFlag())
          ) {
             for (Score* s : scoreList())
                   staffList.append(s->staff(0));
@@ -4435,11 +4442,11 @@ void Score::undoAddElement(Element* element)
                   int ntrack    = staffIdx * VOICES;
                   Element* ne;
 
-                  if (staff->score() == ostaff->score())
+                  if (ostaff && staff->score() == ostaff->score())
                         ne = element;
                   else {
-                        // only create linked volta for first staff
-                        if (et == ElementType::VOLTA && element->track() != 0)
+                        // only create linked volta/systemTextLine for first staff
+                        if (((et == ElementType::VOLTA) || (et == ElementType::TEXTLINE)) && element->track() != 0)
                               continue;
                         ne = element->linkedClone();
                         ne->setScore(score);
@@ -4447,7 +4454,7 @@ void Score::undoAddElement(Element* element)
                         ne->setTrack(staffIdx * VOICES + element->voice());
                         }
 
-                  if (et == ElementType::VOLTA) {
+                  if (et == ElementType::VOLTA || (et == ElementType::TEXTLINE)) {
                         Spanner* nsp = toSpanner(ne);
                         Spanner* sp = toSpanner(element);
                         int staffIdx1 = sp->track() / VOICES;
@@ -5156,7 +5163,7 @@ void Score::undoChangeSpannerElements(Spanner* spanner, Element* startElement, E
             if (sp != spanner) {
                   if (startElement) {
                         // determine the track where to expect the 'parallel' start element
-                        int newTrack = sp->startElement() ? sp->startElement()->track() + startDeltaTrack : 0;
+                        int newTrack = sp->startElement() ? sp->startElement()->track() + startDeltaTrack : sp->track();
                         // look in elements linked to new start element for an element with
                         // same score as linked spanner and appropriate track
                         for (ScoreElement* ee : startElement->linkList()) {
@@ -5169,7 +5176,7 @@ void Score::undoChangeSpannerElements(Spanner* spanner, Element* startElement, E
                         }
                   // similarly to determine the 'parallel' end element
                   if (endElement) {
-                        int newTrack = sp->endElement() ? sp->endElement()->track() + endDeltaTrack : 0;
+                        int newTrack = sp->endElement() ? sp->endElement()->track() + endDeltaTrack : sp->track2();
                         for (ScoreElement* ee : endElement->linkList()) {
                               Element* e = toElement(ee);
                               if (e->score() == sp->score() && e->track() == newTrack) {

@@ -15,6 +15,7 @@
  */
 
 #include <QFileInfo>
+#include <QMessageBox>
 
 #include "cloud/loginmanager.h"
 
@@ -83,6 +84,8 @@
 #include "scorecmp/scorecmp.h"
 #include "extension.h"
 #include "tourhandler.h"
+#include "preferences.h"
+#include "libmscore/instrtemplate.h"
 
 #ifdef OMR
 #include "omr/omr.h"
@@ -346,11 +349,53 @@ void MuseScore::doLoadFiles(const QStringList& filter, bool switchTab, bool sing
       mscore->tourHandler()->showDelayedWelcomeTour();
       }
 
+void MuseScore::askAboutApplyingEdwinIfNeed(const QString& fileSuffix)
+{
+    if (MScore::noGui) {
+        return;
+    }
+
+    static const QSet<QString> suitedSuffixes {
+        "xml",
+        "musicxml",
+        "mxl"
+    };
+
+    if (!suitedSuffixes.contains(fileSuffix)) {
+        return;
+    }
+
+    if (preferences.getBool(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN_XML)) {
+        return;
+    }
+
+    QMessageBox dialog;
+    dialog.setWindowTitle(QObject::tr("MuseScore"));
+    dialog.setText(QObject::tr("Would you like to apply our default typeface (Edwin) to this score?"));
+    QPushButton* noButton = dialog.addButton(QObject::tr("Do not apply Edwin"), QMessageBox::NoRole);
+    QPushButton* yesButton = dialog.addButton(QObject::tr("Apply Edwin"), QMessageBox::YesRole);
+    dialog.setDefaultButton(noButton);
+
+    QCheckBox askAgainCheckbox(QObject::tr("Remember my choice and don't ask again"));
+    dialog.setCheckBox(&askAgainCheckbox);
+
+    QObject::connect(&askAgainCheckbox, &QCheckBox::stateChanged, [](int state) {
+        if (static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked) {
+            preferences.setPreference(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN_XML, true);
+        }
+    });
+
+    dialog.exec();
+
+    bool needApplyEdwin = dialog.clickedButton() == yesButton;
+    preferences.setPreference(PREF_MIGRATION_APPLY_EDWIN_FOR_XML_FILES, needApplyEdwin);
+}
+
 //---------------------------------------------------------
 //   openScore
 //---------------------------------------------------------
 
-Score* MuseScore::openScore(const QString& fn, bool switchTab)
+Score* MuseScore::openScore(const QString& fn, bool switchTab, const bool considerInCurrentSession, const QString& name)
       {
       //
       // make sure we load a file only once
@@ -358,20 +403,26 @@ Score* MuseScore::openScore(const QString& fn, bool switchTab)
       QFileInfo fi(fn);
       QString path = fi.canonicalFilePath();
       for (Score* s : scoreList) {
-            if (s->masterScore()->fileInfo()->canonicalFilePath() == path) {
-                  if (switchTab)
+            if (s->masterScore() && s->masterScore()->fileInfo()->canonicalFilePath() == path) {
+                  if (switchTab && !isModalDialogOpen())
                         setCurrentScoreView(scoreList.indexOf(s->masterScore()));
                   return 0;
                   }
             }
 
+      askAboutApplyingEdwinIfNeed(fi.suffix().toLower());
+
       MasterScore* score = readScore(fn);
       if (score) {
+            if (!name.isEmpty())
+                  score->masterScore()->fileInfo()->setFile(name);
+                  // TODO: what if that path is no longer valid?
+            
             ScoreMigrator_3_6 migrator;
 
             migrator.registerHandler(new StyleDefaultsHandler());
 
-            if (preferences.getBool(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN)) {
+            if (preferences.getBool(PREF_MIGRATION_DO_NOT_ASK_ME_AGAIN) && score->mscVersion() < MSCVERSION) {
                   if (preferences.getBool(PREF_MIGRATION_APPLY_LELAND_STYLE))
                         migrator.registerHandler(new LelandStyleHandler());
 
@@ -388,10 +439,13 @@ Score* MuseScore::openScore(const QString& fn, bool switchTab)
             score->update();
             score->styleChanged();
             score->doLayout();
-            const int tabIdx = appendScore(score);
-            if (switchTab)
-                  setCurrentScoreView(tabIdx);
-            writeSessionFile(false);
+
+            if (considerInCurrentSession) {
+                  const int tabIdx = appendScore(score);
+                  if (switchTab && !isModalDialogOpen())
+                        setCurrentScoreView(tabIdx);
+                  writeSessionFile(false);
+                  }
             }
       return score;
       }
@@ -404,6 +458,15 @@ MasterScore* MuseScore::readScore(const QString& name)
       {
       if (name.isEmpty())
             return 0;
+
+      if (instrumentGroups.isEmpty()) {
+            QString tmplPath = preferences.getString(PREF_APP_PATHS_INSTRUMENTLIST1);
+
+            if (tmplPath.isEmpty())
+                  tmplPath = preferences.getString(PREF_APP_PATHS_INSTRUMENTLIST2);
+
+            loadInstrumentTemplates(tmplPath);
+            }
 
       MasterScore* score = new MasterScore(MScore::baseStyle());
       setMidiReopenInProgress(name);
@@ -604,6 +667,7 @@ MasterScore* MuseScore::getNewFile()
       QList<Excerpt*> excerpts;
       if (!newWizard->emptyScore()) {
             MasterScore* tscore = new MasterScore(MScore::defaultStyle());
+            tscore->setCreated(true);
             Score::FileError rv = Ms::readScore(tscore, tp, false);
             if (rv != Score::FileError::FILE_NO_ERROR) {
                   readScoreError(newWizard->templatePath(), rv, false);
@@ -668,6 +732,7 @@ MasterScore* MuseScore::getNewFile()
                   nvb->setBottomMargin(tvb->bottomMargin());
                   nvb->setLeftMargin(tvb->leftMargin());
                   nvb->setRightMargin(tvb->rightMargin());
+                  nvb->setAutoSizeEnabled(tvb->isAutoSizeEnabled());
                   }
             delete tscore;
             }
@@ -2791,7 +2856,7 @@ bool MuseScore::saveSvg(Score* score, const QString& name, const NotesColors& no
             QString fileName(name);
             if (fileName.endsWith(".svg"))
                   fileName = fileName.left(fileName.size() - 4);
-            fileName += QString(" - %1.svg").arg(pageNumber+1, padding, 10, QLatin1Char('0'));
+            fileName += QString("-%1.svg").arg(pageNumber+1, padding, 10, QLatin1Char('0'));
             if (!converterMode && QFileInfo(fileName).exists()) {
                   switch (_replacePolicy) {
                         case SaveReplacePolicy::NO_CHOICE:
@@ -2849,12 +2914,12 @@ NotesColors MuseScore::readNotesColors(const QString& filePath) const
 
     NotesColors result;
 
-    for (const QJsonValue& colorObj: colors) {
+    for (const QJsonValue colorObj: colors) {
         QJsonObject cobj = colorObj.toObject();
         QJsonArray notesIndexes = cobj.value("notes").toArray();
         QColor notesColor = QColor(cobj.value("color").toString());
 
-        for (const QJsonValue& index: notesIndexes) {
+        for (const QJsonValue index: notesIndexes) {
             result.insert(index.toInt(), notesColor);
         }
     }
@@ -3147,6 +3212,7 @@ QJsonObject MuseScore::saveMetadataJSON(Score* score)
       json.insert("hasLyrics", boolToString(score->hasLyrics()));
       json.insert("hasHarmonies", boolToString(score->hasHarmonies()));
       json.insert("keysig", score->keysig());
+      json.insert("previousSource", score->metaTag("source"));
 
       // timeSig
       QString timeSig;
@@ -3307,17 +3373,19 @@ bool MuseScore::exportMp3AsJSON(const QString& inFilePath, const QString& outFil
 
 QByteArray MuseScore::exportPdfAsJSON(Score* score)
       {
+      QTemporaryFile tempPdfFile;
+      bool ok = tempPdfFile.open();
+
+      if (!ok) {
+          return QByteArray();
+      }
+
       QPrinter printer;
-      auto tempPdfFileName = "/tmp/MUTempPdf.pdf";
-      printer.setOutputFileName(tempPdfFileName);
+      printer.setOutputFileName(tempPdfFile.fileName());
       mscore->savePdf(score, printer);
-      QFile tempPdfFile(tempPdfFileName);
-      QByteArray pdfData;
-      if (tempPdfFile.open(QIODevice::ReadWrite)) {
-            pdfData = tempPdfFile.readAll();
-            tempPdfFile.close();
-            tempPdfFile.remove();
-            }
+
+      QByteArray pdfData = tempPdfFile.readAll();
+      tempPdfFile.close();
 
       return pdfData.toBase64();
       }
@@ -3374,7 +3442,7 @@ bool MuseScore::saveOnline(const QStringList& inFilePaths)
             parseSourceUrl(score->metaTag("source"), uid, nid);
 
             if (nid <= 0) {
-                  qCritical() << qUtf8Printable(tr("Error: '%1' tag missing or badly formed in %2").arg("source").arg(path));
+                  qCritical() << qUtf8Printable(tr("Error: '%1' tag missing or malformed in %2").arg("source").arg(path));
                   all_successful = false;
                   continue;
                   }
@@ -3645,5 +3713,15 @@ bool MuseScore::exportTransposedScoreToJSON(const QString& inFilePath, const QSt
       return res;
       }
 
-}
+bool MuseScore::updateSource(const QString& scorePath, const QString& newSource)
+{
+    MasterScore* score = mscore->readScore(scorePath);
+    if (!score) {
+        return false;
+    }
 
+    score->setMetaTag("source", newSource);
+
+    return score->saveFile(false);
+}
+}

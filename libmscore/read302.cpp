@@ -188,6 +188,9 @@ bool Score::read(XmlReader& e)
                         e.tracks().clear();     // ???
                         MasterScore* m = masterScore();
                         Score* s       = new Score(m, MScore::baseStyle());
+                        int defaultsVersion = m->style().defaultStyleVersion();
+                        s->setStyle(*MStyle::resolveStyleDefaults(defaultsVersion));
+                        s->style().setDefaultStyleVersion(defaultsVersion);
                         Excerpt* ex    = new Excerpt(m);
 
                         ex->setPartScore(s);
@@ -291,10 +294,28 @@ bool Score::read(XmlReader& e)
             if (defined)
                   {
                   if (defined->isScoreOrder(this)) {
+                        // The order in the score file matches a score order
+                        // which is already defined so use that order.
                         setScoreOrder(defined);
                         delete order;
                         }
                   else {
+                        // The order in the score file is already defined in the score order
+                        // but the order is of the instruments is not the same so use the
+                        // order as a customized version of the already defined order.
+                        scoreOrders.addScoreOrder(order);
+                        setScoreOrder(order);
+                        }
+                  }
+            else {
+                  defined = scoreOrders.findById(order->getId());
+                  if (defined) {
+                        // The order in the score file is already available, resuse it.
+                        setScoreOrder(defined);
+                        delete order;
+                        }
+                  else {
+                        // The order in the score file is new, add it to the score orders.
                         scoreOrders.addScoreOrder(order);
                         setScoreOrder(order);
                         }
@@ -411,5 +432,23 @@ Score::FileError MasterScore::read302(XmlReader& e)
       return FileError::FILE_NO_ERROR;
       }
 
+MStyle* styleDefaults301()
+      {
+      static MStyle* result = nullptr;
+
+      if (result)
+            return result;
+
+      result = new MStyle();
+
+      QFile baseDefaults(":/styles/legacy-style-defaults-v3.mss");
+
+      if (!baseDefaults.open(QIODevice::ReadOnly))
+            return result;
+
+      result->load(&baseDefaults);
+
+      return result;
+      }
 }
 

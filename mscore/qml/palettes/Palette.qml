@@ -568,10 +568,6 @@ GridView {
                 }
             }
 
-            onStateChanged: {
-                console.debug("STATE CHANGED " + state)
-            }
-
             states: [
                 // Note: if "when" is true for multiple states then
                 // the first state listed here takes precendence.
@@ -691,9 +687,7 @@ GridView {
                 }
 
                 onDoubleClicked: {
-                    const index = paletteCell.modelIndex;
-                    paletteView.selectionModel.setCurrentIndex(index, ItemSelectionModel.Current);
-                    paletteView.paletteController.applyPaletteElement(index, mouse.modifiers);
+                    // Empty handler to avoid onClicked being triggered twice on double-click.
                 }
             }
 

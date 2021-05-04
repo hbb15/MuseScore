@@ -29,7 +29,7 @@ FocusScope {
     property var model
 
     Keys.onEscapePressed: {
-        root.closeRequested()
+        root.model.ignore()
     }
 
     Rectangle {
@@ -57,17 +57,14 @@ FocusScope {
 
                 spacing: 20
 
-                Text {
+                TextLabel {
                     Layout.fillWidth: true
 
                     font.family: globalStyle.font.family
                     font.bold: true
-                    font.pixelSize: 24
+                    font.pixelSize: 20
                     color: globalStyle.buttonText
-                    wrapMode: Text.WordWrap
                     horizontalAlignment: Qt.AlignHCenter
-                    Accessible.role: Accessible.StaticText
-                    Accessible.name: text
 
                     text: qsTr("Would you like to try our improved score style?")
                 }
@@ -88,7 +85,7 @@ FocusScope {
 
                 CheckBoxControl {
                     checked: root.model ? root.model.isLelandAllowed : false
-                    text: qsTr("Our new professional notation font")
+                    text: qsTr("Our new professional notation font, Leland")
 
                     onToggled: {
                         root.model.isLelandAllowed = checked
@@ -97,7 +94,7 @@ FocusScope {
 
                 CheckBoxControl {
                     checked: root.model ? root.model.isEdwinAllowed : false
-                    text: qsTr("Our improved text font")
+                    text: qsTr("Our improved text font, Edwin")
 
                     onToggled: {
                         root.model.isEdwinAllowed = checked
@@ -114,20 +111,38 @@ FocusScope {
                     }
                 }
 
-                Text {
+                TextLabel {
                     Layout.topMargin: 12
                     Layout.fillWidth: true
 
                     font.family: globalStyle.font.family
                     font.pixelSize: 14
                     color: globalStyle.buttonText
-                    wrapMode: Text.WordWrap
                     horizontalAlignment: Qt.AlignLeft
-                    Accessible.role: Accessible.StaticText
-                    Accessible.name: text
 
                     text: root.model ? qsTr("Since this file was created in MuseScore %1, some layout changes may occur.").arg(root.model.creationAppVersion)
-                                     : ""
+                                     : qsTr("(unknown)")
+                }
+
+                TextLabel {
+                    Layout.topMargin: 12
+                    Layout.fillWidth: true
+
+                    font.family: globalStyle.font.family
+                    font.pixelSize: 14
+                    color: globalStyle.buttonText
+                    horizontalAlignment: Qt.AlignLeft
+
+                    text: "<a href=\"%1\">%2</a>".arg(Qt.locale().name === "zh_CN" ? "https://www.bilibili.com/video/BV1FT4y1K7UM" : "https://youtu.be/qLR40BGNy68").arg(qsTr("Watch our release video to learn more"))
+                    Accessible.name: qsTr("Watch our release video to learn more")
+                    Accessible.role: Accessible.Button
+                    Accessible.onPressAction: linkActivated()
+
+                    onLinkActivated: {
+                        if (root.model) {
+                            root.model.showMoreDetails()
+                        }
+                    }
                 }
             }
         }
@@ -157,44 +172,23 @@ FocusScope {
             }
         }
 
-        RowLayout {
-            Layout.maximumWidth: parent.width / 2
+        StyledDialogButtonBox {
+            Layout.preferredWidth: parent.width / 2
             Layout.alignment: Qt.AlignRight
-            Layout.leftMargin: 12
 
-            spacing: 4
+            onRejected: if (root.model) root.model.ignore()
+            onAccepted: if (root.model) root.model.apply()
 
             StyledButton {
-                id: ignoreButton
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 2
                 text: qsTr("Keep old style")
-
+                DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
                 focus: true
-
-                onClicked: {
-                    if (!root.model) {
-                        return
-                    }
-
-                    root.model.ignore()
-                }
             }
 
             StyledButton {
-                Layout.fillWidth: true
-                Layout.preferredWidth: parent.width / 2
                 text: qsTr("Apply new style")
-
+                DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
                 enabled: root.model ? root.model.isApplyingAvailable : false
-
-                onPressed: {
-                    if (!root.model) {
-                        return
-                    }
-
-                    root.model.apply()
-                }
             }
         }
     }

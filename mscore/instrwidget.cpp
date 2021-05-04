@@ -94,12 +94,32 @@ void ScoreOrderListModel::rebuildData()
       }
 
 //---------------------------------------------------------
-//   setCustomisedOrder
+//   ScoreOrderFilterProxyModel
+//---------------------------------------------------------
+ScoreOrderFilterProxyModel::ScoreOrderFilterProxyModel(ScoreOrderList* data, QObject* parent)
+   : QSortFilterProxyModel(parent)
+      {
+      _scoreOrders = data;
+      }
+
+//---------------------------------------------------------
+//   setCustomizedOrder
 //---------------------------------------------------------
 
-void ScoreOrderListModel::setCustomisedOrder(ScoreOrder* order)
+void ScoreOrderFilterProxyModel::setCustomizedOrder(ScoreOrder* order)
       {
-      customisedOrder = order->isCustomised() ? order : nullptr;
+      _customizedOrder = (order && order->isCustomized()) ? order : nullptr;
+      invalidateFilter();
+      }
+
+//---------------------------------------------------------
+//   filterAcceptsRow
+//---------------------------------------------------------
+
+bool ScoreOrderFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex& /*sourceParent*/) const
+      {
+      ScoreOrder* so = (*_scoreOrders)[sourceRow];
+      return !so->isCustomized() || (so == _customizedOrder);
       }
 
 //---------------------------------------------------------
@@ -409,7 +429,7 @@ PartListItem::PartListItem(Part* p, QTreeWidget* lv)
       part = p;
       it   = 0;
       op   = ListItemOp::KEEP;
-      _name = QString(p->instrument()->trackName());
+      _name = QString(p->partName().isEmpty() ? p->instrument()->trackName() : p->partName());
       setSoloist(false); //TODO, must be taken from part.
       setFlags(flags() | Qt::ItemIsUserCheckable);
       }
@@ -489,8 +509,10 @@ InstrumentsWidget::InstrumentsWidget(QWidget* parent)
    : QWidget(parent)
       {
       setupUi(this);
+      _filter = new ScoreOrderFilterProxyModel(&scoreOrders, this);
       _model = new ScoreOrderListModel(&scoreOrders, this);
-      scoreOrderComboBox->setModel(_model);
+      _filter->setSourceModel(_model);
+      scoreOrderComboBox->setModel(_filter);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
       instrumentList->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -513,6 +535,26 @@ InstrumentsWidget::InstrumentsWidget(QWidget* parent)
       downButton->setIcon(*icons[int(Icons::arrowDown_ICON)]);
 
       instrumentSearch->setFilterableView(instrumentList);
+      }
+
+//---------------------------------------------------------
+//   changeEvent
+//---------------------------------------------------------
+
+void InstrumentsWidget::changeEvent(QEvent* event)
+      {
+      QWidget::changeEvent(event);
+      if (event->type() == QEvent::LanguageChange)
+            retranslate();
+      }
+
+//---------------------------------------------------------
+//   retranslate
+//---------------------------------------------------------
+
+void InstrumentsWidget::retranslate()
+      {
+      retranslateUi(this);
       }
 
 //---------------------------------------------------------
@@ -604,6 +646,8 @@ void InstrumentsWidget::genPartList(Score* cs)
             pli->updateClefs();
             pli->setExpanded(true);
             }
+      _filter->setCustomizedOrder(cs->scoreOrder());
+      _model->rebuildData();
       partiturList->resizeColumnToContents(0);
       partiturList->resizeColumnToContents(2);  // adjust width of "Clef " and "Staff type" columns
       partiturList->resizeColumnToContents(4);
@@ -1175,7 +1219,7 @@ void InstrumentsWidget::filterInstrumentsByGenre(QTreeWidget *instrList, QString
 void InstrumentsWidget::updateScoreOrder()
       {
       ScoreOrder* order = getScoreOrder();
-      if (order->isCustomised())
+      if (order->isCustomized())
             {
             ScoreOrder* normal = scoreOrders.findByName(order->getName());
             if (isScoreOrder(normal))
@@ -1191,6 +1235,7 @@ void InstrumentsWidget::updateScoreOrder()
                         custom = order->clone();
                         scoreOrders.addScoreOrder(custom);
                         }
+                  _filter->setCustomizedOrder(custom);
                   setScoreOrder(custom);
                   }
             }
@@ -1202,7 +1247,7 @@ void InstrumentsWidget::updateScoreOrder()
 
 void InstrumentsWidget::sortInstruments()
       {
-      if (getScoreOrder()->isCustom() || getScoreOrder()->isCustomised())
+      if (getScoreOrder()->isCustom() || getScoreOrder()->isCustomized())
             return;
 
       PartListItem* pli = nullptr;
@@ -1388,6 +1433,7 @@ void InstrumentsWidget::init()
       addStaffButton->setEnabled(false);
 
       int curIndex = scoreOrderComboBox->currentIndex();
+      _filter->setCustomizedOrder(nullptr);
       _model->rebuildData();
       scoreOrderComboBox->setCurrentIndex(curIndex);
 
@@ -1426,7 +1472,9 @@ void InstrumentsWidget::setMakeSoloistButtonText()
 
 void InstrumentsWidget::setScoreOrder(ScoreOrder* order)
       {
-      scoreOrderComboBox->setCurrentIndex(scoreOrders.getScoreOrderIndex(order));
+      const QModelIndex idx1 = _model->index(scoreOrders.getScoreOrderIndex(order), 0);
+      const QModelIndex idx2 = _filter->mapFromSource(idx1);
+      scoreOrderComboBox->setCurrentIndex(idx2.row());
       sortInstruments();
       }
 
@@ -1436,7 +1484,9 @@ void InstrumentsWidget::setScoreOrder(ScoreOrder* order)
 
 ScoreOrder* InstrumentsWidget::getScoreOrder() const
       {
-      return scoreOrders[scoreOrderComboBox->currentIndex()];
+      const QModelIndex idx1 = _filter->index(scoreOrderComboBox->currentIndex(), 0);
+      const QModelIndex idx2 = _filter->mapToSource(idx1);
+      return scoreOrders[idx2.row()];
       }
 
 //---------------------------------------------------------

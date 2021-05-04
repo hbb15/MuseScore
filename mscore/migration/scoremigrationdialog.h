@@ -1,9 +1,6 @@
 #ifndef SCOREMIGRATIONDIALOG_H
 #define SCOREMIGRATIONDIALOG_H
 
-#include <QQuickView>
-#include <QQmlEngine>
-
 #include "scoremigrationdialogmodel.h"
 
 class ScoreMigrationDialog : public QQuickView

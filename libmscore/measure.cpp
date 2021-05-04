@@ -1612,7 +1612,11 @@ Element* Measure::drop(EditData& data)
                                     if (ts  == s)
                                           ns = ts;
                                     }
-                              if (ns && ns->page() == s->page()) {
+                              if (ns == s) {
+                                    qreal y1 = s->staffYpage(staffIdx);
+                                    qreal y2 = s->page()->height() - s->page()->bm();
+                                    gap = y2 - y1 - score()->staff(staffIdx)->height();
+                              } else if (ns && ns->page() == s->page()) {
                                     qreal y1 = s->staffYpage(staffIdx);
                                     qreal y2 = ns->staffYpage(0);
                                     gap = y2 - y1 - score()->staff(staffIdx)->height();
@@ -2879,12 +2883,15 @@ bool Measure::isEmpty(int staffIdx) const
 //---------------------------------------------------------
 //   isCutawayClef
 ///    Check for empty measure with only
-///    a Courtesy Clef before the End Bar Line
+///    a Courtesy Clef before End Bar Line
 //---------------------------------------------------------
 
 bool Measure::isCutawayClef(int staffIdx) const
       {
-      if (!isEmpty(staffIdx))
+      if (!score()->staff(staffIdx) || !_mstaves[staffIdx])
+            return false;
+      bool empty = (score()->staff(staffIdx)->cutaway() && isEmpty(staffIdx)) || !_mstaves[staffIdx]->visible();
+      if (!empty)
             return false;
       int strack;
       int etrack;
@@ -2896,13 +2903,22 @@ bool Measure::isCutawayClef(int staffIdx) const
             strack = staffIdx * VOICES;
             etrack = strack + VOICES;
             }
-      Segment* s = last()->prev();
+      // find segment before EndBarLine
+      Segment* s = nullptr;
+      for (Segment* ls = last(); ls; ls = ls->prev()) {
+            if (ls->segmentType() ==  SegmentType::EndBarLine) {
+                  s = ls->prev();
+                  break;
+                  }
+            }
       if (!s)
             return false;
       for (int track = strack; track < etrack; ++track) {
             Element* e = s->element(track);
-            if (e && e->isClef() && (nextMeasure()->system() == system() || toClef(e)->showCourtesy()))
-                return true;
+            if (!e || !e->isClef())
+                  continue;
+            if ((nextMeasure() && (nextMeasure()->system() == system())) || toClef(e)->showCourtesy())
+                  return true;
             }            
       return false;
       }
@@ -3861,6 +3877,8 @@ qreal Measure::createEndBarLines(bool isLastMeasureInSystem)
             bool wasVisible = clefSeg->visible();
             int visibleInt = 0;
             for (int staffIdx = 0; staffIdx < nstaves; ++staffIdx) {
+                  if (!score()->staff(staffIdx)->show())
+                        continue;
                   int track    = staffIdx * VOICES;
                   Clef* clef = toClef(clefSeg->element(track));
                   if (clef) {
@@ -4428,13 +4446,21 @@ void Measure::computeMinWidth(Segment* s, qreal x, bool isSystemHeader)
       while (s) {
 
             s->rxpos() = x;
-            if (!s->enabled() || !s->visible() || s->allElementsInvisible()) {
+            // skip disabled / invisible segments
+            // segments with all elements invisible are skipped,
+            // but only for headers or segments later in the measure -
+            // invisible key or time signatures at the beginning of non-header measures are treated normally here
+            // otherwise we would not allocate enough space for the first note
+            // as it is, this isn't quite right as the space will be given by key or time margins,
+            // not the bar to note distance
+            // TODO: skip these segments entirely and get the correct bar to note distance
+            if (!s->enabled() || !s->visible() || ((header() || s->rtick().isNotZero()) && s->allElementsInvisible())) {
                   s->setWidth(0);
                   s = s->next();
                   continue;
                   }
             Segment* ns = s->nextActive();
-            while (ns && ns->allElementsInvisible())
+            while (ns && ((header() || ns->rtick().isNotZero()) && ns->allElementsInvisible()))
                   ns = ns->nextActive();
             // end barline might be disabled
             // but still consider it for spacing of previous segment
@@ -4516,6 +4542,9 @@ void Measure::computeMinWidth()
       //
       // skip disabled segment
       //
+      // TODO: skip segments with all elements invisible also
+      // this will eventually allow us to calculate correct bar to note distance
+      // even if there is an invisible key or time signature present
       for (s = first(); s && !s->enabled(); s = s->next()) {
             s->rxpos() = 0;
             s->setWidth(0);

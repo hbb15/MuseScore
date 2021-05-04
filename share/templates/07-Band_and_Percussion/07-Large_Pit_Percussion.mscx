@@ -6,9 +6,7 @@
     <Division>480</Division>
     <Style>
       <enableVerticalSpread>1</enableVerticalSpread>
-      <useStandardNoteNames>0</useStandardNoteNames>
-      <enableIndentationOnFirstSystem>1</enableIndentationOnFirstSystem>
-      <Spatium>0.764</Spatium>
+      <Spatium>0.75</Spatium>
       </Style>
     <showInvisible>1</showInvisible>
     <showUnprintable>1</showUnprintable>
@@ -94,6 +92,7 @@
           </Articulation>
         <Channel>
           <program value="4"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -156,6 +155,7 @@
           </Articulation>
         <Channel>
           <program value="27"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -217,6 +217,7 @@
           </Articulation>
         <Channel>
           <program value="25"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -275,6 +276,7 @@
           </Articulation>
         <Channel>
           <program value="33"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -332,6 +334,7 @@
           </Articulation>
         <Channel>
           <program value="9"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -388,6 +391,7 @@
           </Articulation>
         <Channel>
           <program value="10"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -444,6 +448,7 @@
           </Articulation>
         <Channel>
           <program value="13"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -493,6 +498,7 @@
           </Articulation>
         <Channel>
           <program value="14"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -544,6 +550,7 @@
           </Articulation>
         <Channel>
           <program value="11"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -594,6 +601,7 @@
           </Articulation>
         <Channel>
           <program value="11"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -644,6 +652,7 @@
           </Articulation>
         <Channel>
           <program value="11"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -693,6 +702,7 @@
           </Articulation>
         <Channel>
           <program value="11"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -701,7 +711,6 @@
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="-1" span="8" col="0"/>
         <bracket type="-1" span="2" col="1"/>
         <bracket type="0" span="8" col="2"/>
         <bracket type="1" span="2" col="3"/>
@@ -755,6 +764,7 @@
           </Articulation>
         <Channel>
           <program value="12"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -815,6 +825,7 @@
           </Articulation>
         <Channel>
           <program value="12"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -866,6 +877,7 @@
           </Articulation>
         <Channel>
           <program value="12"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -917,6 +929,7 @@
           </Articulation>
         <Channel>
           <program value="12"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -969,6 +982,7 @@
           </Articulation>
         <Channel>
           <program value="12"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -1020,6 +1034,7 @@
           </Articulation>
         <Channel>
           <program value="12"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -1073,6 +1088,7 @@
           </Articulation>
         <Channel>
           <program value="47"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -1307,6 +1323,7 @@
           <controller ctrl="0" value="1"/>
           <controller ctrl="32" value="0"/>
           <program value="0"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -1513,6 +1530,7 @@
           <controller ctrl="0" value="1"/>
           <controller ctrl="32" value="0"/>
           <program value="48"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -1718,6 +1736,7 @@
           <controller ctrl="0" value="1"/>
           <controller ctrl="32" value="0"/>
           <program value="48"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -1859,6 +1878,7 @@
           <controller ctrl="0" value="1"/>
           <controller ctrl="32" value="0"/>
           <program value="56"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -2076,6 +2096,7 @@
           <controller ctrl="0" value="1"/>
           <controller ctrl="32" value="0"/>
           <program value="95"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -2209,6 +2230,7 @@
           <controller ctrl="0" value="1"/>
           <controller ctrl="32" value="0"/>
           <program value="57"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -2362,6 +2384,7 @@
           <controller ctrl="0" value="1"/>
           <controller ctrl="32" value="0"/>
           <program value="58"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
@@ -2420,39 +2443,51 @@
           </Articulation>
         <Channel name="rain">
           <program value="96"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="soundtrack">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="97"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="crystal">
           <program value="98"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="atmosphere">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="99"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="brightness">
           <program value="100"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="goblins">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="101"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="echoes">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="102"/>
+          <synti>Fluid</synti>
           </Channel>
         <Channel name="scifi">
+          <controller ctrl="0" value="0"/>
           <controller ctrl="32" value="17"/>
           <program value="103"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>
     <Staff id="1">
       <VBox>
         <height>10</height>
-        <boxAutoSize>0</boxAutoSize>
         <Text>
           <style>Title</style>
           <text>Large Pit Percussion</text>

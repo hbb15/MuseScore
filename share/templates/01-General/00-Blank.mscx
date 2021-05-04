@@ -6,9 +6,7 @@
     <Division>480</Division>
     <Style>
       <enableVerticalSpread>1</enableVerticalSpread>
-      <useStandardNoteNames>0</useStandardNoteNames>
-      <enableIndentationOnFirstSystem>1</enableIndentationOnFirstSystem>
-      <Spatium>1.76389</Spatium>
+      <Spatium>1.75</Spatium>
       </Style>
     <showInvisible>1</showInvisible>
     <showUnprintable>1</showUnprintable>
@@ -25,25 +23,10 @@
     <metaTag name="translator"></metaTag>
     <metaTag name="workNumber"></metaTag>
     <metaTag name="workTitle"></metaTag>
-    <Order id="orchestra" customised="1">
-      <name>Orchestra</name>
-      <instrument id="contrabass">
-        <family id="orchestral-strings">Orchestral Strings</family>
-        </instrument>
-      <instrument id="harp">
-        <family id="harps">Harps</family>
-        </instrument>
-      <instrument id="timpani">
-        <family id="timpani">Timpani</family>
-        </instrument>
-      <instrument id="viola">
-        <family id="orchestral-strings">Orchestral Strings</family>
-        </instrument>
-      <instrument id="violin">
-        <family id="orchestral-strings">Orchestral Strings</family>
-        </instrument>
-      <instrument id="violoncello">
-        <family id="orchestral-strings">Orchestral Strings</family>
+    <Order id="orchestral" customized="1">
+      <name>Orchestral</name>
+      <instrument id="piano">
+        <family id="keyboards">Keyboards</family>
         </instrument>
       <section id="woodwind" brackets="true" showSystemMarkings="true" barLineSpan="true" thinBrackets="true">
         <family>flutes</family>
@@ -58,6 +41,8 @@
         <family>trumpets</family>
         <family>cornets</family>
         <family>trombones</family>
+        <family>baritone-horns</family>
+        <family>euphoniums</family>
         <family>tubas</family>
         </section>
       <section id="timpani" brackets="true" showSystemMarkings="false" barLineSpan="true" thinBrackets="true">
@@ -145,6 +130,7 @@
           </Articulation>
         <Channel>
           <program value="0"/>
+          <synti>Fluid</synti>
           </Channel>
         </Instrument>
       </Part>

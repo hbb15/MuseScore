@@ -1355,15 +1355,12 @@ void Score::changeCRlen(ChordRest* cr, const Fraction& dstF, bool fillWithRest)
 
                   if (((tick - etick).ticks() % dList[0].ticks().ticks()) == 0) {
                         for (TDuration du : dList) {
-                              bool genTie;
                               Chord* cc;
                               if (oc) {
-                                    genTie = true;
                                     cc = oc;
-                                    oc = addChord(tick, du, cc, genTie, tuplet);
+                                    oc = addChord(tick, du, cc, true, tuplet);
                                     }
                               else {
-                                    genTie = false;
                                     cc = toChord(cr);
                                     undoChangeChordRestLen(cr, du);
                                     oc = cc;
@@ -1381,15 +1378,12 @@ void Score::changeCRlen(ChordRest* cr, const Fraction& dstF, bool fillWithRest)
                         }
                   else {
                         for (size_t i = dList.size(); i > 0; --i) { // loop probably needs to be in this reverse order
-                              bool genTie;
                               Chord* cc;
                               if (oc) {
-                                    genTie = true;
                                     cc = oc;
-                                    oc = addChord(tick, dList[i-1], cc, genTie, tuplet);
+                                    oc = addChord(tick, dList[i-1], cc, true, tuplet);
                                     }
                               else {
-                                    genTie = false;
                                     cc = toChord(cr);
                                     undoChangeChordRestLen(cr, dList[i-1]);
                                     oc = cc;
@@ -2069,10 +2063,42 @@ void Score::cmdResetBeamMode()
 //   cmdResetStyle
 //---------------------------------------------------------
 
-void Score::cmdResetStyle()
+void Score::cmdResetAllStyle()
       {
-      style().reset(this);
+      style().resetAllStyles(this);
       }
+
+void Score::cmdResetTextStyleOverrides()
+{
+    static const std::vector<Pid> propertiesToReset {
+        Pid::FONT_FACE,
+        Pid::FONT_SIZE,
+        Pid::FONT_STYLE,
+        Pid::SIZE_SPATIUM_DEPENDENT,
+        Pid::FRAME_TYPE,
+        Pid::TEXT_LINE_SPACING,
+        Pid::FRAME_FG_COLOR,
+        Pid::FRAME_BG_COLOR,
+        Pid::FRAME_WIDTH,
+        Pid::FRAME_PADDING,
+        Pid::FRAME_ROUND,
+        Pid::ALIGN
+    };
+
+    for (Page* page : pages()) {
+        auto elements = page->elements();
+
+        for (Element* element : elements) {
+            if (!element || !element->isTextBase()) {
+                continue;
+            }
+
+            for (Pid propertyId : propertiesToReset) {
+                element->resetProperty(propertyId);
+            }
+        }
+    }
+}
 
 //---------------------------------------------------------
 //   cmdResetNoteAndRestGroupings
@@ -2624,6 +2650,34 @@ void Score::cmdMirrorNoteHead()
 
 void Score::cmdIncDecDuration(int nSteps, bool stepDotted)
       {
+      if (selection().isRange()) {
+            if (!selection().canCopy())
+                  return;
+            QString mimeType = selection().mimeType();
+            if (mimeType.isEmpty())
+                  return;
+            ChordRest* firstCR = selection().firstChordRest();
+            if (firstCR->isGrace())
+                  firstCR = toChordRest(firstCR->parent());
+            TDuration initialDuration = firstCR->ticks();
+            TDuration d = initialDuration.shiftRetainDots(nSteps, stepDotted);
+            if (!d.isValid())
+                  return;
+            Fraction scale = d.ticks() / initialDuration.ticks();
+            for (ChordRest* cr : getSelectedChordRests()) {
+                  Fraction newTicks = cr->ticks() * scale;
+                  if (newTicks < Fraction(1, 1024) || (stepDotted && cr->durationType().dots() != firstCR->durationType().dots() && !cr->isGrace()))
+                        return;
+                  }
+            QMimeData* mimeData = new QMimeData;
+            mimeData->setData(mimeType, selection().mimeData());
+            QByteArray data(mimeData->data(mimeStaffListFormat));
+            XmlReader e(data);
+            e.setPasteMode(true);
+            deleteRange(selection().startSegment(), selection().endSegment(), staff2track(selection().staffStart()), staff2track(selection().staffEnd()), selectionFilter());
+            pasteStaff(e, selection().startSegment(), selection().staffStart(), scale);
+            return;
+            }
       Element* el = selection().element();
       if (el == 0)
             return;
@@ -4211,7 +4265,8 @@ void Score::cmd(const QAction* a, EditData& ed)
             { "pad-note-512-TAB",           [](Score* cs, EditData& ed){ cs->padToggle(Pad::NOTE512, ed);                             }},
             { "pad-note-1024",              [](Score* cs, EditData& ed){ cs->padToggle(Pad::NOTE1024, ed);                            }},
             { "pad-note-1024-TAB",          [](Score* cs, EditData& ed){ cs->padToggle(Pad::NOTE1024, ed);                            }},
-            { "reset-style",                [](Score* cs, EditData&){ cs->cmdResetStyle();                                            }},
+            { "reset-style",                [](Score* cs, EditData&){ cs->cmdResetAllStyle();                                         }},
+            { "reset-text-style-overrides", [](Score* cs, EditData&){ cs->cmdResetTextStyleOverrides();                               }},
             { "reset-beammode",             [](Score* cs, EditData&){ cs->cmdResetBeamMode();                                         }},
             { "reset-groupings",            [](Score* cs, EditData&){ cs->cmdResetNoteAndRestGroupings();                             }},
             { "clef-violin",                [](Score* cs, EditData&){ cs->cmdInsertClef(ClefType::G);                                 }},

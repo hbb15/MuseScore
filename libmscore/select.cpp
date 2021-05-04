@@ -257,13 +257,15 @@ ChordRest* Selection::lastChordRest(int track) const
       {
       if (_el.size() == 1) {
             Element* el = _el[0];
-            if (el && el->isNote())
-                  return toChordRest(el->parent());
-            else if (el->isChord() || el->isRest() || el->isRepeatMeasure())
-                  return toChordRest(el);
-            return 0;
+            if (el) {
+                  if (el->isNote())
+                        return toChordRest(el->parent());
+                  else if (el->isChord() || el->isRest() || el->isRepeatMeasure())
+                        return toChordRest(el);
+                  }
+            return nullptr;
             }
-      ChordRest* cr = 0;
+      ChordRest* cr = nullptr;
       for (auto el : _el) {
             if (el->isNote())
                   el = toNote(el)->chord();
@@ -811,10 +813,10 @@ QByteArray Selection::staffMimeData() const
       Fraction ticks  = tickEnd() - tickStart();
       int staves = staffEnd() - staffStart();
       if (!MScore::testMode) {
-            xml.stag(QString("StaffList version=\"" MSC_VERSION "\" tick=\"%1\" len=\"%2\" staff=\"%3\" staves=\"%4\"").arg(tickStart().ticks()).arg(ticks.ticks()).arg(staffStart()).arg(staves));
+            xml.stag(QString("StaffList version=\"" MSC_VERSION "\" tick=\"%1\" len=\"%2\" staff=\"%3\" staves=\"%4\"").arg(tickStart().toString()).arg(ticks.toString()).arg(staffStart()).arg(staves));
             }
       else {
-            xml.stag(QString("StaffList version=\"2.00\" tick=\"%1\" len=\"%2\" staff=\"%3\" staves=\"%4\"").arg(tickStart().ticks()).arg(ticks.ticks()).arg(staffStart()).arg(staves));
+            xml.stag(QString("StaffList version=\"2.00\" tick=\"%1\" len=\"%2\" staff=\"%3\" staves=\"%4\"").arg(tickStart().toString()).arg(ticks.toString()).arg(staffStart()).arg(staves));
             }
       Segment* seg1 = _startSegment;
       Segment* seg2 = _endSegment;
