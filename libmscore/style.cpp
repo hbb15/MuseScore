@@ -1442,7 +1442,7 @@ static const StyleType styleTypes[] {
 
       { Sid::autoplaceEnabled,              "autoplaceEnabled",              true },
       { Sid::usePre_3_6_defaults,           "usePre_3_6_defaults",           false},
-      { Sid::defaultsVersion,               "defaultsVersion",               Ms::MSCVERSION}
+      { Sid::defaultsVersion,               "defaultsVersion",               Ms::MSCVERSION},
 
       { Sid::numericHeightDisplacement,     "numericHeightDisplacement",     0.45 },
       { Sid::numericDistanceOctave,         "numericDistanceOctave",         0.5 },
