@@ -2678,6 +2678,10 @@ const std::vector<Tid>& primaryTextStyles()
       return _primaryTextStyles;
       }
 
+//---------------------------------------------------------
+//   pageStyles
+//---------------------------------------------------------
+
 QSet<Sid> pageStyles()
 {
     static const QSet<Sid> styles {
@@ -2692,6 +2696,22 @@ QSet<Sid> pageStyles()
         Sid::pageOddLeftMargin,
         Sid::pageTwosided,
         Sid::spatium
+    };
+
+    return styles;
+}
+
+//---------------------------------------------------------
+//   fretStyles
+//---------------------------------------------------------
+
+QSet<Sid> fretStyles()
+{
+      static const QSet<Sid> styles {
+            Sid::fretPlacement,
+            Sid::fretStrings,
+            Sid::fretFrets,
+            Sid::fretOrientation,
     };
 
     return styles;

@@ -16,6 +16,16 @@ namespace Ms {
 
 // TODO: move somewhere else
 
+static const std::vector<QString> vocalInstrumentNames({"Voice",
+                                                        "Soprano",
+                                                        "Mezzo-Soprano",
+                                                        "Alto",
+                                                        "Tenor",
+                                                        "Baritone",
+                                                        "Bass",
+                                                        "Women",
+                                                        "Men"});
+
 MusicXmlPart::MusicXmlPart(QString id, QString name)
       : id(id), name(name)
       {
@@ -45,11 +55,11 @@ Fraction MusicXmlPart::measureDuration(int i) const
 QString MusicXmlPart::toString() const
       {
       auto res = QString("part id '%1' name '%2' print %3 abbr '%4' print %5 maxStaff %6\n")
-            .arg(id, name).arg(printName).arg(abbr).arg(printAbbr, _maxStaff);
+            .arg(id, name).arg(_printName).arg(abbr).arg(_printAbbr, _maxStaff);
 
       for (VoiceList::const_iterator i = voicelist.constBegin(); i != voicelist.constEnd(); ++i) {
             res += QString("voice %1 map staff data %2\n")
-                  .arg(i.key() + 1, i.value().toString());
+                  .arg(QString(i.key() + 1), i.value().toString());
             }
 
       for (int i = 0; i < measureNumbers.size(); ++i) {
@@ -92,6 +102,12 @@ void MusicXmlPart::calcOctaveShifts()
             }
       }
 
+bool MusicXmlPart::isVocalStaff() const
+      {
+      return (std::find(vocalInstrumentNames.begin(), vocalInstrumentNames.end(), name) != vocalInstrumentNames.end()
+              || _hasLyrics);
+      }
+      
 //---------------------------------------------------------
 //   interval
 //---------------------------------------------------------
@@ -185,6 +201,87 @@ void MusicXmlOctaveShiftList::calcOctaveShiftShifts()
 
       }
 
+//---------------------------------------------------------
+//   printStaff
+//---------------------------------------------------------
+
+/**
+ Return the latest explicit print-object value for this staff.
+ Technically this should be defined for every measure, but
+ Dolet's implementation specifies it only when it changes.
+ */
+
+bool MusicXmlPart::printStaff(int mxStaff, Fraction time) const
+      {
+      auto printStaffList = _printStaffMap[mxStaff];
+      if (printStaffList.size() <= 0)
+            return true;
+      auto upperBound = printStaffList.upperBound(time);
+      if (upperBound == printStaffList.begin())
+            return true;
+      return (upperBound - 1).value();
+      }
+
+//---------------------------------------------------------
+//   isSmallStaff
+//---------------------------------------------------------
+
+/**
+ Whether this staff has a staff-size less than the default
+ */
+
+bool MusicXmlPart::isSmallStaff(const int msStaff) const
+      {
+      for (int smallMxmlStaff : _smallMxmlStaves) {
+            if (mxmlToMsStaff(smallMxmlStaff) == msStaff)
+                  return true;
+            }
+      return false;
+      }
+
+//---------------------------------------------------------
+//   mxmlToMsStaff
+//---------------------------------------------------------
+
+/**
+ This handles the mapping from MusicXML staff number (mxmlStaff) to the index
+ in a Part's Staff list (msStaff).
+ In most cases, this is a simple decrement from the 1-based staff number
+ to the 0-based index.
+ However, in some parts some MusicXML staves are discarded, and a mapping
+ must be stored from MusicXML staff number to index. When this mapping is
+ defined (i.e. size() != 0), it is used. See MusicXMLParserPass1::attributes()
+ for more information.
+ */
+
+int MusicXmlPart::mxmlToMsStaff(const int mxmlStaff) const
+      {
+      if (_mxmlToMsStaff.size() == 0)
+            return mxmlStaff - 1;
+      else if (_mxmlToMsStaff.contains(mxmlStaff))
+            return  _mxmlToMsStaff[mxmlStaff];
+      else
+            return -1;
+      }
+
+//---------------------------------------------------------
+//   msToMxmlStaff
+//---------------------------------------------------------
+
+/**
+ This is an inversion of the mapping in mxmlToMsStaff.
+ */
+
+int MusicXmlPart::msToMxmlStaff(const int msStaff) const
+      {
+      if (_mxmlToMsStaff.size() == 0)
+            return msStaff + 1;
+      for (auto staffI = _mxmlToMsStaff.begin(); staffI != _mxmlToMsStaff.end(); ++staffI) {
+            if (staffI.value() == msStaff)
+                  return staffI.key();
+            }
+      return 0;
+      }
 
 //---------------------------------------------------------
 //   LyricNumberHandler

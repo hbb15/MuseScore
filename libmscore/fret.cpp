@@ -273,7 +273,7 @@ void FretDiagram::init(StringData* stringData, Chord* chord)
                   if (stringData->convertPitch(note->pitch(), chord->staff(), chord->segment()->tick(), &string, &fret))
                         setDot(string, fret);
                   }
-            _maxFrets = stringData->frets();
+            _frets = stringData->frets();
             }
       else
             _maxFrets = 6;
@@ -452,10 +452,10 @@ void FretDiagram::draw(QPainter* painter) const
       }
 
 //---------------------------------------------------------
-//   layout
+//   calculateBoundingRect()
 //---------------------------------------------------------
 
-void FretDiagram::layout()
+void FretDiagram::calculateBoundingRect()
       {
       qreal _spatium  = spatium() * _userMag;
       stringLw        = _spatium * 0.08;
@@ -492,7 +492,20 @@ void FretDiagram::layout()
             }
 
       bbox().setRect(x, y, w, h);
+      }
 
+//---------------------------------------------------------
+//   layoutHorizontal
+//    Do initial setPos().
+//    This takes place before autoplaceSegmentElement() but
+//    reliably sets the x-value before the system has been
+//    created. This is useful for creating a horizontal
+//    spacer in ChordRest::shape().
+//---------------------------------------------------------
+
+void FretDiagram::layoutHorizontal()
+      {
+      calculateBoundingRect();
       if (!parent() || !parent()->isSegment()) {
             setPos(QPointF());
             return;
@@ -522,8 +535,16 @@ void FretDiagram::layout()
             mainWidth = stringDist * (_strings - 1);
       else if (_orientation == Orientation::HORIZONTAL)
             mainWidth = fretDist * (_frets + 0.5);
-      setPos((noteheadWidth - mainWidth)/2, -(h + styleP(Sid::fretY)));
+      setPos((noteheadWidth - mainWidth)/2, -(bbox().height() + styleP(Sid::fretY)));
+      }
 
+//---------------------------------------------------------
+//   layout
+//---------------------------------------------------------
+
+void FretDiagram::layout()
+      {
+      layoutHorizontal();
       autoplaceSegmentElement();
 
       // don't display harmony in palette
@@ -1266,6 +1287,8 @@ void FretDiagram::writeMusicXML(XmlWriter& xml) const
       xml.stag("frame");
       xml.tag("frame-strings", _strings);
       xml.tag("frame-frets", frets());
+      if (fretOffset() > 0)
+            xml.tag("first-fret", fretOffset() + 1);
 
       for (int i = 0; i < _strings; ++i) {
             int mxmlString = _strings - i;
@@ -1275,13 +1298,14 @@ void FretDiagram::writeMusicXML(XmlWriter& xml) const
             for (auto const& j : _barres) {
                   FretItem::Barre b = j.second;
                   int fret = j.first;
+                  int mxmlFret = fret + fretOffset();
                   if (!b.exists())
                         continue;
 
                   if (b.startString == i)
-                        bStarts.push_back(fret);
+                        bStarts.push_back(mxmlFret);
                   else if (b.endString == i || (b.endString == -1 && mxmlString == 1))
-                        bEnds.push_back(fret);
+                        bEnds.push_back(mxmlFret);
                   }
 
             if (marker(i).exists() && marker(i).mtype == FretMarkerType::CIRCLE) {
@@ -1290,27 +1314,27 @@ void FretDiagram::writeMusicXML(XmlWriter& xml) const
                   xml.tag("fret", "0");
                   xml.etag();
                   }
-            else {
-                  // Write dots
-                  for (auto const& d : dot(i)) {
-                        if (!d.exists())
-                              continue;
-                        xml.stag("frame-note");
-                        xml.tag("string", mxmlString);
-                        xml.tag("fret", d.fret);
-                        // TODO: write fingerings
 
-                        // Also write barre if it starts at this dot
-                        if (std::find(bStarts.begin(), bStarts.end(), d.fret) != bStarts.end()) {
-                              xml.tagE("barre type=\"start\"");
-                              bStarts.erase(std::remove(bStarts.begin(), bStarts.end(), d.fret), bStarts.end());
-                              }
-                        if (std::find(bEnds.begin(), bEnds.end(), d.fret) != bEnds.end()) {
-                              xml.tagE("barre type=\"stop\"");
-                              bEnds.erase(std::remove(bEnds.begin(), bEnds.end(), d.fret), bEnds.end());
-                              }
-                        xml.etag();
+            // Markers may exists alongside with dots
+            // Write dots
+            for (auto const& d : dot(i)) {
+                  if (!d.exists())
+                        continue;
+                  xml.stag("frame-note");
+                  xml.tag("string", mxmlString);
+                  xml.tag("fret", d.fret + fretOffset());
+                  // TODO: write fingerings
+
+                  // Also write barre if it starts at this dot
+                  if (std::find(bStarts.begin(), bStarts.end(), d.fret) != bStarts.end()) {
+                        xml.tagE("barre type=\"start\"");
+                        bStarts.erase(std::remove(bStarts.begin(), bStarts.end(), d.fret), bStarts.end());
                         }
+                  if (std::find(bEnds.begin(), bEnds.end(), d.fret) != bEnds.end()) {
+                        xml.tagE("barre type=\"stop\"");
+                        bEnds.erase(std::remove(bEnds.begin(), bEnds.end(), d.fret), bEnds.end());
+                        }
+                  xml.etag();
                   }
 
             // Write unwritten barres

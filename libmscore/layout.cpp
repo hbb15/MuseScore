@@ -11,6 +11,7 @@
 //=============================================================================
 
 #include "accidental.h"
+#include "arpeggio.h"
 #include "barline.h"
 #include "beam.h"
 #include "box.h"
@@ -1328,6 +1329,10 @@ void Score::hideEmptyStaves(System* system, bool isFirstSystem)
       int staffIdx = 0;
       bool systemIsEmpty = true;
 
+      Fraction stick = system->measures().front()->tick();
+      Fraction etick = system->measures().back()->endTick();
+      auto spanners = score()->spannerMap().findOverlapping(stick.ticks(), etick.ticks() - 1);
+
       for (Staff* staff : qAsConst(_staves)) {
             SysStaff* ss  = system->staff(staffIdx);
 
@@ -1339,6 +1344,13 @@ void Score::hideEmptyStaves(System* system, bool isFirstSystem)
                     && !(isFirstSystem && styleB(Sid::dontHideStavesInFirstSystem))
                     && hideMode != Staff::HideMode::NEVER)) {
                   bool hideStaff = true;
+                  for (auto spanner : spanners) {
+                        if (spanner.value->staff() == staff
+                         && !spanner.value->systemFlag()) {
+                              hideStaff = false;
+                              break;
+                              }
+                        }
                   for (MeasureBase* m : system->measures()) {
                         if (!m->isMeasure())
                               continue;
@@ -1511,6 +1523,101 @@ void Score::connectTies(bool silent)
                               }
                         }
 #endif
+                  }
+            }
+      }
+
+//---------------------------------------------------------
+//   connectArpeggios
+//  Fake cross-voice arpeggios by hiding all but the first
+//  and extending the first to cover the others.
+//  Retains the other properties of the first arpeggio.
+//---------------------------------------------------------
+
+void Score::connectArpeggios()
+      {
+      for (auto segment = firstSegment(SegmentType::ChordRest); segment; segment = segment->next1(SegmentType::ChordRest)) {
+            for (int staff = 0; staff < nstaves(); ++staff) {
+                  qreal minTop = 10000;
+                  qreal maxBottom = -10000;
+                  int firstArpeggio = -1;
+                  bool multipleArpeggios = false;
+                  for (int i = staff2track(staff); i < staff2track(staff + 1); ++i) {
+                        if (segment->elist()[i] && segment->elist()[i]->isChord()) {
+                              Chord* chord = toChord(segment->elist()[i]);
+                              if (chord->arpeggio() && chord->arpeggio()->visible()) {
+                                    if (chord->pagePos() == QPointF(0, 0)) doLayout();
+                                    qreal localTop = chord->arpeggio()->pageBoundingRect().top();                   
+                                    qreal localBottom = chord->arpeggio()->pageBoundingRect().bottom();                             
+                                    minTop = qMin(localTop, minTop);
+                                    maxBottom = qMax(localBottom, maxBottom);
+                                    if (firstArpeggio == -1)
+                                          // Leave arpeggio, adjust height after collecting
+                                          firstArpeggio = i;
+                                    else {
+                                          // Hide arpeggio; firstArpeggio will be extended to cover it.
+                                          chord->arpeggio()->setVisible(false);                                          
+                                          multipleArpeggios = true;
+                                          }
+                                    }
+                              }
+                        }
+                  if (firstArpeggio != -1 && multipleArpeggios) {
+                        // Stretch first arpeggio to cover deleted
+                        Chord* firstArpeggioChord = toChord(segment->elist()[firstArpeggio]);
+                        Arpeggio* arpeggio = firstArpeggioChord->arpeggio();
+                        qreal topDiff = minTop - arpeggio->pageBoundingRect().top();
+                        qreal bottomDiff = maxBottom - arpeggio->pageBoundingRect().bottom();
+                        arpeggio->setUserLen1(topDiff);
+                        arpeggio->setUserLen2(bottomDiff);
+                        arpeggio->setPropertyFlags(Pid::ARP_USER_LEN1, PropertyFlags::UNSTYLED);
+                        arpeggio->setPropertyFlags(Pid::ARP_USER_LEN2, PropertyFlags::UNSTYLED);
+                        }
+                  }
+            }
+      }
+
+//---------------------------------------------------------
+//   fixupLaissezVibrer
+//    This is a temporary hack to improve the placement of
+//    l.v. articulations when importing MusciXML.
+//    TODO: vastly improve the automatic placement of the
+//    l.v. articulation.
+//---------------------------------------------------------
+
+void Score::fixupLaissezVibrer()
+      {
+      int tracks = nstaves() * VOICES;
+      Measure* m = firstMeasure();
+      if (!m)
+            return;
+      if (m->canvasPos() == QPointF(0, 0))
+            doLayout();
+
+      SegmentType st = SegmentType::ChordRest;
+      for (Segment* s = m->first(st); s; s = s->next1(st)) {
+            for (int i = 0; i < tracks; ++i) {
+                  Element* e = s->element(i);
+                  if (e == 0 || !e->isChord())
+                        continue;
+                  Chord* c = toChord(e);
+                  for (auto a : c->articulations()) {
+                        if (a->symId() != SymId::articLaissezVibrerAbove && a->symId() != SymId::articLaissezVibrerBelow)
+                              continue;
+
+                        // Manually override placement
+                        a->setAutoplace(false);
+                        a->setMinDistance(Spatium(0));
+                        c->layoutArticulations();
+                        c->layoutArticulations2();
+                        bool below = a->symId() == SymId::articLaissezVibrerBelow;
+                        Note* n = below ? c->notes().front() : c->notes().back();
+
+                        QPointF target = below  ? n->canvasBoundingRect().bottomLeft() + QPointF(0.5 * n->width(), 0.25 * spatium())
+                                                : n->canvasBoundingRect().topLeft() + QPointF(0.5 * n->width(), -0.25 * spatium());
+                        QPointF current = below ? a->canvasBoundingRect().topLeft() : a->canvasBoundingRect().bottomLeft();
+                        a->setOffset(a->offset() + target - current);
+                        }
                   }
             }
       }
@@ -4568,6 +4675,28 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
             }
 
       //-------------------------------------------------------------
+      // FretDiagram
+      //-------------------------------------------------------------
+
+      if (hasFretDiagram) {
+            for (const Segment* s : sl) {
+                  for (Element* e : s->annotations()) {
+                        if (e->isFretDiagram())
+                              e->layout();
+                        }
+                  }
+
+            //-------------------------------------------------------------
+            // Harmony, 2nd place
+            // We have FretDiagrams, we want the Harmony above this and
+            // above the volta.
+            //-------------------------------------------------------------
+
+            layoutHarmonies(sl);
+            alignHarmonies(system, sl, false, styleP(Sid::maxFretShiftAbove), styleP(Sid::maxFretShiftBelow));
+            }
+
+      //-------------------------------------------------------------
       // TempoText
       //-------------------------------------------------------------
 
@@ -4620,28 +4749,6 @@ void Score::layoutSystemElements(System* system, LayoutContext& lc)
 
                   voltaSegments.erase(voltaSegments.begin(), voltaSegments.begin() + idx);
                   }
-            }
-
-      //-------------------------------------------------------------
-      // FretDiagram
-      //-------------------------------------------------------------
-
-      if (hasFretDiagram) {
-            for (const Segment* s : sl) {
-                  for (Element* e : s->annotations()) {
-                        if (e->isFretDiagram())
-                              e->layout();
-                        }
-                  }
-
-            //-------------------------------------------------------------
-            // Harmony, 2nd place
-            // We have FretDiagrams, we want the Harmony above this and
-            // above the volta.
-            //-------------------------------------------------------------
-
-            layoutHarmonies(sl);
-            alignHarmonies(system, sl, false, styleP(Sid::maxFretShiftAbove), styleP(Sid::maxFretShiftBelow));
             }
 
       //-------------------------------------------------------------

@@ -1565,6 +1565,7 @@ const std::vector<Tid>& allTextStyles();
 const std::vector<Tid>& primaryTextStyles();
 
 QSet<Sid> pageStyles();
+QSet<Sid> fretStyles();
 
 #ifndef NDEBUG
 extern void checkStyles();
