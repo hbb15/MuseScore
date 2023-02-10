@@ -67,6 +67,8 @@ private:
     void removeInvalidSegments();
     void undoChangeProperty(Pid id, const PropertyValue&, PropertyFlags ps) override;
 
+    int _staffShift;
+
 protected:
     int _no;                  ///< row index
     bool _even;
@@ -86,6 +88,7 @@ public:
 
     void layout() override;
     void layout2(int);
+    void layout3();
 
     void scanElements(void* data, void (* func)(void*, EngravingItem*), bool all=true) override;
 
@@ -116,6 +119,8 @@ public:
     bool setProperty(Pid propertyId, const PropertyValue&) override;
     PropertyValue propertyDefault(Pid id) const override;
     void triggerLayout() const override;
+    int getStaffShift() { return _staffShift; }
+    void setStaffShift(int n) { _staffShift = n; }
 };
 
 //---------------------------------------------------------

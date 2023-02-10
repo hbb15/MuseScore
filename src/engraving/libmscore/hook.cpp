@@ -21,9 +21,12 @@
  */
 
 #include "hook.h"
+#include "draw/fontmetrics.h"
+#include "draw/types/font.h"
 
 #include "chord.h"
 #include "score.h"
+#include "staff.h"
 
 #include "log.h"
 
@@ -50,12 +53,37 @@ void Hook::setHookType(int i)
 
 void Hook::layout()
 {
-    setbbox(symBbox(_sym));
+    if (staff() && staff()->isCipherStaff(tick())) {
+
+        _cipherLineThick = _cipherHigth * score()->styleD(Sid::cipherThickLine);
+        _cipherLineSpace = _cipherHigth * (score()->styleD(Sid::cipherDistanceBetweenLines) * -1);
+        _cipherHigthLine = _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement) - _cipherHigth - _cipherHigth * score()->styleD(Sid::cipherHeigthLine);
+        double linienlaenge = _cipherLineWidht * score()->styleD(Sid::cipherWideLine);
+        RectF hookbox = RectF(score()->styleD(Sid::cipherOffsetLine) + ((_cipherLineWidht - linienlaenge) / 2),
+            _cipherHigthLine + ((qAbs(_hookType) - 1) * _cipherLineSpace) - _cipherLineThick, linienlaenge,
+            (_cipherHigthLine + ((qAbs(_hookType) - 1) * _cipherLineSpace) - _cipherLineThick) * -1 - _cipherHigthLine * -1);
+        setbbox(hookbox);
+
+    }
+    else {
+        setbbox(symBbox(_sym));
+    }
 }
 
 void Hook::draw(mu::draw::Painter* painter) const
 {
     TRACE_ITEM_DRAW;
+    if (staff() && staff()->isCipherStaff(tick())) {
+        painter->setPen(mu::draw::Pen(curColor(), _cipherLineThick));
+        for (int i = 0; i < qAbs(_hookType); ++i) {
+
+            painter->drawLine(LineF(score()->styleD(Sid::cipherOffsetLine) + (_cipherLineWidht / 2 - (_cipherLineWidht * score()->styleD(Sid::cipherWideLine)) / 2),
+                _cipherHigthLine + (i * _cipherLineSpace),
+                score()->styleD(Sid::cipherOffsetLine) + (_cipherLineWidht / 2 + (_cipherLineWidht * score()->styleD(Sid::cipherWideLine)) / 2),
+                _cipherHigthLine + (i * _cipherLineSpace)));
+        }
+        return;
+    }
     // hide if belonging to the second chord of a cross-measure pair
     if (chord() && chord()->crossMeasure() == CrossMeasure::SECOND) {
         return;

@@ -235,11 +235,12 @@ static constexpr PropertyMetaData propertyList[] = {
     { Pid::SLUR_UOFF2,              false, "o2",                    P_TYPE::POINT,          DUMMY_QT_TR_NOOP("propertyName", "o2") },
     { Pid::SLUR_UOFF3,              false, "o3",                    P_TYPE::POINT,          DUMMY_QT_TR_NOOP("propertyName", "o3") },
     { Pid::SLUR_UOFF4,              false, "o4",                    P_TYPE::POINT,          DUMMY_QT_TR_NOOP("propertyName", "o4") },
-    { Pid::STAFF_MOVE,              true,  "staffMove",             P_TYPE::INT,            DUMMY_QT_TR_NOOP("propertyName", "staff move") },
+    { Pid::STAFF_MOVE,              true,  "staffMove",             P_TYPE::INT,            DUMMY_QT_TR_NOOP("propertyName", "staff move") }, 
     { Pid::VERSE,                   true,  "no",                    P_TYPE::INT,            DUMMY_QT_TR_NOOP("propertyName", "verse") },
 
     { Pid::SYLLABIC,                true,  "syllabic",              P_TYPE::INT,            DUMMY_QT_TR_NOOP("propertyName", "syllabic") },
     { Pid::LYRIC_TICKS,             true,  "ticks_f",               P_TYPE::FRACTION,       DUMMY_QT_TR_NOOP("propertyName", "ticks") },
+    { Pid::LYRICS_STAFF_SHIFT,      true,  "lyricsStaffShift",      P_TYPE::INT,            DUMMY_QT_TR_NOOP("propertyName", "Liedtext Notenzeilen verschibung") },
     { Pid::VOLTA_ENDING,            true,  "endings",               P_TYPE::INT_VEC,        DUMMY_QT_TR_NOOP("propertyName", "endings") },
     { Pid::LINE_VISIBLE,            true,  "lineVisible",           P_TYPE::BOOL,           DUMMY_QT_TR_NOOP("propertyName", "visible line") },
     { Pid::MAG,                     false, "mag",                   P_TYPE::REAL,           DUMMY_QT_TR_NOOP("propertyName", "mag") },

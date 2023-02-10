@@ -139,16 +139,19 @@ static void applyLyricsMax(const MStyle& style, Segment& s, staff_idx_t staffIdx
     if (!s.isChordRestType()) {
         return;
     }
-    Skyline& sk = s.measure()->system()->staff(staffIdx)->skyline();
     for (voice_idx_t voice = 0; voice < VOICES; ++voice) {
         ChordRest* cr = s.cr(staffIdx * VOICES + voice);
         if (cr && !cr->lyrics().empty()) {
             double lyricsMinBottomDistance = style.styleMM(Sid::lyricsMinBottomDistance);
             for (Lyrics* l : cr->lyrics()) {
                 if (l->autoplace() && l->placeBelow()) {
+                    int schift = staffIdx + l->getStaffShift();
+                    if (s.score()->nstaves() <= schift)
+                        schift = s.score()->nstaves() - 1;
                     l->movePosY(yMax - l->propertyDefault(Pid::OFFSET).value<PointF>().y());
                     if (l->addToSkyline()) {
                         PointF offset = l->pos() + cr->pos() + s.pos() + s.measure()->pos();
+                        Skyline& sk = s.measure()->system()->staff(schift)->skyline();
                         sk.add(l->bbox().translated(offset).adjusted(0.0, 0.0, 0.0, lyricsMinBottomDistance));
                     }
                 }
@@ -170,11 +173,14 @@ static void applyLyricsMax(const MStyle& style, Measure* m, staff_idx_t staffIdx
 
 static void applyLyricsMin(ChordRest* cr, staff_idx_t staffIdx, double yMin)
 {
-    Skyline& sk = cr->measure()->system()->staff(staffIdx)->skyline();
     for (Lyrics* l : cr->lyrics()) {
         if (l->autoplace() && l->placeAbove()) {
+            int schift = staffIdx - l->getStaffShift();
+            if (0 > schift)
+                schift = 0;
             l->movePosY(yMin - l->propertyDefault(Pid::OFFSET).value<PointF>().y());
             if (l->addToSkyline()) {
+                Skyline& sk = cr->measure()->system()->staff(schift)->skyline();
                 PointF offset = l->pos() + cr->pos() + cr->segment()->pos() + cr->segment()->measure()->pos();
                 sk.add(l->bbox().translated(offset));
             }
@@ -320,4 +326,40 @@ void LayoutLyrics::layoutLyrics(const LayoutOptions& options, const Score* score
         }
         break;
     }
+}
+//---------------------------------------------------------
+//   LyricsLayout3
+//---------------------------------------------------------
+
+void LayoutLyrics::LyricsLayout3(System* system, LayoutContext& lc)
+{
+    for (int staffIdx = system->firstVisibleStaff(); staffIdx < system->score()->nstaves(); staffIdx = system->nextVisibleStaff(staffIdx)) {
+        for (MeasureBase* mb : system->measures()) {
+            if (!mb->isMeasure())
+                continue;
+            Measure* m = toMeasure(mb);
+            for (Segment& s : m->segments()) {
+                if (s.isChordRestType()) {
+                    for (int voice = 0; voice < VOICES; ++voice) {
+                        ChordRest* cr = s.cr(staffIdx * VOICES + voice);
+                        if (cr) {
+                            for (Lyrics* l : cr->lyrics()) {
+                                l->layout3();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    bool useRange = false;  // TODO: lineMode();
+    Fraction stick = system->measures().front()->tick();
+    Fraction etick = system->measures().back()->endTick();
+    for (Spanner* sp : system->score()->unmanagedSpanners()) {
+        if (sp->tick() > etick || sp->tick2() <= stick)
+            continue;
+        sp->layoutSystem(system);
+    }
+
 }

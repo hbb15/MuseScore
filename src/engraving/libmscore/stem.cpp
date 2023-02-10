@@ -70,6 +70,9 @@ bool Stem::up() const
 
 void Stem::layout()
 {
+    if (staff() && staff()->isCipherStaff(chord()->tick())) {
+        return;
+    }
     const bool up = this->up();
     const double _up = up ? -1.0 : 1.0;
 

@@ -424,6 +424,7 @@ ClefTypeList Staff::clefType(const Fraction& tick) const
 
         switch (staffGroup) {
         case StaffGroup::TAB:
+        case StaffGroup::CIPHER:
         {
             ClefType sct = ClefType(score()->styleI(Sid::tabClef));
             ct = staffType(tick)->lines() <= 4 ? ClefTypeList(sct == ClefType::TAB ? ClefType::TAB4 : ClefType::TAB4_SERIF) : ClefTypeList(
@@ -1641,6 +1642,15 @@ bool Staff::isDrumStaff(const Fraction& tick) const
 {
     //check for instrument instead of staffType (for pitched to unpitched instr. changes)
     return part()->instrument(tick)->useDrumset();
+}
+
+//---------------------------------------------------------
+//   isCipherStaff
+//---------------------------------------------------------
+
+bool Staff::isCipherStaff(const Fraction& tick) const
+{
+    return staffType(tick)->group() == StaffGroup::CIPHER;
 }
 
 //---------------------------------------------------------

@@ -27,6 +27,7 @@ set(MODULE_QRC
 set(MODULE_BIG_QRC
     fonts_Bravura.qrc
     fonts_Campania.qrc
+    fonts_Cipher.qrc
     fonts_Edwin.qrc
     fonts_FreeSans.qrc
     fonts_FreeSerif.qrc

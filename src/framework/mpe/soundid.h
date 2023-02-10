@@ -338,6 +338,7 @@ enum class SoundSubCategory
 
     Piccolo,
     Alto,
+    Alto_Cipher,
     Tenor,
     Baritone,
     Soprano,

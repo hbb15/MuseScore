@@ -111,6 +111,10 @@ void TieSegment::draw(mu::draw::Painter* painter) const
     case SlurStyleType::Undefined:
         break;
     }
+    if (tie()->startNote()->staff() && tie()->startNote()->staff()->isCipherStaff(tie()->startNote()->tick())) {
+
+        pen.setWidthF(score()->styleD(Sid::cipherSlurThick));
+    }
     painter->setPen(pen);
     painter->drawPath(path);
 }
@@ -273,11 +277,19 @@ void TieSegment::computeBezier(PointF shoulderOffset)
 
     shoulderH -= shoulderOffset.y();
 
+    double w = 0.0;
+    double tieWidth = tieEndNormalized.x();
+    if (tie()->startNote()->staff() && tie()->startNote()->staff()->isCipherStaff(tie()->startNote()->tick())) {
+        shoulderH = tie()->get_cipherHigth() * score()->styleD(Sid::cipherSlurHeigth);
+        shoulderW = (tieWidth - tie()->get_cipherHigth() * score()->styleD(Sid::cipherSlurEckenform)) / tieWidth;
+    }
+    else {
+        w = score()->styleMM(Sid::SlurMidWidth) - score()->styleMM(Sid::SlurEndWidth);
+    }
     if (!tie()->up()) {
         shoulderH = -shoulderH;
     }
 
-    double tieWidth = tieEndNormalized.x();
     double bezier1X = (tieWidth - tieWidth * shoulderW) * .5 + shoulderOffset.x();
     double bezier2X = bezier1X + tieWidth * shoulderW + shoulderOffset.x();
 
@@ -286,7 +298,6 @@ void TieSegment::computeBezier(PointF shoulderOffset)
     PointF bezier1(bezier1X, -shoulderH);
     PointF bezier2(bezier2X, -shoulderH);
 
-    double w = score()->styleMM(Sid::SlurMidWidth) - score()->styleMM(Sid::SlurEndWidth);
     if (staff()) {
         w *= staff()->staffMag(tie()->tick());
     }
@@ -813,6 +824,9 @@ void TieSegment::adjustX()
 
 void TieSegment::setAutoAdjust(const PointF& offset)
 {
+    if (staff()->isCipherStaff(tie()->startNote()->tick())) {
+        return;
+    }
     PointF diff = offset - autoAdjustOffset;
     if (!diff.isNull()) {
         path.translate(diff);
@@ -885,18 +899,29 @@ void Tie::slurPos(SlurPos* sp)
 
     double x1, y1;
     double x2, y2;
+    sp->p1 = sc->pos() + sc->segment()->pos() + sc->measure()->pos();
+    Note* note1 = sc->upNote();
+    Note* note2 = ec->upNote();
+    if (note1->staff() && note1->staff()->isCipherStaff(note1->tick())) {
+        _cipherHigth = note1->get_cipherHigth();
+        sp->p1.rx() += -note1->get_cipherHigth() * score()->styleD(Sid::cipherSlurUberhang);
+        sp->p1.ry() = note1->y() + note1->get_cipherHigth() * 0.5 + note1->get_cipherHigth() * score()->styleD(Sid::cipherSlurShift);
 
-    // determine attachment points
-    // similar code is used in Chord::layoutPitched()
-    // to allocate extra space to enforce minTieLength
-    // so keep these in sync
-    if (sc->notes().size() > 1 || (ec && ec->notes().size() > 1)) {
-        _isInside = true;
-    } else {
-        _isInside = false;
     }
-    sp->p1    = sc->pos() + sc->segment()->pos() + sc->measure()->pos();
+    else {
 
+        // determine attachment points
+        // similar code is used in Chord::layoutPitched()
+        // to allocate extra space to enforce minTieLength
+        // so keep these in sync
+        if (sc->notes().size() > 1 || (ec && ec->notes().size() > 1)) {
+            _isInside = true;
+        }
+        else {
+            _isInside = false;
+        }
+        sp->p1 = sc->pos() + sc->segment()->pos() + sc->measure()->pos();
+    }
     //------p1
     y1 = startNote()->pos().y();
     y2 = endNote() ? endNote()->pos().y() : y1;
@@ -908,6 +933,12 @@ void Tie::slurPos(SlurPos* sp)
         line2 = useTablature ? endNote()->string() : endNote()->line();
     }
     bool isHorizontal = ec ? line1 == line2 && sc->vStaffIdx() == ec->vStaffIdx() : true;
+
+    if (note1->staff() && note1->staff()->isCipherStaff(note1->tick())) {
+        sp->p2.rx() += note2->get_cipherWidth() + note1->get_cipherHigth() * score()->styleD(Sid::cipherSlurUberhang);
+        sp->p2.ry() = note2->y() + note2->get_cipherHigth() * 0.5 + note2->get_cipherHigth() * score()->styleD(Sid::cipherSlurShift);
+        return;
+    }
     y1 += startNote()->bbox().y();
     if (endNote()) {
         y2 += endNote()->bbox().y();
@@ -1046,6 +1077,11 @@ void Tie::calculateDirection()
         StaffType* st = staff()->staffType(startNote() ? startNote()->tick() : Fraction(0, 1));
         bool simpleException = st && st->isSimpleTabStaff();
         // if there are multiple voices, the tie direction goes on stem side
+        if (startNote()->staff() && startNote()->staff()->isCipherStaff(startNote()->tick())) {
+            // bei nummeric standard unten
+            _up = false;
+        }
+        else
         if (m1->hasVoices(c1->staffIdx(), c1->tick(), c1->actualTicks())) {
             _up = simpleException ? isUpVoice(c1->voice()) : c1->up();
         } else if (m2->hasVoices(c2->staffIdx(), c2->tick(), c2->actualTicks())) {
@@ -1173,6 +1209,10 @@ TieSegment* Tie::layoutFor(System* system)
         setTick(c1->tick());
         if (_slurDirection == DirectionV::AUTO) {
             bool simpleException = st && st->isSimpleTabStaff();
+            if (startNote()->staff() && startNote()->staff()->isCipherStaff(startNote()->tick())) {
+                // bei nummeric standard unten
+                _up = false;
+            }else
             if (st && st->isSimpleTabStaff()) {
                 _up = isUpVoice(c1->voice());
             } else {

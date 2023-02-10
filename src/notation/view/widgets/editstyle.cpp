@@ -598,6 +598,58 @@ EditStyle::EditStyle(QWidget* parent)
         { StyleId::wahShowTabCommon, false, wahShowTabCommon, 0 },
         { StyleId::golpeShowTabSimple, false, golpeShowTabSimple, 0 },
         { StyleId::golpeShowTabCommon, false, golpeShowTabCommon, 0 },
+
+        ///Cipher styles
+
+        { StyleId::cipherHeightDisplacement,        false, cipherHeightDisplacement,          resetCipherHeightDisplacement },
+        { StyleId::cipherDistanceOctave,            false, cipherDistanceOctave,              resetCipherDistanceOctave },
+        { StyleId::cipherHeigthLine,                false, cipherHeigthLine,                  resetCipherHeigthLine },
+        { StyleId::cipherOffsetLine,                false, cipherOffsetLine,                  resetCipherOffsetLine },
+        { StyleId::cipherDistanceBetweenLines,      false, cipherDistanceBetweenLines,        resetCipherDistanceBetweenLines },
+        { StyleId::cipherWideLine,                  false, cipherWideLine,                    resetCipherWideLine },
+        { StyleId::cipherThickLine,                 false, cipherThickLine,                   resetCipherThickLine },
+        { StyleId::cipherSizeSignSharp,             false, cipherSizeSignSharp,               resetCipherSizeSignSharp },
+        { StyleId::cipherSizeSignFlat,              false, cipherSizeSignFlat,                resetCipherSizeSignFlat },
+        { StyleId::cipherDistanceSignSharp,         false, cipherDistanceSignSharp,           resetCipherDistanceSignSharp },
+        { StyleId::cipherDistanceSignFlat,          false, cipherDistanceSignFlat,            resetCipherDistanceSignFlat },
+        { StyleId::cipherHeigthSignSharp,           false, cipherHeigthSignSharp,             resetCipherHeigthSignSharp },
+        { StyleId::cipherHeigthSignFlat,            false, cipherHeigthSignFlat,              resetCipherHeigthSignFlat },
+        { StyleId::cipherFont,                      false, cipherFont,                        resetCipherFont },
+        { StyleId::cipherSlurEckenform,             false, cipherSlurEckenform,               resetCipherSlurEckenform },
+        { StyleId::cipherSlurThick,                 false, cipherSlurThick,                   resetCipherSlurThick },
+        { StyleId::cipherSlurHeigth,                false, cipherSlurHeigth,                  resetCipherSlurHeigth },
+        { StyleId::cipherSlurUberhang,              false, cipherSlurUberhang,                resetCipherSlurUberhang },
+        { StyleId::cipherSlurShift,                 false, cipherSlurShift,                   resetCipherSlurShift },
+        { StyleId::cipherLedgerlineThick,           false, cipherLedgerlineThick,             resetCipherLedgerlineThick },
+        { StyleId::cipherLedgerlineLength,          false, cipherLedgerlineLength,            resetCipherLedgerlineLength },
+        { StyleId::cipherLedgerlineShift,           false, cipherLedgerlineShift,             resetCipherLedgerlineShift },
+        { StyleId::cipherMinStaffSpread,            false, cipherMinStaffSpread,              resetCipherMinStaffSpread },
+        { StyleId::cipherMinSystemSpread,           false, cipherMinSystemSpread,             resetCipherMinSystemSpread }, 
+        { StyleId::cipherTimeSigSize,               false, cipherTimeSigSize,                 resetCipherTimeSigSize },
+        { StyleId::cipherTimeSigDistance,           false, cipherTimeSigDistance,             resetCipherTimeSigDistance },
+        { StyleId::cipherTimeSigLineThick,          false, cipherTimeSigLineThick,            resetCipherTimeSigLineThick },
+        { StyleId::cipherTimeSigLineSize,           false, cipherTimeSigLineSize,             resetCipherTimeSigLineSize },
+        { StyleId::cipherTimeSigFont,               false, cipherTimeSigFont,                 resetCipherTimeSigFont },
+        { StyleId::cipherKeySigFont,                false, cipherKeySigFont,                  resetCipherKeySigFont },
+        { StyleId::cipherKeySigSize,                false, cipherKeySigSize,                  resetCipherKeySigSize },
+        { StyleId::cipherKeySigHorizontalShift,     false, cipherKeySigHorizontalShift,       resetCipherKeySigHorizontalShift },
+        { StyleId::cipherKeySigHigth,               false, cipherKeySigHigth,                 resetCipherKeySigHigth },
+        { StyleId::cipherKeysigNoteDistancLeft,     false, cipherKeysigNoteDistancLeft,       resetCipherKeysigNoteDistancLeft },
+        { StyleId::cipherKeysigNoteDistancReigth,   false, cipherKeysigNoteDistancReigth,     resetCipherKeysigNoteDistancReigth },
+        { StyleId::cipherBarlineLength,             false, cipherBarlineLength,               resetCipherBarlineLength },
+        { StyleId::cipherFontSize,                  false, cipherFontSize,                    resetCipherFontSize },
+        { StyleId::cipherRestDistanc,               false, cipherRestDistanc,                 resetCipherRestDistanc },
+        { StyleId::cipherNoteDistanc,               false, cipherNoteDistanc,                 resetCipherNoteDistanc },
+        { StyleId::cipherAccidentalFont,            false, cipherAccidentalFont,              resetCipherAccidentalFont },
+        { StyleId::cipherTupletSlurEcke,            false, cipherTupletSlurEcke,              resetCipherTupletSlurEcke },
+        { StyleId::cipherTupletSlurhigth,           false, cipherTupletSlurhigth,             resetCipherTupletSlurhigth },
+        { StyleId::cipherTupletSlurdistans,         false, cipherTupletSlurdistans,           resetCipherTupletSlurdistans },
+        { StyleId::cipherTupletSlurshift,           false, cipherTupletSlurshift,             resetCipherTupletSlurshift },
+        { StyleId::cipherTupletSluruberhang,        false, cipherTupletSluruberhang,          resetCipherTupletSluruberhang },
+        { StyleId::cipherTupletNummerHigth,         false, cipherTupletNummerHigth,           resetCipherTupletNummerHigth },
+        { StyleId::cipherTupletSlurThickness,       false, cipherTupletSlurThickness,         resetCipherTupletSlurThickness },
+        { StyleId::cipherTupletNummerFontSize,      false, cipherTupletNummerFontSize,        resetCipherTupletNummerFontSize },
+        { StyleId::cipherTupletNummerFont,          false, cipherTupletNummerFont,            resetCipherTupletNummerFont },
     };
 
     // ====================================================
@@ -1022,6 +1074,9 @@ EditStyle::EditStyle(QWidget* parent)
 
     connect(pageList, &QListWidget::currentRowChanged, pageStack, &QStackedWidget::setCurrentIndex);
     pageList->setCurrentRow(0);
+
+    connect(cipherListPage, &QListWidget::currentRowChanged, cipherPageStack, &QStackedWidget::setCurrentIndex);
+    cipherListPage->setCurrentRow(0);
 
     adjustPagesStackSize(0);
 

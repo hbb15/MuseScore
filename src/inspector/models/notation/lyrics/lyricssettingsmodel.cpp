@@ -37,6 +37,7 @@ LyricsSettingsModel::LyricsSettingsModel(QObject* parent, IElementRepositoryServ
 void LyricsSettingsModel::createProperties()
 {
     m_verse = buildPropertyItem(mu::engraving::Pid::VERSE);
+    m_LYRICS_STAFF_SHIFT = buildPropertyItem(mu::engraving::Pid::LYRICS_STAFF_SHIFT);
 }
 
 void LyricsSettingsModel::requestElements()
@@ -47,14 +48,21 @@ void LyricsSettingsModel::requestElements()
 void LyricsSettingsModel::loadProperties()
 {
     loadPropertyItem(m_verse);
+    loadPropertyItem(m_LYRICS_STAFF_SHIFT);
 }
 
 void LyricsSettingsModel::resetProperties()
 {
     m_verse->resetToDefault();
+    m_LYRICS_STAFF_SHIFT->resetToDefault();
 }
 
 PropertyItem* LyricsSettingsModel::verse() const
 {
     return m_verse;
+}
+
+PropertyItem* LyricsSettingsModel::LYRICS_STAFF_SHIFT() const
+{
+    return m_LYRICS_STAFF_SHIFT;
 }

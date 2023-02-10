@@ -36,6 +36,7 @@
 #include "system.h"
 #include "textedit.h"
 #include "undo.h"
+#include "stafflines.h"
 
 #include "log.h"
 
@@ -62,6 +63,7 @@ Lyrics::Lyrics(ChordRest* parent)
     _separator  = 0;
     initElementStyle(&lyricsElementStyle);
     _no         = 0;
+    _staffShift = 0;
     _ticks      = Fraction(0, 1);
     _syllabic   = LyricsSyllabic::SINGLE;
 }
@@ -71,6 +73,7 @@ Lyrics::Lyrics(const Lyrics& l)
 {
     _even      = l._even;
     _no        = l._no;
+    _staffShift = 0;
     _ticks     = l._ticks;
     _syllabic  = l._syllabic;
     _separator = 0;
@@ -102,6 +105,7 @@ void Lyrics::write(XmlWriter& xml) const
     }
     xml.tag("ticks", _ticks.ticks(), 0);   // pre-3.1 compatibility: write integer ticks under <ticks> tag
     writeProperty(xml, Pid::LYRIC_TICKS);
+    writeProperty(xml, Pid::LYRICS_STAFF_SHIFT);
 
     TextBase::writeProperties(xml);
     xml.endElement();
@@ -362,13 +366,42 @@ void Lyrics::layout2(int nAbove)
 {
     double lh = lineSpacing() * score()->styleD(Sid::lyricsLineHeight);
 
+    int schift = staffIdx() + _staffShift;
+    if (score()->nstaves() <= schift)
+        schift = score()->nstaves() - 1;
     if (placeBelow()) {
-        double yo = segment()->measure()->system()->staff(staffIdx())->bbox().height();
+        double yo = segment()->measure()->system()->staff(schift)->bbox().height();
         setPosY(lh * (_no - nAbove) + yo - chordRest()->y());
         movePos(styleValue(Pid::OFFSET, Sid::lyricsPosBelow).value<PointF>());
     } else {
         setPosY(-lh * (nAbove - _no - 1) - chordRest()->y());
         movePos(styleValue(Pid::OFFSET, Sid::lyricsPosAbove).value<PointF>());
+    }
+}
+
+//---------------------------------------------------------
+//   layout3
+//    compute vertical position
+//---------------------------------------------------------
+
+void Lyrics::layout3()
+{
+
+    if (placeBelow()) {
+        int schift = staffIdx() + _staffShift;
+        if (score()->nstaves() <= schift)
+            schift = score()->nstaves() - 1;
+        double y1 = segment()->measure()->system()->staff(staffIdx())->get_distanceFirstStaff();
+        double y2 = segment()->measure()->system()->staff(schift)->get_distanceFirstStaff();
+        movePosY((y2 - y1));
+    }
+    else {
+        int schift = staffIdx() - _staffShift;
+        if (0 > schift)
+            schift = 0;
+        double y1 = segment()->measure()->system()->staff(staffIdx())->get_distanceFirstStaff();
+        double y2 = segment()->measure()->system()->staff(schift)->get_distanceFirstStaff();
+        movePosY(-(y1 - y2));
     }
 }
 
@@ -569,6 +602,8 @@ PropertyValue Lyrics::getProperty(Pid propertyId) const
         return _ticks;
     case Pid::VERSE:
         return _no;
+    case Pid::LYRICS_STAFF_SHIFT:
+        return _staffShift;
     default:
         return TextBase::getProperty(propertyId);
     }
@@ -612,6 +647,9 @@ bool Lyrics::setProperty(Pid propertyId, const PropertyValue& v)
     case Pid::VERSE:
         _no = v.toInt();
         break;
+    case Pid::LYRICS_STAFF_SHIFT:
+        _staffShift = v.toInt();
+        break;
     default:
         if (!TextBase::setProperty(propertyId, v)) {
             return false;
@@ -638,6 +676,8 @@ PropertyValue Lyrics::propertyDefault(Pid id) const
     case Pid::LYRIC_TICKS:
         return Fraction(0, 1);
     case Pid::VERSE:
+        return 0;
+    case Pid::LYRICS_STAFF_SHIFT:
         return 0;
     case Pid::ALIGN:
         if (isMelisma()) {
@@ -688,6 +728,19 @@ void Lyrics::undoChangeProperty(Pid id, const PropertyValue& v, PropertyFlags ps
             if (l->no() == v.toInt()) {
                 // verse already exists, swap
                 l->TextBase::undoChangeProperty(id, no(), ps);
+                PlacementV p = l->placement();
+                l->TextBase::undoChangeProperty(Pid::PLACEMENT, int(placement()), ps);
+                TextBase::undoChangeProperty(Pid::PLACEMENT, int(p), ps);
+                break;
+            }
+        }
+        TextBase::undoChangeProperty(id, v, ps);
+        return;
+    } else if (id == Pid::LYRICS_STAFF_SHIFT && getStaffShift() != v.toInt()) {
+        for (Lyrics* l : chordRest()->lyrics()) {
+            if (l->no() == v.toInt()) {
+                // verse already exists, swap
+                l->TextBase::undoChangeProperty(id, getStaffShift(), ps);
                 PlacementV p = l->placement();
                 l->TextBase::undoChangeProperty(Pid::PLACEMENT, int(placement()), ps);
                 TextBase::undoChangeProperty(Pid::PLACEMENT, int(p), ps);

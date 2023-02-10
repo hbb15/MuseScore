@@ -554,9 +554,14 @@ void InstrumentTemplate::read(XmlReader& e)
             String stfGroup = e.readText();
             if (stfGroup == "percussion") {
                 staffGroup = StaffGroup::PERCUSSION;
-            } else if (stfGroup == "tablature") {
+            }
+            else if (stfGroup == "tablature") {
                 staffGroup = StaffGroup::TAB;
-            } else {
+            }
+            else if (stfGroup == "cipher") {
+                staffGroup = StaffGroup::CIPHER;
+            }
+            else {
                 staffGroup = StaffGroup::STANDARD;
             }
             staffTypePreset = 0;

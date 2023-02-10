@@ -117,6 +117,10 @@ void SlurSegment::draw(mu::draw::Painter* painter) const
     case SlurStyleType::Undefined:
         break;
     }
+    if (slur()->staff() && slur()->staff()->isCipherStaff(slur()->tick())) {
+
+        pen.setWidthF(score()->styleD(Sid::cipherSlurThick));
+    }
     painter->setPen(pen);
     painter->drawPath(path);
 }
@@ -704,6 +708,16 @@ void SlurSegment::computeBezier(mu::PointF p6offset)
     }
     shoulderH = sqrt(d / 4) * _spatium;
 
+    double c = p2.x();
+    double w = 0.0;
+    if (slur()->staff() && slur()->staff()->isCipherStaff(slur()->tick())) {
+        shoulderH = slur()->get_cipherHigth() * score()->styleD(Sid::cipherSlurHeigth);
+        shoulderW = (c - slur()->get_cipherHigth() * score()->styleD(Sid::cipherSlurEckenform)) / c;
+    }
+    else {
+        // Set slur thickness
+        w = score()->styleMM(Sid::SlurMidWidth) - score()->styleMM(Sid::SlurEndWidth);
+    }
     static constexpr double shoulderReduction = 0.75;
     if (slur()->isOverBeams()) {
         shoulderH *= shoulderReduction;
@@ -713,7 +727,6 @@ void SlurSegment::computeBezier(mu::PointF p6offset)
         shoulderH = -shoulderH;
     }
 
-    double c    = p2.x();
     double c1   = (c - c * shoulderW) * .5 + p6offset.x();
     double c2   = c1 + c * shoulderW + p6offset.x();
     PointF p3(c1, -shoulderH);
@@ -764,8 +777,6 @@ void SlurSegment::computeBezier(mu::PointF p6offset)
     ups(Grip::DRAG).p     = toSystemCoordinates.map(p5);
     ups(Grip::SHOULDER).p = toSystemCoordinates.map(p6);
 
-    // Set slur thickness
-    double w = score()->styleMM(Sid::SlurMidWidth) - score()->styleMM(Sid::SlurEndWidth);
     if (staff()) {
         w *= staff()->staffMag(slur()->tick());
     }
@@ -1047,6 +1058,14 @@ void Slur::slurPos(SlurPos* sp)
         sp->p2.rx() += note2->x();
     }
 
+    if (staff() && note1 && note2 && staff()->isCipherStaff(endCR()->tick())) {
+        _cipherHigth = note1->get_cipherHigth();
+        sp->p1.rx() += -note1->get_cipherHigth() * score()->styleD(Sid::cipherSlurUberhang);
+        sp->p2.rx() += note2->get_cipherWidth() + note1->get_cipherHigth() * score()->styleD(Sid::cipherSlurUberhang);
+        sp->p1.ry() = note1->y() + note1->get_cipherHigth() * 0.5 + note1->get_cipherHigth() * score()->styleD(Sid::cipherSlurShift);
+        sp->p2.ry() = note2->y() + note2->get_cipherHigth() * 0.5 + note2->get_cipherHigth() * score()->styleD(Sid::cipherSlurShift);
+        return;
+    }
     PointF po = PointF();
 
     Stem* stem1 = sc && staffHasStems ? sc->stem() : 0;
@@ -1842,6 +1861,12 @@ void Slur::computeUp()
 
         _up = !(chordRest1->up());
 
+        if (staff() && staff()->isCipherStaff(tick())) {
+            // slurs go above if start and end note have different stem directions,
+            // but grace notes are exceptions
+            _up = false;
+            break;
+        }
         // Check if multiple voices
         bool multipleVoices = false;
         Measure* m1 = chordRest1->measure();

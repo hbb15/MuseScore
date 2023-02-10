@@ -179,6 +179,7 @@ void EditStaffType::setInstrument(const Instrument& instrument)
     int idx           = 0;
     for (const mu::engraving::StaffType& t : mu::engraving::StaffType::presets()) {
         if ((t.group() == mu::engraving::StaffGroup::STANDARD && bStandard)
+            || (t.group() == mu::engraving::StaffGroup::CIPHER && bStandard)
             || (t.group() == mu::engraving::StaffGroup::PERCUSSION && bPerc)
             || (t.group() == mu::engraving::StaffGroup::TAB && bTab && t.lines() <= instrument.stringData()->frettedStrings())) {
             templateCombo->addItem(t.name(), idx);
@@ -319,6 +320,73 @@ void EditStaffType::setValues()
                 noteValuesSymb->setChecked(false);
                 noteValuesStems->setChecked(false);
             } else {
+                noteValuesNone->setChecked(false);
+                noteValuesSymb->setChecked(false);
+                noteValuesStems->setChecked(true);
+            }
+        }
+        showRests->setChecked(staffType.showRests());
+        // adjust compatibility across different settings
+        tabStemThroughCompatibility(stemThroughRadio->isChecked());
+        tabMinimShortCompatibility(minimShortRadio->isChecked());
+        tabStemsCompatibility(noteValuesStems->isChecked());
+    }
+    break;
+    case mu::engraving::StaffGroup::CIPHER:
+    {
+        upsideDown->setChecked(staffType.upsideDown());
+        showTabFingering->setChecked(staffType.showTabFingering());
+        int idx = fretFontName->findText(staffType.fretFontName(), Qt::MatchFixedString);
+        if (idx == -1) {
+            idx = 0;                      // if name not found, use first name
+        }
+        fretFontName->setCurrentIndex(idx);
+        fretFontSize->setValue(staffType.fretFontSize());
+        fretY->setValue(staffType.fretFontUserY());
+
+        numbersRadio->setChecked(staffType.useNumbers());
+        lettersRadio->setChecked(!staffType.useNumbers());
+        onLinesRadio->setChecked(staffType.onLines());
+        aboveLinesRadio->setChecked(!staffType.onLines());
+        linesThroughRadio->setChecked(staffType.linesThrough());
+        linesBrokenRadio->setChecked(!staffType.linesThrough());
+        showBackTied->setChecked(staffType.showBackTied());
+
+        idx = durFontName->findText(staffType.durationFontName(), Qt::MatchFixedString);
+        if (idx == -1) {
+            idx = 0;                      // if name not found, use first name
+        }
+        durFontName->setCurrentIndex(idx);
+        durFontSize->setValue(staffType.durationFontSize());
+        durY->setValue(staffType.durationFontUserY());
+        // convert combined values of genDurations and slashStyle/stemless into noteValuesx radio buttons
+        // Above/Below, Beside/Through and minim are only used if stems-and-beams
+        // but set them from stt values anyway, to ensure preset matching
+        stemAboveRadio->setChecked(!staffType.stemsDown());
+        stemBelowRadio->setChecked(staffType.stemsDown());
+        stemBesideRadio->setChecked(!staffType.stemThrough());
+        stemThroughRadio->setChecked(staffType.stemThrough());
+        mu::engraving::TablatureMinimStyle minimStyle = staffType.minimStyle();
+        minimNoneRadio->setChecked(minimStyle == mu::engraving::TablatureMinimStyle::NONE);
+        minimShortRadio->setChecked(minimStyle == mu::engraving::TablatureMinimStyle::SHORTER);
+        minimSlashedRadio->setChecked(minimStyle == mu::engraving::TablatureMinimStyle::SLASHED);
+        mu::engraving::TablatureSymbolRepeat symRepeat = staffType.symRepeat();
+        valuesRepeatNever->setChecked(symRepeat == mu::engraving::TablatureSymbolRepeat::NEVER);
+        valuesRepeatSystem->setChecked(symRepeat == mu::engraving::TablatureSymbolRepeat::SYSTEM);
+        valuesRepeatMeasure->setChecked(symRepeat == mu::engraving::TablatureSymbolRepeat::MEASURE);
+        valuesRepeatAlways->setChecked(symRepeat == mu::engraving::TablatureSymbolRepeat::ALWAYS);
+        if (staffType.genDurations()) {
+            noteValuesNone->setChecked(false);
+            noteValuesSymb->setChecked(true);
+            noteValuesStems->setChecked(false);
+        }
+        else {
+            if (staffType.stemless()) {
+                noteValuesNone->setChecked(true);
+                noteValuesSymb->setChecked(false);
+                noteValuesStems->setChecked(false);
+            }
+            else {
                 noteValuesNone->setChecked(false);
                 noteValuesSymb->setChecked(false);
                 noteValuesStems->setChecked(true);
@@ -647,6 +715,9 @@ QString EditStaffType::createUniqueStaffTypeName(mu::engraving::StaffGroup group
             break;
         case mu::engraving::StaffGroup::TAB:
             sn = QString("Tab-%1 [*]").arg(idx);
+            break;
+        case mu::engraving::StaffGroup::CIPHER:
+            sn = QString("Cip-%1 [*]").arg(idx);
             break;
         }
         bool found = false;

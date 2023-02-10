@@ -39,9 +39,11 @@ public:
     void resetProperties() override;
 
     PropertyItem* verse() const;
+    PropertyItem* LYRICS_STAFF_SHIFT() const;
 
 private:
     PropertyItem* m_verse = nullptr;
+    PropertyItem* m_LYRICS_STAFF_SHIFT = nullptr;
 };
 }
 

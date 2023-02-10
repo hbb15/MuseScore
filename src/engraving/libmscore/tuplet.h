@@ -74,6 +74,12 @@ class Tuplet final : public DurationElement
 
     bool calcHasBracket(const DurationElement* cr1, const DurationElement* cr2) const;
 
+    double _cipherHigth;
+    PainterPath _SlurPath;
+    PainterPath _SlurShapePath;
+    bool _hasSlur;
+
+
 public:
     Tuplet(Measure* parent);
     Tuplet(const Tuplet&);

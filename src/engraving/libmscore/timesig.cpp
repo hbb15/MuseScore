@@ -33,6 +33,8 @@
 #include "staff.h"
 #include "stafftype.h"
 #include "utils.h"
+#include "cipher.h"
+#include "measure.h"
 
 #include "log.h"
 
@@ -250,7 +252,71 @@ void TimeSig::layout()
         ns.clear();
         ns.push_back(SymId::timeSigCut3);
         ds.clear();
-    } else {
+    } else if (staff() && staff()->isCipherStaff(tick())) {
+        if (segment()->isTimeSigAnnounceType()) {
+            set_cipherVisible(false);
+
+            setbbox(RectF());
+            return;
+        }
+        setEnabled(false);
+
+        StaffType* cipher = staff()->staffType(tick());
+        mu::draw::Font font;
+        font.setFamily(score()->styleSt(Sid::cipherTimeSigFont), mu::draw::Font::Type::Undefined);
+        font.setPointSizeF(score()->styleD(Sid::cipherFontSize) * score()->styleD(Sid::cipherTimeSigSize) * magS());
+        _cipher.set_CipherFont(font);
+        _cipher_ds = _numeratorString.isEmpty() ? String::number(_sig.numerator()) : _numeratorString;//toTimeSigString(_numeratorString.isEmpty()   ? QString::number(_sig.numerator())   : _numeratorString);
+        _cipher_ns = _denominatorString.isEmpty() ? String::number(_sig.denominator()) : _denominatorString;//toTimeSigString(_denominatorString.isEmpty() ? QString::number(_sig.denominator()) : _denominatorString);
+
+        ns = timeSigSymIdsFromString(_numeratorString.isEmpty() ? String::number(_sig.numerator()) : _numeratorString);
+        ds = timeSigSymIdsFromString(_denominatorString.isEmpty() ? String::number(_sig.denominator()) : _denominatorString);
+
+        double px = -0.0;
+        _cipherHigthds = _cipher.textHeigth(_cipher.getCipherFont(), _cipher_ds);
+        _cipherHigthns = _cipher.textHeigth(_cipher.getCipherFont(), _cipher_ns);
+        double wn = cipherGetWidth(cipher, _cipher_ns);
+        double wd = cipherGetWidth(cipher, _cipher_ds);
+        RectF numRect = RectF(px, 0.0, wn, _cipherHigthns);
+        RectF denRect = RectF(px, 0.0, wd, _cipherHigthds);
+        double displ = numRect.height() * score()->styleD(Sid::cipherTimeSigLineThick) * 1.5;
+
+        //align on the wider
+        double pzY = yoff + displ + numRect.height();
+        double pnY = yoff - displ;
+        double cipherLineWidht = denRect.width();
+        double boxwidth = 0.0;
+
+
+        if (numRect.width() >= denRect.width()) {
+            // numerator: one space above centre line, unless denomin. is empty (if so, directly centre in the middle)
+            pz = PointF(px, pzY);
+            // denominator: horiz: centred around centre of numerator | vert: one space below centre line
+            pn = PointF((numRect.width() - denRect.width()) * .5 + px, pnY);
+            cipherLineWidht = numRect.width();
+            //px +=(numRect.width() - denRect.width())*.5;
+            boxwidth = numRect.width();
+        }
+        else {
+            // numerator: one space above centre line, unless denomin. is empty (if so, directly centre in the middle)
+            pz = PointF((denRect.width() - numRect.width()) * .5 + px, pzY);
+            // denominator: horiz: centred around centre of numerator | vert: one space below centre line
+            pn = PointF(px, pnY);
+            cipherLineWidht = denRect.width();
+            //px +=(numRect.width() - denRect.width())*.5;
+            boxwidth = denRect.width();
+        }
+        px -= cipherLineWidht * (score()->styleD(Sid::cipherTimeSigLineSize) - 1.0) * 0.5;
+        _cipherbox = RectF(px, pnY - numRect.height(), boxwidth, numRect.height() * 2 + displ * 2);
+        _cipherLine = LineF(px, 0, cipherLineWidht * score()->styleD(Sid::cipherTimeSigLineSize) + px, 0);
+        cipherLineThick = numRect.height() * score()->styleD(Sid::cipherTimeSigLineThick);
+        setbbox(RectF());
+        _cipher.set_Debugg(_cipherbox);
+        ns.clear();
+        ns.push_back(SymId::timeSigCutCommon);
+        ds.clear();
+    }
+    else {
         if (_numeratorString.isEmpty()) {
             ns = timeSigSymIdsFromString(_numeratorString.isEmpty() ? String::number(_sig.numerator()) : _numeratorString);
             ds = timeSigSymIdsFromString(_denominatorString.isEmpty() ? String::number(_sig.denominator()) : _denominatorString);
@@ -300,6 +366,31 @@ void TimeSig::layout()
         }
     }
 }
+//---------------------------------------------------------
+//   layout2
+//    called after system layout; set vertical dimensions
+//---------------------------------------------------------
+
+void TimeSig::layout2() {
+
+    if (staff() && staff()->isCipherStaff(tick())) {
+        if (segment()->isTimeSigAnnounceType()) {
+            return;
+        }
+        setbbox(_cipherbox);
+        _cipherBegin = measure()->first()->isBeginBarLineType();
+        if (_cipherBegin) setPosX(get_cipherXpos() - bbox().width() - _cipherHigthds * score()->styleD(Sid::cipherTimeSigDistance));
+        else {
+
+            double x = bbox().width() + _cipherHigthds * score()->styleD(Sid::cipherTimeSigDistance);
+            _cipherBarLine = LineF(x, -_cipherBarLinelenght / 2, x, _cipherBarLinelenght / 2);
+            double lw = score()->styleMM(Sid::barWidth) * mag();
+            addbbox(RectF(x, -_cipherBarLinelenght / 2, lw, _cipherBarLinelenght));
+        }
+        setEnabled(true);
+    }
+
+}
 
 //---------------------------------------------------------
 //   draw
@@ -309,6 +400,30 @@ void TimeSig::draw(mu::draw::Painter* painter) const
 {
     TRACE_ITEM_DRAW;
     if (staff() && !const_cast<const Staff*>(staff())->staffType(tick())->genTimesig()) {
+        return;
+    }
+    if (staff() && staff()->isCipherStaff(tick())) {
+        if (get_cipherVisible()) {
+            Color c(curColor());
+            mu::draw::Font font;
+            font.setFamily(score()->styleSt(Sid::cipherTimeSigFont), mu::draw::Font::Type::Undefined);
+            font.setPointSizeF((score()->styleD(Sid::cipherFontSize) * score()->styleD(Sid::cipherTimeSigSize) * spatium() * MScore::pixelRatio / SPATIUM20));
+            painter->setFont(font);
+            painter->setPen(c);
+            painter->drawText(pz, _cipher_ns);
+            painter->drawText(pn, _cipher_ds);
+            painter->setPen(mu::draw::Pen(curColor(), cipherLineThick));
+            painter->drawLine(_cipherLine);
+            if (!_cipherBegin) {
+                double lw = score()->styleMM(Sid::barWidth) * mag();
+                painter->setPen(mu::draw::Pen(curColor(), lw, mu::draw::PenStyle::SolidLine, mu::draw::PenCapStyle::FlatCap));
+                painter->drawLine(_cipherBarLine);
+            }
+        }
+        if (_cipher.debug()) {
+            //_cipher.drawRectF(painter, bbox(), mu::draw::Color(255, 0, 0));
+            _cipher.drawDebugg(painter);
+        }
         return;
     }
     painter->setPen(curColor());
@@ -536,5 +651,16 @@ void TimeSig::removed()
     }
 
     score()->setUpTempoMapLater();
+}
+//---------------------------------------------------------
+//   cipherWidth
+//---------------------------------------------------------
+
+double TimeSig::cipherGetWidth(StaffType* cipher1, String string) const
+{
+    mu::draw::Font font;
+    font.setFamily(score()->styleSt(Sid::cipherTimeSigFont), mu::draw::Font::Type::Undefined);
+    font.setPointSizeF(score()->styleD(Sid::cipherFontSize) * score()->styleD(Sid::cipherTimeSigSize));
+    return _cipher.textWidth(font, string);
 }
 }

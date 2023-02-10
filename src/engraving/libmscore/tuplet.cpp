@@ -40,6 +40,7 @@
 #include "stem.h"
 #include "system.h"
 #include "text.h"
+#include "staff.h"
 
 #include "log.h"
 
@@ -77,6 +78,7 @@ Tuplet::Tuplet(Measure* parent)
     _ratio        = Fraction(1, 1);
     _number       = 0;
     _hasBracket   = false;
+    _hasSlur = false;
     _isUp         = true;
     _id           = 0;
     initElementStyle(&tupletStyle);
@@ -87,6 +89,7 @@ Tuplet::Tuplet(const Tuplet& t)
 {
     _tick         = t._tick;
     _hasBracket   = t._hasBracket;
+    _hasSlur = t._hasSlur;
     _ratio        = t._ratio;
     _baseLen      = t._baseLen;
     _direction    = t._direction;
@@ -236,20 +239,27 @@ void Tuplet::layout()
     // find out main direction
     //
     if (_direction == DirectionV::AUTO) {
-        int up = 1;
-        for (const DurationElement* e : _elements) {
-            if (e->isChord()) {
-                const Chord* c = toChord(e);
-                if (c->stemDirection() != DirectionV::AUTO) {
-                    up += c->stemDirection() == DirectionV::UP ? 1000 : -1000;
-                } else {
-                    up += c->up() ? 1 : -1;
-                }
-            } else if (e->isTuplet()) {
-                // TODO
-            }
+        if (staff()->isCipherStaff(tick())) {
+            _isUp = true;
         }
-        _isUp = up > 0;
+        else {
+            int up = 1;
+            for (const DurationElement* e : _elements) {
+                if (e->isChord()) {
+                    const Chord* c = toChord(e);
+                    if (c->stemDirection() != DirectionV::AUTO) {
+                        up += c->stemDirection() == DirectionV::UP ? 1000 : -1000;
+                    }
+                    else {
+                        up += c->up() ? 1 : -1;
+                    }
+                }
+                else if (e->isTuplet()) {
+                    // TODO
+                }
+            }
+            _isUp = up > 0;
+        }
     } else {
         _isUp = _direction == DirectionV::UP;
     }
@@ -278,6 +288,11 @@ void Tuplet::layout()
     _hasBracket = calcHasBracket(cr1, cr2);
     setMag((cr1->mag() + cr2->mag()) / 2);
 
+    _hasSlur = false;
+    if (staff()->isCipherStaff(tick())) {
+        _hasSlur = true;
+    }
+    _hasSlur = _bracketType == TupletBracketType::SHOW_SLUR;
     //
     //    calculate bracket start and end point p1 p2
     //
@@ -552,6 +567,13 @@ void Tuplet::layout()
     // center number
     double x3 = 0.0;
     double numberWidth = 0.0;
+    if (staff()->isCipherStaff(tick())) {
+        if (cr1->isChord()) {
+            const Chord* chord1 = toChord(cr1);
+            _cipherHigth = chord1->upNote()->get_cipherHigth();
+        }
+
+    }
     if (_number) {
         _number->layout();
         numberWidth = _number->bbox().width();
@@ -573,6 +595,9 @@ void Tuplet::layout()
             x3 = p1.x() + deltax * .5;
         }
 
+        if (staff()->isCipherStaff(tick())) {
+            y3 += _number->bbox().height() / 2 + _cipherHigth * score()->styleD(Sid::cipherTupletNummerHigth);
+        }
         _number->setPos(PointF(x3, y3) - ipos());
     }
 
@@ -627,6 +652,72 @@ void Tuplet::layout()
             }
         }
     }
+
+    if (_hasSlur) {
+        if (_isUp) {
+            double h = p2.y() - p1.y();
+            //if (h < 0) h *= -1;
+            double widthx = p2.x() - p1.x();
+            double higth = 20 * mag() +
+                ((h / widthx) * widthx * 0.1);
+            double shift = 0.0;
+            double distanc = 0.0;
+            double ecke = widthx * 0.1;
+            double uberhang = 0;
+            if (staff()->isCipherStaff(tick())) {
+                higth = _cipherHigth * score()->styleD(Sid::cipherTupletSlurhigth) +
+                    ((h / widthx) * widthx * score()->styleD(Sid::cipherSlurEckenform));
+                shift = _cipherHigth * score()->styleD(Sid::cipherTupletSlurshift);
+                distanc = _cipherHigth * score()->styleD(Sid::cipherTupletSlurdistans);
+                ecke = widthx * score()->styleD(Sid::cipherTupletSlurEcke);
+                uberhang = _cipherHigth * score()->styleD(Sid::cipherTupletSluruberhang);
+            }
+
+            double x1 = p1.x() - uberhang + shift;
+            double x2 = p1.x() + ecke + shift;
+            double x3 = p2.x() - ecke + shift;
+            double x4 = p2.x() + uberhang + shift;
+            double y1 = p1.y() - distanc;
+            double y2 = y1 - higth;
+            double y4 = p2.y() - distanc;
+            double y3 = y4 - higth;
+            _SlurPath = PainterPath();
+            _SlurPath.moveTo(x1, y1);
+            _SlurPath.cubicTo(x2, y2, x3, y3, x4, y4);
+        }
+        else {
+            double h = p2.y() - p1.y();
+            //if (h < 0) h *= -1;
+            double widthx = p2.x() - p1.x();
+            double higth = 20 * mag() +
+                ((h / widthx) * widthx * 0.1);
+            double shift = 0.0;
+            double distanc = 0.0;
+            double ecke = widthx * 0.1;
+            double uberhang = 0;
+            if (staff()->isCipherStaff(tick())) {
+                higth = _cipherHigth * score()->styleD(Sid::cipherTupletSlurhigth) +
+                    ((h / widthx) * widthx * score()->styleD(Sid::cipherSlurEckenform));
+                shift = _cipherHigth * score()->styleD(Sid::cipherTupletSlurshift);
+                distanc = _cipherHigth * score()->styleD(Sid::cipherTupletSlurdistans);
+                ecke = widthx * score()->styleD(Sid::cipherTupletSlurEcke);
+                uberhang = _cipherHigth * score()->styleD(Sid::cipherTupletSluruberhang);
+            }
+
+            double x1 = p1.x() - uberhang + shift;
+            double x2 = p1.x() + ecke + shift;
+            double x3 = p2.x() - ecke + shift;
+            double x4 = p2.x() + uberhang + shift;
+            double y1 = p1.y() + distanc;
+            double y2 = y1 + higth;
+            double y4 = p2.y() + distanc;
+            double y3 = y4 + higth;
+            _SlurPath = PainterPath();
+            _SlurPath.moveTo(x1, y1);
+            _SlurPath.cubicTo(x2, y2, x3, y3, x4, y4);
+        }
+    }
+
 
     // collect bounding box
     RectF r;
@@ -757,6 +848,15 @@ void Tuplet::draw(mu::draw::Painter* painter) const
             painter->drawPolyline(bracketL, 3);
             painter->drawPolyline(bracketR, 3);
         }
+    }
+    if (_hasSlur) {
+
+        Pen pen(curColor());
+        pen.setCapStyle(PenCapStyle::RoundCap);
+        pen.setJoinStyle(PenJoinStyle::RoundJoin);
+        pen.setWidthF(_bracketWidth.val());
+        painter->setPen(pen);
+        painter->drawPath(_SlurPath);
     }
 }
 

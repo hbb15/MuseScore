@@ -43,6 +43,7 @@ public:
     EngravingItem* elementBase() const override;
 
     void setHookType(int v);
+    void setCipherHookDimension(qreal widht, qreal higth) { _cipherLineWidht = widht; _cipherHigth = higth; }
     int hookType() const { return _hookType; }
     void layout() override;
     void draw(mu::draw::Painter*) const override;
@@ -55,6 +56,12 @@ public:
 
 private:
     int _hookType { 0 };
+
+    double _cipherLineWidht;
+    double _cipherLineThick;
+    double _cipherLineSpace;
+    double _cipherHigthLine;
+    double _cipherHigth;
 };
 } // namespace mu::engraving
 #endif

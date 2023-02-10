@@ -762,6 +762,7 @@ static const auto& mappingByCategory(const mpe::SoundCategory category)
         { { mpe::SoundId::Choir,  { mpe::SoundSubCategory::Mezzo_Soprano } }, { midi::Program(0, 52) } },
         { { mpe::SoundId::Choir,  { mpe::SoundSubCategory::Counter_Tenor } }, { midi::Program(0, 52) } },
         { { mpe::SoundId::Choir,  { mpe::SoundSubCategory::Alto } }, { midi::Program(0, 52) } },
+        { { mpe::SoundId::Choir,  { mpe::SoundSubCategory::Alto_Cipher } }, { midi::Program(0, 52) } },
         { { mpe::SoundId::Choir,  { mpe::SoundSubCategory::Contra_Alto } }, { midi::Program(0, 52) } },
         { { mpe::SoundId::Choir,  { mpe::SoundSubCategory::Tenor } }, { midi::Program(0, 52) } },
         { { mpe::SoundId::Choir,  { mpe::SoundSubCategory::Baritone } }, { midi::Program(0, 52) } },

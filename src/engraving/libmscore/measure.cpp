@@ -3822,6 +3822,10 @@ void Measure::addSystemHeader(bool isFirstSystem)
         }
 
         needKeysig = needKeysig && (keyIdx.key() != Key::C || keyIdx.custom() || keyIdx.isAtonal());
+        if (staff && staff->isCipherStaff(tick())) {
+            needKeysig = true;
+        }
+
         bool isPitchedStaff = staff->isPitchedStaff(tick());
 
         if (needKeysig && isPitchedStaff) {
@@ -3926,6 +3930,9 @@ void Measure::createSystemBeginBarLine()
                 bl->setSpanStaff(true);
                 bl->layout();
                 s->add(bl);
+            }
+            else {
+                bl->layout();
             }
         }
         s->createShapes();

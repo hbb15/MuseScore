@@ -57,6 +57,7 @@ class SysStaff
     double _continuousDist { -1.0 }; // distance for continuous mode
     bool _show  { true };           // derived from Staff or false if empty
                                     // staff is hidden
+    double _distanceFirstStaff;
 public:
     //int idx     { 0    };
     std::vector<InstrumentName*> instrumentNames;
@@ -80,6 +81,9 @@ public:
 
     const Skyline& skyline() const { return _skyline; }
     Skyline& skyline() { return _skyline; }
+
+    void set_distanceFirstStaff(double h) { _distanceFirstStaff = h; }
+    double get_distanceFirstStaff() { return _distanceFirstStaff; }
 
     SysStaff() {}
     ~SysStaff();

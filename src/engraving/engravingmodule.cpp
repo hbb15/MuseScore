@@ -109,6 +109,7 @@ void EngravingModule::onInit(const framework::IApplication::RunMode& mode)
         s_engravingfonts->addFont("Petaluma",   "Petaluma",    ":/fonts/petaluma/Petaluma.otf");
         s_engravingfonts->addFont("Finale Maestro", "Finale Maestro", ":/fonts/finalemaestro/FinaleMaestro.otf");
         s_engravingfonts->addFont("Finale Broadway", "Finale Broadway", ":/fonts/finalebroadway/FinaleBroadway.otf");
+        s_engravingfonts->addFont("Cipher",      "Cipher",     ":/fonts/cipher/Cipher.ttf");
 
         s_engravingfonts->setFallbackFont("Bravura");
 
@@ -142,6 +143,7 @@ void EngravingModule::onInit(const framework::IApplication::RunMode& mode)
             ":/fonts/petaluma/PetalumaScript.otf",
             ":/fonts/finalemaestro/FinaleMaestroText.otf",
             ":/fonts/finalebroadway/FinaleBroadwayText.otf",
+            ":/fonts/cipher/Cipher.ttf",
         };
 
         std::shared_ptr<IFontProvider> fontProvider = ioc()->resolve<IFontProvider>("fonts");

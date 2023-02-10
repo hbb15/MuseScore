@@ -25,6 +25,7 @@
 
 #include "key.h"
 #include "engravingitem.h"
+#include "cipher.h"
 
 namespace mu::engraving {
 class Factory;
@@ -52,6 +53,24 @@ class KeySig final : public EngravingItem
 
     void addLayout(SymId sym, int line);
 
+    String _cipherString;
+    String _cipherNoteString;
+    RectF _cipherNoteRecht;
+    RectF _cipherNoteKlammerRecht;
+    RectF _cipherShape;
+    int _cipherAccidentalShift;
+    double _cipherNoteShift;
+    double _cipherHigth;
+    PointF _cipherPoint;
+    PointF _cipherNotePoint;
+    PointF _cipherNoteKlammerPoint;
+    PointF _cipherAccidentalPoint;
+    double _cipherReigthAdjust;
+    double _cipherLeftAdjust;
+    bool _cipherEnable;
+    bool _cipherDrawNote;
+    cipher _cipher;
+
     bool neverKernable() const override { return true; }
 
 public:
@@ -63,6 +82,9 @@ public:
     EngravingItem* drop(EditData&) override;
     void layout() override;
     double mag() const override;
+
+
+    void layout2();
 
     //@ sets the key of the key signature
     void setKey(Key);
@@ -101,6 +123,15 @@ public:
     EngravingItem* nextSegmentElement() override;
     EngravingItem* prevSegmentElement() override;
     String accessibleInfo() const override;
+
+    double cipherGetWidth(StaffType* cipher, String string) const;
+    double get_cipherReigthAdjust() { return _cipherReigthAdjust; }
+    double get_cipherLefthAdjust() { return _cipherLeftAdjust; }
+    void set_cipherNote(String note, int Accidental, qreal shift) {
+        _cipherNoteString = note;
+        _cipherAccidentalShift = Accidental;
+        _cipherNoteShift = shift;
+    }
 };
 } // namespace mu::engraving
 #endif

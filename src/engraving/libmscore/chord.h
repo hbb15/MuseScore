@@ -160,6 +160,7 @@ private:
 
     void layoutPitched();
     void layoutTablature();
+    void layoutCipher();
 
     bool shouldHaveStem() const;
     bool shouldHaveHook() const;
@@ -241,6 +242,7 @@ public:
     double maxHeadWidth() const;
 
     Note* findNote(int pitch, int skip = 0) const;
+    Note* findNoteBack(int pitch);
 
     Stem* stem() const { return _stem; }
     Arpeggio* arpeggio() const { return _arpeggio; }

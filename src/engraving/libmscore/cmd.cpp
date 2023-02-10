@@ -1729,6 +1729,7 @@ void Score::upDown(bool up, UpDownMode mode)
         }
         break;
         case StaffGroup::STANDARD:
+        case StaffGroup::CIPHER:
             switch (mode) {
             case UpDownMode::OCTAVE:
                 if (up) {
@@ -2014,6 +2015,8 @@ void Score::changeAccidental(Note* note, AccidentalType accidental)
     AccidentalVal acc = (accidental == AccidentalType::NONE) ? acc2 : Accidental::subtype2value(accidental);
 
     int pitch = line2pitch(note->line(), clef, Key::C) + int(acc);
+    if (note->staff()->isCipherStaff(chord->tick()))
+        pitch = note->get_cipherGroundPitch() + int(acc);
     if (!note->concertPitch()) {
         pitch += note->transposition();
     }
@@ -3516,7 +3519,7 @@ void Score::cmdSlashFill()
             int line = 0;
             bool error = false;
             NoteVal nv;
-            if (staff(staffIdx)->staffType(s->tick())->group() == StaffGroup::TAB) {
+            if (staff(staffIdx)->staffType(s->tick())->group() == StaffGroup::TAB || (staff(staffIdx)->staffType(s->tick())->group() == StaffGroup::CIPHER)) {
                 line = staff(staffIdx)->lines(s->tick()) / 2;
             } else {
                 line = staff(staffIdx)->middleLine(s->tick());             // staff(staffIdx)->lines() - 1;
@@ -4409,12 +4412,23 @@ void Score::cmdAddPitch(const EditData& ed, int note, bool addFlag, bool insert)
                 }
                 octave = curPitch / 12;
             }
+            if (staff(is.track() / VOICES)->isCipherStaff(is.tick())) {
+                cipher _cipher;
+                int delta = octave * 12 + tab[note] - curPitch - _cipher.get_cipherTrans(staff(is.track() / VOICES)->key(is.tick()));
+                if (delta > 6)
+                    --octave;
+                else if (delta < -6)
+                    ++octave;
+            }
+            else {
 
-            int delta = octave * 12 + tab[note] - curPitch;
-            if (delta > 6) {
-                --octave;
-            } else if (delta < -6) {
-                ++octave;
+                int delta = octave * 12 + tab[note] - curPitch;
+                if (delta > 6) {
+                    --octave;
+                }
+                else if (delta < -6) {
+                    ++octave;
+                }
             }
         }
     }

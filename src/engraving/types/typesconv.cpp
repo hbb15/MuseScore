@@ -1612,6 +1612,7 @@ static const std::vector<Item<BarLineType> > BARLINE_TYPES = {
     { BarLineType::END_REPEAT, "end-repeat" },
     { BarLineType::BROKEN, "dashed" },
     { BarLineType::END, "end" },
+    { BarLineType::BEGIN, "begin" },
     { BarLineType::END_START_REPEAT, "end-start-repeat" },
     { BarLineType::DOTTED, "dotted" },
     { BarLineType::REVERSE_END, "reverse-end" },
@@ -2275,10 +2276,11 @@ MarkerType TConv::fromXml(const AsciiStringView& tag, MarkerType def)
     return def;
 }
 
-static const std::array<Item<StaffGroup>, 3> STAFFGROUP_TYPES = { {
+static const std::array<Item<StaffGroup>, 4> STAFFGROUP_TYPES = { {
     { StaffGroup::STANDARD,     "pitched",    TranslatableString("engraving/staffgroup", "Standard") },
     { StaffGroup::PERCUSSION,   "percussion", TranslatableString("engraving/staffgroup", "Percussion") },
     { StaffGroup::TAB,          "tablature",  TranslatableString("engraving/staffgroup", "Tablature") },
+    { StaffGroup::CIPHER,       "cipher",     TranslatableString("engraving/staffgroup", "Cipher") },
 } };
 
 String TConv::translatedUserName(StaffGroup v)

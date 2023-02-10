@@ -23,6 +23,7 @@
 #define MU_ENGRAVING_LAYOUTLYRICS_H
 
 #include "layoutoptions.h"
+#include "layoutcontext.h"
 
 namespace mu::engraving {
 class Score;
@@ -34,6 +35,7 @@ public:
     LayoutLyrics() = default;
 
     static void layoutLyrics(const LayoutOptions& options, const Score* score, System* system);
+    static void LyricsLayout3(System*, LayoutContext&);
 };
 }
 #endif // MU_ENGRAVING_LAYOUTLYRICS_H

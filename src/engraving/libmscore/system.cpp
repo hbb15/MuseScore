@@ -58,6 +58,7 @@
 #include "systemdivider.h"
 #include "textframe.h"
 #include "tremolo.h"
+#include "timesig.h"
 
 #ifndef ENGRAVING_NO_ACCESSIBILITY
 #include "accessibility/accessibleitem.h"
@@ -912,6 +913,17 @@ void System::layout2(const LayoutContext& ctx)
         staffDistance       = score()->styleMM(Sid::minStaffSpread);
         akkoladeDistance    = score()->styleMM(Sid::minStaffSpread);
     }
+    double cipherTimesigStart = 0.0;
+    int cipherAnzalStaff = 0;
+    Staff* cipherFirstStaff = 0;
+    TimeSig* cipherTimesig = 0;
+    Fraction tickk = tick();
+    if (nextSegmentElement())
+        tickk = nextSegmentElement()->tick();
+    int si = firstVisibleSysStaff();
+    SysStaff* sfirstVisibleSysStaff = si < 0 ? nullptr : staff(si);
+    sfirstVisibleSysStaff->set_distanceFirstStaff(0);
+
 
     if (visibleStaves.empty()) {
         return;
@@ -923,6 +935,45 @@ void System::layout2(const LayoutContext& ctx)
         Staff* staff  = score()->staff(si1);
         auto ni       = std::next(i);
 
+        ss->set_distanceFirstStaff(y);
+        if (staff && staff->isCipherStaff(tickk)) {
+            cipherAnzalStaff++;
+            staffDistance = score()->styleMM(Sid::cipherMinStaffSpread);
+            if (cipherAnzalStaff == 1) {
+                cipherFirstStaff = staff;
+                cipherTimesig = cipherFirstStaff->nextTimeSig(tickk);
+                cipherTimesigStart = y;
+            }
+            else {
+
+                if (cipherAnzalStaff > 1) {
+                    TimeSig* sig = staff->nextTimeSig(tickk);
+                    while (sig) {
+                        sig->set_cipherVisible(false);
+                        sig = staff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
+                    }
+                }
+            }
+            if (cipherTimesig) {
+                cipherTimesig->set_cipherVisible(true);
+                cipherTimesig->setPosY((y - cipherTimesigStart) / 2);
+                cipherTimesig->set_cipherBarLinelength(y - cipherTimesigStart);
+                TimeSig* sig = cipherFirstStaff->nextTimeSig(tickk + Fraction::fromTicks(1));
+                while (sig) {
+                    sig->set_cipherVisible(true);
+                    sig->setPosY((y - cipherTimesigStart) / 2);
+                    sig->set_cipherBarLinelength(y - cipherTimesigStart);
+                    sig = cipherFirstStaff->nextTimeSig(sig->tick() + Fraction::fromTicks(1));
+                }
+            }
+
+        }
+        else {
+            cipherAnzalStaff = 0;
+            cipherFirstStaff = 0;
+            cipherTimesig = 0;
+            staffDistance = score()->styleMM(Sid::staffDistance);
+        }
         double dist = staff->height();
         double yOffset;
         double h;
