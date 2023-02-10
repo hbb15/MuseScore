@@ -66,6 +66,8 @@
 #include "tremolo.h"
 #include "undo.h"
 #include "utils.h"
+#include "cipher.h"
+#include "keysig.h"
 
 #ifndef ENGRAVING_NO_ACCESSIBILITY
 #include "accessibility/accessibleitem.h"
@@ -1120,7 +1122,13 @@ double Note::tabHeadWidth(const StaffType* tab) const
         mu::draw::Font f    = tab->fretFont();
         f.setPointSizeF(tab->fretFontSize());
         val  = mu::draw::FontMetrics::width(f, _fretString) * magS();
-    } else {
+    }
+    else if (tab && _fretString != "" && (staff()->isCipherStaff(chord()->tick()))) {
+
+        mu::draw::Font font = _cipher.getCipherFont();
+        val = mu::draw::FontMetrics::width(font, _fretString) * magS();
+    }
+    else {
         val = headWidth();
     }
     return val;
@@ -1440,6 +1448,45 @@ void Note::draw(mu::draw::Painter* painter) const
         painter->drawText(PointF(startPosX, tab->fretFontYOffset() * magS()), _fretString);
     }
     // NOT tablature
+    else if (staff() && staff()->isCipherStaff(chord()->tick())) {
+
+        mu::draw::Font font =_cipher.getCipherFont();
+        //font.setFamily(score()->styleSt(Sid::cipherFont), mu::draw::Font::Type::Undefined);
+        //font.setPointSizeF((score()->styleD(Sid::cipherFontSize) * spatium() * MScore::pixelRatio / SPATIUM20) * _trackthick);
+        font.setPointSizeF((font.pointSizeF() * MScore::pixelRatio));
+        painter->setFont(font);
+        painter->setPen(c);
+        painter->drawText(_cipherTextPos, _fretString);
+        if (_accidental || _drawFlat || _drawSharp) {
+            if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp) {
+                mu::draw::Font fontAccidental = _cipher.getCipherFont();
+                fontAccidental.setFamily(score()->styleSt(Sid::cipherAccidentalFont), mu::draw::Font::Type::Undefined);
+                fontAccidental.setPointSizeF(font.pointSizeF() * score()->styleD(Sid::cipherSizeSignSharp));
+                _cipher.drawShap(painter, _cipherAccidentalPos, fontAccidental);
+                //score()->scoreFont()->draw(SymId::cipherAccidentalSharp, painter,( score()->styleD(Sid::cipherSizeSignSharp)/100*_cipherHigth), _cipherAccidentalPos);
+            }
+            if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat) {
+                mu::draw::Font fontAccidental;
+                fontAccidental.setFamily(score()->styleSt(Sid::cipherAccidentalFont), mu::draw::Font::Type::Undefined);
+                fontAccidental.setPointSizeF(font.pointSizeF() * score()->styleD(Sid::cipherSizeSignFlat));
+                _cipher.drawFlat(painter, _cipherAccidentalPos, fontAccidental);
+                //score()->scoreFont()->draw(SymId::cipherAccidentalFlat, painter,( score()->styleD(Sid::cipherSizeSignFlat)/100*_cipherHigth),_cipherAccidentalPos);
+            }
+        }
+        if (_trackthick != 1.0) {
+            String begin = "(";
+            String ende = ")";
+            painter->drawText(_cipherKlammerPos, begin);
+            painter->drawText((PointF(_cipherTextPos.x() + _cipherWidth2, _cipherTextPos.y())), ende);
+        }
+        if (_cipher.debug()) {
+            //_cipher.drawRectF(painter, bbox(), mu::draw::Color(255, 0, 0));
+            _cipher.drawDebugg(painter);
+        }
+    }
+
+    // NOT tablature and cipher
+
     else {
         // skip drawing, if second note of a cross-measure value
         if (chord() && chord()->crossMeasure() == CrossMeasure::SECOND) {
@@ -2276,6 +2323,155 @@ void Note::setDotY(DirectionV pos)
 }
 
 //---------------------------------------------------------
+//   cipher_setKeysigNote
+//---------------------------------------------------------
+
+void Note::cipher_setKeysigNote(KeySig* sig)
+{
+    if (staff()->key(tick()) != staff()->key(tick() - Fraction::fromTicks(1)) && track() % 4 == 0) {
+        bool drawFlatTemp = _drawFlat;
+        bool drawSharpTemp = _drawSharp;
+
+        _drawFlat = false;
+        _drawSharp = false;
+        int numtransposeInterval = part()->instrument(chord()->tick())->transpose().chromatic;
+        int clefshift = get_cipherOktave();
+        int grundtonverschibung = _cipher.get_cipherTrans(staff()->key(tick() - Fraction::fromTicks(1)));
+        int zifferkomatik = ((_pitch + grundtonverschibung + numtransposeInterval) % 12) + 1;
+        String fretString = get_cipherString(zifferkomatik);
+        double fretStringYShift = ((_pitch + grundtonverschibung + numtransposeInterval) / 12 - 5 - clefshift) * _cipherHigth * score()->styleD(Sid::cipherDistanceOctave);
+        int accid = 0;
+        if (_drawFlat) {
+            accid--;
+        }
+        if (_drawSharp) {
+            accid++;
+        }
+
+        sig->set_cipherNote(fretString + (String)")", accid, fretStringYShift);
+        _drawFlat = drawFlatTemp;
+        _drawSharp = drawSharpTemp;
+    }
+
+}
+//---------------------------------------------------------
+//   get_cipher
+//---------------------------------------------------------
+
+String Note::get_cipherString(int numkro)
+{
+    switch (numkro) {
+    case 0:
+        return "7";
+    case 1:
+        return "1";
+    case 2:
+        return get_cipherString(numkro + setAccidentalTypeBack(-1));
+    case 3:
+        return "2";
+    case 4:
+        return get_cipherString(numkro + setAccidentalTypeBack(1));
+    case 5:
+        return "3";
+    case 6:
+        return "4";
+    case 7:
+        return get_cipherString(numkro + setAccidentalTypeBack(-1));
+    case 8:
+        return "5";
+    case 9:
+        return get_cipherString(numkro + setAccidentalTypeBack(-1));
+    case 10:
+        return "6";
+    case 11:
+        return get_cipherString(numkro + setAccidentalTypeBack(1));
+    case 12:
+        return "7";
+    case 13:
+        return "1";
+    default:
+        return "0";
+    }
+}
+//---------------------------------------------------------
+//   get_cipherGroundPitch
+//---------------------------------------------------------
+
+int Note::get_cipherGroundPitch() {
+    if (_drawSharp)
+        return _pitch - 1;
+    if (_drawFlat)
+        return _pitch + 1;
+    return _pitch;
+}
+//---------------------------------------------------------
+//   getAccidentalTypeBack
+//---------------------------------------------------------
+
+int Note::setAccidentalTypeBack(int defaultdirection) {
+    Note* n = 0;
+    int shift = defaultdirection;
+    if (staff() && chord()) {
+        n = chord()->findNoteBack(_pitch);
+    }
+    while (n != 0 && n->accidentalType() != AccidentalType::SHARP &&
+        n->accidentalType() != AccidentalType::FLAT) {
+        n = n->chord()->findNoteBack(_pitch);
+    }
+    if (n && n->accidentalType() != AccidentalType::NONE) {
+        if (n->accidentalType() == AccidentalType::SHARP) {
+            shift = -1;
+        }
+        if (n->accidentalType() == AccidentalType::FLAT) {
+            shift = 1;
+        }
+    }
+    if (shift == -1)
+        _drawSharp = true;
+    else
+        _drawFlat = true;
+    if (_accidental && _accidental->accidentalType() == AccidentalType::SHARP && _drawFlat) {
+        _drawFlat = false;
+        _accidental->setAccidentalType(AccidentalType::NONE);
+        shift = 1;
+    }
+    if (_accidental && _accidental->accidentalType() == AccidentalType::FLAT && _drawSharp) {
+        _drawSharp = false;
+        _accidental->setAccidentalType(AccidentalType::NONE);
+        shift = -1;
+    }
+    return shift;
+}
+//---------------------------------------------------------
+//   get_cipherDuration
+//---------------------------------------------------------
+
+String get_cipherDuration[16] = {
+      "","",",,",",","","","","","","","","","","","",""
+
+};
+//---------------------------------------------------------
+//   get_cipherDurationDot
+//---------------------------------------------------------
+
+String get_cipherDurationDot[3] = {
+      "",".",".."
+
+};
+//---------------------------------------------------------
+//   get_cipherOktave
+//---------------------------------------------------------voice.soprano
+int Note::get_cipherOktave() const {
+    String instname = part()->instrumentId(chord()->tick());
+    if (instname == "bass") {
+        return -1;
+    }
+    if (instname == "tenor") {
+        return -1;
+    }
+    return 0;
+}
+//---------------------------------------------------------
 //   layout
 //---------------------------------------------------------
 
@@ -2323,7 +2519,53 @@ void Note::layout()
         } else {
             bbox().setWidth(w);
         }
-    } else {
+    }
+    else if (staff() && staff()->isCipherStaff(chord()->tick())) {
+        StaffType* cipher = staff()->staffType(tick());
+
+        int accidentalshift = 0;
+        _drawFlat = false;
+        _drawSharp = false;
+        int numtransposeInterval = part()->instrument(chord()->tick())->transpose().chromatic;
+        if (_accidental) {
+            if (_accidental->accidentalType() == AccidentalType::SHARP) {
+                accidentalshift = -1;
+            }
+            if (_accidental->accidentalType() == AccidentalType::FLAT) {
+                accidentalshift = 1;
+            }
+        }
+        int clefshift = get_cipherOktave();
+        int grundtonverschibung = _cipher.get_cipherTrans(staff()->key(tick()));
+        int zifferkomatik = ((_pitch + grundtonverschibung + numtransposeInterval) % 12) + 1;
+        _fretString = get_cipherString(zifferkomatik + accidentalshift);
+        _cipherWidth = tabHeadWidth(cipher);
+        _fretString = _fretString +
+            get_cipherDuration[int(chord()->durationType().type())] +
+            get_cipherDurationDot[int(chord()->durationType().dots())];
+        _trackthick = 1.0;
+        if (track() % 4 > 0) {
+            _cipherWidth *= 0.7;
+            _trackthick = 0.7;
+        }
+        mu::draw::Font font=staff()->staffTypeForElement(this)->fretFont();
+        font.setFamily(score()->styleSt(Sid::cipherFont), mu::draw::Font::Type::Undefined);
+        font.setPointSizeF((score()->styleD(Sid::cipherFontSize) * magS()) * _trackthick);
+        _cipher.set_CipherFont(font);
+        _cipherWidth2 = tabHeadWidth(cipher);
+        _cipherLedgerline = ((_pitch + grundtonverschibung + accidentalshift + numtransposeInterval) / 12 - 5 - clefshift) / 2;
+        _fretStringYShift = ((_pitch + grundtonverschibung + accidentalshift + numtransposeInterval) / 12 - 5 - clefshift) * _cipherHigth * score()->styleD(Sid::cipherDistanceOctave);
+        setPosY(-_fretStringYShift);
+        double w = tabHeadWidth(cipher); // !! use _fretString
+        _cipherHigth = _cipher.textHeigth(_cipher.getCipherFont(), (String)"1234567890");
+        _cipher.set_relativeSize(_cipherHigth);
+        RectF stringbox = RectF(0.0, _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement),
+            w, _cipherHigth);
+        setbbox(stringbox); 
+        _cipher.set_Debugg(stringbox);
+        staff()->set_cipherHeight(_cipherHigth);
+    }
+    else {
         if (_deadNote) {
             setHeadGroup(NoteHeadGroup::HEAD_CROSS);
         } else if (_harmonic) {
@@ -2361,6 +2603,71 @@ void Note::layout2()
     // for standard staves this is done in Score::layoutChords3()
     // so that the results are available there
 
+    if (staff()->isCipherStaff(chord()->tick())) {
+        //adjustReadPos();
+        StaffType* cipher1 = staff()->staffType(tick());
+        bool paren = false;
+        _fretHidden = false;
+        if (tieBack() && !cipher1->showBackTied() && !_fretString.startsWith((String)"(")) {   // skip back-tied notes if not shown but between () if on another system
+            if (chord()->measure()->system() != tieBack()->startNote()->chord()->measure()->system() || el().size() > 0)
+                paren = true;
+            else
+                _fretHidden = true;
+        }
+        if (paren)
+            _fretString = String("(%1)").arg(_fretString);
+        double w = tabHeadWidth(cipher1); // !! use _fretString
+        RectF stringbox = RectF(0.0, _cipherHigth * -1 + _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement),
+            w, _cipherHigth);
+        setbbox(stringbox);
+        _cipher.set_Debugg(stringbox);
+        _cipherTextPos = PointF(0.0, _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement));
+        double ShapSize = _cipher.getCipherFont().pointSizeF() * score()->styleD(Sid::cipherSizeSignSharp);
+        double FlatSize = _cipher.getCipherFont().pointSizeF() * score()->styleD(Sid::cipherSizeSignFlat);
+        mu::draw::Font fontAccidental;
+        fontAccidental.setFamily(score()->styleSt(Sid::cipherAccidentalFont), mu::draw::Font::Type::Undefined);
+        if (_accidental || _drawFlat || _drawSharp) {
+            if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp) {
+                _cipherAccidentalPos = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignSharp),
+                    (_cipherHigth * score()->styleD(Sid::cipherHeigthSignSharp)));
+                fontAccidental.setPointSizeF(ShapSize);
+                addbbox(_cipher.bbox(fontAccidental, _cipherAccidentalPos, _cipher.shapString()));
+            }
+            if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat) {
+                _cipherAccidentalPos = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignFlat),
+                    (_cipherHigth * score()->styleD(Sid::cipherHeigthSignFlat)));
+                fontAccidental.setPointSizeF(FlatSize);
+                addbbox(_cipher.bbox(fontAccidental, _cipherAccidentalPos, _cipher.shapString()));
+            }
+        }
+        if (_trackthick != 1.0) {
+            double xK = _cipherTextPos.x();
+            if (_accidental || _drawFlat || _drawSharp) {
+                if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp) {
+                    _cipherAccidentalPos = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignSharp) * 0.7,
+                        (_cipherHigth * score()->styleD(Sid::cipherHeigthSignSharp)));
+                    fontAccidental.setPointSizeF(ShapSize);
+                    addbbox(_cipher.bbox(fontAccidental, _cipherAccidentalPos, _cipher.shapString()));
+                    xK = _cipherAccidentalPos.x();
+                }
+                if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat) {
+                    _cipherAccidentalPos = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignFlat) * 0.7,
+                        (_cipherHigth * score()->styleD(Sid::cipherHeigthSignFlat)));
+                    fontAccidental.setPointSizeF(FlatSize);
+                    addbbox(_cipher.bbox(fontAccidental, _cipherAccidentalPos, _cipher.shapString()));
+                    xK = _cipherAccidentalPos.x();
+                }
+            }
+            cipher n;
+            double wr = n.textWidth(_cipher.getCipherFont(), (String)"(");
+            _cipherKlammerPos = PointF(xK - wr, _cipherTextPos.y());
+
+            addbbox(RectF(_cipherKlammerPos.x(), _cipherKlammerPos.y() - _cipherHigth, wr, _cipherHigth));
+            addbbox(RectF(_cipherTextPos.x() + _cipherWidth, _cipherKlammerPos.y() - _cipherHigth, wr, _cipherHigth));
+        }
+
+    }
+
     int dots = chord()->dots();
     if (dots && !_dots.empty()) {
         double d  = score()->point(score()->styleS(Sid::dotNoteDistance)) * mag();
@@ -2380,6 +2687,19 @@ void Note::layout2()
         if (staff()->isTabStaff(chord()->tick())) {
             const Staff* st = staff();
             const StaffType* tab = st->staffTypeForElement(this);
+            if (tab->stemThrough()) {
+                // with TAB's, dot Y is not calculated during layoutChords3(),
+                // as layoutChords3() is not even called for TAB's;
+                // setDotY() actually also manages creation/deletion of NoteDot's
+                setDotY(DirectionV::AUTO);
+
+                // use TAB default note-to-dot spacing
+                dd = STAFFTYPE_TAB_DEFAULTDOTDIST_X * spatium();
+                d = dd * 0.5;
+            }
+        }
+        else if (staff()->isCipherStaff(chord()->tick())) {
+            StaffType* tab = staff()->staffType(tick());
             if (tab->stemThrough()) {
                 // with TAB's, dot Y is not calculated during layoutChords3(),
                 // as layoutChords3() is not even called for TAB's;
@@ -2413,6 +2733,10 @@ void Note::layout2()
                 if (staff()->isTabStaff(chord()->tick())) {
                     const Staff* st = staff();
                     const StaffType* tab = st->staffTypeForElement(this);
+                    w = tabHeadWidth(tab);
+                }
+                else if (staff()->isCipherStaff(chord()->tick())) {
+                    StaffType* tab = staff()->staffType(tick());
                     w = tabHeadWidth(tab);
                 }
 

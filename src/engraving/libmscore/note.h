@@ -37,6 +37,7 @@
 #include "shape.h"
 #include "symbol.h"
 #include "types.h"
+#include "cipher.h"
 
 namespace mu::engraving {
 class Factory;
@@ -247,6 +248,20 @@ private:
 
     String _fretString;
 
+    double _fretStringYShift;
+    double _cipherWidth;
+    double _cipherWidth2;
+    double _cipherHigth;
+    double _trackthick = 1.0;
+    PointF _cipherAccidentalPos;
+    PointF _cipherTextPos;
+    PointF _cipherKlammerPos;
+    cipher _cipher = cipher();
+    int _cipherLedgerline;
+    bool _fretHidden = false;
+    bool _drawFlat = false;
+    bool _drawSharp = false;
+
     friend class Factory;
     Note(Chord* ch = 0);
     Note(const Note&, bool link = false);
@@ -347,6 +362,15 @@ public:
     void setFixed(bool v) { _fixed = v; }
     int fixedLine() const { return _fixedLine; }
     void setFixedLine(int v) { _fixedLine = v; }
+
+    void cipher_setKeysigNote(KeySig* sig);
+    double fretStringYShift() const { return _fretStringYShift; }
+    double get_cipherWidth() { return _cipherWidth; }
+    double get_cipherWidth2() { return _cipherWidth2; }
+    double get_cipherHigth() { return _cipherHigth; }
+    int get_cipherLedgerline() { return _cipherLedgerline; }
+    int get_cipherGroundPitch();
+    cipher getCipher() { return _cipher; }
 
     int tpc() const;
     int tpc1() const { return _tpc[0]; }                  // non transposed tpc
@@ -492,6 +516,10 @@ public:
     PropertyValue getProperty(Pid propertyId) const override;
     bool setProperty(Pid propertyId, const PropertyValue&) override;
     PropertyValue propertyDefault(Pid) const override;
+
+    String get_cipherString(int numkro);
+    int setAccidentalTypeBack(int defaultdirection);
+    int get_cipherOktave() const;
 
     bool mark() const { return _mark; }
     void setMark(bool v) const { _mark = v; }

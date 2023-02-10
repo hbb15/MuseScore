@@ -81,6 +81,7 @@ class Tie final : public SlurTie
 
     static Note* editStartNote;
     static Note* editEndNote;
+    double _cipherHigth;
 
 private:
     bool _isInside{ false };
@@ -114,6 +115,8 @@ public:
     const TieSegment* segmentAt(int n) const { return toTieSegment(Spanner::segmentAt(n)); }
 
     SlurTieSegment* newSlurTieSegment(System* parent) override { return new TieSegment(parent); }
+
+    double get_cipherHigth() { return _cipherHigth; }
 };
 } // namespace mu::engraving
 #endif

@@ -102,6 +102,8 @@ private:
     mu::draw::Color _color   { engravingConfiguration()->defaultColor() };
     Millimetre _userDist     { Millimetre(0.0) };           ///< user edited extra distance
 
+    qreal _cipherHigth;
+
     StaffTypeList _staffTypeList;
 
     std::map<int, int> _channelList[VOICES];
@@ -216,6 +218,8 @@ public:
     void setBarLineFrom(int val) { _barLineFrom = val; }
     void setBarLineTo(int val) { _barLineTo = val; }
     double height() const override;
+    void set_cipherHeight(qreal h) { _cipherHigth = h; }
+    qreal get_cipherHeight() { return _cipherHigth; }
 
     int channel(const Fraction&, voice_idx_t voice) const;
 
@@ -250,6 +254,7 @@ public:
     bool isPitchedStaff(const Fraction&) const;
     bool isTabStaff(const Fraction&) const;
     bool isDrumStaff(const Fraction&) const;
+    bool isCipherStaff(const Fraction&) const;
 
     int lines(const Fraction&) const;
     void setLines(const Fraction&, int lines);

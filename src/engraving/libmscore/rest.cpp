@@ -45,6 +45,7 @@
 #include "staff.h"
 #include "stafftype.h"
 #include "undo.h"
+#include "cipher.h"
 
 #include "log.h"
 
@@ -113,11 +114,50 @@ void Rest::hack_toRestType()
 }
 
 //---------------------------------------------------------
+//   get_cipherDuration
+//---------------------------------------------------------
+
+String get_cipherDurationRest[16] = {
+      "","",",,",",","","","","","","","","","","",",,",""
+
+};
+//---------------------------------------------------------
+//   get_cipherDurationDot
+//---------------------------------------------------------
+
+String get_cipherDurationDotRest[3] = {
+      "",".",".."
+
+};
+
+//---------------------------------------------------------
 //   Rest::draw
 //---------------------------------------------------------
 
 void Rest::draw(mu::draw::Painter* painter) const
 {
+    if (staff() && staff()->isCipherStaff(tick())) {
+
+        Color c(curColor());
+        painter->setPen(c);
+
+        mu::draw::Font font = _cipher.getCipherFont();
+        font.setPointSizeF(font.pointSizeF() * MScore::pixelRatio );
+        painter->setFont(font);
+        painter->setPen(c);
+        painter->drawText(PointF(0, _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement)), _fretString);
+
+        painter->setPen(mu::draw::Pen::Pen(curColor(), _cipherLineThick));
+        for (int i = 0; i < qAbs(durationType().hooks()); ++i) {
+
+            painter->drawLine(LineF(_cipherLineWidht / 2 - (_cipherLineWidht * score()->styleD(Sid::cipherWideLine)) / 2, _cipherHigthLine + (i * _cipherLineSpace),
+                _cipherLineWidht / 2 + (_cipherLineWidht * score()->styleD(Sid::cipherWideLine)) / 2, _cipherHigthLine + (i * _cipherLineSpace)));
+        }
+        if (_cipher.debug()) {
+            _cipher.drawDebugg(painter);
+        }
+        return;
+    }
     TRACE_OBJ_DRAW;
     if (shouldNotBeDrawn()) {
         return;
@@ -388,6 +428,34 @@ void Rest::layout()
         }
     }
 
+    if (staff() && staff()->isCipherStaff(tick())) {
+
+        setPos(0.0, 0.0);             // no rest is drawn: reset any position might be set for it
+        mu::draw::Font font = staff()->staffTypeForElement(this)->fretFont();
+        font.setFamily(score()->styleSt(Sid::cipherFont), mu::draw::Font::Type::Undefined);
+        font.setPointSizeF(score()->styleD(Sid::cipherFontSize) * magS());
+        _cipher.set_CipherFont(font);
+        _fretString = "0";
+        _cipherHigth = _cipher.textHeigth(_cipher.getCipherFont(), _fretString);
+        _cipherLineWidht = _cipher.textWidth(_cipher.getCipherFont(), _fretString);
+        _fretString = _fretString +
+            get_cipherDurationRest[int(durationType().type())] +
+            get_cipherDurationDotRest[int(durationType().dots())];
+        _cipherWidht = _cipher.textWidth(_cipher.getCipherFont(), _fretString);
+
+        staff()->set_cipherHeight(_cipherHigth);
+        _cipherLineThick = _cipherHigth * score()->styleD(Sid::cipherThickLine);
+        _cipherLineSpace = _cipherHigth * (score()->styleD(Sid::cipherDistanceBetweenLines) * -1);
+        _cipherHigthLine = _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement) - _cipherHigth - _cipherHigth * score()->styleD(Sid::cipherHeigthLine);
+        qreal distance = _cipherWidht * score()->styleD(Sid::cipherRestDistanc);
+        RectF hookbox = RectF(0.0 - distance / 2, (_cipherHigthLine)+((qAbs(durationType().hooks()) - 1) * _cipherLineSpace) - _cipherLineThick,
+            _cipherWidht + distance, (_cipherHigth * score()->styleD(Sid::cipherHeightDisplacement) + ((_cipherHigthLine)+((qAbs(durationType().hooks()) - 1) * _cipherLineSpace) - _cipherLineThick) * -1));
+        setbbox(hookbox);
+        _cipher.set_Debugg(hookbox);
+        return;
+
+
+    }
     m_dotline = Rest::getDotline(durationType().type());
 
     double yOff       = offset().y();
@@ -1196,5 +1264,17 @@ bool Rest::shouldNotBeDrawn() const
 Sid Rest::getPropertyStyle(Pid pid) const
 {
     return ChordRest::getPropertyStyle(pid);
+}
+
+//---------------------------------------------------------
+//   cipherWidth
+//---------------------------------------------------------
+
+double Rest::cipherGetWidthRest(StaffType* cipher1, String string) const
+{
+    mu::draw::Font font;
+    font.setFamily(score()->styleSt(Sid::cipherFont), mu::draw::Font::Type::Undefined);
+    font.setPointSizeF(score()->styleD(Sid::cipherFontSize));
+    return _cipher.textWidth(font, string);
 }
 }

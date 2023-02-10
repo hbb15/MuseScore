@@ -61,6 +61,8 @@ void NoteDot::draw(mu::draw::Painter* painter) const
     } else if (rest() && rest()->isGap()) {  // don't draw dot for gap rests
         return;
     }
+    if (staff()->isCipherStaff(tick()))
+        return;
     Note* n = note();
     Fraction tick = n ? n->chord()->tick() : rest()->tick();
     // always draw dot for non-tab

@@ -465,6 +465,7 @@ System* LayoutSystem::collectSystem(const LayoutOptions& options, LayoutContext&
 
     layoutSystemElements(options, ctx, score, system);
     system->layout2(ctx);     // compute staff distances
+    LayoutLyrics::LyricsLayout3(system, ctx);
     for (MeasureBase* mb : system->measures()) {
         mb->layoutCrossStaff();
     }
@@ -1067,12 +1068,12 @@ void LayoutSystem::layoutSystemElements(const LayoutOptions& options, LayoutCont
     LayoutLyrics::layoutLyrics(options, score, system);
 
     // here are lyrics dashes and melisma
-    for (Spanner* sp : score->unmanagedSpanners()) {
-        if (sp->tick() >= etick || sp->tick2() <= stick) {
-            continue;
-        }
-        sp->layoutSystem(system);
-    }
+    //for (Spanner* sp : score->unmanagedSpanners()) {
+    //    if (sp->tick() >= etick || sp->tick2() <= stick) {
+    //        continue;
+    //    }
+    //    sp->layoutSystem(system);
+    //}
 
     //
     // We need to known if we have FretDiagrams in the system to decide when to layout the Harmonies

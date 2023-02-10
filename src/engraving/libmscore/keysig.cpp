@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SPDX-License-Identifier: GPL-3.0-only
  * MuseScore-CLA-applies
  *
@@ -34,6 +34,9 @@
 #include "segment.h"
 #include "staff.h"
 #include "system.h"
+#include "note.h"
+#include "chord.h"
+#include "cipher.h"
 
 #include "log.h"
 
@@ -59,6 +62,28 @@ KeySig::KeySig(const KeySig& k)
     _sig          = k._sig;
     _hideNaturals = false;
 }
+
+//---------------------------------------------------------
+//   getCipherString
+//---------------------------------------------------------
+String CipherString[15][2] = {
+      {"H-Dur  a=♭7","gis-Moll  a=♭7"},
+      {"Fis-Dur  a=♭3","es-Moll  a=♭3"},
+      {"Cis-Dur  a=♯5","B-Moll  a=♯5"},
+      {"As-Dur  a=♯1","f-Moll  a=♯1"},
+      {"Es-Dur  a=♯4","c-Moll  a=♯4"},
+      {"B-Dur  a=7","g-Moll  a=7"},
+      {"F-Dur  a=3","d-moll  a=3"},
+      {"C-Dur  a=6","a-Moll  a=6"},
+      {"G-Dur  a=2","e-Moll  a=2"},
+      {"D-Dur  a=5","h-Moll  a=5"},
+      {"A-Dur  a=1","fis-Moll  a=1"},
+      {"E-Dur  a=4","cis-Moll  a=4"},
+      {"H-Dur  a=♭7","gis-Moll  a=♭7"},
+      {"Fis-Dur  a=♭3","es-Moll  a=♭3"},
+      {"Cis-Dur  a=♯5","B-Moll  a=♯5"}
+
+};
 
 //---------------------------------------------------------
 //   mag
@@ -139,6 +164,116 @@ void KeySig::layout()
             // no clef found, so get the clef type from the clefs list, using the previous tick
             clef = staff()->clef(tick() - Fraction::fromTicks(1));
         }
+    }
+
+    _cipherLeftAdjust = 0.0;
+    _cipherReigthAdjust = 0.0;
+
+    if (staff() && staff()->isCipherStaff(tick())) {
+        double wds = 0.0;
+        StaffType* cipher = staff()->staffType(tick());
+        _cipherHigth = cipher->fretBoxH() * magS() * score()->styleD(Sid::cipherKeySigSize);
+        if (!segment()->isKeySigAnnounceType()) {
+
+            //rxpos() = 0.0;
+            if ((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx()) < 1) {
+                _cipherEnable = enabled();
+                setEnabled(false);
+                addLayout(SymId::accidentalSharp, (ClefInfo::lines(clef)[0]));
+
+                int sigMode = int(_sig.mode()) - 1;
+                if (sigMode < 0 || sigMode > 2)
+                    sigMode = 0;
+                _cipherString = CipherString[int(_sig.key()) + 7][sigMode];
+                _cipherLeftAdjust = _cipherHigth * -score()->styleD(Sid::cipherKeySigHorizontalShift);
+                _cipherPoint = PointF(_cipherLeftAdjust, _cipherHigth * -score()->styleD(Sid::cipherKeySigHigth));
+                wds = cipherGetWidth(cipher, _cipherString);
+                RectF denRect = RectF(_cipherPoint.x(), _cipherPoint.y() - _cipherHigth, wds, _cipherHigth);
+                setbbox(denRect);
+            }
+            else {
+
+                setbbox(RectF());
+            }
+        }
+        _cipherDrawNote = _showCourtesy && !tick().isZero();
+        if (_cipherDrawNote) {
+            if (_cipherDrawNote && segment()->isKeySigType()) {
+                Segment* seg = segment()->next();
+                while (seg && !seg->isChordRestType()) {
+                    seg = seg->next();
+                }
+                if (seg && seg->element(track())->isChord()) {
+                    Chord* cd = toChord(seg->element(track()));
+                    if (cd && cd->upNote()) {
+                        cd->upNote()->cipher_setKeysigNote(this);
+                    }
+                }
+            }
+            if (segment()->isKeySigAnnounceType()) {
+
+                if (measure() && measure()->nextMeasure()) {
+                    Segment* seg = measure()->nextMeasure()->first();
+                    while (seg && !seg->isChordRestType()) {
+                        seg = seg->next();
+                    }
+                    if (seg && seg->element(track())->isChord()) {
+                        Chord* cd = toChord(seg->element(track()));
+                        if (cd) {
+                            cd->upNote()->cipher_setKeysigNote(this);
+                        }
+                    }
+                }
+            }
+            if (_cipherNoteString != "") {
+
+                _cipherNotePoint = PointF(0.0, _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement) - _cipherNoteShift);
+                _cipherNoteRecht = RectF(_cipherNotePoint.x(), _cipherNotePoint.y() - _cipherHigth, cipherGetWidth(cipher, _cipherNoteString), _cipherHigth);
+                addbbox(_cipherNoteRecht);
+                double wd = cipherGetWidth(cipher, (String)"(");
+                if (_cipherAccidentalShift != 0) {
+                    if (_cipherAccidentalShift == 1) {
+                        _cipherAccidentalPoint = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignSharp) * 0.7,
+                            (_cipherHigth * score()->styleD(Sid::cipherHeigthSignSharp)) - _cipherNoteShift);
+                        addbbox(symBbox(SymId::cipherAccidentalSharp).translated(_cipherAccidentalPoint));
+                    }
+                    if (_cipherAccidentalShift == -1) {
+                        _cipherAccidentalPoint = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignFlat) * 0.7,
+                            (_cipherHigth * score()->styleD(Sid::cipherHeigthSignFlat)) - _cipherNoteShift);
+                        addbbox(symBbox(SymId::cipherAccidentalFlat).translated(_cipherAccidentalPoint));
+                    }
+                    _cipherNoteKlammerPoint = PointF(_cipherAccidentalPoint.x() - wd, _cipherNotePoint.y());
+                }
+                else {
+                    _cipherNoteKlammerPoint = PointF(_cipherNotePoint.x() - wd, _cipherNotePoint.y());
+
+                }
+                _cipherNoteKlammerRecht = RectF(_cipherNoteKlammerPoint.x(), _cipherNoteKlammerPoint.y() - _cipherHigth, wd, _cipherHigth);
+                addbbox(_cipherNoteKlammerRecht);
+                _cipherShape = RectF(_cipherNoteKlammerPoint.x() - _cipherHigth * score()->styleD(Sid::cipherKeysigNoteDistancLeft),
+                    _cipherNoteKlammerPoint.y() - _cipherHigth,
+                    _cipherNotePoint.x() - _cipherNoteKlammerPoint.x() + _cipherNoteRecht.width() +
+                    _cipherHigth * score()->styleD(Sid::cipherKeysigNoteDistancLeft) +
+                    _cipherHigth * score()->styleD(Sid::cipherKeysigNoteDistancReigth), _cipherHigth);
+                _cipherReigthAdjust = wds - _cipherShape.width();
+                addbbox(_cipherShape);
+                if (_cipherReigthAdjust < 0.0) {
+                    _cipherReigthAdjust = 0.0;
+                }
+            }
+            else {
+                _cipherShape = RectF();
+                _cipherReigthAdjust = wds;
+                //rxpos()=get_cipherXpos() + _cipherHigth*-score()->styleD(Sid::cipherKeySigHorizontalShift);
+            }
+        }
+        else {
+
+            _cipherShape = RectF();
+            _cipherReigthAdjust = _cipherHigth * score()->styleD(Sid::cipherNoteDistanc);
+        }
+        _cipher.set_Debugg(bbox());
+        return;
     }
 
     int t1 = int(_sig.key());
@@ -353,11 +488,75 @@ void KeySig::layout()
 }
 
 //---------------------------------------------------------
+//   layout2
+//    called after system layout; set vertical dimensions
+//---------------------------------------------------------
+
+void KeySig::layout2() {
+
+    if (staff() && staff()->isCipherStaff(tick())) {
+        setPosY(0.0);
+        setEnabled(_cipherEnable);
+
+    }
+}
+
+
+//---------------------------------------------------------
 //   set
 //---------------------------------------------------------
 
 void KeySig::draw(mu::draw::Painter* painter) const
 {
+    if (staff() && staff()->isCipherStaff(tick())) {
+
+
+        if (!segment()->isKeySigAnnounceType()) {
+
+            if ((tick().isZero() || staff()->key(tick() - Fraction::fromTicks(1)) != _sig.key()) && staff() && (staff()->idx()) < 1) {
+
+                mu::draw::Font font;
+                font.setFamily(score()->styleSt(Sid::cipherKeySigFont), mu::draw::Font::Type::Undefined);
+                font.setPointSizeF(score()->styleD(Sid::cipherFontSize) * spatium() * score()->styleD(Sid::cipherKeySigSize) * MScore::pixelRatio / SPATIUM20);
+                mu::draw::Color c(curColor());
+                painter->setFont(font);
+                painter->setPen(c);
+                painter->drawText(_cipherPoint, _cipherString);
+            }
+        }
+        if (_cipherDrawNote) {
+
+            StaffType* tab = staff()->staffType(tick());
+            mu::draw::Font font;
+            font.setFamily(score()->styleSt(Sid::cipherFont), mu::draw::Font::Type::Undefined);
+            font.setPointSizeF((tab->fretFontSize() * spatium() * MScore::pixelRatio / SPATIUM20));
+            painter->setFont(font);
+            painter->setPen(curColor());
+            painter->drawText(_cipherNotePoint, _cipherNoteString);
+            painter->drawText(_cipherNoteKlammerPoint, (String)"(");
+            if (_cipherAccidentalShift != 0) {
+                cipher cipher;
+                if (_cipherAccidentalShift == 1) {
+                    mu::draw::Font fontAccidental;
+                    fontAccidental.setFamily(score()->styleSt(Sid::cipherAccidentalFont), mu::draw::Font::Type::Undefined);
+                    fontAccidental.setPointSizeF((score()->styleD(Sid::cipherFontSize) * score()->styleD(Sid::cipherSizeSignSharp) * spatium() * MScore::pixelRatio / SPATIUM20));
+                    cipher.drawShap(painter, _cipherAccidentalPoint, fontAccidental);
+                }
+                if (_cipherAccidentalShift == -1) {
+                    mu::draw::Font fontAccidental;
+                    fontAccidental.setFamily(score()->styleSt(Sid::cipherAccidentalFont), mu::draw::Font::Type::Undefined);
+                    fontAccidental.setPointSizeF((score()->styleD(Sid::cipherFontSize) * score()->styleD(Sid::cipherSizeSignFlat) * spatium() * MScore::pixelRatio / SPATIUM20));
+                    cipher.drawFlat(painter, _cipherAccidentalPoint, fontAccidental);
+                }
+            }
+
+        }
+        _cipher.drawDebugg(painter);
+        return;
+    }
+
+    // NOT cipher
+
     TRACE_OBJ_DRAW;
     using namespace mu::draw;
     painter->setPen(curColor());
@@ -806,4 +1005,26 @@ String KeySig::accessibleInfo() const
     String keySigType = TConv::translatedUserName(key(), isAtonal(), isCustom());
     return String(u"%1: %2").arg(EngravingItem::accessibleInfo(), keySigType);
 }
+
+
+//---------------------------------------------------------
+//   cipherWidth
+//---------------------------------------------------------
+
+double KeySig::cipherGetWidth(StaffType* cipher1, String string) const
+{
+    
+    double val;
+    if (cipher1) {
+        mu::draw::Font font;
+        font.setFamily(score()->styleSt(Sid::cipherKeySigFont), mu::draw::Font::Type::Undefined);
+        font.setPointSizeF(score()->styleD(Sid::cipherFontSize) * score()->styleD(Sid::cipherKeySigSize));
+        cipher cip;
+        val = cip.textWidth(font, string);
+    }
+    else
+        val = 5.0;
+    return val;
+}
+
 }

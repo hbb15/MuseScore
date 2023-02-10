@@ -91,6 +91,7 @@ class Slur final : public SlurTie
     friend class Factory;
     Slur(EngravingItem* parent);
     Slur(const Slur&);
+    double _cipherHigth;
 
 public:
     ~Slur() {}
@@ -121,6 +122,7 @@ public:
     const StemFloated& stemFloated() const { return _stemFloated; }
 
     SlurTieSegment* newSlurTieSegment(System* parent) override { return new SlurSegment(parent); }
+    double get_cipherHigth() { return _cipherHigth; }
 };
 } // namespace mu::engraving
 #endif

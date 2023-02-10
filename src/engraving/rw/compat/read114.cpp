@@ -1594,6 +1594,9 @@ static void readMeasure(Measure* m, int staffIdx, XmlReader& e, ReadContext& ctx
                         t = BarLineType::END;
                         break;
                     case 6:
+                        t = BarLineType::BEGIN;
+                        break;
+                    case 7:
                         t = BarLineType::END_START_REPEAT;
                         break;
                     }

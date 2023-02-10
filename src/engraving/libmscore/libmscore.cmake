@@ -64,6 +64,8 @@ set(LIBMSCORE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/chordrest.h
     ${CMAKE_CURRENT_LIST_DIR}/chordtextlinebase.cpp
     ${CMAKE_CURRENT_LIST_DIR}/chordtextlinebase.h
+    ${CMAKE_CURRENT_LIST_DIR}/cipher.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cipher.h
     ${CMAKE_CURRENT_LIST_DIR}/clef.cpp
     ${CMAKE_CURRENT_LIST_DIR}/clef.h
     ${CMAKE_CURRENT_LIST_DIR}/cleflist.cpp

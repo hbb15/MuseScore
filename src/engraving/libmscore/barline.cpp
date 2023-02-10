@@ -84,6 +84,7 @@ static void undoChangeBarLineType(BarLine* bl, BarLineType barType, bool allStav
 
     switch (barType) {
     case BarLineType::END:
+    case BarLineType::BEGIN:
     case BarLineType::NORMAL:
     case BarLineType::DOUBLE:
     case BarLineType::BROKEN:
@@ -257,6 +258,7 @@ const std::vector<BarLineTableItem> BarLine::barLineTable {
     { BarLineType::END_REPEAT,       SymNames::userNameForSymId(SymId::repeatRight) },
     { BarLineType::BROKEN,           SymNames::userNameForSymId(SymId::barlineDashed) },
     { BarLineType::END,              SymNames::userNameForSymId(SymId::barlineFinal) },
+    { BarLineType::BEGIN,            SymNames::userNameForSymId(SymId::barlineStart) },
     { BarLineType::END_START_REPEAT, SymNames::userNameForSymId(SymId::repeatRightLeft) },
     { BarLineType::DOTTED,           SymNames::userNameForSymId(SymId::barlineDotted) },
     { BarLineType::REVERSE_END,      SymNames::userNameForSymId(SymId::barlineReverseFinal) },
@@ -474,6 +476,53 @@ void BarLine::getY() const
     double d  = st1->lineDistance().val() * spatium1;
     double yy = measure->staffLines(staffIdx1)->y1() - yp;
     double lw = score()->styleS(Sid::staffLineWidth).val() * spatium1 * .5;
+    if (staff()->isCipherStaff(tick)) {
+
+        bool spanStavesbefor = false;
+        int staffbefor = staffIdx1;
+        for (int i2 = staffIdx1 - 1; i2 >= 0; --i2) {
+            Staff* s = score()->staff(i2);
+            if (s && !s->isLinesInvisible(tick) && s->part()->show() && measure->visible(i2)) {
+                BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
+                if (nbl && nbl->spanStaff()) {
+                    spanStavesbefor = true;
+                    staffbefor = i2;
+                }
+                break;
+            }
+        }
+        for (int i2 = staffIdx1 + 1; i2 < nstaves; ++i2) {
+            Staff* s = score()->staff(i2);
+            if (s && !s->isLinesInvisible(tick) && s->part()->show() && measure->visible(i2)) {
+                BarLine* nbl = toBarLine(segment()->element(i2 * VOICES));
+                if (nbl && nbl->spanStaff()) {
+                    //spanStaves = true;
+                    staffIdx2 = i2;
+                }
+                break;
+            }
+        }
+        if (_spanStaff && staffIdx2) {
+            y1 = 0.0;
+            if (spanStavesbefor) {
+                y1 = -(yp - measure->staffLines(staffbefor)->y1()) * 0.5;
+            }
+
+            y2 = (measure->staffLines(staffIdx2)->y1() - yp) * 0.5;
+        }
+        else if (spanStavesbefor) {
+
+            y1 = -(yp - measure->staffLines(staffbefor)->y1()) * 0.5;
+
+            y2 = 0.0;
+        }
+        else {
+
+            y1 = -staff()->get_cipherHeight() * score()->styleD(Sid::cipherBarlineLength);
+            y2 = staff()->get_cipherHeight() * score()->styleD(Sid::cipherBarlineLength);
+        }
+        return;
+    }
     y1       = yy + from * d * .5 - lw;
     if (staffIdx2 != staffIdx1) {
         y2 = measure->staffLines(staffIdx2)->y1() - yp - to * d * .5;
@@ -618,6 +667,18 @@ void BarLine::draw(Painter* painter) const
     }
     break;
 
+    case BarLineType::BEGIN: {
+        qreal lw = score()->styleMM(Sid::barWidth) * mag();
+        painter->setPen(Pen(curColor(), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
+        qreal x = lw * .5;
+        painter->drawLine(LineF(x, y1, x, y2));
+
+        qreal lw2 = score()->styleMM(Sid::endBarWidth) * mag();
+        painter->setPen(Pen(curColor(), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
+        x -= score()->styleMM(Sid::endBarDistance) * mag();
+        painter->drawLine(LineF(x, y1, x, y2));
+    }
+                           break;
     case BarLineType::DOUBLE: {
         double lw = score()->styleMM(Sid::doubleBarWidth) * mag();
         painter->setPen(Pen(curColor(), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
@@ -1193,6 +1254,11 @@ double BarLine::layoutWidth() const
     case BarLineType::REVERSE_END:
         w = score()->styleMM(Sid::endBarWidth)
             + score()->styleMM(Sid::barWidth)
+            + score()->styleMM(Sid::endBarDistance);
+        break;
+    case BarLineType::BEGIN:
+        w = (score()->styleMM(Sid::endBarWidth)
+            + score()->styleMM(Sid::barWidth))
             + score()->styleMM(Sid::endBarDistance);
         break;
     case BarLineType::BROKEN:

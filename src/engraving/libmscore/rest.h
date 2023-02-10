@@ -27,6 +27,7 @@
 
 #include "chordrest.h"
 #include "notedot.h"
+#include "cipher.h"
 
 namespace mu::engraving {
 class TDuration;
@@ -39,6 +40,14 @@ class TDuration;
 class Rest : public ChordRest
 {
     OBJECT_ALLOCATOR(engraving, Rest)
+    String _fretString;
+    double _cipherWidht;
+    double _cipherLineWidht;
+    double _cipherLineThick;
+    double _cipherLineSpace;
+    double _cipherHigthLine;
+    double _cipherHigth;
+    cipher _cipher;
 public:
 
     ~Rest() { DeleteAll(m_dots); }
@@ -72,6 +81,7 @@ public:
 
     void read(XmlReader&) override;
     void write(XmlWriter& xml) const override;
+    double cipherGetWidthRest(StaffType* cipher, String string)const;
 
     SymId getSymbol(DurationType type, int line, int lines,  int* yoffset);
 

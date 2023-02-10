@@ -34,6 +34,8 @@
 
 #include "log.h"
 
+#include "staff.h"
+
 using namespace mu;
 using namespace mu::engraving;
 
@@ -376,7 +378,7 @@ void Accidental::layout()
 
     // TODO: remove Accidental in layout()
     // don't show accidentals for tab or slash notation
-    if (onTabStaff() || (note() && note()->fixed())) {
+    if ((staff() && score()->staff(staffIdx())->isCipherStaff(tick()))  || onTabStaff() || (note() && note()->fixed())) {
         setbbox(RectF());
         return;
     }
@@ -524,7 +526,7 @@ void Accidental::draw(mu::draw::Painter* painter) const
 {
     TRACE_OBJ_DRAW;
     // don't show accidentals for tab or slash notation
-    if (onTabStaff() || (note() && note()->fixed())) {
+    if ((staff() && score()->staff(staffIdx())->isCipherStaff(tick())) || onTabStaff() || (note() && note()->fixed())) {
         return;
     }
 

@@ -421,6 +421,7 @@ public:
 
     bool isTabStaff() const { return _group == StaffGroup::TAB; }
     bool isDrumStaff() const { return _group == StaffGroup::PERCUSSION; }
+    bool isCipherStaff() const { return _group == StaffGroup::CIPHER; }
 
     bool isSimpleTabStaff() const;
     bool isCommonTabStaff() const;

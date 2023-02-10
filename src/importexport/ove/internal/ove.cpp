@@ -2614,6 +2614,10 @@ void Lyric::setVerse(int verse)
 {
     m_verse = verse;
 }
+void Lyric::setLYRICS_STAFF_SHIFT(int shift)
+{
+    m_LYRICS_STAFF_SHIFT = shift;
+}
 
 int Lyric::getVerse() const
 {

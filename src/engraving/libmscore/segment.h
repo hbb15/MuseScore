@@ -277,6 +277,8 @@ public:
     double minLeft() const;
     double minHorizontalDistance(Segment*, bool isSystemGap) const;
     double minHorizontalCollidingDistance(Segment* ns) const;
+    double cipherKeysigDistansAdjustReigth(const Segment* s) const;
+    double cipherKeysigDistansAdjustLeft(const Segment* s) const;
 
     double widthOffset() const { return _widthOffset; }
     void setWidthOffset(double w) { _widthOffset = w; }

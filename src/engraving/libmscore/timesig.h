@@ -27,6 +27,7 @@
 
 #include "groups.h"
 #include "sig.h"
+#include "cipher.h"
 
 namespace mu::engraving {
 class Segment;
@@ -54,6 +55,20 @@ class TimeSig final : public EngravingItem
 
     String _numeratorString;       // calculated from actualSig() if !customText
     String _denominatorString;
+
+    String _cipher_ns;
+    String _cipher_ds;
+    double cipherLineThick;
+    double _cipherXpos;
+    double _cipherHigthds;
+    double _cipherHigthns;
+    double _cipherBarLinelenght;
+    bool _cipherVisible;
+    bool _cipherBegin;
+    cipher _cipher;
+    LineF _cipherLine;
+    LineF _cipherBarLine;
+    RectF _cipherbox;
 
     SymIdList ns;
     SymIdList ds;
@@ -95,6 +110,7 @@ public:
     void write(XmlWriter& xml) const override;
     void read(XmlReader&) override;
     void layout() override;
+    void layout2();
 
     Fraction sig() const { return _sig; }
     void setSig(const Fraction& f, TimeSigType st = TimeSigType::NORMAL);
@@ -142,6 +158,14 @@ public:
     EngravingItem* nextSegmentElement() override;
     EngravingItem* prevSegmentElement() override;
     String accessibleInfo() const override;
+
+    double cipherGetWidth(StaffType* cipher, String string)const;
+    void set_cipherVisible(bool s) { _cipherVisible = s; }
+    bool get_cipherVisible() const { return _cipherVisible; }
+    void set_cipherXpos(double s) { _cipherXpos = s; }
+    double get_cipherXpos() const { return _cipherXpos; }
+    void set_cipherBarLinelength(double length) { _cipherBarLinelenght = length; }
+
 
 protected:
     void added() override;

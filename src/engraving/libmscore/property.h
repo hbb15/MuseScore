@@ -246,6 +246,7 @@ enum class Pid {
 
     SYLLABIC,
     LYRIC_TICKS,
+    LYRICS_STAFF_SHIFT,
     VOLTA_ENDING,
     LINE_VISIBLE,
     MAG,

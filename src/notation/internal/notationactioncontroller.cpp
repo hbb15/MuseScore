@@ -132,6 +132,28 @@ void NotationActionController::init()
     registerNoteAction("insert-a", NoteName::A, NoteAddingMode::InsertChord);
     registerNoteAction("insert-b", NoteName::B, NoteAddingMode::InsertChord);
 
+    registerNoteAction("cipher-1",         NoteName::C, NoteAddingMode::InsertChord);
+    registerNoteAction("cipher-2",         NoteName::D, NoteAddingMode::InsertChord);
+    registerNoteAction("cipher-3",         NoteName::E, NoteAddingMode::InsertChord);
+    registerNoteAction("cipher-4",         NoteName::F, NoteAddingMode::InsertChord);
+    registerNoteAction("cipher-5",         NoteName::G, NoteAddingMode::InsertChord);
+    registerNoteAction("cipher-6",         NoteName::A, NoteAddingMode::InsertChord);
+    registerNoteAction("cipher-7",         NoteName::B, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherchord-1",    NoteName::C, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherchord-2",    NoteName::D, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherchord-3",    NoteName::E, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherchord-4",    NoteName::F, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherchord-5",    NoteName::G, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherchord-6",    NoteName::A, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherchord-7",    NoteName::B, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherinsert-1",   NoteName::C, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherinsert-2",   NoteName::D, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherinsert-3",   NoteName::E, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherinsert-4",   NoteName::F, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherinsert-5",   NoteName::G, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherinsert-6",   NoteName::A, NoteAddingMode::InsertChord);
+    registerNoteAction("cipherinsert-7",   NoteName::B, NoteAddingMode::InsertChord);
+
     registerAction("next-text-element", &Controller::nextTextElement, &Controller::textNavigationAvailable);
     registerAction("prev-text-element", &Controller::prevTextElement, &Controller::textNavigationAvailable);
     registerAction("next-word", &Controller::nextWord, &Controller::textNavigationAvailable);

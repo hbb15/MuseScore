@@ -1548,11 +1548,13 @@ public:
     QString getLyric() const;
 
     void setVerse(int verse);
+    void setLYRICS_STAFF_SHIFT(int shift);
     int getVerse() const;
 
 private:
     QString m_lyric;
     int m_verse;
+    int m_LYRICS_STAFF_SHIFT;
 };
 
 class Slur : public MusicData, public PairEnds

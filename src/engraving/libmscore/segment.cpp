@@ -2681,9 +2681,45 @@ double Segment::minHorizontalDistance(Segment* ns, bool systemHeaderGap) const
         w += ns->extraLeadingSpace().val() * spatium();
     }
 
+    if (ns->isKeySigType())
+        w -= cipherKeysigDistansAdjustReigth(this);
     return w;
 }
 
+//---------------------------------------------------------
+//   cipherKeysigDistansAdjustReigth
+//    fuer cipher staff ziet den uberstand von Keysig ab
+//---------------------------------------------------------
+
+double Segment::cipherKeysigDistansAdjustReigth(const Segment* s) const {
+    double w = 0.0;
+    if (s && s->isKeySigType()) {
+        for (EngravingItem* e : s->elist()) {
+            if (e && e->isKeySig()) {
+
+                w = qMax(w, toKeySig(e)->get_cipherReigthAdjust());
+            }
+        }
+    }
+    return w;
+}
+//---------------------------------------------------------
+//   cipherKeysigDistansAdjustLeft
+//    fuer cipher staff ziet den uberstand von Keysig ab
+//---------------------------------------------------------
+
+double Segment::cipherKeysigDistansAdjustLeft(const Segment* s) const {
+    double w = 0.0;
+    if (s && s->isKeySigType()) {
+        for (EngravingItem* e : s->elist()) {
+            if (e && e->isKeySig()) {
+
+                w = qMax(w, toKeySig(e)->get_cipherLefthAdjust());
+            }
+        }
+    }
+    return w;
+}
 //------------------------------------------------------
 // shortestChordRest()
 // returns the shortest chordRest of a segment. IMPORTANT:

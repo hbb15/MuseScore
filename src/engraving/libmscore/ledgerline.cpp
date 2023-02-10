@@ -79,6 +79,12 @@ double LedgerLine::measureXPos() const
 
 void LedgerLine::layout()
 {
+    if (staff() && staff()->isCipherStaff(chord()->tick())) {
+        setColor(staff()->staffType(tick())->color());
+        qreal w2 = _width * .5;
+        bbox().setRect(-w2, -w2, _len + _width, _width);
+        return;
+    }
     setLineWidth(score()->styleMM(Sid::ledgerLineWidth) * chord()->mag());
     if (staff()) {
         setColor(staff()->staffType(tick())->color());
@@ -103,6 +109,11 @@ void LedgerLine::layout()
 
 void LedgerLine::draw(mu::draw::Painter* painter) const
 {
+    if (staff() && staff()->isCipherStaff(chord()->tick())) {
+        painter->setPen(mu::draw::Pen(curColor(), _width));
+        painter->drawLine(LineF(0.0, 0.0, _len, 0.0));
+        return;
+    }
     TRACE_OBJ_DRAW;
     using namespace mu::draw;
     if (chord()->crossMeasure() == CrossMeasure::SECOND) {

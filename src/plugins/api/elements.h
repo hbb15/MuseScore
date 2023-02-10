@@ -303,6 +303,7 @@ class EngravingItem : public mu::plugins::api::ScoreElement
     API_PROPERTY(slurUoff4,               SLUR_UOFF4)
     API_PROPERTY(staffMove,               STAFF_MOVE)
     API_PROPERTY(verse,                   VERSE)
+    API_PROPERTY(LYRICS_STAFF_SHIFT,      LYRICS_STAFF_SHIFT)
     API_PROPERTY(syllabic,                SYLLABIC)
     API_PROPERTY(lyricTicks,              LYRIC_TICKS)
     API_PROPERTY(volta_ending,            VOLTA_ENDING)
