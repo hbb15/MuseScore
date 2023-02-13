@@ -43,7 +43,7 @@ public:
 
 private:
     PropertyItem* m_verse = nullptr;
-    PropertyItem* m_LYRICS_STAFF_SHIFT = nullptr;
+    PropertyItem* m_staffshift = nullptr;
 };
 }
 
