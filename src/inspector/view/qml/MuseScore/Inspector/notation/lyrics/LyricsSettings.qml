@@ -35,15 +35,14 @@ Column {
 
     property NavigationPanel navigationPanel: null
     property int navigationRowStart: 1
-    property int navigationSchiftStart: 1
+    property int navigationSchiftStart: 0
 
     objectName: "LyricsSettings"
 
-    spacing: 12
+    spacing: 24
 
     function focusOnFirst() {
         setVerse.focusOnFirst()
-        setLYRICS_STAFF_SHIFT.focusOnFirst()
     }
 
     SpinBoxPropertyView {
@@ -62,11 +61,11 @@ Column {
     SpinBoxPropertyView {
         id: setLYRICS_STAFF_SHIFT
         titleText: qsTrc("inspector", "Set Lyrics shift")
-        propertyItem: root.model ? root.model.LYRICS_STAFF_SHIFT : null
+        propertyItem: root.model ? root.model.staffshift : null
 
         decimals: 0
         step: 1
-        minValue: 1
+        minValue: 0
 
         navigationName: "SpanFrom"
         navigationPanel: root.navigationPanel
