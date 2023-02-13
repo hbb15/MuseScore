@@ -85,7 +85,6 @@ static void undoChangeBarLineType(BarLine* bl, BarLineType barType, bool allStav
 
     switch (barType) {
     case BarLineType::END:
-    case BarLineType::BEGIN:
     case BarLineType::NORMAL:
     case BarLineType::DOUBLE:
     case BarLineType::BROKEN:
@@ -259,7 +258,6 @@ const std::vector<BarLineTableItem> BarLine::barLineTable {
     { BarLineType::END_REPEAT,       SymNames::userNameForSymId(SymId::repeatRight) },
     { BarLineType::BROKEN,           SymNames::userNameForSymId(SymId::barlineDashed) },
     { BarLineType::END,              SymNames::userNameForSymId(SymId::barlineFinal) },
-    { BarLineType::BEGIN,            SymNames::userNameForSymId(SymId::barlineStart) },
     { BarLineType::END_START_REPEAT, SymNames::userNameForSymId(SymId::repeatRightLeft) },
     { BarLineType::DOTTED,           SymNames::userNameForSymId(SymId::barlineDotted) },
     { BarLineType::REVERSE_END,      SymNames::userNameForSymId(SymId::barlineReverseFinal) },
@@ -668,18 +666,6 @@ void BarLine::draw(Painter* painter) const
     }
     break;
 
-    case BarLineType::BEGIN: {
-        qreal lw = score()->styleMM(Sid::barWidth) * mag();
-        painter->setPen(Pen(curColor(), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        qreal x = lw * .5;
-        painter->drawLine(LineF(x, y1, x, y2));
-
-        qreal lw2 = score()->styleMM(Sid::endBarWidth) * mag();
-        painter->setPen(Pen(curColor(), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        x -= score()->styleMM(Sid::endBarDistance) * mag();
-        painter->drawLine(LineF(x, y1, x, y2));
-    }
-                           break;
     case BarLineType::DOUBLE: {
         double lw = score()->styleMM(Sid::doubleBarWidth) * mag();
         painter->setPen(Pen(curColor(), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
@@ -1211,11 +1197,6 @@ double BarLine::layoutWidth() const
     case BarLineType::REVERSE_END:
         w = score()->styleMM(Sid::endBarWidth)
             + score()->styleMM(Sid::barWidth)
-            + score()->styleMM(Sid::endBarDistance);
-        break;
-    case BarLineType::BEGIN:
-        w = (score()->styleMM(Sid::endBarWidth)
-            + score()->styleMM(Sid::barWidth))
             + score()->styleMM(Sid::endBarDistance);
         break;
     case BarLineType::BROKEN:

@@ -1612,7 +1612,6 @@ static const std::vector<Item<BarLineType> > BARLINE_TYPES = {
     { BarLineType::END_REPEAT, "end-repeat" },
     { BarLineType::BROKEN, "dashed" },
     { BarLineType::END, "end" },
-    { BarLineType::BEGIN, "begin" },
     { BarLineType::END_START_REPEAT, "end-start-repeat" },
     { BarLineType::DOTTED, "dotted" },
     { BarLineType::REVERSE_END, "reverse-end" },
