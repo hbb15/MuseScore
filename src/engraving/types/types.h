@@ -348,7 +348,6 @@ enum class BarLineType {
     BROKEN           = 0x10,
     DASHED           = BarLineType::BROKEN,
     END              = 0x20,
-    BEGIN            = 0x30,
     FINAL            = BarLineType::END,
     END_START_REPEAT = 0x40,
     LEFT_RIGHT_REPEAT= BarLineType::END_START_REPEAT,
