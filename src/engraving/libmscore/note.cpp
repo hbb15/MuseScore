@@ -1481,8 +1481,8 @@ void Note::draw(mu::draw::Painter* painter) const
             }
         }
         if (_trackthick != 1.0) {
-            String begin = "(";
-            String ende = ")";
+            String begin = (String)"(";
+            String ende = (String)")";
             painter->drawText(_cipherKlammerPos, begin);
             painter->drawText((PointF(_cipherTextPos.x() + _cipherWidth2, _cipherTextPos.y())), ende);
         }
@@ -2339,35 +2339,35 @@ String Note::get_cipherString(int numkro)
 {
     switch (numkro) {
     case 0:
-        return "7";
+        return (String)"7";
     case 1:
-        return "1";
+        return (String)"1";
     case 2:
         return get_cipherString(numkro + setAccidentalTypeBack(-1));
     case 3:
-        return "2";
+        return (String)"2";
     case 4:
         return get_cipherString(numkro + setAccidentalTypeBack(1));
     case 5:
-        return "3";
+        return (String)"3";
     case 6:
-        return "4";
+        return (String)"4";
     case 7:
         return get_cipherString(numkro + setAccidentalTypeBack(-1));
     case 8:
-        return "5";
+        return (String)"5";
     case 9:
         return get_cipherString(numkro + setAccidentalTypeBack(-1));
     case 10:
-        return "6";
+        return (String)"6";
     case 11:
         return get_cipherString(numkro + setAccidentalTypeBack(1));
     case 12:
-        return "7";
+        return (String)"7";
     case 13:
-        return "1";
+        return (String)"1";
     default:
-        return "0";
+        return (String)"0";
     }
 }
 //---------------------------------------------------------
@@ -2424,7 +2424,7 @@ int Note::setAccidentalTypeBack(int defaultdirection) {
 //---------------------------------------------------------
 
 String get_cipherDuration[16] = {
-      "","",",,",",","","","","","","","","","","","",""
+      (String)"",(String)"",(String)",,",(String)",",(String)"",(String)"",(String)"",(String)"",(String)"",(String)"",(String)"",(String)"",(String)"",(String)"",(String)"",(String)""
 
 };
 //---------------------------------------------------------
@@ -2432,7 +2432,7 @@ String get_cipherDuration[16] = {
 //---------------------------------------------------------
 
 String get_cipherDurationDot[3] = {
-      "",".",".."
+      (String)"",(String)".",(String)".."
 
 };
 //---------------------------------------------------------
