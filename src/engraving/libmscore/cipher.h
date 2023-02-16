@@ -25,8 +25,8 @@ namespace mu::engraving {
 
         qreal get_relativeSize() { return _relativeSize; }
         RectF bbox(mu::draw::Font font, PointF pos, String string);
-        String shapString() { return "♯"; }
-        String flatString() { return "♭"; }
+        String shapString() { return (String)"♯"; }
+        String flatString() { return (String)"♭"; }
         mu::draw::Font getCipherFont() const { return _cipherFont; }
 
 

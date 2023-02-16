@@ -67,21 +67,21 @@ KeySig::KeySig(const KeySig& k)
 //   getCipherString
 //---------------------------------------------------------
 String CipherString[15][2] = {
-      {"H-Dur  a=♭7","gis-Moll  a=♭7"},
-      {"Fis-Dur  a=♭3","es-Moll  a=♭3"},
-      {"Cis-Dur  a=♯5","B-Moll  a=♯5"},
-      {"As-Dur  a=♯1","f-Moll  a=♯1"},
-      {"Es-Dur  a=♯4","c-Moll  a=♯4"},
-      {"B-Dur  a=7","g-Moll  a=7"},
-      {"F-Dur  a=3","d-moll  a=3"},
-      {"C-Dur  a=6","a-Moll  a=6"},
-      {"G-Dur  a=2","e-Moll  a=2"},
-      {"D-Dur  a=5","h-Moll  a=5"},
-      {"A-Dur  a=1","fis-Moll  a=1"},
-      {"E-Dur  a=4","cis-Moll  a=4"},
-      {"H-Dur  a=♭7","gis-Moll  a=♭7"},
-      {"Fis-Dur  a=♭3","es-Moll  a=♭3"},
-      {"Cis-Dur  a=♯5","B-Moll  a=♯5"}
+      {(String)"H-Dur  a=♭7",(String)"gis-Moll  a=♭7"},
+      {(String)"Fis-Dur  a=♭3",(String)"es-Moll  a=♭3"},
+      {(String)"Cis-Dur  a=♯5",(String)"B-Moll  a=♯5"},
+      {(String)"As-Dur  a=♯1",(String)"f-Moll  a=♯1"},
+      {(String)"Es-Dur  a=♯4",(String)"c-Moll  a=♯4"},
+      {(String)"B-Dur  a=7",(String)"g-Moll  a=7"},
+      {(String)"F-Dur  a=3",(String)"d-moll  a=3"},
+      {(String)"C-Dur  a=6",(String)"a-Moll  a=6"},
+      {(String)"G-Dur  a=2",(String)"e-Moll  a=2"},
+      {(String)"D-Dur  a=5",(String)"h-Moll  a=5"},
+      {(String)"A-Dur  a=1",(String)"fis-Moll  a=1"},
+      {(String)"E-Dur  a=4",(String)"cis-Moll  a=4"},
+      {(String)"H-Dur  a=♭7",(String)"gis-Moll  a=♭7"},
+      {(String)"Fis-Dur  a=♭3",(String)"es-Moll  a=♭3"},
+      {(String)"Cis-Dur  a=♯5",(String)"B-Moll  a=♯5"}
 
 };
 
