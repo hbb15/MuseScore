@@ -2651,6 +2651,71 @@ void Note::layout2()
 
     }
 
+    if (staff()->isCipherStaff(chord()->tick())) {
+        //adjustReadPos();
+        StaffType* cipher1 = staff()->staffType(tick());
+        bool paren = false;
+        _fretHidden = false;
+        if (tieBack() && !cipher1->showBackTied() && !_fretString.startsWith((String)"(")) {   // skip back-tied notes if not shown but between () if on another system
+            if (chord()->measure()->system() != tieBack()->startNote()->chord()->measure()->system() || el().size() > 0)
+                paren = true;
+            else
+                _fretHidden = true;
+        }
+        if (paren)
+            _fretString = String("(%1)").arg(_fretString);
+        double w = tabHeadWidth(cipher1); // !! use _fretString
+        RectF stringbox = RectF(0.0, _cipherHigth * -1 + _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement),
+            w, _cipherHigth);
+        setbbox(stringbox);
+        _cipher.set_Debugg(stringbox);
+        _cipherTextPos = PointF(0.0, _cipherHigth * score()->styleD(Sid::cipherHeightDisplacement));
+        double ShapSize = _cipher.getCipherFont().pointSizeF() * score()->styleD(Sid::cipherSizeSignSharp);
+        double FlatSize = _cipher.getCipherFont().pointSizeF() * score()->styleD(Sid::cipherSizeSignFlat);
+        mu::draw::Font fontAccidental;
+        fontAccidental.setFamily(score()->styleSt(Sid::cipherAccidentalFont), mu::draw::Font::Type::Undefined);
+        if (_accidental || _drawFlat || _drawSharp) {
+            if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp) {
+                _cipherAccidentalPos = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignSharp),
+                    (_cipherHigth * score()->styleD(Sid::cipherHeigthSignSharp)));
+                fontAccidental.setPointSizeF(ShapSize);
+                addbbox(_cipher.bbox(fontAccidental, _cipherAccidentalPos, _cipher.shapString()));
+            }
+            if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat) {
+                _cipherAccidentalPos = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignFlat),
+                    (_cipherHigth * score()->styleD(Sid::cipherHeigthSignFlat)));
+                fontAccidental.setPointSizeF(FlatSize);
+                addbbox(_cipher.bbox(fontAccidental, _cipherAccidentalPos, _cipher.shapString()));
+            }
+        }
+        if (_trackthick != 1.0) {
+            double xK = _cipherTextPos.x();
+            if (_accidental || _drawFlat || _drawSharp) {
+                if ((_accidental && (_accidental->accidentalType() == AccidentalType::SHARP)) || _drawSharp) {
+                    _cipherAccidentalPos = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignSharp) * 0.7,
+                        (_cipherHigth * score()->styleD(Sid::cipherHeigthSignSharp)));
+                    fontAccidental.setPointSizeF(ShapSize);
+                    addbbox(_cipher.bbox(fontAccidental, _cipherAccidentalPos, _cipher.shapString()));
+                    xK = _cipherAccidentalPos.x();
+                }
+                if ((_accidental && (_accidental->accidentalType() == AccidentalType::FLAT)) || _drawFlat) {
+                    _cipherAccidentalPos = PointF(_cipherHigth * -score()->styleD(Sid::cipherDistanceSignFlat) * 0.7,
+                        (_cipherHigth * score()->styleD(Sid::cipherHeigthSignFlat)));
+                    fontAccidental.setPointSizeF(FlatSize);
+                    addbbox(_cipher.bbox(fontAccidental, _cipherAccidentalPos, _cipher.shapString()));
+                    xK = _cipherAccidentalPos.x();
+                }
+            }
+            cipher n;
+            double wr = n.textWidth(_cipher.getCipherFont(), (String)"(");
+            _cipherKlammerPos = PointF(xK - wr, _cipherTextPos.y());
+
+            addbbox(RectF(_cipherKlammerPos.x(), _cipherKlammerPos.y() - _cipherHigth, wr, _cipherHigth));
+            addbbox(RectF(_cipherTextPos.x() + _cipherWidth, _cipherKlammerPos.y() - _cipherHigth, wr, _cipherHigth));
+        }
+
+    }
+
     int dots = chord()->dots();
     if (dots && !_dots.empty()) {
         // if chords have notes with different mag, dots must still  align
@@ -2684,6 +2749,19 @@ void Note::layout2()
             // use TAB default note-to-dot spacing
             dd = STAFFTYPE_TAB_DEFAULTDOTDIST_X * spatium();
             d = dd * 0.5;
+        }
+        else if (staff()->isCipherStaff(chord()->tick())) {
+            StaffType* tab = staff()->staffType(tick());
+            if (tab->stemThrough()) {
+                // with TAB's, dot Y is not calculated during layoutChords3(),
+                // as layoutChords3() is not even called for TAB's;
+                // setDotY() actually also manages creation/deletion of NoteDot's
+                setDotY(DirectionV::AUTO);
+
+                // use TAB default note-to-dot spacing
+                dd = STAFFTYPE_TAB_DEFAULTDOTDIST_X * spatium();
+                d = dd * 0.5;
+            }
         }
         else if (staff()->isCipherStaff(chord()->tick())) {
             StaffType* tab = staff()->staffType(tick());
